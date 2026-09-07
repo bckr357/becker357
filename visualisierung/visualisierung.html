@@ -177,6 +177,11 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            user-select: none;
+        }
+
+        .spinner {
+            pointer-events: none;
         }
 
         /* Loading Spinner */
@@ -390,13 +395,28 @@
             "showAlgebraInput": false,
             "showResetIcon": true,
             "showStyleBar": false,
+            "showZoomButtons": false,
             "enableRightClick": false,
             "enableLabelDrags": false,
-            "enableShiftDragZoom": true,
+            "enableShiftDragZoom": false,
+            "enableMouseWheelZoom": false,
             "showToolBarHelp": false,
+            "showAlgebraInput": false,
+            "showInputBar": false,
+            "allowStyleBar": false,
+            "allowRescaling": false,
             "appletOnLoad": function() {
                 // Ausblenden des Spinners, wenn geladen
                 spinner.style.display = 'none';
+
+                try {
+                    const applet = document.getElementById('ggb-element');
+                    if (applet) {
+                        applet.setAttribute('aria-disabled', 'true');
+                    }
+                } catch (e) {
+                    // GeoGebra-Element nicht sofort verfügbar; keine harte Fehlermeldung
+                }
             }
         };
 

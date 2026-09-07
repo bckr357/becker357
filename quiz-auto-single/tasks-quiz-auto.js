@@ -1220,7 +1220,7 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 		case 'percent': {
 			let result;
 			let p, pVal;
-			let einheit = ['€', 'm', 'kg', 't', 'g', 'm²', 'm³', 'ha', 's', 'h'][randInt(0, 9)];
+			let einheit = ['€', 'm', 'kg', 't', 'g', 'm²', 'm³', 'ha', 's', 'h', 'l', 'cm', 'mm', 'km', 'dm'][randInt(0, 14)];
 			rd = Math.random();
 			if (rd > 0.5) {
 				pVal = rnd(2, 11) * 100;
@@ -1263,7 +1263,7 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 
 		case 'pv': {
 			let result;
-			let einheit = ['€', 'm', 'kg', 't', 'g', 'm²', 'm³', 'ha', 's', 'h'][randInt(0, 9)];
+			let einheit = ['€', 'm', 'kg', 't', 'g', 'm²', 'm³', 'ha', 's', 'h', 'l', 'cm', 'mm', 'km', 'dm'][randInt(0, 14)];
 			let p = [3, 4, 5, 6, 7, 10, 20, 25, 50][randInt(0, 8)];
 			let pVal = rnd(2, 11) * 100;
 			const pvType = randInt(0, 5); // 0: Erhöhung um p%, 1: Reduzierung um p%, 2: Erhöhung auf 100+p%, 3: Reduzierung auf 100-p%, 4: Rabatt-Fall 1, 5: Rabatt-Fall 2
@@ -2493,6 +2493,7 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				
 				textDisplay = `Welche Winkel bilden die Uhr-Zeiger um ${String(displayHour)}:00 Uhr?`;
 				s = `${String(displayHour)}:00 Uhr ➝ ${smallerAngle}° und ${largerAngle}°`;
+				answer = { kind: 'either', options: [smallerAngle, largerAngle] };
 				
 			} else if (mode === 1) {
 				// --- Kreisdiagramm ---
@@ -2502,12 +2503,14 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				
 				textDisplay = `Welchen Winkel haben ${p} % in einem Kreisdiagramm?`;
 				s = `10 % ≙ 36° &#x2192; ${p} % ≙ ${result}°`;
+				answer = numericAnswer(result);
 				
 			}  else  {
 				let a = rnd(25, 45), b = rnd(61, 129);
 				textPrint = `Dreieck mit Winkeln \\( \\alpha = ${a}° \\) und \\( \\beta = ${b}°. \\quad \\gamma = \\) ${blank(1.5)} `;
 				textDisplay = `Dreieck mit Winkeln \\( \\alpha = ${a}° \\) und \\( \\beta = ${b}°\\). Winkel \\(\\gamma \\)?`;
 				s = `\\( \\gamma \\) = 180° - ${a}° - ${b}\° = ${180 - a - b}°`;
+				answer = numericAnswer(180 - a - b);
 
 			} 
 			break;
@@ -2673,7 +2676,7 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 		}
 
 		case 'anteile': {
-			let einheit = ['€', 'm', 'kg', 't', 'g', 'm²', 'm³', 'ha', 's', 'h'][randInt(0, 9)];
+			let einheit = ['€', 'm', 'kg', 't', 'g', 'm²', 'm³', 'ha', 's', 'h', 'l', 'cm', 'mm', 'km', 'dm'][randInt(0, 14)];
 			let rd = Math.random();
 
 			// 1. Definition "schöner" Brüche (Zähler z, Nenner n)

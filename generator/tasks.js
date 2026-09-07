@@ -1371,7 +1371,7 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 
 		case 'percent':
 			let p, pVal;
-			let einheit = ['€', 'm', 'kg', 't', 'g', 'm²', 'm³', 'ha', 's', 'h'][randInt(0, 9)];
+			let einheit = ['€', 'm', 'kg', 't', 'g', 'm²', 'm³', 'ha', 's', 'h', 'l', 'cm', 'mm', 'km', 'dm'][randInt(0, 14)];
 			rd = Math.random();
 			if (rd > 0.5) {
 				pVal = rnd(2, 11) * 100;
@@ -1406,7 +1406,7 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 			break;
 
 		case 'pv': {
-			let einheit = ['€', 'm', 'kg', 't', 'g', 'm²', 'm³', 'ha', 's', 'h'][randInt(0, 9)];
+			let einheit = ['€', 'm', 'kg', 't', 'g', 'm²', 'm³', 'ha', 's', 'h', 'l', 'cm', 'mm', 'km', 'dm'][randInt(0, 14)];
 			let p = [3, 4, 5, 6, 7, 10, 20, 25, 50][randInt(0, 8)];
 			let pVal = rnd(2, 11) * 100;
 			type = randInt(0, 5); // 0: Erhöhung um p%, 1: Reduzierung um p%, 2: Erhöhung auf 100+p%, 3: Reduzierung auf 100-p%, 4: Rabatt-Fall 1, 5: Rabatt-Fall 2
@@ -3222,7 +3222,7 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 		}
 
 		case 'anteile': {
-			let einheit = ['€', 'm', 'kg', 't', 'g', 'm²', 'm³', 'ha', 's', 'h'][randInt(0, 9)];
+			let einheit = ['€', 'm', 'kg', 't', 'g', 'm²', 'm³', 'ha', 's', 'h', 'l', 'cm', 'mm', 'km', 'dm'][randInt(0, 14)];
 			let rd = Math.random();
 
 			// 1. Definition "schöner" Brüche (Zähler z, Nenner n)
