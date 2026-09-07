@@ -32,7 +32,7 @@ const taskCategories = {
 	fractions: ['frac_as', 'frac_md', 'frac_simplify', 'frac_convert', 'frac_order'],
 	percent: ['anteile', 'prop', 'percent', 'pv', 'units'],
 	algebra: ['terme', 'equations', 'equations_adv', 'formel_umstellen'],
-	geometry: ['geometry', 'winkel', 'schraegbild', 'kongruenz'],
+	geometry: ['geometry', 'winkel', 'schraegbild'],
 	functions: ['funktionen'],
 	statistics: ['statistik', 'wkt'],
 	advanced: ['teiler', 'primzahlen']
@@ -55,28 +55,28 @@ const taskTypesByGrade = {
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order',
 		'anteile', 'prop', 'percent', 'pv',
 		'terme', 'word_terms', 'equations', 'equations_lin', 'formel_umstellen',
-		'round', 'ueberschlag', 'geometry', 'winkel', 'schraegbild', 'kongruenz', 'statistik', 'wkt', 'linear_function'
+		'round', 'ueberschlag', 'geometry', 'winkel', 'schraegbild', 'statistik', 'wkt', 'linear_function'
 	],
 	klasse8: [
 		'teiler', 'primzahlen', 'units', 'potenzen', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag',
 		'anteile', 'prop', 'percent', 'pv',
 		'terme', 'word_terms', 'equations', 'equations_adv', 'equations_lin', 'formel_umstellen',
-		'geometry', 'winkel', 'schraegbild', 'kongruenz', 'statistik', 'wkt', 'linear_function'
+		'geometry', 'winkel', 'schraegbild', 'statistik', 'wkt', 'linear_function'
 	],
 	klasse9: [
 		'teiler', 'primzahlen', 'units', 'potenzen', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag',
 		'anteile', 'prop', 'percent', 'pv',
 		'terme', 'word_terms', 'equations', 'equations_adv', 'equations_lin', 'formel_umstellen',
-		'geometry', 'winkel', 'schraegbild', 'kongruenz', 'statistik', 'wkt', 'linear_function'
+		'geometry', 'winkel', 'schraegbild', 'statistik', 'wkt', 'linear_function'
 	],
 	klasse10: [
 		'teiler', 'primzahlen', 'units', 'potenzen', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag',
 		'anteile', 'prop', 'percent', 'pv',
 		'terme', 'word_terms', 'equations', 'equations_adv', 'equations_lin', 'formel_umstellen',
-		'geometry', 'winkel', 'schraegbild', 'kongruenz',
+		'geometry', 'winkel', 'schraegbild',
 		'statistik', 'wkt', 'linear_function', 'funktionen'
 	]
 };
@@ -97,21 +97,21 @@ const quizTaskTypesByGrade = {
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order',
 		'anteile', 'prop', 'percent', 'pv',
 		'terme', 'equations', 'equations_lin', 'formel_umstellen',
-		'round', 'ueberschlag', 'geometry', 'winkel', 'schraegbild', 'kongruenz', 'statistik', 'wkt'
+		'round', 'ueberschlag', 'geometry', 'winkel', 'schraegbild', 'statistik', 'wkt'
 	],
 	klasse8: [
 		'teiler', 'primzahlen', 'units', 'potenzen', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag',
 		'anteile', 'prop', 'percent', 'pv',
 		'terme', 'equations', 'equations_adv', 'equations_lin', 'formel_umstellen',
-		'geometry', 'winkel', 'schraegbild', 'kongruenz', 'statistik', 'wkt'
+		'geometry', 'winkel', 'schraegbild', 'statistik', 'wkt'
 	],
 	klasse9: [
 		'teiler', 'primzahlen', 'units', 'potenzen', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag',
 		'anteile', 'prop', 'percent', 'pv',
 		'terme', 'equations', 'equations_adv', 'equations_lin', 'formel_umstellen',
-		'geometry', 'winkel', 'schraegbild', 'kongruenz', 'statistik', 'wkt'
+		'geometry', 'winkel', 'schraegbild', 'statistik', 'wkt'
 	],
 	klasse10: [
 		'teiler', 'units', 'potenzen', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang', 'primzahlen',
@@ -178,7 +178,6 @@ const typeDefinitions = [
 	['geometry', 'A und u ebener Figuren', 'Flächeninhalte und Umfänge berechnen'],
 	['winkel', 'Winkel', 'Winkel zeichnen und berechnen'],
 	['schraegbild', 'Schrägbilder', 'Schrägbilder von Körpern zeichnen'],
-	['kongruenz', 'Kongruenzsätze', 'Dreiecke mit Kongruenzsätzen konstruieren'],
 
 	// Funktionen, Statistik & Wahrscheinlichkeiten
 	['wkt', 'Wahrscheinlichkeiten', 'Wahrscheinlichkeiten bestimmen'],
@@ -2513,165 +2512,6 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				answer = numericAnswer(180 - a - b);
 
 			} 
-			break;
-		}
-		
-		case 'kongruenz': {
-			// Permutation bleibt: Zuordnung von Seiten-/Winkelnamen wird zufaellig gemischt.
-			let p = [0, 1, 2];
-			for (let i = 2; i > 0; i--) {
-				const j = Math.floor(Math.random() * (i + 1));
-				[p[i], p[j]] = [p[j], p[i]];
-			}
-			
-			const type = randInt(0, 3); // 0: SSS, 1: SWS, 2: WSW, 3: SsW
-			const kongruenzsatz = ['SSS', 'SWS', 'WSW', 'SsW'][type];
-			const cm = (x) => formatDecimal(x, 1);
-			const pickDecNoZeroTenth = (minTenths, maxTenths) => {
-				let n;
-				do {
-					n = randInt(minTenths, maxTenths);
-				} while (n % 10 === 0);
-				return n / 10;
-			};
-
-			let givenStr = '';
-			let givenSides = [false, false, false];
-			let givenAngles = [false, false, false];
-			let s1, s2, s3, a1, a2, a3;
-			const deg = Math.PI / 180;
-			const computeTriangleHeight = (sides, angles, given) => {
-				const givenSideIndexes = [0, 1, 2].filter((i) => given[i]);
-				if (!givenSideIndexes.length) return 0;
-				const baseIndex = givenSideIndexes.reduce((maxIdx, idx) =>
-					sides[idx] > sides[maxIdx] ? idx : maxIdx,
-					givenSideIndexes[0]
-				);
-				if (baseIndex === 0) return sides[1] * Math.sin(angles[2] * deg);
-				if (baseIndex === 1) return sides[0] * Math.sin(angles[2] * deg);
-				if (baseIndex === 2) return sides[0] * Math.sin(angles[1] * deg);
-				return 0;
-			};
-			const buildGivenStr = () => {
-				const parts = [];
-				if (givenSides[0]) parts.push(`a=${cm(resS[0])}\\,\\text{cm}`);
-				if (givenSides[1]) parts.push(`b=${cm(resS[1])}\\,\\text{cm}`);
-				if (givenSides[2]) parts.push(`c=${cm(resS[2])}\\,\\text{cm}`);
-				if (givenAngles[0]) parts.push(`\\alpha=${resA[0]}^\\circ`);
-				if (givenAngles[1]) parts.push(`\\beta=${resA[1]}^\\circ`);
-				if (givenAngles[2]) parts.push(`\\gamma=${resA[2]}^\\circ`);
-				return parts.length ? `\\( \\; ${parts.join('; \\; ')} \\)` : '';
-			};
-
-			if (type === 0) {
-				// SSS
-				do {
-					s1 = pickDecNoZeroTenth(31, 69);
-					s2 = pickDecNoZeroTenth(31, 69);
-					const minS3 = Math.abs(s1 - s2) + 1.5;
-					const maxS3 = Math.min(s1 + s2 - 1.5, 10);
-					const minS3Tenths = Math.ceil(minS3 * 10);
-					const maxS3Tenths = Math.floor(maxS3 * 10);
-					if (minS3Tenths > maxS3Tenths) continue;
-					
-					s3 = pickDecNoZeroTenth(minS3Tenths, maxS3Tenths);
-					
-					a1 = Math.round(Math.acos((s2 * s2 + s3 * s3 - s1 * s1) / (2 * s2 * s3)) * 180 / Math.PI);
-					a2 = Math.round(Math.acos((s1 * s1 + s3 * s3 - s2 * s2) / (2 * s1 * s3)) * 180 / Math.PI);
-					a3 = 180 - a1 - a2;
-					givenSides = [true, true, true];
-					triangleHeight = computeTriangleHeight([s1, s2, s3], [a1, a2, a3], givenSides);
-				} while (Math.max(s1, s2, s3) > 9 || triangleHeight > 4 || triangleHeight < 2);
-
-			} else if (type === 1) {
-				// SWS
-				do {
-					givenSides = [false, false, false];
-					givenAngles = [false, false, false];
-					s1 = pickDecNoZeroTenth(31, 69);
-					s2 = pickDecNoZeroTenth(31, 69);
-					a3 = randInt(25, 125);
-					
-					s3 = Math.sqrt(s1 * s1 + s2 * s2 - 2 * s1 * s2 * Math.cos(a3 * Math.PI / 180));
-					a1 = Math.round(Math.acos((s2 * s2 + s3 * s3 - s1 * s1) / (2 * s2 * s3)) * 180 / Math.PI);
-					s3 = Math.round(s3 * 10) / 10;
-					a2 = 180 - a3 - a1;
-					givenSides[p[0]] = true;
-					givenSides[p[1]] = true;
-					givenAngles[p[2]] = true;
-					triangleHeight = computeTriangleHeight([s1, s2, s3], [a1, a2, a3], givenSides);
-				} while (Math.max(s1, s2, s3) > 9 || a2 <= 0 || triangleHeight > 4 || triangleHeight < 2);
-			} else if (type === 2) {
-				// WSW
-				do {
-					givenSides = [false, false, false];
-					givenAngles = [false, false, false];
-					s3 = pickDecNoZeroTenth(31, 69);
-					a1 = randInt(25, 50);
-					a2 = randInt(90, 120);
-					a3 = 180 - a1 - a2;
-					
-					s1 = Math.round((s3 * Math.sin(a1 * Math.PI / 180) / Math.sin(a3 * Math.PI / 180)) * 10) / 10;
-					s2 = Math.round((s3 * Math.sin(a2 * Math.PI / 180) / Math.sin(a3 * Math.PI / 180)) * 10) / 10;
-					givenSides[p[2]] = true;
-					givenAngles[p[0]] = true;
-					givenAngles[p[1]] = true;
-					triangleHeight = computeTriangleHeight([s1, s2, s3], [a1, a2, a3], givenSides);
-				} while (a3 < 10 || Math.max(s1, s2, s3) > 9 || triangleHeight > 4 || triangleHeight < 2);
-
-			} else {
-				// SsW
-				do {
-					givenSides = [false, false, false];
-					givenAngles = [false, false, false];
-					s1 = pickDecNoZeroTenth(51, 69);
-					s2 = pickDecNoZeroTenth(31, 49);
-					a1 = randInt(25, 110);
-					
-					const sinA2 = (s2 * Math.sin(a1 * Math.PI / 180)) / s1;
-					if (sinA2 >= 1 || sinA2 <= -1) {
-						a2 = NaN;
-						a3 = NaN;
-						s3 = NaN;
-						continue;
-					}
-
-					a2 = Math.round(Math.asin(sinA2) * 180 / Math.PI);
-					a3 = 180 - a1 - a2;
-					s3 = Math.round((s1 * Math.sin(a3 * Math.PI / 180) / Math.sin(a1 * Math.PI / 180)) * 10) / 10;
-					givenSides[p[0]] = true;
-					givenSides[p[1]] = true;
-					givenAngles[p[0]] = true;
-					triangleHeight = computeTriangleHeight([s1, s2, s3], [a1, a2, a3], givenSides);
-				} while (!Number.isFinite(s3) || a3 < 10 || Math.max(s1, s2, s3) > 9 || triangleHeight > 4 || triangleHeight < 2);
-
-			}
-
-			const resS = [], resA = [];
-			resS[p[0]] = s1; resS[p[1]] = s2; resS[p[2]] = s3;
-			resA[p[0]] = a1; resA[p[1]] = a2; resA[p[2]] = a3;
-
-			givenStr = buildGivenStr();
-
-			// Höhe des zu zeichnenden Dreiecks berechnen (bei längster gegebener Seite als Grundseite).
-			// Über Heron: A = sqrt(u(u-a)(u-b)(u-c)), dann h = 2A/g.
-			const sideA = resS[0], sideB = resS[1], sideC = resS[2];
-			const givenSideValues = [];
-			if (givenSides[0]) givenSideValues.push(sideA);
-			if (givenSides[1]) givenSideValues.push(sideB);
-			if (givenSides[2]) givenSideValues.push(sideC);
-			const base = givenSideValues.length ? Math.max(...givenSideValues) : Math.max(sideA, sideB, sideC);
-			const semi = (sideA + sideB + sideC) / 2;
-			const areaSq = semi * (semi - sideA) * (semi - sideB) * (semi - sideC);
-			const area = Math.sqrt(Math.max(0, areaSq));
-			const computedHeight = base > 0 ? (2 * area) / base : 0;
-			const reservedHeight = Number(computedHeight + 0.5).toFixed(1);
-			
-			textDisplay = `Skizziere eine Planfigur, zeichne und beschrifte das Dreieck und miss alle Größen: <br>${givenStr}`;
-			textPrint = `Skizziere eine Planfigur, zeichne und beschrifte das Dreieck und miss alle Größen: ${givenStr}${space(reservedHeight)}`;
-			s = `Kongruenzsatz ${kongruenzsatz}, alle Maße:<br>\\[ \\begin{aligned}
-				a &= ${cm(resS[0])}\\,\\text{cm}; &\\quad b &= ${cm(resS[1])}\\,\\text{cm}; &\\quad c &= ${cm(resS[2])}\\,\\text{cm} \\\\ \\alpha &= ${resA[0]}^\\circ; &\\quad \\beta &= ${resA[1]}^\\circ; &\\quad \\gamma &= ${resA[2]}^\\circ
-			\\end{aligned} \\]`;
 			break;
 		}
 
