@@ -8,14 +8,14 @@ const formatDecimal = formatUtils.formatDecimal;
 
 // Nur Aufgaben, die tatsächlich ein maschinenlesbares `answer`-Objekt liefern.
 const QUIZ_AUTO_DEFAULT_TYPES = [
-	'z_as', 'z_md', 'db_as', 'db_md', 'pow10',
+	'z_as', 'z_md', 'calc01', 'db_as', 'db_md', 'pow10',
 	'frac_as', 'frac_md', 'frac_simplify',
 	'percent', 'pv', 'units', 'round', 'geometry', 'anteile', 'wkt'
 ];
 
 // Alle automatisch auswertbaren Aufgabentypen.
 const QUIZ_AUTO_TYPES = [
-	'z_as', 'z_md', 'db_as', 'db_md', 'pow10',
+	'z_as', 'z_md', 'calc01', 'db_as', 'db_md', 'pow10',
 	'percent', 'pv', 'terme', 'equations', 'equations_adv', 'vorrang', 'round',
 	'potenzen', 'units', 'statistik', 'ueberschlag',
 	'frac_as', 'frac_md', 'frac_simplify', 'frac_convert', 'anteile', 'wkt',
@@ -28,7 +28,7 @@ if (typeof window !== 'undefined') {
 }
 
 const taskCategories = {
-	arithmetic: ['z_as', 'z_md', 'potenzen', 'db_as', 'db_md', 'pow10', 'round', 'ueberschlag', 'vorrang'],
+	arithmetic: ['z_as', 'z_md', 'calc01', 'potenzen', 'db_as', 'db_md', 'pow10', 'round', 'ueberschlag', 'vorrang'],
 	fractions: ['frac_as', 'frac_md', 'frac_simplify', 'frac_convert', 'frac_order'],
 	percent: ['anteile', 'prop', 'percent', 'pv', 'units'],
 	algebra: ['terme', 'equations', 'equations_adv', 'formel_umstellen'],
@@ -41,38 +41,38 @@ const taskCategories = {
 // Sichtbare Aufgabentypen je Klassenstufe (wird vom UI-Dropdown genutzt)
 const taskTypesByGrade = {
 	klasse5: [
-		'teiler', 'primzahlen', 'units', 'potenzen', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
+		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag',
 		'geometry', 'winkel', 'schraegbild', 'statistik'
 	],
 	klasse6: [
-		'teiler', 'primzahlen', 'units', 'potenzen', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
+		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag',
 		'anteile', 'percent', 'geometry', 'winkel', 'schraegbild', 'statistik', 'wkt'
 	],
 	klasse7: [
-		'teiler', 'primzahlen', 'units', 'potenzen', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
+		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order',
 		'anteile', 'prop', 'percent', 'pv',
 		'terme', 'word_terms', 'equations', 'equations_lin', 'formel_umstellen',
 		'round', 'ueberschlag', 'geometry', 'winkel', 'schraegbild', 'statistik', 'wkt', 'linear_function'
 	],
 	klasse8: [
-		'teiler', 'primzahlen', 'units', 'potenzen', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
+		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag',
 		'anteile', 'prop', 'percent', 'pv',
 		'terme', 'word_terms', 'equations', 'equations_adv', 'equations_lin', 'formel_umstellen',
 		'geometry', 'winkel', 'schraegbild', 'statistik', 'wkt', 'linear_function'
 	],
 	klasse9: [
-		'teiler', 'primzahlen', 'units', 'potenzen', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
+		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag',
 		'anteile', 'prop', 'percent', 'pv',
 		'terme', 'word_terms', 'equations', 'equations_adv', 'equations_lin', 'formel_umstellen',
 		'geometry', 'winkel', 'schraegbild', 'statistik', 'wkt', 'linear_function'
 	],
 	klasse10: [
-		'teiler', 'primzahlen', 'units', 'potenzen', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
+		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag',
 		'anteile', 'prop', 'percent', 'pv',
 		'terme', 'word_terms', 'equations', 'equations_adv', 'equations_lin', 'formel_umstellen',
@@ -83,38 +83,38 @@ const taskTypesByGrade = {
 
 const quizTaskTypesByGrade = {
 	klasse5: [
-		'teiler', 'primzahlen', 'units', 'potenzen', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
+		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag',
 		'geometry', 'winkel', 'schraegbild', 'statistik'
 	],
 	klasse6: [
-		'teiler', 'primzahlen', 'units', 'potenzen', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
+		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag',
 		'anteile', 'percent', 'geometry', 'winkel', 'schraegbild', 'statistik', 'wkt'
 	],
 	klasse7: [
-		'teiler', 'primzahlen', 'units', 'potenzen', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
+		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order',
 		'anteile', 'prop', 'percent', 'pv',
 		'terme', 'equations', 'equations_lin', 'formel_umstellen',
 		'round', 'ueberschlag', 'geometry', 'winkel', 'schraegbild', 'statistik', 'wkt'
 	],
 	klasse8: [
-		'teiler', 'primzahlen', 'units', 'potenzen', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
+		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag',
 		'anteile', 'prop', 'percent', 'pv',
 		'terme', 'equations', 'equations_adv', 'equations_lin', 'formel_umstellen',
 		'geometry', 'winkel', 'schraegbild', 'statistik', 'wkt'
 	],
 	klasse9: [
-		'teiler', 'primzahlen', 'units', 'potenzen', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
+		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag',
 		'anteile', 'prop', 'percent', 'pv',
 		'terme', 'equations', 'equations_adv', 'equations_lin', 'formel_umstellen',
 		'geometry', 'winkel', 'schraegbild', 'statistik', 'wkt'
 	],
 	klasse10: [
-		'teiler', 'units', 'potenzen', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang', 'primzahlen',
+		'teiler', 'units', 'calc01', 'potenzen', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang', 'primzahlen',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag',
 		'anteile', 'prop', 'percent', 'pv', 'terme', 'word_terms',
 		'equations', 'geometry', 'winkel', 'statistik', 'wkt'
@@ -143,6 +143,7 @@ const typeDefinitions = [
 	['units', 'Einheiten', 'Größen in verschiedene Einheiten umrechnen'],
 	
 	// Arithmetik: Ganze Zahlen, Dezimalbrüche, Stellenwerte
+	['calc01', 'Rechnen mit 0 & 1', 'Aufgaben mit 0 und 1 bei Multiplikation, Division und Potenzen'],
 	['potenzen', 'Potenzen und Wurzeln', 'Potenzen und Wurzeln berechnen'],
 	['z_as', 'Ganze Zahlen +/-', 'Ganze Zahlen addieren und subtrahieren'],
 	['z_md', 'Ganze Zahlen ×/÷', 'Ganze Zahlen multiplizieren und dividieren'],
@@ -317,6 +318,133 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 	let v1, v2;
 	let rd;
 	switch (type) {
+
+		case 'calc01': {
+			const allowNegative = grade >= 8;
+
+			const createCalc01Entry = () => {
+				let expr;
+				let solution;
+				let res;
+
+				const opCategory = randInt(0, 2);
+				const baseA = randInt(2, 30);
+				const isNegativeA = allowNegative && Math.random() < 0.45;
+				const a = isNegativeA ? -baseA : baseA;
+
+				if (opCategory === 0) {
+					// MULTIPLIKATION
+					const mulSubtypes = allowNegative ? [0, 1, 2, 3, 4, 5] : [0, 1, 2, 3];
+					const sub = mulSubtypes[randInt(0, mulSubtypes.length - 1)];
+
+					if (sub === 0) {
+						expr = `\\[ ${a < 0 ? fmt(a) : a} \\cdot 0 = \\]`;
+						res = 0;
+						solution = `\\[ ${a < 0 ? fmt(a) : a} \\cdot 0 = ${res} \\]`;
+					} else if (sub === 1) {
+						expr = `\\[ 0 \\cdot ${fmt(a)} = \\]`;
+						res = 0;
+						solution = `\\[ 0 \\cdot ${fmt(a)} = ${res} \\]`;
+					} else if (sub === 2) {
+						expr = `\\[ ${a < 0 ? fmt(a) : a} \\cdot 1 = \\]`;
+						res = a;
+						solution = `\\[ ${a < 0 ? fmt(a) : a} \\cdot 1 = ${res} \\]`;
+					} else if (sub === 3) {
+						expr = `\\[ 1 \\cdot ${fmt(a)} = \\]`;
+						res = a;
+						solution = `\\[ 1 \\cdot ${fmt(a)} = ${res} \\]`;
+					} else if (sub === 4) {
+						expr = `\\[ ${a < 0 ? fmt(a) : a} \\cdot (-1) = \\]`;
+						res = -a;
+						solution = `\\[ ${a < 0 ? fmt(a) : a} \\cdot (-1) = ${res} \\]`;
+					} else {
+						expr = `\\[ (-1) \\cdot ${fmt(a)} = \\]`;
+						res = -a;
+						solution = `\\[ (-1) \\cdot ${fmt(a)} = ${res} \\]`;
+					}
+				} else if (opCategory === 1) {
+					// DIVISION
+					const divSubtypes = allowNegative ? [0, 1, 2, 3, 4, 5] : [0, 1, 2];
+					const sub = divSubtypes[randInt(0, divSubtypes.length - 1)];
+
+					if (sub === 0) {
+						expr = `\\[ 0 : ${fmt(a)} = \\]`;
+						res = 0;
+						solution = `\\[ 0 : ${fmt(a)} = ${res} \\]`;
+					} else if (sub === 1) {
+						expr = `\\[ ${a < 0 ? fmt(a) : a} : 1 = \\]`;
+						res = a;
+						solution = `\\[ ${a < 0 ? fmt(a) : a} : 1 = ${res} \\]`;
+					} else if (sub === 2) {
+						expr = `\\[ ${a < 0 ? fmt(a) : a} : ${fmt(a)} = \\]`;
+						res = 1;
+						solution = `\\[ ${a < 0 ? fmt(a) : a} : ${fmt(a)} = ${res} \\]`;
+					} else if (sub === 3) {
+						expr = `\\[ ${a < 0 ? fmt(a) : a} : (-1) = \\]`;
+						res = -a;
+						solution = `\\[ ${a < 0 ? fmt(a) : a} : (-1) = ${res} \\]`;
+					} else if (sub === 4) {
+						expr = `\\[ ${a < 0 ? fmt(a) : a} : ${fmt(-a)} = \\]`;
+						res = -1;
+						solution = `\\[ ${a < 0 ? fmt(a) : a} : ${fmt(-a)} = ${res} \\]`;
+					} else {
+						expr = `\\[ ${fmt(-a)} : ${fmt(a)} = \\]`;
+						res = -1;
+						solution = `\\[ ${fmt(-a)} : ${fmt(a)} = ${res} \\]`;
+					}
+				} else {
+					// POTENZEN
+					const powSubtypes = allowNegative ? [0, 1, 2, 3, 4, 5, 6] : [0, 1, 2, 3];
+					const sub = powSubtypes[randInt(0, powSubtypes.length - 1)];
+
+					if (sub === 0) {
+						const base = a < 0 ? `(${a})` : `${a}`;
+						expr = `\\[ ${base}^0 = \\]`;
+						res = 1;
+						solution = `\\[ ${base}^0 = ${res} \\]`;
+					} else if (sub === 1) {
+						const base = a < 0 ? `(${a})` : `${a}`;
+						expr = `\\[ ${base}^1 = \\]`;
+						res = a;
+						solution = `\\[ ${base}^1 = ${res} \\]`;
+					} else if (sub === 2) {
+						const exp = randInt(1, 10);
+						expr = `\\[ 0^{${exp}} = \\]`;
+						res = 0;
+						solution = `\\[ 0^{${exp}} = ${res} \\]`;
+					} else if (sub === 3) {
+						const exp = [randInt(2, 20), randInt(50, 100)][randInt(0, 1)];
+						expr = `\\[ 1^{${exp}} = \\]`;
+						res = 1;
+						solution = `\\[ 1^{${exp}} = ${res} \\]`;
+					} else if (sub === 4) {
+						const evenExp = randInt(1, 10) * 2;
+						expr = `\\[ (-1)^{${evenExp}} = \\]`;
+						res = 1;
+						solution = `\\[ (-1)^{${evenExp}} = ${res} \\]`;
+					} else if (sub === 5) {
+						const oddExp = randInt(1, 10) * 2 + 1;
+						expr = `\\[ (-1)^{${oddExp}} = \\]`;
+						res = -1;
+						solution = `\\[ (-1)^{${oddExp}} = ${res} \\]`;
+					} else {
+						const isZeroExp = Math.random() < 0.5;
+						const exp = isZeroExp ? 0 : 1;
+						res = isZeroExp ? 1 : -baseA;
+						expr = `\\[ (-${baseA})^{${exp}} = \\]`;
+						solution = `\\[ (-${baseA})^{${exp}} = ${res} \\]`;
+					}
+				}
+
+				return { expr, solution, answer: numericAnswer(res) };
+			};
+
+			const entry = createCalc01Entry();
+			textDisplay = entry.expr;
+			s = entry.solution;
+			answer = entry.answer;
+			break;
+		}
 
 		case 'db_as': {
 			const allowNegativeDecimals = grade >= 7;
