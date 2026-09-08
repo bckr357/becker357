@@ -2477,6 +2477,7 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 			textDisplay = `Bestimme ${taskName}: <br>${displayData.join(', ')}`;
 			s = loesung;
 			answer = { kind: 'number', value: resultValue };
+			break;
 		}
 
 		case 'winkel': {
