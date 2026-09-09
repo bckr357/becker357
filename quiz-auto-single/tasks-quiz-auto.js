@@ -328,8 +328,8 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				let res;
 
 				const opCategory = randInt(0, 2);
-				const baseA = randInt(2, 30);
-				const isNegativeA = allowNegative && Math.random() < 0.45;
+				const baseA = randInt(2, 10);
+				const isNegativeA = allowNegative && Math.random() < 0.5;
 				const a = isNegativeA ? -baseA : baseA;
 
 				if (opCategory === 0) {

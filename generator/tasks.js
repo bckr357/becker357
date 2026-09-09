@@ -525,10 +525,9 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 
 				// Operation: 0 = Multiplikation, 1 = Division, 2 = Potenzen
 				const opCategory = randInt(0, 2);
-
-				// Basis-Zahl a würfeln (2 bis 30)
-				const baseA = randInt(2, 30);
-				const isNegativeA = allowNegative && Math.random() < 0.45;
+				// Basis-Zahl a würfeln (2 bis 10)
+				const baseA = randInt(2, 10);
+				const isNegativeA = allowNegative && Math.random() < 0.5;
 				const a = isNegativeA ? -baseA : baseA;
 
 				if (opCategory === 0) {
