@@ -7,7 +7,7 @@ const comma = formatUtils.comma;
 const formatDecimal = formatUtils.formatDecimal;
 
 const taskCategories = {
-	arithmetic: ['z_as', 'z_md', 'calc01', 'potenzen', 'schriftlich_as', 'schriftlich_md', 'db_as', 'db_md', 'pow10', 'round', 'ueberschlag', 'zahlengerade', 'vorrang'],
+	arithmetic: ['nat_as', 'nat_md', 'z_as', 'z_md', 'calc01', 'potenzen', 'schriftlich_as', 'schriftlich_md', 'db_as', 'db_md', 'pow10', 'round', 'ueberschlag', 'zahlengerade', 'vorrang'],
 	tables: ['table_add', 'table_mul', 'table_sub', 'table_terms'],
 	fractions: ['frac_as', 'frac_md', 'frac_simplify', 'frac_convert', 'frac_order'],
 	percent: ['anteile', 'prop', 'percent', 'pv', 'units'],
@@ -21,19 +21,19 @@ const taskCategories = {
 // Sichtbare Aufgabentypen je Klassenstufe (wird vom UI-Dropdown genutzt)
 const taskTypesByGrade = {
 	klasse5: [
-		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
+		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'table_add',  'table_sub', 'table_mul','table_terms',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
 		'geometry', 'winkel', 'schraegbild', 'statistik'
 	],
 	klasse6: [
-		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
+		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'table_add',  'table_sub', 'table_mul','table_terms',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
 		'anteile', 'percent', 'geometry', 'winkel', 'schraegbild', 'statistik', 'wkt'
 	],
 	klasse7: [
-		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
+		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'table_add', 'table_sub', 'table_mul', 'table_terms',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order',
 		'anteile', 'prop', 'percent', 'pv', 
@@ -41,7 +41,7 @@ const taskTypesByGrade = {
 		'round', 'ueberschlag', 'zahlengerade', 'geometry', 'winkel', 'schraegbild', 'kongruenz', 'statistik', 'wkt', 'linear_function'
 	],
 	klasse8: [
-		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
+		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'table_add', 'table_sub', 'table_mul', 'table_terms',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
 		'anteile', 'prop', 'percent', 'pv', 
@@ -49,7 +49,7 @@ const taskTypesByGrade = {
 		'geometry', 'winkel', 'schraegbild', 'kongruenz', 'statistik', 'wkt', 'linear_function'
 	],
 	klasse9: [
-		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
+		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'table_add', 'table_sub', 'table_mul', 'table_terms',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
 		'anteile', 'prop', 'percent', 'pv', 
@@ -57,7 +57,7 @@ const taskTypesByGrade = {
 		'geometry', 'winkel', 'schraegbild', 'kongruenz', 'statistik', 'wkt', 'linear_function'
 	],
 	klasse10: [
-		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
+		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'table_add', 'table_sub', 'table_mul', 'table_terms',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
 		'anteile', 'prop', 'percent', 'pv', 
@@ -69,19 +69,19 @@ const taskTypesByGrade = {
 
 const quizTaskTypesByGrade = {
 	klasse5: [
-		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
+		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'table_add',  'table_sub', 'table_mul','table_terms',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
 		'geometry', 'winkel', 'schraegbild', 'statistik'
 	],
 	klasse6: [
-		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
+		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'table_add',  'table_sub', 'table_mul','table_terms',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
 		'anteile', 'percent', 'geometry', 'winkel', 'schraegbild', 'statistik', 'wkt'
 	],
 	klasse7: [
-		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
+		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'table_add', 'table_sub', 'table_mul', 'table_terms',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order',
 		'anteile', 'prop', 'percent', 'pv', 
@@ -89,7 +89,7 @@ const quizTaskTypesByGrade = {
 		'round', 'ueberschlag', 'zahlengerade', 'geometry', 'winkel', 'schraegbild', 'kongruenz', 'statistik', 'wkt'
 	],
 	klasse8: [
-		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
+		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'table_add', 'table_sub', 'table_mul', 'table_terms',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
 		'anteile', 'prop', 'percent', 'pv', 
@@ -97,7 +97,7 @@ const quizTaskTypesByGrade = {
 		'geometry', 'winkel', 'schraegbild', 'kongruenz', 'statistik', 'wkt'
 	],
 	klasse9: [
-		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
+		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'table_add', 'table_sub', 'table_mul', 'table_terms',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
 		'anteile', 'prop', 'percent', 'pv', 
@@ -105,7 +105,7 @@ const quizTaskTypesByGrade = {
 		'geometry', 'winkel', 'schraegbild', 'kongruenz', 'statistik', 'wkt'
 	],
 	klasse10: [
-		'teiler', 'units', 'calc01', 'potenzen', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang', 'primzahlen',
+		'teiler', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang', 'primzahlen',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
 		'anteile', 'prop', 'percent', 'pv', 'word_terms',
 		'equations', 'geometry', 'winkel', 'statistik', 'wkt'
@@ -136,6 +136,8 @@ const typeDefinitions = [
 	// Arithmetik: Ganze Zahlen, Dezimalbrüche, Stellenwerte
 	['calc01', 'Rechnen mit 0 & 1', 'Aufgaben mit 0 und 1 bei Multiplikation, Division und Potenzen'],
 	['potenzen', 'Potenzen und Wurzeln', 'Potenzen und Wurzeln berechnen'],
+	['nat_as', 'Natürliche Zahlen +/-', 'Natürliche Zahlen addieren und subtrahieren'],
+	['nat_md', 'Natürliche Zahlen ×/÷', 'Natürliche Zahlen multiplizieren und dividieren'],
 	['schriftlich_as', 'schriftlich rechnen +/-', 'Schriftliche Addition und Subtraktion'],
 	['schriftlich_md', 'schriftlich rechnen ×/÷', 'Schriftliche Multiplikation und Division'],
 	['z_as', 'Ganze Zahlen +/-', 'Ganze Zahlen addieren und subtrahieren'],
@@ -303,8 +305,9 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 		case 'table_add':
 		case 'table_mul': {
 			const isAdd = type === 'table_add';
-			const min = isAdd ? -20 : -13;
-			const max = isAdd ? 20 : 13;
+			const isGrade5Natural = grade === 5;
+			const min = isGrade5Natural ? 0 : (isAdd ? -20 : -13);
+			const max = isGrade5Natural ? (isAdd ? 20 : 12) : (isAdd ? 20 : 13);
 			const allValues = pickDistinctIntegers(min, max, 7);
 			const rowHeaders = allValues.slice(0, 2);
 			const colHeaders = allValues.slice(2);
@@ -358,10 +361,22 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 		}
 
 		case 'table_sub': {
-			const min = -20, max = 20;
-			const allValues = pickDistinctIntegers(min, max, 7);
-			const rowHeaders = allValues.slice(0, 2);
-			const colHeaders = allValues.slice(2);
+			const isGrade5Natural = grade === 5;
+			let rowHeaders;
+			let colHeaders;
+
+			if (isGrade5Natural) {
+				const maxSubtrahend = randInt(0, 10);
+				const firstRow = randInt(maxSubtrahend + 5, maxSubtrahend + 15);
+				const secondRow = firstRow + randInt(1, 6);
+				rowHeaders = [firstRow, secondRow];
+				colHeaders = pickDistinctIntegers(0, maxSubtrahend, 5);
+			} else {
+				const min = -20, max = 20;
+				const allValues = pickDistinctIntegers(min, max, 7);
+				rowHeaders = allValues.slice(0, 2);
+				colHeaders = allValues.slice(2);
+			}
 
 			const cellValues = rowHeaders.map(r => colHeaders.map(c => r - c));
 
@@ -744,6 +759,38 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 			break;
 		}
 
+		case 'nat_as': {
+			const createNatAsEntry = () => {
+				let expr;
+				let solution;
+				if (Math.random() > 0.5) {
+					const v1 = randInt(0, 50);
+					const v2 = randInt(0, 50);
+					expr = `\\[ ${v1} + ${v2} = \\]`;
+					const sum = v1 + v2;
+					solution = `\\[ ${v1} + ${v2} = ${sum} \\]`;
+				} else {
+					const v1 = randInt(10, 80);
+					const v2 = randInt(0, v1);
+					expr = `\\[ ${v1} - ${v2} = \\]`;
+					const diff = v1 - v2;
+					solution = `\\[ ${v1} - ${v2} = ${diff} \\]`;
+				}
+				return { expr, solution };
+			};
+
+			if (isTraining) {
+				const entry = createNatAsEntry();
+				textDisplay = entry.expr;
+				s = entry.solution;
+			} else {
+				const entries = [createNatAsEntry(), createNatAsEntry()];
+				textDisplay = buildTwoColumnTaskTable(entries.map(item => item.expr));
+				s = buildTwoColumnTaskTable(entries.map(item => item.solution));
+			}
+			break;
+		}
+
 		case 'z_as': {
 			const createZAsEntry = () => {
 				let expr;
@@ -782,6 +829,37 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				s = entry.solution;
 			} else {
 				const entries = [createZAsEntry(), createZAsEntry()];
+				textDisplay = buildTwoColumnTaskTable(entries.map(item => item.expr));
+				s = buildTwoColumnTaskTable(entries.map(item => item.solution));
+			}
+			break;
+		}
+
+		case 'nat_md': {
+			const createNatMdEntry = () => {
+				let expr;
+				let solution;
+				if (Math.random() > 0.5) {
+					const v1 = randInt(0, 20);
+					const v2 = randInt(0, 12);
+					expr = `\\[ ${v1} \\cdot ${v2} = \\]`;
+					solution = `\\[ ${v1} \\cdot ${v2} = ${v1 * v2} \\]`;
+				} else {
+					const divisor = randInt(1, 12);
+					const quotient = randInt(0, 20);
+					const dividend = divisor * quotient;
+					expr = `\\[ ${dividend} : ${divisor} = \\]`;
+					solution = `\\[ ${dividend} : ${divisor} = ${quotient} \\]`;
+				}
+				return { expr, solution };
+			};
+
+			if (isTraining) {
+				const entry = createNatMdEntry();
+				textDisplay = entry.expr;
+				s = entry.solution;
+			} else {
+				const entries = [createNatMdEntry(), createNatMdEntry()];
 				textDisplay = buildTwoColumnTaskTable(entries.map(item => item.expr));
 				s = buildTwoColumnTaskTable(entries.map(item => item.solution));
 			}
