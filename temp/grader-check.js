@@ -21,6 +21,9 @@ const cases = [
   { answer: { kind: 'either', options: [0.5, 50] }, raw: '50%', expected: true },
   { answer: { kind: 'either', options: [0.5, 50] }, raw: '1 / 2', expected: true },
   { answer: { kind: 'either', options: [2, 3] }, raw: '3', expected: true },
+  { answer: { kind: 'either', options: [7, -7] }, raw: '+7', expected: true },
+  { answer: { kind: 'either', options: [7, -7] }, raw: '-7', expected: true },
+  { answer: { kind: 'either', options: [7, -7] }, raw: '7', expected: true },
   { answer: { kind: 'either', options: [2, 3] }, raw: '4', expected: false }
 ];
 

@@ -535,7 +535,9 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				let expr;
 				let solution;
 				let answer;
-				if (Math.random() > 0.5) {
+				const isAddition = Math.random() > 0.5;
+
+				if (isAddition) {
 					const v1 = randInt(0, 50);
 					const v2 = randInt(0, 50);
 					expr = `\\[ ${v1} + ${v2} = \\]`;
@@ -621,16 +623,18 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				let expr;
 				let solution;
 				let answer;
-				if (Math.random() > 0.5) {
-					const v1 = randInt(0, 20);
-					const v2 = randInt(0, 12);
+				const isMultiplication = Math.random() > 0.5;
+
+				if (isMultiplication) {
+					const v1 = randInt(0, 13);
+					const v2 = randInt(0, 13);
 					expr = `\\[ ${v1} \\cdot ${v2} = \\]`;
 					const product = v1 * v2;
 					solution = `\\[ ${v1} \\cdot ${v2} = ${product} \\]`;
 					answer = numericAnswer(product);
 				} else {
-					const divisor = randInt(1, 12);
-					const quotient = randInt(0, 20);
+					const divisor = randInt(1, 13);
+					const quotient = randInt(0, 13);
 					const dividend = divisor * quotient;
 					expr = `\\[ ${dividend} : ${divisor} = \\]`;
 					solution = `\\[ ${dividend} : ${divisor} = ${quotient} \\]`;
@@ -1649,10 +1653,10 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				let expr;
 				let solution;
 				let result;
-				const rdLocal = Math.random();
+				const rdLocal = Math.random() + (grade <= 7 ? 0.21 : 0); // bei Klase 5 - 7 keine else Aufgaben 
 
 				if (rdLocal > 0.6) {
-					v1 = rnd(-13, 13);
+					v1 = grade <= 7 ? rnd(2, 13) : rnd(-13, 13);
 					result = v1 * v1;
 					if (v1 < 0) {
 						expr = `\\( (${v1})^2 = \\)`;
@@ -1665,7 +1669,8 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 					v1 = rnd(3, 13);
 					result = v1;
 					expr = `\\( \\sqrt{${v1 * v1}} = \\)`;
-					solution = `\\( \\sqrt{${v1 * v1}} = \\pm ${v1} \\)`;
+					solution = grade <= 7 ? `\\( \\sqrt{${v1 * v1}} = ${v1} \\)` : `\\( \\sqrt{${v1 * v1}} = \\pm ${v1} \\)`;
+					return { expr, solution, answer: { kind: 'either', options: [v1, -v1] } };
 				} else if (rdLocal > 0.2) {
 					v1 = rnd(3, 9);
 					result = Math.pow(2, v1);

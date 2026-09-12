@@ -239,9 +239,24 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 	};
 
 	const pickDistinctIntegers = (min, max, count) => {
+		if (!Number.isFinite(min) || !Number.isFinite(max) || !Number.isFinite(count)) {
+			return [];
+		}
+
+		const allowedCount = Math.max(0, Math.min(count, Math.max(0, max - min + 1)));
+		if (allowedCount === 0) {
+			return [];
+		}
+
 		const values = new Set();
-		while (values.size < count) {
-			values.add(rnd(min, max));
+		const range = [];
+		for (let i = min; i <= max; i++) {
+			range.push(i);
+		}
+
+		while (values.size < allowedCount) {
+			const candidate = range[Math.floor(Math.random() * range.length)];
+			values.add(candidate);
 		}
 		return [...values];
 	};
@@ -306,8 +321,8 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 		case 'table_mul': {
 			const isAdd = type === 'table_add';
 			const isGrade5Natural = grade === 5;
-			const min = isGrade5Natural ? 0 : (isAdd ? -20 : -13);
-			const max = isGrade5Natural ? (isAdd ? 20 : 12) : (isAdd ? 20 : 13);
+			const min = isGrade5Natural ? (isAdd ? 20 : 2) : (isAdd ? -50 : -13);
+			const max = isGrade5Natural ? (isAdd ? 400 : 15) : (isAdd ? 50 : 13);
 			const allValues = pickDistinctIntegers(min, max, 7);
 			const rowHeaders = allValues.slice(0, 2);
 			const colHeaders = allValues.slice(2);
@@ -366,7 +381,7 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 			let colHeaders;
 
 			if (isGrade5Natural) {
-				const maxSubtrahend = randInt(0, 10);
+				const maxSubtrahend = Math.max(4, randInt(0, 10));
 				const firstRow = randInt(maxSubtrahend + 5, maxSubtrahend + 15);
 				const secondRow = firstRow + randInt(1, 6);
 				rowHeaders = [firstRow, secondRow];
@@ -426,39 +441,52 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 		}
 
 		case 'table_terms': {
+			const useNaturalNumbers = grade < 7;
+			const formatLinearExpr = (a, b) => {
+				if (b === 0) return `${a}x`;
+				return `${a}x ${b >= 0 ? '+' : '-'} ${Math.abs(b)}`;
+			};
+			const formatQuadraticExpr = (a, b) => {
+				if (b === 0) return `${a}x^2`;
+				return `${a}x^2 ${b >= 0 ? '+' : '-'} ${Math.abs(b)}`;
+			};
+			const formatMixedExpr = (a, b) => {
+				const termA = `${a}x`;
+				const termB = `${Math.abs(b)}x^2`;
+				if (b === 0) return termA;
+				return `${termA} ${b >= 0 ? '+' : '-'} ${termB}`;
+			};
+
 			const createTermDescriptor = (patternIndex = null) => {
 				const patterns = [
 					() => {
-						const a = rnd(-4, 4);
-						const b = rnd(-20, 20);
-						const expr = `${a}x ${b >= 0 ? '+' : '-'} ${Math.abs(b)}`;
+						const a = useNaturalNumbers ? randInt(1, 4) : rnd(-4, 4);
+						const b = useNaturalNumbers ? randInt(0, 20) : rnd(-20, 20);
+						const expr = formatLinearExpr(a, b);
 						return {
 							expr,
 							evalFn: x => a * x + b,
 							substitute: x => b >= 0 ? `${a*x} + ${Math.abs(b)}` : `${a*x} - ${Math.abs(b)}`,
-							// substitute: x => `${a}\\cdot${fmt(x)} ${b >= 0 ? '+' : '-'} ${Math.abs(b)}`
 						};
 					},
 					() => {
-						const a = rnd(-6, 6);
-						const b = rnd(-20, 20);
-						const expr = `${a}x^2 ${b >= 0 ? '+' : '-'} ${Math.abs(b)}`;
+						const a = useNaturalNumbers ? randInt(1, 6) : rnd(-6, 6);
+						const b = useNaturalNumbers ? randInt(0, 20) : rnd(-20, 20);
+						const expr = formatQuadraticExpr(a, b);
 						return {
 							expr,
 							evalFn: x => a * x * x + b,
 							substitute: x => b >= 0 ? `${a*x*x} + ${Math.abs(b)}` : `${a*x*x} - ${Math.abs(b)}`,
-							// substitute: x => `${a}\\cdot${fmt(x)}^2 ${b >= 0 ? '+' : '-'} ${Math.abs(b)}`
 						};
 					},
 					() => {
-						const a = rnd(-5, 5);
-						const b = rnd(-4, 4);
-						const expr = `${a}x ${b >= 0 ? '+' : '-'} ${Math.abs(b)}x^2`;
+						const a = useNaturalNumbers ? randInt(1, 5) : rnd(-5, 5);
+						const b = useNaturalNumbers ? randInt(0, 4) : rnd(-4, 4);
+						const expr = formatMixedExpr(a, b);
 						return {
 							expr,
 							evalFn: x => a * x + (b >= 0 ? 1 : -1) * Math.abs(b) * x * x,
 							substitute: x => b >= 0 ? `${a*x} + ${Math.abs(b)*x*x}` : `${a*x} - ${Math.abs(b)*x*x}`,
-							// substitute: x => `${a}\\cdot${fmt(x)} ${b >= 0 ? '+' : '-'} ${Math.abs(b)}\\cdot${fmt(x)}^2`
 						};
 					}
 				];
@@ -476,11 +504,23 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				term2 = createTermDescriptor(randInt(1, 2));
 			}
 
-			const xValues = [rnd(2,5),rnd(-5,-2)];
+			const xValues = useNaturalNumbers
+				? [randInt(2, 5), randInt(2, 5)]
+				: [rnd(2, 5), rnd(-5, -2)];
 			const rawResults = [
 				[term1.evalFn(xValues[0]), term2.evalFn(xValues[0])],
 				[term1.evalFn(xValues[1]), term2.evalFn(xValues[1])]
 			];
+
+			if (useNaturalNumbers) {
+				for (let row = 0; row < rawResults.length; row++) {
+					for (let col = 0; col < rawResults[row].length; col++) {
+						if (rawResults[row][col] < 0) {
+							return;
+						}
+					}
+				}
+			}
 
 			const resultTable = rawResults.map(row => row.map(val => Number.isInteger(val) ? val : Number(val.toFixed(2))));
 
@@ -840,13 +880,13 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				let expr;
 				let solution;
 				if (Math.random() > 0.5) {
-					const v1 = randInt(0, 20);
-					const v2 = randInt(0, 12);
+					const v1 = randInt(0, 13);
+					const v2 = randInt(0, 13);
 					expr = `\\[ ${v1} \\cdot ${v2} = \\]`;
 					solution = `\\[ ${v1} \\cdot ${v2} = ${v1 * v2} \\]`;
 				} else {
-					const divisor = randInt(1, 12);
-					const quotient = randInt(0, 20);
+					const divisor = randInt(1, 13);
+					const quotient = randInt(0, 13);
 					const dividend = divisor * quotient;
 					expr = `\\[ ${dividend} : ${divisor} = \\]`;
 					solution = `\\[ ${dividend} : ${divisor} = ${quotient} \\]`;
@@ -1881,10 +1921,10 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 			const createPotenzenEntry = () => {
 				let expr;
 				let solution;
-				const rdLocal = Math.random();
+				const rdLocal = Math.random() + (grade <= 7 ? 0.21 : 0); // bei Klase 5 - 7 keine else Aufgaben 
 
 				if (rdLocal > 0.6) {
-					v1 = rnd(-13, 13);
+					v1 = grade <= 7 ? rnd(2, 13) : rnd(-13, 13);
 					if (v1 < 0) {
 						expr = `\\( (${v1})^2 = \\)`;
 						solution = `\\( (${v1})^2 = ${v1 * v1} \\)`;
@@ -1892,10 +1932,10 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 						expr = `\\( ${v1}^2 = \\)`;
 						solution = `\\( ${v1}^2 = ${v1 * v1} \\)`;
 					}
-				} else if (rdLocal > 0.40) {
+				} else if (rdLocal > 0.4) {
 					v1 = rnd(3, 13);
 					expr = `\\( \\sqrt{${v1 * v1}} = \\)`;
-					solution = `\\( \\sqrt{${v1 * v1}} = \\pm ${v1} \\)`;
+					solution = grade <= 7 ? `\\( \\sqrt{${v1 * v1}} = ${v1} \\)` : `\\( \\sqrt{${v1 * v1}} = \\pm ${v1} \\)`;
 				} else if (rdLocal > 0.2) {
 					v1 = rnd(3, 9);
 					expr = `\\( 2^${v1} = \\)`;
