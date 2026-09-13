@@ -21,7 +21,7 @@ const taskCategories = {
 // Sichtbare Aufgabentypen je Klassenstufe (wird vom UI-Dropdown genutzt)
 const taskTypesByGrade = {
 	klasse5: [
-		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
+		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'table_add',  'table_sub', 'table_mul','table_terms',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
 		'geometry', 'winkel', 'schraegbild', 'statistik'
@@ -460,8 +460,8 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 			const createTermDescriptor = (patternIndex = null) => {
 				const patterns = [
 					() => {
-						const a = useNaturalNumbers ? randInt(1, 4) : rnd(-4, 4);
-						const b = useNaturalNumbers ? randInt(0, 20) : rnd(-20, 20);
+						const a = useNaturalNumbers ? randInt(2, 6) : rnd(-6, 6);
+						const b = useNaturalNumbers ? randInt(3, 20) : rnd(-20, 20);
 						const expr = formatLinearExpr(a, b);
 						return {
 							expr,
@@ -470,8 +470,8 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 						};
 					},
 					() => {
-						const a = useNaturalNumbers ? randInt(1, 6) : rnd(-6, 6);
-						const b = useNaturalNumbers ? randInt(0, 20) : rnd(-20, 20);
+						const a = useNaturalNumbers ? randInt(2, 6) : rnd(-6, 6);
+						const b = useNaturalNumbers ? randInt(3, 20) : rnd(-20, 20);
 						const expr = formatQuadraticExpr(a, b);
 						return {
 							expr,
@@ -480,8 +480,8 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 						};
 					},
 					() => {
-						const a = useNaturalNumbers ? randInt(1, 5) : rnd(-5, 5);
-						const b = useNaturalNumbers ? randInt(0, 4) : rnd(-4, 4);
+						const a = useNaturalNumbers ? randInt(2, 6) : rnd(-6, 6);
+						const b = useNaturalNumbers ? randInt(3, 20) : rnd(-20, 20);
 						const expr = formatMixedExpr(a, b);
 						return {
 							expr,
@@ -504,9 +504,20 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				term2 = createTermDescriptor(randInt(1, 2));
 			}
 
-			const xValues = useNaturalNumbers
-				? [randInt(2, 5), randInt(2, 5)]
-				: [rnd(2, 5), rnd(-5, -2)];
+			let x1;
+			let x2;
+			if (useNaturalNumbers) {
+				x1 = randInt(2, 5);
+				x2 = randInt(2, 5);
+				while (x2 === x1) {
+					x2 = randInt(2, 5);
+				}
+			} else {
+				x1 = rnd(2, 5);
+				x2 = rnd(-5, -2);
+			}
+
+			const xValues = [x1, x2];
 			const rawResults = [
 				[term1.evalFn(xValues[0]), term2.evalFn(xValues[0])],
 				[term1.evalFn(xValues[1]), term2.evalFn(xValues[1])]
@@ -623,7 +634,7 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 					}
 				} else if (opCategory === 1) {
 					// DIVISION
-					const divSubtypes = allowNegative ? [0, 1, 2, 3, 4, 5] : [0, 1, 2];
+					const divSubtypes = allowNegative ? [0, 1, 2, 3, 4, 5, 6] : [0, 1, 2, 3];
 					const sub = divSubtypes[randInt(0, divSubtypes.length - 1)];
 
 					if (sub === 0) {
@@ -637,16 +648,20 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 						res = a;
 						solution = `\\[ ${a < 0 ? fmt(a) : a} : 1 = ${res} \\]`;
 					} else if (sub === 2) {
+						// a : 0 = a
+						expr = `\\[ ${a < 0 ? fmt(a) : a} : 0 = \\]`;
+						solution = `\\( ${a < 0 ? fmt(a) : a} : 0 = \\) nicht lösbar`;
+					} else if (sub === 3) {
 						// a : a = 1
 						expr = `\\[ ${a < 0 ? fmt(a) : a} : ${fmt(a)} = \\]`;
 						res = 1;
 						solution = `\\[ ${a < 0 ? fmt(a) : a} : ${fmt(a)} = ${res} \\]`;
-					} else if (sub === 3) {
+					} else if (sub === 4) {
 						// a : (-1) = -a
 						expr = `\\[ ${a < 0 ? fmt(a) : a} : (-1) = \\]`;
 						res = -a;
 						solution = `\\[ ${a < 0 ? fmt(a) : a} : (-1) = ${res} \\]`;
-					} else if (sub === 4) {
+					} else if (sub === 5) {
 						// a : (-a) = -1
 						expr = `\\[ ${a < 0 ? fmt(a) : a} : ${fmt(-a)} = \\]`;
 						res = -1;
@@ -1731,25 +1746,49 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 			const op = randInt(0, 1); // 0: +, 1: -, 2: *, 3: /
 			let v1, v2, res;
 			const countDigits = (value) => Math.max(1, String(value).replace(/[^0-9]/g, '').length);
+			const isGrade5 = grade <= 5;
 
 			switch (op) {
 				case 0: // ADDITION
-					// v1: 1-2 Stellen, v2: 0-2 Stellen (verschieden)
-					v1 = rnd(10000, 99999) / 1000;
-					v2 = rnd(100, 9999) / 10;
-					res = v1 + v2;
-					textDisplay = `Berechne schriftlich: \\( \\quad ${comma(v1)} + ${comma(v2)} \\)`;
-					textPrint = `Berechne schriftlich: \\( \\quad ${comma(v1)} + ${comma(v2)} \\)<br>${karo(4, 12)}`;
-					s = `\\( ${comma(v1)} + ${comma(v2)} = ${formatDecimal(res, 2)} \\)`;
+					if (isGrade5) {
+						v1 = randInt(111, 99999);
+						v2 = randInt(111, 99999);
+						res = v1 + v2;
+						textDisplay = `Berechne schriftlich: \\( \\quad ${v1} + ${v2} \\)`;
+						textPrint = `Berechne schriftlich: \\( \\quad ${v1} + ${v2} \\)<br>${karo(4, 12)}`;
+						s = `\\( ${v1} + ${v2} = ${res} \\)`;
+					} else {
+						// v1: 1-2 Stellen, v2: 0-2 Stellen (verschieden)
+						v1 = rnd(10000, 99999) / 1000;
+						v2 = rnd(100, 9999) / 10;
+						res = v1 + v2;
+						textDisplay = `Berechne schriftlich: \\( \\quad ${comma(v1)} + ${comma(v2)} \\)`;
+						textPrint = `Berechne schriftlich: \\( \\quad ${comma(v1)} + ${comma(v2)} \\)<br>${karo(4, 12)}`;
+						s = `\\( ${comma(v1)} + ${comma(v2)} = ${formatDecimal(res, 2)} \\)`;
+					}
 					break;
 
 				case 1: // SUBTRAKTION
-					v1 = trueDec(200, 500);
-					v2 = rnd(5555, 14444) / 100;
-					res = v1 - v2;
-					textDisplay = `Berechne schriftlich: \\( \\quad ${comma(v1)} - ${comma(v2)} \\)`;
-					textPrint = `Berechne schriftlich: \\( \\quad ${comma(v1)} - ${comma(v2)} \\)<br>${karo(4, 12)}`;
-					s = `\\( ${comma(v1)} - ${comma(v2)} = ${formatDecimal(res, 2)} \\)`;
+					if (isGrade5) {
+						const a = randInt(111, 99999);
+						let b = randInt(111, 99999);
+						while (b === a) {
+							b = randInt(111, 99999);
+						}
+						v1 = Math.max(a, b);
+						v2 = Math.min(a, b);
+						res = v1 - v2;
+						textDisplay = `Berechne schriftlich: \\( \\quad ${v1} - ${v2} \\)`;
+						textPrint = `Berechne schriftlich: \\( \\quad ${v1} - ${v2} \\)<br>${karo(4, 12)}`;
+						s = `\\( ${v1} - ${v2} = ${res} \\)`;
+					} else {
+						v1 = trueDec(200, 500);
+						v2 = rnd(5555, 14444) / 100;
+						res = v1 - v2;
+						textDisplay = `Berechne schriftlich: \\( \\quad ${comma(v1)} - ${comma(v2)} \\)`;
+						textPrint = `Berechne schriftlich: \\( \\quad ${comma(v1)} - ${comma(v2)} \\)<br>${karo(4, 12)}`;
+						s = `\\( ${comma(v1)} - ${comma(v2)} = ${formatDecimal(res, 2)} \\)`;
+					}
 					break;
 			}
 			break;
@@ -1759,40 +1798,77 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 			const op = randInt(2, 3); // 0: +, 1: -, 2: *, 3: /
 			let v1, v2, res;
 			const countDigits = (value) => Math.max(1, String(value).replace(/[^0-9]/g, '').length);
+			const isGrade5 = grade <= 5;
 
 			switch (op) {
 
 				case 2: // MULTIPLIKATION
-					// Faktor 1: 0-2 Stellen, Faktor 2: 0-2 Stellen
-					do {
-						const p1 = rnd(2, 4) - 1;
-						const p2 = rnd(2, 4) - 2;
-						v1 = rnd(11, 499) / Math.pow(10, p1);
-						v2 = rnd(11, 299) / Math.pow(10, p2);
-					} while (Number.isInteger(v1) && Number.isInteger(v2));
-					res = v1 * v2;
-					const factor2Digits = countDigits(comma(v2));
-					const mulRows = factor2Digits + 3;
-					textDisplay = `Berechne schriftlich: \\( \\quad ${comma(v1)} \\cdot ${comma(v2)} \\)`;
-					textPrint = `Berechne schriftlich: \\( \\quad ${comma(v1)} \\cdot ${comma(v2)} \\)<br>${karo(mulRows, 16)}`;
-					// Bei Multiplikation können bis zu 4 Stellen entstehen (2+2)
-				s = `\\( ${comma(v1)} \\cdot ${comma(v2)} = ${formatDecimal(res, 4)} \\)`;
+					if (isGrade5) {
+						// 1. Faktor: 3- oder 4-stellig
+						v1 = randInt(100, 9999);
+						// 2. Faktor: 2- oder 3-stellig, nur Ziffern 0, 1, 2, 3, 4, 5, 6
+						const numDigits = randInt(2, 3);
+						const firstDigit = randInt(1, 6);
+						const allowedDigits = [0, 1, 2, 3, 4, 5, 6];
+						let digits = [firstDigit];
+						for (let i = 1; i < numDigits; i++) {
+							digits.push(allowedDigits[randInt(0, allowedDigits.length - 1)]);
+						}
+						v2 = parseInt(digits.join(''), 10);
+						res = v1 * v2;
+						const factor2Digits = countDigits(v2);
+						const mulRows = factor2Digits + 3;
+						textDisplay = `Berechne schriftlich: \\( \\quad ${v1} \\cdot ${v2} \\)`;
+						textPrint = `Berechne schriftlich: \\( \\quad ${v1} \\cdot ${v2} \\)<br>${karo(mulRows, 16)}`;
+						s = `\\( ${v1} \\cdot ${v2} = ${res} \\)`;
+					} else {
+						// Faktor 1: 0-2 Stellen, Faktor 2: 0-2 Stellen
+						do {
+							const p1 = rnd(2, 4) - 1;
+							const p2 = rnd(2, 4) - 2;
+							v1 = rnd(11, 499) / Math.pow(10, p1);
+							v2 = rnd(11, 299) / Math.pow(10, p2);
+						} while (Number.isInteger(v1) && Number.isInteger(v2));
+						res = v1 * v2;
+						const factor2Digits = countDigits(comma(v2));
+						const mulRows = factor2Digits + 3;
+						textDisplay = `Berechne schriftlich: \\( \\quad ${comma(v1)} \\cdot ${comma(v2)} \\)`;
+						textPrint = `Berechne schriftlich: \\( \\quad ${comma(v1)} \\cdot ${comma(v2)} \\)<br>${karo(mulRows, 16)}`;
+						// Bei Multiplikation können bis zu 4 Stellen entstehen (2+2)
+						s = `\\( ${comma(v1)} \\cdot ${comma(v2)} = ${formatDecimal(res, 4)} \\)`;
+					}
 					break;
 
 				case 3: // DIVISION (durch ganze Zahl)
-					
-					const divisor = rnd(3, 9);
-					const p3 = rnd(2, 4) - 1;
-					// Wir würfeln das Ergebnis zuerst (max 2 Stellen), damit es aufgeht
-					const resultValue = rnd(111, 2999) / Math.pow(10, p3);
-					const dividend = (resultValue * divisor);
-					const resultDigits = countDigits(comma(resultValue));
-					const divRows = Math.max(4, resultDigits * 2 + 3);
+					if (isGrade5) {
+						// Dividend: 4-stellig, Divisor: einstellig
+						const dividend = randInt(1000, 9999);
+						const divisor = randInt(2, 9);
+						const quotient = Math.floor(dividend / divisor);
+						const remainder = dividend % divisor;
+						const quotientDigits = countDigits(quotient);
+						const divRows = Math.max(4, quotientDigits * 2 + 3);
 
-					textDisplay = `Berechne schriftlich: \\( \\quad ${formatDecimal(dividend, 2)} : ${divisor} \\)`;
-					textPrint = `Berechne schriftlich: \\( \\quad ${formatDecimal(dividend, 2)} : ${divisor} \\)<br>${karo(divRows, 16)}`;
-					s = `\\( ${formatDecimal(dividend, 2)} : ${divisor} = ${comma(resultValue)} \\)`;
-					
+						textDisplay = `Berechne schriftlich: \\( \\quad ${dividend} : ${divisor} \\)`;
+						textPrint = `Berechne schriftlich: \\( \\quad ${dividend} : ${divisor} \\)<br>${karo(divRows, 16)}`;
+						if (remainder > 0) {
+							s = `\\( ${dividend} : ${divisor} = ${quotient} \\text{ Rest } ${remainder} \\)`;
+						} else {
+							s = `\\( ${dividend} : ${divisor} = ${quotient} \\)`;
+						}
+					} else {
+						const divisor = rnd(3, 9);
+						const p3 = rnd(2, 4) - 1;
+						// Wir würfeln das Ergebnis zuerst (max 2 Stellen), damit es aufgeht
+						const resultValue = rnd(111, 2999) / Math.pow(10, p3);
+						const dividend = (resultValue * divisor);
+						const resultDigits = countDigits(comma(resultValue));
+						const divRows = Math.max(4, resultDigits * 2 + 3);
+
+						textDisplay = `Berechne schriftlich: \\( \\quad ${formatDecimal(dividend, 2)} : ${divisor} \\)`;
+						textPrint = `Berechne schriftlich: \\( \\quad ${formatDecimal(dividend, 2)} : ${divisor} \\)<br>${karo(divRows, 16)}`;
+						s = `\\( ${formatDecimal(dividend, 2)} : ${divisor} = ${comma(resultValue)} \\)`;
+					}
 					break;
 			}
 			break;
