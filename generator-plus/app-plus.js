@@ -877,21 +877,115 @@ createApp({
             const classTypes = activeVisibleTypeKeys.value;
             const selectedTypesRef = getActiveSelectedTypesRef();
             const taskWeightsRef = getActiveTaskWeightsRef();
+            const targetTypeCount = Math.min(20, classTypes.length);
+
+            if (targetTypeCount === 0) {
+                classTypes.forEach(type => {
+                    taskWeightsRef.value[type] = 0;
+                });
+                selectedTypesRef.value = [];
+                syncSelectedTypesFromCounts(activeVisibleTypeKeys.value);
+                return;
+            }
+
+            const config = {
+                requiredTypes: [
+                    'units',
+                    'z_as',
+                    'z_md',
+                    'db_as',
+                    'db_md',
+                    'percent',
+                    'pow10'
+                ],
+                exactOneGroups: [
+                    ['schriftlich_as', 'schriftlich_md']
+                ],
+                atMostOneGroups: [
+                    ['table_add', 'table_sub', 'table_mul', 'table_terms']
+                ],
+                hardCodedWeights: {
+                    units: 2,
+                    z_as: 2,
+                    z_md: 2,
+                    db_as: 2,
+                    db_md: 2,
+                    percent: 2,
+                    pow10: 2,
+                    schriftlich_as: 1,
+                    schriftlich_md: 1,
+                    table_add: 1,
+                    table_sub: 1,
+                    table_mul: 1,
+                    table_terms: 1
+                },
+                optionalPickChance: 0.5
+            };
+
+            const availableTypes = new Set(classTypes);
+            const selected = new Set();
+
+            for (const type of config.requiredTypes) {
+                if (availableTypes.has(type)) {
+                    selected.add(type);
+                }
+            }
+
+            for (const group of config.exactOneGroups) {
+                const candidates = group.filter(type => availableTypes.has(type));
+                if (candidates.length > 0) {
+                    selected.add(candidates[Math.floor(Math.random() * candidates.length)]);
+                }
+            }
+
+            for (const group of config.atMostOneGroups) {
+                const candidates = group.filter(type => availableTypes.has(type));
+                if (candidates.length > 0 && Math.random() < 0.5) {
+                    selected.add(candidates[Math.floor(Math.random() * candidates.length)]);
+                }
+            }
+
+            const isConflictingWithGroup = type => {
+                return config.exactOneGroups.some(group => group.includes(type) && group.some(member => selected.has(member) && member !== type)) ||
+                    config.atMostOneGroups.some(group => group.includes(type) && group.some(member => selected.has(member) && member !== type));
+            };
+
+            const remainingTypes = classTypes.filter(type => !selected.has(type) && !isConflictingWithGroup(type));
+            const shuffled = [...remainingTypes];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+
+            for (const type of shuffled) {
+                if (selected.size >= targetTypeCount) {
+                    break;
+                }
+                if (Math.random() < config.optionalPickChance || selected.size < Math.min(targetTypeCount, config.requiredTypes.length)) {
+                    selected.add(type);
+                }
+            }
+
+            if (selected.size < targetTypeCount) {
+                const backupPool = classTypes.filter(type => !selected.has(type));
+                for (let i = backupPool.length - 1; i > 0 && selected.size < targetTypeCount; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [backupPool[i], backupPool[j]] = [backupPool[j], backupPool[i]];
+                }
+
+                for (const type of backupPool) {
+                    if (selected.size >= targetTypeCount) {
+                        break;
+                    }
+                    selected.add(type);
+                }
+            }
+
             classTypes.forEach(type => {
-                taskWeightsRef.value[type] = 0;
+                taskWeightsRef.value[type] = config.hardCodedWeights[type] ?? (selected.has(type) ? 2 : 0);
             });
 
-            const shuffled = fisherYatesShuffle([...classTypes]);
-            const minPick = Math.min(2, shuffled.length);
-            const maxPick = Math.max(minPick, Math.ceil(shuffled.length * 0.45));
-            const pickCount = shuffled.length === 0 ? 0 : randInt(minPick, maxPick);
-            const selected = shuffled.slice(0, pickCount);
-
-            selected.forEach(type => {
-                taskWeightsRef.value[type] = randInt(1, 4);
-            });
-
-            selectedTypesRef.value = selected;
+            selectedTypesRef.value = classTypes.filter(type => selected.has(type));
             syncSelectedTypesFromCounts(activeVisibleTypeKeys.value);
         };
 

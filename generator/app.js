@@ -813,6 +813,16 @@ createApp({
             const selectedTypesRef = getActiveSelectedTypesRef();
             const taskWeightsRef = getActiveTaskWeightsRef();
             const availableTypes = new Set(classTypes);
+            const targetTypeCount = Math.min(20, classTypes.length);
+
+            if (targetTypeCount === 0) {
+                selectedTypesRef.value = [];
+                classTypes.forEach(type => {
+                    taskWeightsRef.value[type] = 0;
+                });
+                syncSelectedTypesFromCounts(activeVisibleTypeKeys.value);
+                return;
+            }
 
             const config = {
                 requiredTypes: [
@@ -889,21 +899,46 @@ createApp({
                     config.atMostOneGroups.some(group => group.includes(type) && group.some(member => selected.has(member) && member !== type));
             };
 
-            for (const type of classTypes) {
-                if (!selected.has(type) && !isConflictingWithGroup(type) && Math.random() < config.optionalPickChance) {
+            const addableTypes = classTypes.filter(type => !selected.has(type) && !isConflictingWithGroup(type));
+            const shuffledAddable = [...addableTypes];
+            for (let i = shuffledAddable.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffledAddable[i], shuffledAddable[j]] = [shuffledAddable[j], shuffledAddable[i]];
+            }
+
+            while (selected.size < targetTypeCount && shuffledAddable.length > 0) {
+                const type = shuffledAddable.shift();
+                if (!type) {
+                    break;
+                }
+
+                if (Math.random() < config.optionalPickChance || selected.size < Math.min(targetTypeCount, config.requiredTypes.length)) {
                     selected.add(type);
                 }
             }
 
-            if (selected.size === 0 && classTypes.length > 0) {
-                selected.add(classTypes[Math.floor(Math.random() * classTypes.length)]);
+            if (selected.size < targetTypeCount) {
+                const backupPool = classTypes.filter(type => !selected.has(type));
+                for (let i = backupPool.length - 1; i > 0 && selected.size < targetTypeCount; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [backupPool[i], backupPool[j]] = [backupPool[j], backupPool[i]];
+                }
+
+                for (const type of backupPool) {
+                    if (selected.size >= targetTypeCount) {
+                        break;
+                    }
+                    selected.add(type);
+                }
             }
 
             selectedTypesRef.value = classTypes.filter(type => selected.has(type));
 
             classTypes.forEach(type => {
-                taskWeightsRef.value[type] = config.hardCodedWeights[type] ?? 2;
+                taskWeightsRef.value[type] = config.hardCodedWeights[type] ?? (selected.has(type) ? 2 : 0);
             });
+
+            syncSelectedTypesFromCounts(activeVisibleTypeKeys.value);
         };
 
         const generateRandomWorksheet = async () => {
