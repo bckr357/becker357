@@ -10,14 +10,14 @@ const formatDecimal = formatUtils.formatDecimal;
 const QUIZ_AUTO_DEFAULT_TYPES = [
 	'nat_as', 'nat_md', 'z_as', 'z_md', 'calc01', 'db_as', 'db_md', 'pow10',
 	'frac_as', 'frac_md', 'frac_simplify',
-	'percent', 'pv', 'units', 'round', 'geometry', 'anteile', 'wkt'
+	'percent', 'pv', 'units', 'round', 'geometry', 'anteile', 'wkt', 'zahlengerade'
 ];
 
 // Alle automatisch auswertbaren Aufgabentypen.
 const QUIZ_AUTO_TYPES = [
 	'nat_as', 'nat_md', 'z_as', 'z_md', 'calc01', 'db_as', 'db_md', 'pow10',
 	'percent', 'pv', 'terme', 'equations', 'equations_adv', 'vorrang', 'round',
-	'potenzen', 'units', 'statistik', 'ueberschlag',
+	'potenzen', 'units', 'statistik', 'ueberschlag', 'zahlengerade',
 	'frac_as', 'frac_md', 'frac_simplify', 'frac_convert', 'anteile', 'wkt',
 	'geometry', 'prop', 'units_calc'
 ];
@@ -28,7 +28,7 @@ if (typeof window !== 'undefined') {
 }
 
 const taskCategories = {
-	arithmetic: ['nat_as', 'nat_md', 'z_as', 'z_md', 'calc01', 'potenzen', 'db_as', 'db_md', 'pow10', 'round', 'ueberschlag', 'vorrang'],
+	arithmetic: ['nat_as', 'nat_md', 'z_as', 'z_md', 'calc01', 'potenzen', 'db_as', 'db_md', 'pow10', 'round', 'ueberschlag', 'zahlengerade', 'vorrang'],
 	fractions: ['frac_as', 'frac_md', 'frac_simplify', 'frac_convert', 'frac_order'],
 	percent: ['anteile', 'prop', 'percent', 'pv', 'units'],
 	algebra: ['terme', 'equations', 'equations_adv', 'formel_umstellen'],
@@ -41,83 +41,42 @@ const taskCategories = {
 // Sichtbare Aufgabentypen je Klassenstufe (wird vom UI-Dropdown genutzt)
 const taskTypesByGrade = {
 	klasse5: [
-		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
-		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag',
-		'geometry', 'winkel', 'schraegbild', 'statistik'
+		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'pow10', 'vorrang',
+		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
+		'geometry', 'winkel', 'statistik'
 	],
 	klasse6: [
-		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
-		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag',
-		'anteile', 'percent', 'geometry', 'winkel', 'schraegbild', 'statistik', 'wkt'
+		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'pow10', 'vorrang',
+		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
+		'anteile', 'percent', 'geometry', 'winkel', 'statistik', 'wkt'
 	],
 	klasse7: [
-		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
+		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'pow10', 'vorrang',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order',
 		'anteile', 'prop', 'percent', 'pv',
-		'terme', 'word_terms', 'equations', 'equations_lin', 'formel_umstellen',
-		'round', 'ueberschlag', 'geometry', 'winkel', 'schraegbild', 'statistik', 'wkt', 'linear_function'
+		'terme', 'word_terms', 'equations', 'equations_adv', 'equations_lin',
+		'round', 'ueberschlag', 'zahlengerade', 'geometry', 'winkel', 'statistik', 'wkt'
 	],
 	klasse8: [
 		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
-		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag',
+		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
 		'anteile', 'prop', 'percent', 'pv',
-		'terme', 'word_terms', 'equations', 'equations_adv', 'equations_lin', 'formel_umstellen',
-		'geometry', 'winkel', 'schraegbild', 'statistik', 'wkt', 'linear_function'
+		'terme', 'word_terms', 'equations', 'equations_adv', 'equations_lin',
+		'geometry', 'winkel', 'statistik', 'wkt', 'linear_function'
 	],
 	klasse9: [
 		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
-		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag',
+		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
 		'anteile', 'prop', 'percent', 'pv',
-		'terme', 'word_terms', 'equations', 'equations_adv', 'equations_lin', 'formel_umstellen',
-		'geometry', 'winkel', 'schraegbild', 'statistik', 'wkt', 'linear_function'
+		'terme', 'word_terms', 'equations', 'equations_adv', 'equations_lin',
+		'geometry', 'winkel', 'statistik', 'wkt', 'linear_function', 'funktionen'
 	],
 	klasse10: [
 		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
-		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag',
+		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
 		'anteile', 'prop', 'percent', 'pv',
-		'terme', 'word_terms', 'equations', 'equations_adv', 'equations_lin', 'formel_umstellen',
-		'geometry', 'winkel', 'schraegbild',
-		'statistik', 'wkt', 'linear_function', 'funktionen'
-	]
-};
-
-const quizTaskTypesByGrade = {
-	klasse5: [
-		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
-		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag',
-		'geometry', 'winkel', 'schraegbild', 'statistik'
-	],
-	klasse6: [
-		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
-		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag',
-		'anteile', 'percent', 'geometry', 'winkel', 'schraegbild', 'statistik', 'wkt'
-	],
-	klasse7: [
-		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
-		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order',
-		'anteile', 'prop', 'percent', 'pv',
-		'terme', 'equations', 'equations_lin', 'formel_umstellen',
-		'round', 'ueberschlag', 'geometry', 'winkel', 'schraegbild', 'statistik', 'wkt'
-	],
-	klasse8: [
-		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
-		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag',
-		'anteile', 'prop', 'percent', 'pv',
-		'terme', 'equations', 'equations_adv', 'equations_lin', 'formel_umstellen',
-		'geometry', 'winkel', 'schraegbild', 'statistik', 'wkt'
-	],
-	klasse9: [
-		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
-		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag',
-		'anteile', 'prop', 'percent', 'pv',
-		'terme', 'equations', 'equations_adv', 'equations_lin', 'formel_umstellen',
-		'geometry', 'winkel', 'schraegbild', 'statistik', 'wkt'
-	],
-	klasse10: [
-		'teiler', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang', 'primzahlen',
-		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag',
-		'anteile', 'prop', 'percent', 'pv', 'terme', 'word_terms',
-		'equations', 'geometry', 'winkel', 'statistik', 'wkt'
+		'terme', 'word_terms', 'equations', 'equations_adv', 'equations_lin',
+		'geometry', 'winkel', 'statistik', 'wkt', 'linear_function', 'funktionen'
 	]
 };
 
@@ -162,6 +121,7 @@ const typeDefinitions = [
 	['frac_md', 'Brüche ×/÷', 'Brüche multiplizieren und dividieren'],
 	['frac_order', 'Brüche ordnen', 'Brüche der Größe nach sortieren'],
 	['round', 'Dezimalbrüche runden', 'Dezimalbrüche runden'],
+	['zahlengerade', 'Zahlenstrahl', 'Zahlen am Zahlenstrahl ablesen'],
 	
 	// Prozent / Proportionalität / Maßeinheiten
 	['anteile', 'Anteile berechnen', 'Anteile berechnen'],
@@ -213,7 +173,10 @@ function sortByTypeDefinitions(types) {
 // ============================================================
 
 function createTask(type, isMentalMode, grade = 5, options = {}) {
-	if (!Number.isFinite(grade)) {
+	if (typeof grade === 'string') {
+		const parsed = parseInt(grade.replace(/\D/g, ''), 10);
+		grade = Number.isFinite(parsed) ? parsed : 5;
+	} else if (!Number.isFinite(grade)) {
 		grade = 5;
 	}
 
@@ -448,14 +411,113 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 			break;
 		}
 
+		case 'zahlengerade': {
+			const allowDecimals = grade >= 6;
+			const isPositiveOnly = grade <= 7;
+			const cleanFloat = (value) => Number(value.toFixed(6));
+			const tickBases = [2, 3, 4, 5];
+			const tickFactors = allowDecimals
+				? [0.01, 0.05, 0.1, 0.5, 1, 5, 10, 50, 100]
+				: [1, 5, 10, 50, 100];
+			const tickDistance = cleanFloat(tickBases[randInt(0, tickBases.length - 1)] * tickFactors[randInt(0, tickFactors.length - 1)]);
+			const tickCount = randInt(5, 7);
+			const startValue = cleanFloat(isPositiveOnly ? randInt(1, 4) * tickDistance : randInt(-3, -1) * tickDistance);
+			const endValue = cleanFloat(startValue + tickDistance * (tickCount - 1));
+			const formatValue = (value) => formatDecimal(cleanFloat(value), 4);
+			const getValueAt = (position) => cleanFloat(startValue + position * tickDistance);
+			const svgWidth = 520;
+			const svgHeight = 100;
+			const svgRenderWidthCm = 10;
+			const svgRenderHeightCm = 2.2;
+			const margin = 10;
+			const axisY = 56;
+			const arrowSize = 10;
+			const lineStart = margin;
+			const lineEnd = svgWidth - margin - arrowSize;
+			const unitPx = (lineEnd - lineStart) / tickCount;
+			const tickOffset = unitPx / 2;
+			const getX = (position) => lineStart + tickOffset + position * unitPx;
+			const renderNumberLine = ({ labels = {}, labelColors = {}, labelWeights = {}, arrowPos = null, scale = 1, widthCm } = {}) => {
+				const renderWidth = `${(widthCm ?? (svgRenderWidthCm * scale))}cm`;
+				const renderHeight = `${svgRenderHeightCm * scale}cm`;
+				let content = `<svg width="${renderWidth}" height="${renderHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg">`;
+				content += `<line x1="${lineStart}" y1="${axisY}" x2="${lineEnd}" y2="${axisY}" stroke="black" stroke-width="2"/>`;
+				content += `<polygon points="${svgWidth - margin},${axisY} ${lineEnd},${axisY - 6} ${lineEnd},${axisY + 6}" fill="black"/>`;
+				for (let i = 0; i < tickCount; i++) {
+					const x = getX(i);
+					content += `<line x1="${x}" y1="${axisY - 8}" x2="${x}" y2="${axisY + 8}" stroke="black" stroke-width="1"/>`;
+					const label = labels[i];
+					if (label !== undefined) {
+						const labelColor = labelColors[i] || 'black';
+						const labelWeight = labelWeights[i] || '400';
+						content += `<text x="${x}" y="${axisY + 27}" text-anchor="middle" font-size="17" font-weight="${labelWeight}" fill="${labelColor}">${label}</text>`;
+					}
+				}
+				if (arrowPos !== null && arrowPos !== undefined) {
+					const arrowX = getX(arrowPos);
+					content += `<line x1="${arrowX}" y1="${axisY - 36}" x2="${arrowX}" y2="${axisY - 14}" stroke="#d32f2f" stroke-width="3"/>`;
+					content += `<polygon points="${arrowX - 6},${axisY - 17} ${arrowX},${axisY - 9} ${arrowX + 6},${axisY - 17}" fill="#d32f2f"/>`;
+				}
+				content += `</svg>`;
+				return content;
+			};
+
+			const givenPosA = randInt(0, tickCount - 1);
+			let givenPosB;
+			do {
+				givenPosB = randInt(0, tickCount - 1);
+			} while (Math.abs(givenPosA - givenPosB) <= 1);
+
+			// Aus den verbleibenden Positionen eine Zielposition für den Pfeil wählen
+			const availableTargetPositions = [];
+			for (let i = 0; i < tickCount; i++) {
+				if (i !== givenPosA && i !== givenPosB) {
+					availableTargetPositions.push(i);
+				}
+			}
+			const targetPos = availableTargetPositions[randInt(0, availableTargetPositions.length - 1)];
+			const targetValue = getValueAt(targetPos);
+
+			const taskLabels = {
+				[givenPosA]: formatValue(getValueAt(givenPosA)),
+				[givenPosB]: formatValue(getValueAt(givenPosB))
+			};
+			const solutionLabels = {};
+			for (let i = 0; i < tickCount; i++) {
+				solutionLabels[i] = formatValue(getValueAt(i));
+			}
+
+			const taskSvgDisplay = renderNumberLine({ labels: taskLabels, arrowPos: targetPos, scale: 1.7 });
+			const taskSvgPrint = renderNumberLine({ labels: taskLabels, arrowPos: targetPos, scale: 1, widthCm: 11 });
+
+			const solutionSvg = renderNumberLine({
+				labels: solutionLabels,
+				labelColors: {
+					[targetPos]: '#1b5e20'
+				},
+				labelWeights: {
+					[targetPos]: '700'
+				},
+				arrowPos: targetPos,
+				scale: 1.7
+			});
+
+			const lineTitle = isPositiveOnly ? 'dem Zahlenstrahl' : 'der Zahlengeraden';
+			textDisplay = `Welche Zahl ist durch den Pfeil auf ${lineTitle} markiert?<br>${taskSvgDisplay}`;
+			textPrint = `Welche Zahl ist durch den Pfeil auf ${lineTitle} markiert? ${blank(2)}<br>${taskSvgPrint}`;
+			s = `Gesuchte Zahl: \\( \\mathbf{${formatValue(targetValue)}} \\)<br>${solutionSvg}`;
+			answer = numericAnswer(targetValue);
+			break;
+		}		
+
 		case 'db_as': {
-			const allowNegativeDecimals = grade >= 7;
+			const allowNegativeDecimals = grade >= 8;
 
 			const createDbAsEntry = () => {
 				let expr;
 				let solution;
 				let answer;
-				let a = allowNegativeDecimals ? trueDec(-15, 15) : trueDec(14, 30);
+				let a = allowNegativeDecimals ? trueDec(-15, 15) : trueDec(0, 15);
 				let b = allowNegativeDecimals ? trueDec(-15, 15) : trueDec(0, 13);
 
 				if (Math.random() > 0.5) {
@@ -480,7 +542,7 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 		}
 
 		case 'db_md': {
-			const allowNegativeDecimals = grade >= 7;
+			const allowNegativeDecimals = grade >= 8;
 
 			const createDbMdEntry = () => {
 				let expr;
@@ -490,7 +552,7 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 
 				if (rdLocal > 0.7) {
 					const a = allowNegativeDecimals ? trueDec(-9, 9) : trueDec(0, 9);
-					const b = allowNegativeDecimals ? rnd(-7, 7) : rnd(2, 7);
+					const b = allowNegativeDecimals ? rnd(-7, 7) : rnd(1, 7);
 					const result = a * b;
 					expr = `\\( ${comma(a)} \\cdot ${comma(fmt(b))} =\\)`;
 					solution = `\\( ${comma(a)} \\cdot ${comma(fmt(b))} = ${comma(result.toFixed(1))} \\)`;
@@ -538,15 +600,15 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				const isAddition = Math.random() > 0.5;
 
 				if (isAddition) {
-					const v1 = randInt(0, 50);
-					const v2 = randInt(0, 50);
+					const v1 = randInt(20, 300);
+					const v2 = randInt(20, 300);
 					expr = `\\[ ${v1} + ${v2} = \\]`;
 					const sum = v1 + v2;
 					solution = `\\[ ${v1} + ${v2} = ${sum} \\]`;
 					answer = numericAnswer(sum);
 				} else {
-					const v1 = randInt(10, 80);
-					const v2 = randInt(0, v1);
+					const v1 = randInt(70, 300);
+					const v2 = randInt(20, v1);
 					expr = `\\[ ${v1} - ${v2} = \\]`;
 					const diff = v1 - v2;
 					solution = `\\[ ${v1} - ${v2} = ${diff} \\]`;
@@ -574,11 +636,12 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				let expr;
 				let solution;
 				let answer;
+				const allowNegative = grade >= 8;
 				if (Math.random() > 0.5) {
 					do {
-						v1 = rnd(-20, 20);
-						v2 = rnd(-20, 20);
-					} while (!(v1 < 0 || v2 < 0 || (v1 + v2) < 0));
+						v1 = allowNegative ? rnd(-20, 20) : rnd(0, 20);
+						v2 = allowNegative ? rnd(-20, 20) : rnd(0, 20);
+					} while (!(allowNegative ? (v1 < 0 || v2 < 0 || (v1 + v2) < 0) : (v1 + v2 >= 0)));
 					expr = `\\( ${v1} + ${fmt(v2)} =\\)`;
 					const sum = v1 + v2;
 					if (v2 < 0) {
@@ -589,9 +652,9 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 					answer = numericAnswer(sum);
 				} else {
 					do {
-						v1 = rnd(-20, 20);
-						v2 = rnd(-20, 20);
-					} while (!(v1 < 0 || v2 < 0 || (v1 - v2) < 0));
+						v1 = allowNegative ? rnd(-20, 20) : rnd(0, 20);
+						v2 = allowNegative ? rnd(-20, 20) : rnd(0, 20);
+					} while (!(allowNegative ? (v1 < 0 || v2 < 0 || (v1 - v2) < 0) : (v1 - v2 >= 0)));
 					expr = `\\[ ${v1} - ${fmt(v2)} = \\]`;
 					const diff = v1 - v2;
 					if (v2 < 0) {
@@ -662,11 +725,12 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				let expr;
 				let solution;
 				let answer;
+				const allowNegative = grade >= 8;
 				if (Math.random() > 0.5) {
 					do {
-						v1 = rnd(-15, 15);
-						v2 = rnd(-9, 9);
-					} while (!(v1 < 0 || v2 < 0 || (v1 * v2) < 0));
+						v1 = allowNegative ? rnd(-15, 15) : rnd(0, 15);
+						v2 = allowNegative ? rnd(-9, 9) : rnd(0, 9);
+					} while (!(allowNegative ? (v1 < 0 || v2 < 0 || (v1 * v2) < 0) : (v1 * v2 >= 0)));
 					expr = `\\[ ${v1} \\cdot ${fmt(v2)} = \\]`;
 					const product = v1 * v2;
 					solution = `\\[ ${v1} \\cdot ${fmt(v2)} = ${product} \\]`;
@@ -674,9 +738,9 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				} else {
 					let res;
 					do {
-						res = rnd(-9, 9);
-						v2 = rnd(-12, 12);
-					} while (v2 === 0 || !(res < 0 || v2 < 0 || (res * v2) < 0));
+						res = allowNegative ? rnd(-9, 9) : rnd(0, 9);
+						v2 = allowNegative ? rnd(-12, 12) : rnd(1, 12);
+					} while (v2 === 0 || !(allowNegative ? (res < 0 || v2 < 0 || (res * v2) < 0) : (res * v2 >= 0)));
 					v1 = res * v2;
 					expr = `\\[ ${v1} : ${fmt(v2)} = \\]`;
 					solution = `\\[ ${v1} : ${fmt(v2)} = ${res} \\]`;
@@ -2184,15 +2248,16 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 			];
 
 			const template = templates[randInt(0, templates.length - 1)];
+			const allowNegative = grade >= 8;
 
-			let a = rnd(-15, 15);
-			let b = rnd(-15, 15);
+			let a = allowNegative ? rnd(-15, 15) : rnd(1, 15);
+			let b = allowNegative ? rnd(-15, 15) : rnd(1, 15);
 			if (template.symbol === ':') {
 				b = 0;
 				while (b === 0) {
-					b = rnd(-12, 12);
+					b = allowNegative ? rnd(-12, 12) : rnd(1, 12);
 				}
-				const q = rnd(-12, 12);
+				const q = allowNegative ? rnd(-12, 12) : rnd(1, 12);
 				a = b * q;
 			}
 

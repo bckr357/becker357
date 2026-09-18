@@ -21,32 +21,34 @@ const taskCategories = {
 // Sichtbare Aufgabentypen je Klassenstufe (wird vom UI-Dropdown genutzt)
 const taskTypesByGrade = {
 	klasse5: [
-		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'db_as', 'db_md', 'pow10', 'vorrang',
-		'table_add',  'table_sub', 'table_mul','table_terms',
-		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
-		'geometry', 'winkel', 'schraegbild', 'statistik'
+		'teiler', 'primzahlen', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'db_as', 'db_md', 'pow10', 'vorrang',
+		'table_add', 'table_sub', 'table_mul', 
+		'round', 'ueberschlag', 'zahlengerade',
+		'word_terms', 
+		'geometry', 'winkel'
 	],
 	klasse6: [
-		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
-		'table_add',  'table_sub', 'table_mul','table_terms',
+		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'db_as', 'db_md', 'pow10', 'vorrang',
+		'table_add', 'table_sub', 'table_mul', 
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
-		'anteile', 'percent', 'geometry', 'winkel', 'schraegbild', 'statistik', 'wkt'
+		'word_terms', 
+		'geometry', 'winkel'
 	],
 	klasse7: [
-		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
+		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'table_add', 'table_sub', 'table_mul', 'table_terms',
-		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order',
-		'anteile', 'prop', 'percent', 'pv', 
-		'terme', 'word_terms', 'equations', 'equations_lin', 'formel_umstellen',
-		'round', 'ueberschlag', 'zahlengerade', 'geometry', 'winkel', 'schraegbild', 'kongruenz', 'statistik', 'wkt', 'linear_function'
+		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
+		'anteile', 
+		'word_terms', 
+		'geometry', 'winkel', 'kongruenz'
 	],
 	klasse8: [
 		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'table_add', 'table_sub', 'table_mul', 'table_terms',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
 		'anteile', 'prop', 'percent', 'pv', 
-		'terme', 'word_terms', 'equations', 'equations_adv', 'equations_lin', 'formel_umstellen',
-		'geometry', 'winkel', 'schraegbild', 'kongruenz', 'statistik', 'wkt', 'linear_function'
+		'terme', 'word_terms', 
+		'geometry', 'winkel', 'kongruenz'
 	],
 	klasse9: [
 		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
@@ -54,7 +56,8 @@ const taskTypesByGrade = {
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
 		'anteile', 'prop', 'percent', 'pv', 
 		'terme', 'word_terms', 'equations', 'equations_adv', 'equations_lin', 'formel_umstellen',
-		'geometry', 'winkel', 'schraegbild', 'kongruenz', 'statistik', 'wkt', 'linear_function'
+		'geometry', 'winkel', 'kongruenz',
+		'wkt', 'linear_function', 'funktionen'
 	],
 	klasse10: [
 		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
@@ -69,19 +72,19 @@ const taskTypesByGrade = {
 
 const quizTaskTypesByGrade = {
 	klasse5: [
-		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
+		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'table_add',  'table_sub', 'table_mul','table_terms',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
 		'geometry', 'winkel', 'schraegbild', 'statistik'
 	],
 	klasse6: [
-		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
+		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'table_add',  'table_sub', 'table_mul','table_terms',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
 		'anteile', 'percent', 'geometry', 'winkel', 'schraegbild', 'statistik', 'wkt'
 	],
 	klasse7: [
-		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
+		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'table_add', 'table_sub', 'table_mul', 'table_terms',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order',
 		'anteile', 'prop', 'percent', 'pv', 
@@ -214,7 +217,10 @@ function sortByTypeDefinitions(types) {
 // ============================================================
 
 function createTask(type, isMentalMode, grade = 5, options = {}) {
-	if (!Number.isFinite(grade)) {
+	if (typeof grade === 'string') {
+		const parsed = parseInt(grade.replace(/\D/g, ''), 10);
+		grade = Number.isFinite(parsed) ? parsed : 5;
+	} else if (!Number.isFinite(grade)) {
 		grade = 5;
 	}
 
@@ -321,8 +327,9 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 		case 'table_mul': {
 			const isAdd = type === 'table_add';
 			const isGrade5Natural = grade === 5;
-			const min = isGrade5Natural ? (isAdd ? 20 : 2) : (isAdd ? -50 : -13);
-			const max = isGrade5Natural ? (isAdd ? 400 : 15) : (isAdd ? 50 : 13);
+			const isPositiveOnly = grade <= 7;
+			const min = isGrade5Natural ? (isAdd ? 20 : 2) : (isPositiveOnly ? (isAdd ? 0 : 1) : (isAdd ? -50 : -13));
+			const max = isGrade5Natural ? (isAdd ? 400 : 15) : (isPositiveOnly ? (isAdd ? 50 : 15) : (isAdd ? 50 : 13));
 			const allValues = pickDistinctIntegers(min, max, 7);
 			const rowHeaders = allValues.slice(0, 2);
 			const colHeaders = allValues.slice(2);
@@ -377,10 +384,17 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 
 		case 'table_sub': {
 			const isGrade5Natural = grade === 5;
+			const isPositiveOnly = grade <= 7;
 			let rowHeaders;
 			let colHeaders;
 
 			if (isGrade5Natural) {
+				const maxSubtrahend = Math.max(4, randInt(0, 10));
+				const firstRow = randInt(maxSubtrahend + 5, maxSubtrahend + 15);
+				const secondRow = firstRow + randInt(1, 6);
+				rowHeaders = [firstRow, secondRow];
+				colHeaders = pickDistinctIntegers(0, maxSubtrahend, 5);
+			} else if (isPositiveOnly) {
 				const maxSubtrahend = Math.max(4, randInt(0, 10));
 				const firstRow = randInt(maxSubtrahend + 5, maxSubtrahend + 15);
 				const secondRow = firstRow + randInt(1, 6);
@@ -441,7 +455,7 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 		}
 
 		case 'table_terms': {
-			const useNaturalNumbers = grade < 7;
+			const useNaturalNumbers = grade <= 7;
 			const formatLinearExpr = (a, b) => {
 				if (b === 0) return `${a}x`;
 				return `${a}x ${b >= 0 ? '+' : '-'} ${Math.abs(b)}`;
@@ -747,12 +761,12 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 		}
 
 		case 'db_as': {
-			const allowNegativeDecimals = grade >= 7;
+			const allowNegativeDecimals = grade >= 8;
 
 			const createDbAsEntry = () => {
 				let expr;
 				let solution;
-				let a = allowNegativeDecimals ? trueDec(-15, 15) : trueDec(14, 30);
+				let a = allowNegativeDecimals ? trueDec(-15, 15) : trueDec(0, 15);
 				let b = allowNegativeDecimals ? trueDec(-15, 15) : trueDec(0, 13);
 
 				if (Math.random() > 0.5) {
@@ -772,7 +786,7 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 		}
 
 		case 'db_md': {
-			const allowNegativeDecimals = grade >= 7;
+			const allowNegativeDecimals = grade >= 8;
 
 			const createDbMdEntry = () => {
 				let expr;
@@ -781,7 +795,7 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 
 				if (rdLocal > 0.7) {
 					const a = allowNegativeDecimals ? trueDec(-9, 9) : trueDec(0, 9);
-					const b = allowNegativeDecimals ? rnd(-7, 7) : rnd(2, 7);
+					const b = allowNegativeDecimals ? rnd(-7, 7) : rnd(1, 7);
 					expr = `\\( ${comma(a)} \\cdot ${comma(fmt(b))} =\\)`;
 					solution = `\\( ${comma(a)} \\cdot ${comma(fmt(b))} = ${comma((a * b).toFixed(1))} \\)`;
 				} else if (rdLocal > 0.4) {
@@ -819,14 +833,14 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				let expr;
 				let solution;
 				if (Math.random() > 0.5) {
-					const v1 = randInt(0, 50);
-					const v2 = randInt(0, 50);
+					const v1 = randInt(20, 300);
+					const v2 = randInt(20, 300);
 					expr = `\\[ ${v1} + ${v2} = \\]`;
 					const sum = v1 + v2;
 					solution = `\\[ ${v1} + ${v2} = ${sum} \\]`;
 				} else {
-					const v1 = randInt(10, 80);
-					const v2 = randInt(0, v1);
+					const v1 = randInt(70, 300);
+					const v2 = randInt(20, v1);
 					expr = `\\[ ${v1} - ${v2} = \\]`;
 					const diff = v1 - v2;
 					solution = `\\[ ${v1} - ${v2} = ${diff} \\]`;
@@ -2725,15 +2739,16 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 			];
 
 			const template = templates[randInt(0, templates.length - 1)];
+			const allowNegative = grade >= 8;
 
-			let a = rnd(-15, 15);
-			let b = rnd(-15, 15);
+			let a = allowNegative ? rnd(-15, 15) : rnd(1, 15);
+			let b = allowNegative ? rnd(-15, 15) : rnd(1, 15);
 			if (template.symbol === ':') {
 				b = 0;
 				while (b === 0) {
-					b = rnd(-12, 12);
+					b = allowNegative ? rnd(-12, 12) : rnd(1, 12);
 				}
-				const q = rnd(-12, 12);
+				const q = allowNegative ? rnd(-12, 12) : rnd(1, 12);
 				a = b * q;
 			}
 
@@ -2909,15 +2924,19 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 		}
 
 	case 'zahlengerade': {
-		const isPositiveOnly = grade <= 6;
-		const tickBases = [2, 3, 5];
-		const tickFactors = [1, 5, 10, 50, 100];
-		const tickDistance = tickBases[randInt(0, tickBases.length - 1)] * tickFactors[randInt(0, tickFactors.length - 1)];
+		const allowDecimals = grade >= 6;
+		const isPositiveOnly = grade <= 7;
+		const cleanFloat = (value) => Number(value.toFixed(6));
+		const tickBases = allowDecimals ? [1, 2, 3, 4, 5] : [2, 3, 5];
+		const tickFactors = allowDecimals
+			? [0.01, 0.05, 0.1, 0.5, 1, 5, 10, 50, 100]
+			: [1, 5, 10, 50, 100];
+		const tickDistance = cleanFloat(tickBases[randInt(0, tickBases.length - 1)] * tickFactors[randInt(0, tickFactors.length - 1)]);
 		const tickCount = randInt(5, 7);
-		const startValue = isPositiveOnly ? 0 : randInt(-3, 2) * tickDistance;
-		const endValue = startValue + tickDistance * (tickCount - 1);
-		const formatValue = (value) => Number.isInteger(value) ? `${value}` : formatDecimal(value, 1);
-		const getValueAt = (position) => startValue + position * tickDistance;
+		const startValue = cleanFloat(isPositiveOnly ? randInt(1, 4) * tickDistance : randInt(-3, -1) * tickDistance);
+		const endValue = cleanFloat(startValue + tickDistance * (tickCount - 1));
+		const getValueAt = (position) => cleanFloat(startValue + position * tickDistance);
+		const formatValue = (value) => formatDecimal(cleanFloat(value), 4);
 		const svgWidth = 520;
 		const svgHeight = 96;
 		const svgRenderWidthCm = 10;
@@ -2985,8 +3004,9 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 			scale: 1.7
 		});
 
-		textDisplay = `Vervollständige den Zahlenstrahl anhand der zwei vorgegebenen Werte.<br>${taskSvgDisplay}`;
-		textPrint = `Vervollständige den Zahlenstrahl:<br>${taskSvgPrint}`;
+		const lineTitle = isPositiveOnly ? 'den Zahlenstrahl-Abschnitt' : 'die Zahlengerade';
+		textDisplay = `Vervollständige ${lineTitle}:<br>${taskSvgDisplay}`;
+		textPrint = `Vervollständige ${lineTitle}:<br>${taskSvgPrint}`;
 		s = `${solutionSvg}`;
 		break;
 	}
