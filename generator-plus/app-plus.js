@@ -874,6 +874,10 @@ createApp({
         };
 
         const randomizeTypeSelection = () => {
+            if (state.currentView.value !== 'quiz') {
+                state.weights.value = true;
+            }
+
             const classTypes = activeVisibleTypeKeys.value;
             const selectedTypesRef = getActiveSelectedTypesRef();
             const taskWeightsRef = getActiveTaskWeightsRef();

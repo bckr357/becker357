@@ -14,7 +14,7 @@ window.MTGStateModule = {
         const isDarkMode = ref(false);
         const selectedTypes = ref([]);
         const taskWeights = ref(
-            Object.fromEntries(Object.keys(typeLabels).map(type => [type, 2]))
+            Object.fromEntries(Object.keys(typeLabels).map(type => [type, 1]))
         );
         const taskCount = ref(20);
         const taskArrangementMode = ref('ordered');
@@ -24,7 +24,7 @@ window.MTGStateModule = {
         const weights = ref(false);
         const quizSelectedTypes = ref([]);
         const quizTaskWeights = ref(
-            Object.fromEntries(Object.keys(typeLabels).map(type => [type, 2]))
+            Object.fromEntries(Object.keys(typeLabels).map(type => [type, 1]))
         );
         const quizMentalMathMode = ref(true);
         const quizNumber = ref('1');

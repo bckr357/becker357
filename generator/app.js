@@ -809,11 +809,15 @@ createApp({
         };
 
         const randomizeTypeSelection = () => {
+            if (state.currentView.value !== 'quiz') {
+                state.weights.value = true;
+            }
+
             const classTypes = activeVisibleTypeKeys.value;
             const selectedTypesRef = getActiveSelectedTypesRef();
             const taskWeightsRef = getActiveTaskWeightsRef();
             const availableTypes = new Set(classTypes);
-            const targetTypeCount = Math.min(20, classTypes.length);
+            const targetTypeCount = Math.min(18, classTypes.length);
 
             if (targetTypeCount === 0) {
                 selectedTypesRef.value = [];
@@ -831,6 +835,8 @@ createApp({
                     'z_md',
                     'db_as',
                     'db_md',
+                    'nat_as',
+                    'nat_md',
                     'percent',
                     'pow10'
                 ],
@@ -841,19 +847,13 @@ createApp({
                     ['table_add', 'table_sub', 'table_mul', 'table_terms']
                 ],
                 hardCodedWeights: {
-                    units: 2,
-                    z_as: 2,
-                    z_md: 2,
-                    db_as: 2,
-                    db_md: 2,
-                    percent: 2,
-                    pow10: 2,
-                    schriftlich_as: 1,
-                    schriftlich_md: 1,
-                    table_add: 1,
-                    table_sub: 1,
-                    table_mul: 1,
-                    table_terms: 1
+                    units: 3,
+                    schriftlich_as: 0,
+                    schriftlich_md: 0,
+                    table_add: 0,
+                    table_sub: 0,
+                    table_mul: 0,
+                    table_terms: 0
                 },
                 optionalPickChance: 0.5
             };
@@ -935,7 +935,7 @@ createApp({
             selectedTypesRef.value = classTypes.filter(type => selected.has(type));
 
             classTypes.forEach(type => {
-                taskWeightsRef.value[type] = config.hardCodedWeights[type] ?? (selected.has(type) ? 2 : 0);
+                taskWeightsRef.value[type] = config.hardCodedWeights[type] ?? (selected.has(type) ? 1 : 0);
             });
 
             syncSelectedTypesFromCounts(activeVisibleTypeKeys.value);

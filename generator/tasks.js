@@ -21,7 +21,7 @@ const taskCategories = {
 // Sichtbare Aufgabentypen je Klassenstufe (wird vom UI-Dropdown genutzt)
 const taskTypesByGrade = {
 	klasse5: [
-		'teiler', 'primzahlen', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'db_as', 'db_md', 'pow10', 'vorrang',
+		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'table_add', 'table_sub', 'table_mul', 
 		'round', 'ueberschlag', 'zahlengerade',
 		'word_terms', 
@@ -138,15 +138,15 @@ const typeDefinitions = [
 	
 	// Arithmetik: Ganze Zahlen, Dezimalbrüche, Stellenwerte
 	['calc01', 'Rechnen mit 0 & 1', 'Aufgaben mit 0 und 1 bei Multiplikation, Division und Potenzen'],
-	['potenzen', 'Potenzen und Wurzeln', 'Potenzen und Wurzeln berechnen'],
-	['nat_as', 'Natürliche Zahlen +/-', 'Natürliche Zahlen addieren und subtrahieren'],
-	['nat_md', 'Natürliche Zahlen ×/÷', 'Natürliche Zahlen multiplizieren und dividieren'],
 	['schriftlich_as', 'schriftlich rechnen +/-', 'Schriftliche Addition und Subtraktion'],
 	['schriftlich_md', 'schriftlich rechnen ×/÷', 'Schriftliche Multiplikation und Division'],
+	['nat_as', 'Natürliche Zahlen +/-', 'Natürliche Zahlen addieren und subtrahieren'],
+	['nat_md', 'Natürliche Zahlen ×/÷', 'Natürliche Zahlen multiplizieren und dividieren'],
 	['z_as', 'Ganze Zahlen +/-', 'Ganze Zahlen addieren und subtrahieren'],
 	['z_md', 'Ganze Zahlen ×/÷', 'Ganze Zahlen multiplizieren und dividieren'],
 	['db_as', 'Dezimalbrüche +/-', 'Dezimalbrüche addieren und subtrahieren'],
 	['db_md', 'Dezimalbrüche ×/÷', 'Dezimalbrüche multiplizieren und dividieren'],
+	['potenzen', 'Potenzen und Wurzeln', 'Potenzen und Wurzeln berechnen'],
 	['pow10', 'Zehnerpotenzen ×/÷', 'Multiplikation und Division mit Zehnerpotenzen'],
 	['vorrang', 'Vorrangregeln', 'Terme mit Vorrangregeln berechnen'],
 	['ueberschlag', 'Überschlag', 'Sinnvolle Überschläge für Grundrechenaufgaben bilden'],
@@ -1893,24 +1893,31 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 			const createUnitsEntry = () => {
 
 				// 1. Definition der Einheiten-Ketten (geordnet von klein nach groß)
-			const unitGroups = [
-				{ units: ['mm', 'cm', 'dm', 'm', 'km'], factors: [10, 10, 10, 1000], type: 'Länge' },
-				{ units: ['mm²', 'cm²', 'dm²', 'm²', 'a', 'ha', 'km²'], factors: [100, 100, 100, 100, 100, 100], type: 'Fläche' },
-				{ units: ['mm³', 'cm³', 'dm³', 'm³'], factors: [1000, 1000, 1000], type: 'Volumen' },
-				{ units: ['mg', 'g', 'kg', 't'], factors: [1000, 1000, 1000], type: 'Masse' },
-				{ units: ['s', 'min', 'h'], factors: [60, 60], type: 'Zeit' }
-			];
+				let unitGroups = [
+					{ units: ['mm', 'cm', 'dm', 'm', 'km'], factors: [10, 10, 10, 1000], type: 'Länge' },
+					{ units: ['mm²', 'cm²', 'dm²', 'm²', 'a', 'ha', 'km²'], factors: [100, 100, 100, 100, 100, 100], type: 'Fläche' },
+					{ units: ['mm³', 'cm³', 'dm³', 'm³'], factors: [1000, 1000, 1000], type: 'Volumen' },
+					{ units: ['mg', 'g', 'kg', 't'], factors: [1000, 1000, 1000], type: 'Masse' },
+					{ units: ['s', 'min', 'h'], factors: [60, 60], type: 'Zeit' }
+				];
 
-			// 2. Zufällige Gruppe wählen (z.B. Zeit oder Masse)
-			const group = unitGroups[rnd(2, unitGroups.length + 1) - 2];
-			//const group = unitGroups[4];
+				if (grade <= 5) {
+					unitGroups = unitGroups.filter(g => g.type !== 'Fläche' && g.type !== 'Volumen');
+				}
+				if (isMentalMode) {
+					unitGroups = unitGroups.filter(g => g.type !== 'Volumen');
+				}
+
+				// 2. Zufällige Gruppe wählen (z.B. Zeit oder Masse)
+				const group = unitGroups[randInt(0, unitGroups.length - 1)];
+				//const group = unitGroups[4];
 
 
-			// 3. Einen Index innerhalb der Gruppe wählen
-			// Wir wählen so, dass wir einen Nachbarn haben (nicht den letzten Index bei 'kleiner', nicht den ersten bei 'größer')
-			const unitIndex = rnd(2, group.units.length + 1) - 2;
+				// 3. Einen Index innerhalb der Gruppe wählen
+				// Wir wählen so, dass wir einen Nachbarn haben (nicht den letzten Index bei 'kleiner', nicht den ersten bei 'größer')
+				const unitIndex = randInt(0, group.units.length - 1);
 
-			// 4. Richtung bestimmen: 0 = in nächstkleinere, 1 = in nächstgrößere
+				// 4. Richtung bestimmen: 0 = in nächstkleinere, 1 = in nächstgrößere
 			let direction;
 			if (unitIndex === 0) direction = 1; // Muss größer werden
 			else if (unitIndex === group.units.length - 1) direction = 0; // Muss kleiner werden
