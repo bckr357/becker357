@@ -8,14 +8,14 @@ const formatDecimal = formatUtils.formatDecimal;
 
 // Nur Aufgaben, die tatsächlich ein maschinenlesbares `answer`-Objekt liefern.
 const QUIZ_AUTO_DEFAULT_TYPES = [
-	'nat_as', 'nat_md', 'z_as', 'z_md', 'calc01', 'db_as', 'db_md', 'pow10',
+	'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10',
 	'frac_as', 'frac_md', 'frac_simplify',
 	'percent', 'pv', 'units', 'round', 'geometry', 'anteile', 'wkt', 'zahlengerade'
 ];
 
 // Alle automatisch auswertbaren Aufgabentypen.
 const QUIZ_AUTO_TYPES = [
-	'nat_as', 'nat_md', 'z_as', 'z_md', 'calc01', 'db_as', 'db_md', 'pow10',
+	'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10',
 	'percent', 'pv', 'terme', 'equations', 'equations_adv', 'vorrang', 'round',
 	'potenzen', 'units', 'statistik', 'ueberschlag', 'zahlengerade',
 	'frac_as', 'frac_md', 'frac_simplify', 'frac_convert', 'anteile', 'wkt',
@@ -28,7 +28,7 @@ if (typeof window !== 'undefined') {
 }
 
 const taskCategories = {
-	arithmetic: ['nat_as', 'nat_md', 'z_as', 'z_md', 'calc01', 'potenzen', 'db_as', 'db_md', 'pow10', 'round', 'ueberschlag', 'zahlengerade', 'vorrang'],
+	arithmetic: ['nat_as', 'nat_md', 'z_as', 'z_md', 'potenzen', 'db_as', 'db_md', 'pow10', 'round', 'ueberschlag', 'zahlengerade', 'vorrang'],
 	fractions: ['frac_as', 'frac_md', 'frac_simplify', 'frac_convert', 'frac_order'],
 	percent: ['anteile', 'prop', 'percent', 'pv', 'units'],
 	algebra: ['terme', 'equations', 'equations_adv', 'formel_umstellen'],
@@ -41,38 +41,38 @@ const taskCategories = {
 // Sichtbare Aufgabentypen je Klassenstufe (wird vom UI-Dropdown genutzt)
 const taskTypesByGrade = {
 	klasse5: [
-		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'pow10', 'vorrang',
+		'teiler', 'primzahlen', 'units', 'potenzen', 'nat_as', 'nat_md', 'pow10', 'vorrang',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
 		'geometry', 'winkel', 'statistik'
 	],
 	klasse6: [
-		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'pow10', 'vorrang',
+		'teiler', 'primzahlen', 'units', 'potenzen', 'nat_as', 'nat_md', 'pow10', 'vorrang',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
 		'anteile', 'percent', 'geometry', 'winkel', 'statistik', 'wkt'
 	],
 	klasse7: [
-		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'pow10', 'vorrang',
+		'teiler', 'primzahlen', 'units', 'potenzen', 'nat_as', 'nat_md', 'pow10', 'vorrang',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order',
 		'anteile', 'prop', 'percent', 'pv',
 		'terme', 'word_terms', 'equations', 'equations_adv', 'equations_lin',
 		'round', 'ueberschlag', 'zahlengerade', 'geometry', 'winkel', 'statistik', 'wkt'
 	],
 	klasse8: [
-		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
+		'teiler', 'primzahlen', 'units', 'potenzen', 'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
 		'anteile', 'prop', 'percent', 'pv',
 		'terme', 'word_terms', 'equations', 'equations_adv', 'equations_lin',
 		'geometry', 'winkel', 'statistik', 'wkt', 'linear_function'
 	],
 	klasse9: [
-		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
+		'teiler', 'primzahlen', 'units', 'potenzen', 'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
 		'anteile', 'prop', 'percent', 'pv',
 		'terme', 'word_terms', 'equations', 'equations_adv', 'equations_lin',
 		'geometry', 'winkel', 'statistik', 'wkt', 'linear_function', 'funktionen'
 	],
 	klasse10: [
-		'teiler', 'primzahlen', 'units', 'calc01', 'potenzen', 'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
+		'teiler', 'primzahlen', 'units', 'potenzen', 'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
 		'anteile', 'prop', 'percent', 'pv',
 		'terme', 'word_terms', 'equations', 'equations_adv', 'equations_lin',
@@ -102,7 +102,6 @@ const typeDefinitions = [
 	['units', 'Einheiten', 'Größen in verschiedene Einheiten umrechnen'],
 	
 	// Arithmetik: Ganze Zahlen, Dezimalbrüche, Stellenwerte
-	['calc01', 'Rechnen mit 0 & 1', 'Aufgaben mit 0 und 1 bei Multiplikation, Division und Potenzen'],
 	['potenzen', 'Potenzen und Wurzeln', 'Potenzen und Wurzeln berechnen'],
 	['nat_as', 'Natürliche Zahlen +/-', 'Natürliche Zahlen addieren und subtrahieren'],
 	['nat_md', 'Natürliche Zahlen ×/÷', 'Natürliche Zahlen multiplizieren und dividieren'],
@@ -172,15 +171,16 @@ function sortByTypeDefinitions(types) {
 // AUFGABEN-GENERATOR
 // ============================================================
 
-function createTask(type, isMentalMode, grade = 5, options = {}) {
-	if (typeof grade === 'string') {
+function createTask(type, grade = 5, options = {}) {
+	if (typeof grade === 'boolean') {
+		grade = typeof options === 'number' ? options : 5;
+	} else if (typeof grade === 'string') {
 		const parsed = parseInt(grade.replace(/\D/g, ''), 10);
 		grade = Number.isFinite(parsed) ? parsed : 5;
 	} else if (!Number.isFinite(grade)) {
 		grade = 5;
 	}
 
-	const isTraining = Boolean(options.training);
 	let s = '';
 	let textDisplay = '', textPrint = '';
 	let answer = null;
@@ -250,14 +250,6 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 		`;
 	};
 
-	const buildTwoColumnTaskTable = (cells) => {
-		const cellHtml = cells.map(cell =>
-			`<td class="two-column-task-cell">${cell}</td>`
-		).join('');
-
-		return `<table class="two-column-task"><tr>${cellHtml}</tr></table>`;
-	};
-
 	const numericAnswer = value => ({ kind: 'number', value });
 	const fractionAnswer = (num, den, requireReduced = false) => ({ kind: 'fraction', num, den, requireReduced });
 	const listAnswer = values => ({ kind: 'list', values: values.map(value => Number(value)) });
@@ -277,139 +269,9 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 		return normalized;
 	};
 
-	// Beispiel für die Nutzung von isMentalMode:
-	// if (isMentalMode) { Z1 = rnd(2, 5); } else { Z1 = rnd(5, 20); }
-
 	let v1, v2;
 	let rd;
 	switch (type) {
-
-		case 'calc01': {
-			const allowNegative = grade >= 8;
-
-			const createCalc01Entry = () => {
-				let expr;
-				let solution;
-				let res;
-
-				const opCategory = randInt(0, 2);
-				const baseA = randInt(2, 10);
-				const isNegativeA = allowNegative && Math.random() < 0.5;
-				const a = isNegativeA ? -baseA : baseA;
-
-				if (opCategory === 0) {
-					// MULTIPLIKATION
-					const mulSubtypes = allowNegative ? [0, 1, 2, 3, 4, 5] : [0, 1, 2, 3];
-					const sub = mulSubtypes[randInt(0, mulSubtypes.length - 1)];
-
-					if (sub === 0) {
-						expr = `\\[ ${a < 0 ? fmt(a) : a} \\cdot 0 = \\]`;
-						res = 0;
-						solution = `\\[ ${a < 0 ? fmt(a) : a} \\cdot 0 = ${res} \\]`;
-					} else if (sub === 1) {
-						expr = `\\[ 0 \\cdot ${fmt(a)} = \\]`;
-						res = 0;
-						solution = `\\[ 0 \\cdot ${fmt(a)} = ${res} \\]`;
-					} else if (sub === 2) {
-						expr = `\\[ ${a < 0 ? fmt(a) : a} \\cdot 1 = \\]`;
-						res = a;
-						solution = `\\[ ${a < 0 ? fmt(a) : a} \\cdot 1 = ${res} \\]`;
-					} else if (sub === 3) {
-						expr = `\\[ 1 \\cdot ${fmt(a)} = \\]`;
-						res = a;
-						solution = `\\[ 1 \\cdot ${fmt(a)} = ${res} \\]`;
-					} else if (sub === 4) {
-						expr = `\\[ ${a < 0 ? fmt(a) : a} \\cdot (-1) = \\]`;
-						res = -a;
-						solution = `\\[ ${a < 0 ? fmt(a) : a} \\cdot (-1) = ${res} \\]`;
-					} else {
-						expr = `\\[ (-1) \\cdot ${fmt(a)} = \\]`;
-						res = -a;
-						solution = `\\[ (-1) \\cdot ${fmt(a)} = ${res} \\]`;
-					}
-				} else if (opCategory === 1) {
-					// DIVISION
-					const divSubtypes = allowNegative ? [0, 1, 2, 3, 4, 5] : [0, 1, 2];
-					const sub = divSubtypes[randInt(0, divSubtypes.length - 1)];
-
-					if (sub === 0) {
-						expr = `\\[ 0 : ${fmt(a)} = \\]`;
-						res = 0;
-						solution = `\\[ 0 : ${fmt(a)} = ${res} \\]`;
-					} else if (sub === 1) {
-						expr = `\\[ ${a < 0 ? fmt(a) : a} : 1 = \\]`;
-						res = a;
-						solution = `\\[ ${a < 0 ? fmt(a) : a} : 1 = ${res} \\]`;
-					} else if (sub === 2) {
-						expr = `\\[ ${a < 0 ? fmt(a) : a} : ${fmt(a)} = \\]`;
-						res = 1;
-						solution = `\\[ ${a < 0 ? fmt(a) : a} : ${fmt(a)} = ${res} \\]`;
-					} else if (sub === 3) {
-						expr = `\\[ ${a < 0 ? fmt(a) : a} : (-1) = \\]`;
-						res = -a;
-						solution = `\\[ ${a < 0 ? fmt(a) : a} : (-1) = ${res} \\]`;
-					} else if (sub === 4) {
-						expr = `\\[ ${a < 0 ? fmt(a) : a} : ${fmt(-a)} = \\]`;
-						res = -1;
-						solution = `\\[ ${a < 0 ? fmt(a) : a} : ${fmt(-a)} = ${res} \\]`;
-					} else {
-						expr = `\\[ ${fmt(-a)} : ${fmt(a)} = \\]`;
-						res = -1;
-						solution = `\\[ ${fmt(-a)} : ${fmt(a)} = ${res} \\]`;
-					}
-				} else {
-					// POTENZEN
-					const powSubtypes = allowNegative ? [0, 1, 2, 3, 4, 5, 6] : [0, 1, 2, 3];
-					const sub = powSubtypes[randInt(0, powSubtypes.length - 1)];
-
-					if (sub === 0) {
-						const base = a < 0 ? `(${a})` : `${a}`;
-						expr = `\\[ ${base}^0 = \\]`;
-						res = 1;
-						solution = `\\[ ${base}^0 = ${res} \\]`;
-					} else if (sub === 1) {
-						const base = a < 0 ? `(${a})` : `${a}`;
-						expr = `\\[ ${base}^1 = \\]`;
-						res = a;
-						solution = `\\[ ${base}^1 = ${res} \\]`;
-					} else if (sub === 2) {
-						const exp = randInt(1, 10);
-						expr = `\\[ 0^{${exp}} = \\]`;
-						res = 0;
-						solution = `\\[ 0^{${exp}} = ${res} \\]`;
-					} else if (sub === 3) {
-						const exp = [randInt(2, 20), randInt(50, 100)][randInt(0, 1)];
-						expr = `\\[ 1^{${exp}} = \\]`;
-						res = 1;
-						solution = `\\[ 1^{${exp}} = ${res} \\]`;
-					} else if (sub === 4) {
-						const evenExp = randInt(1, 10) * 2;
-						expr = `\\[ (-1)^{${evenExp}} = \\]`;
-						res = 1;
-						solution = `\\[ (-1)^{${evenExp}} = ${res} \\]`;
-					} else if (sub === 5) {
-						const oddExp = randInt(1, 10) * 2 + 1;
-						expr = `\\[ (-1)^{${oddExp}} = \\]`;
-						res = -1;
-						solution = `\\[ (-1)^{${oddExp}} = ${res} \\]`;
-					} else {
-						const isZeroExp = Math.random() < 0.5;
-						const exp = isZeroExp ? 0 : 1;
-						res = isZeroExp ? 1 : -baseA;
-						expr = `\\[ (-${baseA})^{${exp}} = \\]`;
-						solution = `\\[ (-${baseA})^{${exp}} = ${res} \\]`;
-					}
-				}
-
-				return { expr, solution, answer: numericAnswer(res) };
-			};
-
-			const entry = createCalc01Entry();
-			textDisplay = entry.expr;
-			s = entry.solution;
-			answer = entry.answer;
-			break;
-		}
 
 		case 'zahlengerade': {
 			const allowDecimals = grade >= 6;
@@ -578,17 +440,10 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				return { expr, solution, answer };
 			};
 
-			if (isTraining) {
-				const entry = createDbMdEntry();
-				textDisplay = entry.expr;
-				s = entry.solution;
-				answer = entry.answer;
-			} else {
-				const entries = [createDbMdEntry(), createDbMdEntry()];
-				textDisplay = buildTwoColumnTaskTable(entries.map(item => item.expr));
-				s = buildTwoColumnTaskTable(entries.map(item => item.solution));
-				answer = entries[0].answer;
-			}
+			const entry = createDbMdEntry();
+			textDisplay = entry.expr;
+			s = entry.solution;
+			answer = entry.answer;
 			break;
 		}
 
@@ -617,17 +472,10 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				return { expr, solution, answer };
 			};
 
-			if (isTraining) {
-				const entry = createNatAsEntry();
-				textDisplay = entry.expr;
-				s = entry.solution;
-				answer = entry.answer;
-			} else {
-				const entries = [createNatAsEntry(), createNatAsEntry()];
-				textDisplay = buildTwoColumnTaskTable(entries.map(item => item.expr));
-				s = buildTwoColumnTaskTable(entries.map(item => item.solution));
-				answer = entries[0].answer;
-			}
+			const entry = createNatAsEntry();
+			textDisplay = entry.expr;
+			s = entry.solution;
+			answer = entry.answer;
 			break;
 		}
 
@@ -636,12 +484,11 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				let expr;
 				let solution;
 				let answer;
-				const allowNegative = grade >= 8;
 				if (Math.random() > 0.5) {
 					do {
-						v1 = allowNegative ? rnd(-20, 20) : rnd(0, 20);
-						v2 = allowNegative ? rnd(-20, 20) : rnd(0, 20);
-					} while (!(allowNegative ? (v1 < 0 || v2 < 0 || (v1 + v2) < 0) : (v1 + v2 >= 0)));
+						v1 = rnd(-20, 20);
+						v2 = rnd(-20, 20);
+					} while (!(v1 < 0 || v2 < 0 || (v1 + v2) < 0));
 					expr = `\\( ${v1} + ${fmt(v2)} =\\)`;
 					const sum = v1 + v2;
 					if (v2 < 0) {
@@ -652,9 +499,9 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 					answer = numericAnswer(sum);
 				} else {
 					do {
-						v1 = allowNegative ? rnd(-20, 20) : rnd(0, 20);
-						v2 = allowNegative ? rnd(-20, 20) : rnd(0, 20);
-					} while (!(allowNegative ? (v1 < 0 || v2 < 0 || (v1 - v2) < 0) : (v1 - v2 >= 0)));
+						v1 = rnd(-20, 20);
+						v2 = rnd(-20, 20);
+					} while (!(v1 < 0 || v2 < 0 || (v1 - v2) < 0));
 					expr = `\\[ ${v1} - ${fmt(v2)} = \\]`;
 					const diff = v1 - v2;
 					if (v2 < 0) {
@@ -667,17 +514,10 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				return { expr, solution, answer };
 			};
 
-			if (isTraining) {
-				const entry = createZAsEntry();
-				textDisplay = entry.expr;
-				s = entry.solution;
-				answer = entry.answer;
-			} else {
-				const entries = [createZAsEntry(), createZAsEntry()];
-				textDisplay = buildTwoColumnTaskTable(entries.map(item => item.expr));
-				s = buildTwoColumnTaskTable(entries.map(item => item.solution));
-				answer = entries[0].answer;
-			}
+			const entry = createZAsEntry();
+			textDisplay = entry.expr;
+			s = entry.solution;
+			answer = entry.answer;
 			break;
 		}
 
@@ -706,17 +546,10 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				return { expr, solution, answer };
 			};
 
-			if (isTraining) {
-				const entry = createNatMdEntry();
-				textDisplay = entry.expr;
-				s = entry.solution;
-				answer = entry.answer;
-			} else {
-				const entries = [createNatMdEntry(), createNatMdEntry()];
-				textDisplay = buildTwoColumnTaskTable(entries.map(item => item.expr));
-				s = buildTwoColumnTaskTable(entries.map(item => item.solution));
-				answer = entries[0].answer;
-			}
+			const entry = createNatMdEntry();
+			textDisplay = entry.expr;
+			s = entry.solution;
+			answer = entry.answer;
 			break;
 		}
 
@@ -725,12 +558,11 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				let expr;
 				let solution;
 				let answer;
-				const allowNegative = grade >= 8;
 				if (Math.random() > 0.5) {
 					do {
-						v1 = allowNegative ? rnd(-15, 15) : rnd(0, 15);
-						v2 = allowNegative ? rnd(-9, 9) : rnd(0, 9);
-					} while (!(allowNegative ? (v1 < 0 || v2 < 0 || (v1 * v2) < 0) : (v1 * v2 >= 0)));
+						v1 = randInt(-15, 15);
+						v2 = randInt(-9, 9);
+					} while (!(v1 < 0 || v2 < 0 || (v1 * v2) < 0));
 					expr = `\\[ ${v1} \\cdot ${fmt(v2)} = \\]`;
 					const product = v1 * v2;
 					solution = `\\[ ${v1} \\cdot ${fmt(v2)} = ${product} \\]`;
@@ -738,9 +570,10 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				} else {
 					let res;
 					do {
-						res = allowNegative ? rnd(-9, 9) : rnd(0, 9);
-						v2 = allowNegative ? rnd(-12, 12) : rnd(1, 12);
-					} while (v2 === 0 || !(allowNegative ? (res < 0 || v2 < 0 || (res * v2) < 0) : (res * v2 >= 0)));
+						res = randInt(-9, 9);
+						v2 = randInt(1, 12);
+						Math.random() < 0.5 ? v2 = -v2 : null;
+					} while (!(res < 0 || v2 < 0 || (res * v2) < 0));
 					v1 = res * v2;
 					expr = `\\[ ${v1} : ${fmt(v2)} = \\]`;
 					solution = `\\[ ${v1} : ${fmt(v2)} = ${res} \\]`;
@@ -749,17 +582,10 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				return { expr, solution, answer };
 			};
 
-			if (isTraining) {
-				const entry = createZMdEntry();
-				textDisplay = entry.expr;
-				s = entry.solution;
-				answer = entry.answer;
-			} else {
-				const entries = [createZMdEntry(), createZMdEntry()];
-				textDisplay = buildTwoColumnTaskTable(entries.map(item => item.expr));
-				s = buildTwoColumnTaskTable(entries.map(item => item.solution));
-				answer = entries[0].answer;
-			}
+			const entry = createZMdEntry();
+			textDisplay = entry.expr;
+			s = entry.solution;
+			answer = entry.answer;
 			break;
 		}
 
@@ -866,17 +692,10 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				return { expr, solution, answer: numericAnswer(resultNum) };
 			};
 
-			if (isTraining) {
-				const entry = createPow10Entry();
-				textDisplay = entry.expr;
-				s = entry.solution;
-				answer = entry.answer;
-			} else {
-				const entries = [createPow10Entry(), createPow10Entry()];
-				textDisplay = buildTwoColumnTaskTable(entries.map(item => item.expr));
-				s = buildTwoColumnTaskTable(entries.map(item => item.solution));
-				answer = entries[0].answer;
-			}
+			const entry = createPow10Entry();
+			textDisplay = entry.expr;
+			s = entry.solution;
+			answer = entry.answer;
 			break;
 		}
 
@@ -939,7 +758,7 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 		}
 
 		case 'frac_md': {
-			let Z1, N1, Z2, N2, z1_base, n1_base, z2_base, n2_base, isMult;
+			let Z1, N1, Z2, N2, isMult;
 
 			const getGcd = mathUtils.getGcd;
 			const useNaturalNumberVariant = Math.random() < 0.30;
@@ -951,15 +770,9 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				let resultN;
 
 				do {
-					if (isMentalMode) {
-						Z1 = rnd(2, 9);
-						N1 = rnd(2, 9);
-						n = rnd(2, 9);
-					} else {
-						Z1 = rnd(2, 15);
-						N1 = rnd(2, 15);
-						n = rnd(2, 13);
-					}
+					Z1 = rnd(2, 9);
+					N1 = rnd(2, 9);
+					n = rnd(2, 9);
 
 					resultZ = isMult ? Z1 * n : Z1;
 					resultN = isMult ? N1 : N1 * n;
@@ -983,87 +796,36 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				break;
 			}
 
-			if (isMentalMode) {
-				isMult = Math.random() > 0.5;
-				let finalZ;
-				let finalN;
+			isMult = Math.random() > 0.5;
+			let finalZ;
+			let finalN;
 
-				do {
-					Z1 = rnd(2, 9);
-					N1 = rnd(2, 9);
-					Z2 = rnd(2, 9);
-					N2 = rnd(2, 9);
+			do {
+				Z1 = rnd(2, 9);
+				N1 = rnd(2, 9);
+				Z2 = rnd(2, 9);
+				N2 = rnd(2, 9);
 
-					finalZ = isMult ? Z1 * Z2 : Z1 * N2;
-					finalN = isMult ? N1 * N2 : N1 * Z2;
-				} while (
-					new Set([Z1, N1, Z2, N2]).size < 4 ||
-					getGcd(Z1, N1) > 1 ||
-					getGcd(Z2, N2) > 1 ||
-					getGcd(finalZ, finalN) > 1
-				);
+				finalZ = isMult ? Z1 * Z2 : Z1 * N2;
+				finalN = isMult ? N1 * N2 : N1 * Z2;
+			} while (
+				new Set([Z1, N1, Z2, N2]).size < 4 ||
+				getGcd(Z1, N1) > 1 ||
+				getGcd(Z2, N2) > 1 ||
+				getGcd(finalZ, finalN) > 1
+			);
 
-				const op = isMult ? '\\cdot' : ':';
-				const step1 = isMult ? '' : `\\frac{${Z1}}{${N1}} \\cdot \\frac{${N2}}{${Z2}} = `;
+			const op = isMult ? '\\cdot' : ':';
+			const step1 = isMult ? '' : `\\frac{${Z1}}{${N1}} \\cdot \\frac{${N2}}{${Z2}} = `;
 
-				textDisplay = `Berechne: \\( \\quad \\dfrac{${Z1}}{${N1}} ${op} \\dfrac{${Z2}}{${N2}} = \\)`;
-				s = `\\[ \\frac{${Z1}}{${N1}} ${op} \\frac{${Z2}}{${N2}} = ${step1} \\frac{${finalZ}}{${finalN}} \\]`;
-				answer = fractionAnswer(finalZ, finalN, false);
-			} else {
-				do {
-					isMult = Math.random() > 0.5;
-
-					// 1. Erzeuge zwei Brüche, die in sich NICHT kürzbar sind
-					let ta1 = rnd(6, 27), tb1 = rnd(6, 27);
-					while (getGcd(ta1, tb1) > 1) { ta1 = rnd(6, 27); tb1 = rnd(6, 27); }
-
-					let ta2 = rnd(6, 27), tb2 = rnd(6, 27);
-					while (getGcd(ta2, tb2) > 1 || (ta1 == ta2 && tb1 == tb2)) { ta2 = rnd(6, 27); tb2 = rnd(6, 27); }
-
-					// Zuweisung der "großen" Zahlen
-					Z1 = ta1; N1 = tb1; Z2 = ta2; N2 = tb2;
-
-					// 2. Bestimme die Kürzungs-Partner basierend auf der Operation
-					// Bei Mult: Z1 mit N2 und N1 mit Z2
-					// Bei Div:  Z1 mit Z2 und N1 mit N2 (wegen Kehrwert)
-					let g1 = isMult ? getGcd(Z1, N2) : getGcd(Z1, Z2);
-					let g2 = isMult ? getGcd(N1, Z2) : getGcd(N1, N2);
-
-					// BEDINGUNGEN:
-					// - g1 und g2 müssen > 1 sein (es MUSS über Kreuz kürzbar sein)
-					// - Alle 4 Zahlen verschieden
-					if (g1 > 1 && g2 > 1 && new Set([Z1, N1, Z2, N2]).size === 4) {
-						// Berechne die Werte für den "midStep" (die gekürzten Zahlen)
-						z1_base = Z1 / g1;
-						n2_base = isMult ? N2 / g1 : Z2 / g1;
-						n1_base = N1 / g2;
-						z2_base = isMult ? Z2 / g2 : N2 / g2;
-						break;
-					}
-				} while (true);
-
-				const op = isMult ? '\\cdot' : ':';
-				const resZ = z1_base * z2_base;
-				const resN = n1_base * n2_base;
-
-				// Kehrwert-Schritt (nur bei Division)
-				let stepKehrwert = "";
-				if (!isMult) {
-					stepKehrwert = `\\frac{${Z1}}{${N1}} \\cdot \\frac{${N2}}{${Z2}} = `;
-				}
-
-				// MidStep nutzt die gekürzten Werte
-				const midStep = `\\frac{${z1_base}}{${n1_base}} \\cdot \\frac{${z2_base}}{${n2_base}}`;
-
-				textDisplay = `Berechne: \\( \\quad \\dfrac{${Z1}}{${N1}} ${op} \\dfrac{${Z2}}{${N2}} = \\)`;
-				s = `\\[ \\frac{${Z1}}{${N1}} ${op} \\frac{${Z2}}{${N2}} = ${stepKehrwert}${midStep} = \\frac{${resZ}}{${resN}} \\]`;
-				answer = fractionAnswer(resZ, resN, false);
-			}
+			textDisplay = `Berechne: \\( \\quad \\dfrac{${Z1}}{${N1}} ${op} \\dfrac{${Z2}}{${N2}} = \\)`;
+			s = `\\[ \\frac{${Z1}}{${N1}} ${op} \\frac{${Z2}}{${N2}} = ${step1} \\frac{${finalZ}}{${finalN}} \\]`;
+			answer = fractionAnswer(finalZ, finalN, false);
 			break;
 		}
 
 		case 'frac_simplify': {
-			const factors = isMentalMode ? [3, 4, 6, 8, 9, 12, 15, 20, 25] : [3, 4, 5, 6, 7, 8, 9, 11, 12, 14, 15, 18, 25];
+			const factors = [3, 4, 6, 8, 9, 12, 15, 20, 25];
 
 			const getGcd = mathUtils.getGcd;
 			const getPrimeFactors = mathUtils.getPrimeFactors;
@@ -1103,9 +865,7 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 		case 'frac_order': {
 			const getGcd = mathUtils.getGcd;
 
-			const mainDenominators = isMentalMode
-				? [12, 15, 18, 20, 24, 30, 36]
-				: [12, 15, 18, 20, 24, 30, 36, 40, 42, 45, 48, 54, 60];
+			const mainDenominators = [12, 15, 18, 20, 24, 30, 36];
 
 			const hn = mainDenominators[randInt(0, mainDenominators.length - 1)];
 
@@ -1230,7 +990,7 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 					// Gesamte Wahl von n und z wiederholen, wenn es "zu oft" 1/2 ist
 					while (isTooEasy) {
 						n = allowedDenoms[Math.floor(Math.random() * allowedDenoms.length)];
-						maxZ = isMentalMode ? n * 2 : n * 3;
+						maxZ = n * 2;
 
 						// Zähler teilerfremd zu n würfeln
 						do {
@@ -1268,7 +1028,7 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 					// 1. Exakt gleiche Generierungs-Logik wie bei frac_to_dec
 					while (isTooEasy) {
 						n = allowedDenoms[Math.floor(Math.random() * allowedDenoms.length)];
-						let maxZ = isMentalMode ? n * 2 : n * 3;
+						let maxZ = n * 2;
 
 						let attempts = 0;
 						do {
@@ -1509,12 +1269,12 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				answer = { kind: 'number', value: result, unit: einheit };
 			} else {
 				// 1. Wähle einen "schönen" Prozentsatz p (z.B. 5, 10, 20, 25, 50...)
-				const p_list = isMentalMode ? [2, 3, 5, 10, 20, 25, 50, 75, 80, 90] : [2, 3, 5, 10, 15, 20, 25, 40, 50, 75, 80, 90, 95];
+				const p_list = [2, 3, 5, 10, 20, 25, 50, 75, 80, 90];
 				p = p_list[randInt(0, p_list.length - 1)];
 
 				// 2. Wähle einen Multiplikator für den Prozentwert W, 
 				// damit die Zahlen nicht zu krumm werden
-				const multiplier = isMentalMode ? rnd(2, 10) : rnd(2, 15);
+				const multiplier = rnd(2, 10);
 				const W = p * multiplier;
 
 				// 3. Berechne den Grundwert G
@@ -1602,9 +1362,7 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				if (grade <= 5) {
 					unitGroups = unitGroups.filter(g => g.type !== 'Fläche' && g.type !== 'Volumen');
 				}
-				if (isMentalMode) {
-					unitGroups = unitGroups.filter(g => g.type !== 'Volumen');
-				}
+				unitGroups = unitGroups.filter(g => g.type !== 'Volumen');
 
 				// 2. Zufällige Gruppe wählen (z.B. Zeit oder Masse)
 				const group = unitGroups[randInt(0, unitGroups.length - 1)];
@@ -1727,7 +1485,7 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				const rdLocal = Math.random() + (grade <= 7 ? 0.21 : 0); // bei Klase 5 - 7 keine else Aufgaben 
 
 				if (rdLocal > 0.6) {
-					v1 = grade <= 7 ? rnd(2, 13) : rnd(-13, 13);
+					v1 = grade <= 7 ? randInt(0, 13) : randInt(-13, 13);
 					result = v1 * v1;
 					if (v1 < 0) {
 						expr = `\\( (${v1})^2 = \\)`;
@@ -1737,13 +1495,13 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 						solution = `\\( ${v1}^2 = ${result} \\)`;
 					}
 				} else if (rdLocal > 0.40) {
-					v1 = rnd(3, 13);
+					v1 = randInt(3, 13);
 					result = v1;
 					expr = `\\( \\sqrt{${v1 * v1}} = \\)`;
 					solution = grade <= 7 ? `\\( \\sqrt{${v1 * v1}} = ${v1} \\)` : `\\( \\sqrt{${v1 * v1}} = \\pm ${v1} \\)`;
 					return { expr, solution, answer: { kind: 'either', options: [v1, -v1] } };
 				} else if (rdLocal > 0.2) {
-					v1 = rnd(3, 9);
+					v1 = randInt(0, 9);
 					result = Math.pow(2, v1);
 					expr = `\\( 2^${v1} = \\)`;
 					solution = `\\( 2^${v1} = ${result} \\)`;
@@ -1768,32 +1526,17 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				return { expr, solution, answer: numericAnswer(result) };
 			};
 
-			if (isTraining) {
-				const entry = createPotenzenEntry();
-				textDisplay = entry.expr;
-				s = entry.solution;
-				answer = entry.answer;
-			} else {
-				const firstEntry = createPotenzenEntry();
-				let secondEntry;
-				let attempt = 0;
-				do {
-					secondEntry = createPotenzenEntry();
-					attempt += 1;
-				} while (attempt < 10 && secondEntry.expr === firstEntry.expr);
-
-				const entries = [firstEntry, secondEntry];
-				textDisplay = buildTwoColumnTaskTable(entries.map(item => item.expr));
-				s = buildTwoColumnTaskTable(entries.map(item => item.solution));
-				answer = entries[0].answer;
-			}
+			const entry = createPotenzenEntry();
+			textDisplay = entry.expr;
+			s = entry.solution;
+			answer = entry.answer;
 
 			break;
 		}
 
 		case 'teiler': {
 			// 1. Pool an Zahlen mit interessanten Teilermengen 
-			const pool = isMentalMode ? [8, 10, 12, 13, 15, 16, 18, 19, 20, 25, 27, 28, 29, 30, 33, 35] : [12, 15, 16, 18, 20, 28, 30, 32, 33, 34, 35, 37, 40, 45, 50];
+			const pool = [8, 10, 12, 13, 15, 16, 18, 19, 20, 25, 27, 28, 29, 30, 33, 35];
 			const n = pool[randInt(0, pool.length - 1)];
 			// 2. Alle Teiler berechnen
 			let teilerArray = [];
@@ -1871,46 +1614,48 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 			};
 			const fmtInt = (value) => `${Math.round(value)}`;
 
-			const applyOperator = (acc, operator, val) => (operator === '+' ? acc + val : acc - val);
-			const offsetPool = [-0.2, -0.1, -0.05, 0.05, 0.1, 0.2];
+			const addOffset = (value, maxDeltaOverride) => {
+				const maxDelta = maxDeltaOverride ?? (value < 10 ? 0.45 : (value < 20 ? 1.9 : 4.9));
+				const minDelta = maxDelta <= 1.5 ? 0.05 : (maxDelta <= 4.9 ? 0.1 : 0.5);
+				const useTwoDecimals = maxDelta > 4.9 || value >= 100;
 
-			const addOffset = (value) => {
 				let shifted = value;
-				for (let tries = 0; tries < 15; tries++) {
-					const delta = offsetPool[randInt(0, offsetPool.length - 1)];
+				for (let tries = 0; tries < 30; tries++) {
+					const sign = Math.random() < 0.5 ? 1 : -1;
+					const rawDelta = minDelta + Math.random() * (maxDelta - minDelta);
+					const delta = Number((sign * rawDelta).toFixed(useTwoDecimals ? 1 : 2));
 					const next = trim2(value + delta);
-					if (next > 0 && Math.abs(next - value) >= 0.01) {
+					if (next > 0 && Math.abs(delta) >= minDelta) {
 						shifted = next;
 						break;
 					}
 				}
 				return shifted;
 			};
+			const allowedDivisors = [5, 10, 20, 30, 50, 100, 200];
+			const divisorDeviationLimit = (divisor) => {
+				if (divisor === 5) return 1.5;
+				if (divisor >= 10 && divisor <= 50) return 4.9;
+				return 19.9;
+			};
 
-			const makeBaseInt = () => rnd(8, 180);
-
-			const mode = ['addsub', 'mul', 'div'][randInt(0, 2)];
+			const mode = ['mul', 'div'][randInt(0, 1)];
 			let taskExpr = '';
 			let roundedExpr = '';
 			let estimateResult = 0;
 
-			if (mode === 'addsub') {
-				const termCount = randInt(3, 5);
-				const baseTerms = Array.from({ length: termCount }, () => makeBaseInt());
-				const operators = Array.from({ length: termCount - 1 }, () => (Math.random() < 0.35 ? '-' : '+'));
+			if (mode === 'mul') {
+				// Kleines Einmaleins mit Zehnerpotenzen (gut im Kopf rechenbar)
+				const digitA = randInt(2, 9);
+				const digitB = randInt(2, 9);
+				const scaleOptions = [
+					[10, 10], [10, 10], [1, 10], [10, 1],
+					[1, 100], [100, 1], [10, 100], [100, 10]
+				];
+				const [scaleA, scaleB] = scaleOptions[randInt(0, scaleOptions.length - 1)];
+				const baseA = digitA * scaleA;
+				const baseB = digitB * scaleB;
 
-				const taskTerms = baseTerms.map((v) => addOffset(v));
-
-				estimateResult = baseTerms.slice(1).reduce(
-					(acc, val, idx) => applyOperator(acc, operators[idx], val),
-					baseTerms[0]
-				);
-
-				taskExpr = `${fmtNum(taskTerms[0])} ${taskTerms.slice(1).map((val, idx) => `${operators[idx]} ${fmtNum(val)}`).join(' ')}`;
-				roundedExpr = `${fmtNum(baseTerms[0])} ${baseTerms.slice(1).map((val, idx) => `${operators[idx]} ${fmtNum(val)}`).join(' ')}`;
-			} else if (mode === 'mul') {
-				const baseA = makeBaseInt();
-				const baseB = makeBaseInt();
 				const taskA = addOffset(baseA);
 				const taskB = addOffset(baseB);
 
@@ -1919,12 +1664,13 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				taskExpr = `${fmtNum(taskA)} \\cdot ${fmtNum(taskB)}`;
 				roundedExpr = `${fmtNum(baseA)} \\cdot ${fmtNum(baseB)}`;
 			} else {
-				const baseDivisor = rnd(3, 18);
-				const baseQuotient = rnd(3, 40);
-				const baseDividend = trim2(baseDivisor * baseQuotient);
-
-				const taskDividend = addOffset(baseDividend);
-				const taskDivisor = addOffset(baseDivisor);
+				// Diktierte Divisoren mit passender grober Abweichung und kleinen Einmaleins-Faktoren 1, 10 oder 100
+				const baseDivisor = allowedDivisors[randInt(0, allowedDivisors.length - 1)];
+				const quotientDigit = randInt(2, 9);
+				const factor = [1, 10, 100][randInt(0, 2)];
+				const baseDividend = quotientDigit * baseDivisor * factor;
+				const taskDivisor = addOffset(baseDivisor, divisorDeviationLimit(baseDivisor));
+				const taskDividend = addOffset(baseDividend, dividendDeviationLimit(baseDivisor));
 
 				estimateResult = baseDividend / baseDivisor;
 
@@ -2709,7 +2455,7 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 			}
 
 			let sortedData = [...data].sort((a, b) => a - b);
-			let displayData = isMentalMode ? sortedData : data;
+			let displayData = sortedData;
 
 			// Bestimmung der einen gesuchten Kenngröße
 			let taskType = randInt(0, 3);
@@ -2726,9 +2472,7 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 					if (n === 5) {
 						resultValue = sortedData[2];
 						let median = sortedData[2];
-						loesung = isMentalMode ?
-						`${displayData.join(', ')}<br>Zentralwert (Median) = ${median}.` :
-						`geordnete Liste: ${sortedData.join(', ')}<br>Zentralwert (Median) = ${median}`;
+						loesung = `${displayData.join(', ')}<br>Zentralwert (Median) = ${median}.`;
 					} else {
 						resultValue = (sortedData[2] + sortedData[3]) / 2;
 						let m1 = sortedData[2];
@@ -2736,10 +2480,8 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 						let median = (m1 + m2) / 2;
 						let medianStr = median.toString().replace('.', ',');
 						
-						loesung = isMentalMode ?
-							`${sortedData.join(', ')}<br>Zentralwert = (${m1} + ${m2}) : 2 = ${medianStr}` :
-							`geordnete Liste: ${sortedData.join(', ')}<br>Zentralwert = (${m1} + ${m2}) : 2 = ${medianStr}`;
-						}
+						loesung = `${sortedData.join(', ')}<br>Zentralwert = (${m1} + ${m2}) : 2 = ${medianStr}`;
+					}
 					break;
 				case 2:
 					taskName = "den Modalwert";
@@ -2816,7 +2558,7 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				// TYP 1: Anteil berechnen (Bruch von Ganzem)
 				// Damit es glatt aufgeht, muss das Ganze ein Vielfaches des Nenners sein.
 				let scale = Math.random() > 0.5 ? 10 : 1; // Sorgt manchmal für Hunderter/Zehner-Werte
-				let multiplier = isMentalMode ? rnd(2, 9) : rnd(3, 13);
+				let multiplier = rnd(2, 9);
 				let G = n * multiplier * scale; // Das Ganze (Grundwert)
 				let W = (G / n) * z;            // Der Anteil (Prozentwert)
 				answer = { kind: 'number', value: W, unit: einheit };
@@ -2829,7 +2571,7 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				// TYP 2: Ganzes berechnen (Bruch sind Anteil von...)
 				// Damit es glatt aufgeht, muss der Anteil ein Vielfaches des Zählers sein.
 				let scale = Math.random() > 0.5 ? 10 : 1;
-				let multiplier = isMentalMode ? rnd(2, 9) : rnd(3, 13);
+				let multiplier = rnd(2, 9);
 				let W = z * multiplier * scale; // Der Anteil
 				let G = (W / z) * n;            // Das Ganze
 				answer = { kind: 'number', value: G, unit: einheit };
@@ -2841,7 +2583,7 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 			} else {
 				// TYP 3: Bruch berechnen (Anteil von Ganzem sind...)
 				// Wir nehmen den generierten Bruch und erzeugen dazu passende glatte Werte.
-				let multiplier = isMentalMode ? rnd(2, 9) : rnd(3, 13);
+				let multiplier = rnd(2, 9);
 				
 				let W = z * multiplier;
 				let G = n * multiplier;
@@ -2878,22 +2620,12 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 			let einzelwert;
 			
 			// Realistische Werte je nach Typ festlegen
-			if (isMentalMode) {
-				if (sz.type === 'print') {
-					einzelwert = randInt(5, 15); // 5 bis 15 Seiten pro Minute
-				} else if (sz.type === 'job') {
-					einzelwert = randInt(5, 9); // 5 € bis 9 € Stundenlohn
-				} else {
-					einzelwert = randInt(1, 6) * 0.5; // 0,50€ bis 3,00€ für Lebensmittel
-				}
+			if (sz.type === 'print') {
+				einzelwert = randInt(5, 15); // 5 bis 15 Seiten pro Minute
+			} else if (sz.type === 'job') {
+				einzelwert = randInt(5, 9); // 5 € bis 9 € Stundenlohn
 			} else {
-				if (sz.type === 'print') {
-					einzelwert = randInt(5, 20); // 5 bis 20 Seiten pro Minute
-				} else if (sz.type === 'job') {
-					einzelwert = randInt(5, 9) + (Math.random() < 0.5 ? 0.5 : 0); // 5,00€ bis 9,50€ Stundenlohn
-				} else {
-					einzelwert = randInt(1, 7) * 0.2; // 0,20€ bis 1,40€ für Lebensmittel
-				}
+				einzelwert = randInt(1, 6) * 0.5; // 0,50€ bis 3,00€ für Lebensmittel
 			}
 
 			let wert1 = menge1 * einzelwert;
@@ -3064,13 +2796,10 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 			};
 		
 			const pickSimpleValue = () => {
-				if (isMentalMode) {
-					if (Math.random() < 0.8) {
-						return randInt(1, 12); // bevorzugt ganze Zahlen
-					}
-					return randInt(2, 20) / 2; // sonst 0,5-Schritte
+				if (Math.random() < 0.8) {
+					return randInt(1, 12); // bevorzugt ganze Zahlen
 				}
-				return randInt(5, 250) / 10; // max. eine Nachkommastelle
+				return randInt(2, 20) / 2; // sonst 0,5-Schritte
 			};
 		
 			const pickTimeValue = (idx) => {

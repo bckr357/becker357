@@ -127,7 +127,7 @@ const app = createApp({
 			if (selectedTypes.value.length === 0) return null;
 
 			const type = selectedTypes.value[randInt(0, selectedTypes.value.length - 1)];
-			const generated = createTask(type, false, grade.value, { training: true });
+			const generated = createTask(type, grade.value, { training: true });
 
 			return reactive({
 				type,
