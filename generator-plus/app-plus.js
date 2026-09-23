@@ -109,6 +109,19 @@ createApp({
             .map(item => item.aufgabentyp || item.type || '')
             .filter(type => typeof type === 'string' && type))];
 
+        const presentationHeaderVisible = ref(true);
+
+        const updatePresentationHeaderVisibility = () => {
+            const toolbar = document.querySelector('.presentation-view .top-bar');
+            if (!toolbar) {
+                presentationHeaderVisible.value = true;
+                return;
+            }
+
+            const rect = toolbar.getBoundingClientRect();
+            presentationHeaderVisible.value = rect.top >= -toolbar.offsetHeight + 12;
+        };
+
         const createJsonImportHandler = ({ loadTasks, getVisibleKeys, setSelectedTypes, onAfterLoad }) => async event => {
             const file = event.target.files?.[0];
             if (!file) return;
@@ -1081,6 +1094,7 @@ createApp({
 
         watch(() => state.currentView.value, view => {
             syncUrlWithView(view);
+            document.body.dataset.view = view;
 
             if (isQuizEnabled && view === 'quiz') {
                 if (state.quizSelectedTypes.value.length === 0 && state.selectedTypes.value.length > 0) {
@@ -1122,16 +1136,22 @@ createApp({
 
         onMounted(async () => {
             await applyViewFromUrl();
+            updatePresentationHeaderVisibility();
             window.addEventListener('popstate', applyViewFromUrl);
+            window.addEventListener('scroll', updatePresentationHeaderVisibility, { passive: true });
+            window.addEventListener('resize', updatePresentationHeaderVisibility);
         });
 
         onBeforeUnmount(() => {
             window.removeEventListener('popstate', applyViewFromUrl);
+            window.removeEventListener('scroll', updatePresentationHeaderVisibility);
+            window.removeEventListener('resize', updatePresentationHeaderVisibility);
         });
 
         return {
             ...state,
             totalSelectedTaskCount,
+            presentationHeaderVisible,
             viewTabs,
             selectedGrade,
             gradeOptions,

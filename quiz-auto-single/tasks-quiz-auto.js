@@ -302,15 +302,15 @@ function createTask(type, grade = 5, options = {}) {
 			const renderNumberLine = ({ labels = {}, labelColors = {}, labelWeights = {}, arrowPos = null, scale = 1, widthCm } = {}) => {
 				const renderWidth = `${(widthCm ?? (svgRenderWidthCm * scale))}cm`;
 				const renderHeight = `${svgRenderHeightCm * scale}cm`;
-				let content = `<svg width="${renderWidth}" height="${renderHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg">`;
-				content += `<line x1="${lineStart}" y1="${axisY}" x2="${lineEnd}" y2="${axisY}" stroke="black" stroke-width="2"/>`;
-				content += `<polygon points="${svgWidth - margin},${axisY} ${lineEnd},${axisY - 6} ${lineEnd},${axisY + 6}" fill="black"/>`;
+				let content = `<svg width="${renderWidth}" height="${renderHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" style="display:block; color:#111827;">`;
+				content += `<line x1="${lineStart}" y1="${axisY}" x2="${lineEnd}" y2="${axisY}" stroke="currentColor" stroke-width="2"/>`;
+				content += `<polygon points="${svgWidth - margin},${axisY} ${lineEnd},${axisY - 6} ${lineEnd},${axisY + 6}" fill="currentColor"/>`;
 				for (let i = 0; i < tickCount; i++) {
 					const x = getX(i);
-					content += `<line x1="${x}" y1="${axisY - 8}" x2="${x}" y2="${axisY + 8}" stroke="black" stroke-width="1"/>`;
+					content += `<line x1="${x}" y1="${axisY - 8}" x2="${x}" y2="${axisY + 8}" stroke="currentColor" stroke-width="1"/>`;
 					const label = labels[i];
 					if (label !== undefined) {
-						const labelColor = labelColors[i] || 'black';
+						const labelColor = labelColors[i] || 'currentColor';
 						const labelWeight = labelWeights[i] || '400';
 						content += `<text x="${x}" y="${axisY + 27}" text-anchor="middle" font-size="17" font-weight="${labelWeight}" fill="${labelColor}">${label}</text>`;
 					}
@@ -355,7 +355,7 @@ function createTask(type, grade = 5, options = {}) {
 			const solutionSvg = renderNumberLine({
 				labels: solutionLabels,
 				labelColors: {
-					[targetPos]: '#1b5e20'
+					[targetPos]: '#2e7d32'
 				},
 				labelWeights: {
 					[targetPos]: '700'

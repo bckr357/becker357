@@ -886,6 +886,18 @@ textarea {
     flex-wrap: wrap;
 }
 
+.presentation-floating-toggle {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 100;
+    min-width: 42px;
+    padding: 7px 10px;
+    font-size: 0.8rem;
+    border-radius: 999px;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
+}
+
 .settings-topbar-settings {
     display: flex;
     gap: 10px;
@@ -1167,9 +1179,7 @@ textarea {
 }
 
 .presentation-view.dark-mode {
-    background:
-        radial-gradient(circle at top right, rgba(74, 222, 128, 0.14), transparent 32%),
-        linear-gradient(180deg, #0f172a 0%, #020617 100%);
+    background: #000000;
     color: #e2e8f0;
 }
 
@@ -1223,7 +1233,7 @@ textarea {
 
 .presentation-view.dark-mode .math-a .op-table th,
 .presentation-view.dark-mode .math-a .op-table td {
-    color: var(--primary-dark);
+    color: #7ee787;
 }
 
 .presentation-view.dark-mode .math-q .op-table th,
@@ -1237,7 +1247,32 @@ textarea {
 }
 
 .presentation-view.dark-mode .math-a {
-    color: var(--primary-dark);
+    color: #7ee787;
+}
+
+.presentation-view.dark-mode .math-q svg,
+.presentation-view.dark-mode .math-a svg {
+    color: #f8fafc;
+}
+
+.presentation-view.dark-mode .math-q svg text,
+.presentation-view.dark-mode .math-a svg text {
+    fill: #f8fafc;
+}
+
+.presentation-view.dark-mode .math-q svg text[fill="#1b5e20"],
+.presentation-view.dark-mode .math-q svg text[fill="#2e7d32"],
+.presentation-view.dark-mode .math-a svg text[fill="#1b5e20"],
+.presentation-view.dark-mode .math-a svg text[fill="#2e7d32"] {
+    fill: #7ee787 !important;
+}
+
+.presentation-view.dark-mode .math-q svg line,
+.presentation-view.dark-mode .math-q svg polygon,
+.presentation-view.dark-mode .math-a svg line,
+.presentation-view.dark-mode .math-a svg polygon {
+    stroke: #f8fafc;
+    fill: #f8fafc;
 }
 
 .presentation-view.dark-mode .btn--back {

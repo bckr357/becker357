@@ -603,6 +603,16 @@
             </div>
         </div>
 
+        <button
+            v-if="hasGeneratedTasks && !presentationHeaderVisible"
+            @click="toggleSolutions()"
+            class="btn btn--toggle presentation-floating-toggle"
+            :title="showSolutions ? 'Aufgaben anzeigen' : 'Lösungen anzeigen'"
+            type="button"
+        >
+            {{ showSolutions ? 'A' : 'L' }}
+        </button>
+
         <div v-if="!hasGeneratedTasks" class="empty-state empty-state--presentation">
             <h2>Noch keine Aufgaben erzeugt</h2>
             <p>Öffne die Aufgabenauswahl, wähle Aufgaben aus und erzeuge anschließend die Präsentation.</p>
