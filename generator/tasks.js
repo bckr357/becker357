@@ -135,17 +135,17 @@ const typeDefinitions = [
 	['teiler', 'Teiler', 'Teiler einer Zahl bestimmen'],
 	['primzahlen', 'Primzahlen', 'Primzahlen finden'], 
 	['units', 'Einheiten', 'Größen in verschiedene Einheiten umrechnen'],
-	['round', 'Dezimalbrüche runden', 'Dezimalbrüche runden'],
+	['round', 'Runden', 'Runden'],
 	
 	// Arithmetik: Ganze Zahlen, Dezimalbrüche, Stellenwerte
-	['schriftlich_as', 'schriftlich rechnen +/-', 'Schriftliche Addition und Subtraktion'],
-	['schriftlich_md', 'schriftlich rechnen ×/÷', 'Schriftliche Multiplikation und Division'],
 	['nat_as', 'Natürliche Zahlen +/-', 'Natürliche Zahlen addieren und subtrahieren'],
 	['nat_md', 'Natürliche Zahlen ×/÷', 'Natürliche Zahlen multiplizieren und dividieren'],
 	['z_as', 'Ganze Zahlen +/-', 'Ganze Zahlen addieren und subtrahieren'],
 	['z_md', 'Ganze Zahlen ×/÷', 'Ganze Zahlen multiplizieren und dividieren'],
 	['db_as', 'Dezimalbrüche +/-', 'Dezimalbrüche addieren und subtrahieren'],
 	['db_md', 'Dezimalbrüche ×/÷', 'Dezimalbrüche multiplizieren und dividieren'],
+	['schriftlich_as', 'schriftlich rechnen +/-', 'Schriftliche Addition und Subtraktion'],
+	['schriftlich_md', 'schriftlich rechnen ×/÷', 'Schriftliche Multiplikation und Division'],
 	['potenzen', 'Potenzen und Wurzeln', 'Potenzen und Wurzeln berechnen'],
 	['pow10', 'Zehnerpotenzen ×/÷', 'Multiplikation und Division mit Zehnerpotenzen'],
 	['vorrang', 'Vorrangregeln', 'Terme mit Vorrangregeln berechnen'],
@@ -158,8 +158,8 @@ const typeDefinitions = [
 	['table_terms', 'Termtabelle', 'Terme mit Variablen'],
 	
 	// Brüche
-	['frac_simplify', 'Brüche kürzen', 'Brüche vollständig kürzen'],
 	['frac_convert', 'Brüche umwandeln', 'Brüche, Dezimalzahlen und Prozentwerte umwandeln'],
+	['frac_simplify', 'Brüche kürzen', 'Brüche vollständig kürzen'],
 	['frac_as', 'Brüche +/-', 'Brüche addieren und subtrahieren'],
 	['frac_md', 'Brüche ×/÷', 'Brüche multiplizieren und dividieren'],
 	['frac_order', 'Brüche ordnen', 'Brüche der Größe nach sortieren'],
@@ -2791,7 +2791,7 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 		const endValue = cleanFloat(startValue + tickDistance * (tickCount - 1));
 		const getValueAt = (position) => cleanFloat(startValue + position * tickDistance);
 		const formatValue = (value) => formatDecimal(cleanFloat(value), 4);
-		const svgWidth = 520;
+		const svgWidth = 480;
 		const svgHeight = 96;
 		const svgRenderWidthCm = 10;
 		const svgRenderHeightCm = 2;
