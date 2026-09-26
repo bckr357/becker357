@@ -154,6 +154,42 @@
 
         _drawer = buildDrawer();
 
+        if (!document.querySelector('.site-footer')) {
+            const footer = document.createElement('footer');
+            footer.className = 'site-footer';
+            footer.setAttribute('role', 'contentinfo');
+            footer.innerHTML = `
+                <div class="site-footer__inner">
+                    <button type="button" class="site-footer__toggle" aria-expanded="false" aria-controls="site-footer-content">
+                        Impressum
+                    </button>
+                    <div id="site-footer-content" class="site-footer__content">
+                        <div class="site-footer__grid">
+                            <div>
+                                <strong>Verantwortlich für den Inhalt:</strong><br>
+                                Marko Becker<br>
+                                Oberschule "Katharina Peters" Zwönitz<br> 
+                                E-Mail: post@becker357.de
+                            </div>
+                            <div>
+                                <strong>Hinweis:</strong><br>
+                                Die bereitgestellten Materialien dienen ausschließlich der Verwendung im Zusammenhang mit dem Unterricht und werden ohne Gewähr für Vollständigkeit, Richtigkeit und Aktualität bereitgestellt.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const toggle = footer.querySelector('.site-footer__toggle');
+            const content = footer.querySelector('.site-footer__content');
+            toggle.addEventListener('click', function () {
+                const isOpen = footer.classList.toggle('is-open');
+                toggle.setAttribute('aria-expanded', String(isOpen));
+            });
+
+            document.body.appendChild(footer);
+        }
+
         document.body.appendChild(_overlay);
         document.body.appendChild(_drawer);
 

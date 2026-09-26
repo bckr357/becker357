@@ -851,7 +851,7 @@ textarea {
     justify-content: space-between;
     align-items: center;
     padding-bottom: 15px;
-    border-bottom: 2px solid var(--slate-100);
+    /* border-bottom: 2px solid var(--slate-100); */
     flex-wrap: wrap;
     gap: 10px;
 }
@@ -1188,9 +1188,9 @@ textarea {
     color: #cbd5e1;
 }
 
-.presentation-view.dark-mode .top-bar {
-    border-bottom-color: rgba(148, 163, 184, 0.25);
-}
+/* .presentation-view.dark-mode .top-bar {
+     border-bottom-color: rgba(148, 163, 184, 0.25); 
+} */
 
 .presentation-view.dark-mode .view-switch-select {
     background: rgba(30, 41, 59, 0.72);
