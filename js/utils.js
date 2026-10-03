@@ -88,6 +88,18 @@ const formatUtils = {
         return `${formatUtils.formatFixedDecimal(val, decimals)} %`;
     },
 
+    // Baut eine kompakte 2-Spalten-Lösungstabelle mit einer vertikalen Trennlinie und oberem Rand.
+    buildSolutionTable: (rows, className = 'prop-solution-table') => `
+        <table class="${className}">
+            ${rows.map(([label, value]) => `
+                <tr>
+                    <td>${label}</td>
+                    <td>${value}</td>
+                </tr>
+            `).join('')}
+        </table>
+    `,
+
     /**
      * Formatiert eine Zahl mit Vorzeichen für mathematische Ausdrücke
      * @param {number} value - Die zu formatierende Zahl

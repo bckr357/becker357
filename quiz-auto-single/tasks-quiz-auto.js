@@ -1258,14 +1258,22 @@ function createTask(type, grade = 5, options = {}) {
 				p = [3, 4, 5, 6, 7, 8, 9, 11, 12, 20, 25, 30, 35, 40, 60, 70, 80, 90][randInt(0, 17)];
 				result = (pVal / 100) * p;
 				textDisplay = `${p} % von ${pVal} ${einheit} sind ${blank(3)}`;
-				s = `100 % ≙ ${pVal} ${einheit}<br>1 % ≙ ${pVal / 100} ${einheit}<br>${p} % ≙ <b>${result} ${einheit}</b>`;
+				s = formatUtils.buildSolutionTable([
+					[`100 %`, `${comma(pVal)} ${einheit}`],
+					[`1 %`, `${comma(pVal / 100)} ${einheit}`],
+					[`${p} %`, `<b>${comma(result)} ${einheit}</b>`]
+				]);
 				answer = { kind: 'number', value: result, unit: einheit };
 			} else if (rd > 0.3) {
 				p = [20, 25, 30, 40, 50, 60, 70, 80, 90][randInt(0, 8)];
 				pVal = rnd(2, 9) * p;
 				result = (pVal / p) * 100;
 				textDisplay = `${p} % sind ${pVal} ${einheit} von ${blank(3)}`;
-				s = `${p} % ≙ ${pVal} ${einheit}<br>1 % ≙ ${pVal / p} ${einheit}<br>100 % ≙ <b>${result} ${einheit}</b>`;
+				s = formatUtils.buildSolutionTable([
+					[`${p} %`, `${comma(pVal)} ${einheit}`],
+					[`1 %`, `${comma(pVal / p)} ${einheit}`],
+					[`100 %`, `<b>${comma(result)} ${einheit}</b>`]
+				]);
 				answer = { kind: 'number', value: result, unit: einheit };
 			} else {
 				// 1. Wähle einen "schönen" Prozentsatz p (z.B. 5, 10, 20, 25, 50...)
@@ -1286,7 +1294,11 @@ function createTask(type, grade = 5, options = {}) {
 				textDisplay = ` ${comma(W)} ${einheit} von ${comma(G)} ${einheit} sind ${blank(2)} % `;
 
 				// Lösung: Zeigt den Rechenweg oder das Ergebnis
-				s = `100 % ≙ ${comma(G)} ${einheit}<br>1 % ≙ ${comma(G / 100)} ${einheit} <br><b>${p} %</b> ≙ ${comma(W)} ${einheit}`;
+				s = formatUtils.buildSolutionTable([
+					[`100 %`, `${comma(G)} ${einheit}`],
+					[`1 %`, `${comma(G / 100)} ${einheit}`],
+					[`<b>${p} %</b>`, `${comma(W)} ${einheit}`]
+				]);
 				answer = { kind: 'number', value: result, unit: '%' };
 			}
 			break;
@@ -1302,25 +1314,41 @@ function createTask(type, grade = 5, options = {}) {
 				case 0: // Erhöhung um p%
 					result = pVal + (pVal / 100 * p);
 					textDisplay = `${pVal} ${einheit} um ${p} % erhöht sind ${blank(3)}`;
-					s = `100 % ≙ ${pVal} ${einheit}<br>1 % ≙ ${pVal / 100} ${einheit}<br>${100 + p} % ≙ <b>${result} ${einheit}</b>`;
+					s = formatUtils.buildSolutionTable([
+						[`100 %`, `${comma(pVal)} ${einheit}`],
+						[`1 %`, `${comma(pVal / 100)} ${einheit}`],
+						[`${100 + p} %`, `<b>${comma(result)} ${einheit}</b>`]
+					]);
 					answer = { kind: 'number', value: result, unit: einheit };
 					break;
 				case 1: // Reduzierung um p%
 					result = pVal - (pVal / 100 * p);
 					textDisplay = `${pVal} ${einheit} um ${p} % reduziert sind ${blank(3)}`;
-					s = `100 % ≙ ${pVal} ${einheit}<br>1 % ≙ ${pVal / 100} ${einheit}<br>${100 - p} % ≙ <b>${result} ${einheit}</b>`;
+					s = formatUtils.buildSolutionTable([
+						[`100 %`, `${comma(pVal)} ${einheit}`],
+						[`1 %`, `${comma(pVal / 100)} ${einheit}`],
+						[`${100 - p} %`, `<b>${comma(result)} ${einheit}</b>`]
+					]);
 					answer = { kind: 'number', value: result, unit: einheit };
 					break;
 				case 2: // Erhöhung auf 100+p%
 					result = pVal + (pVal / 100 * p);
 					textDisplay = `${pVal} ${einheit} auf ${100 + p} % erhöht sind ${blank(3)}`;
-					s = `100 % ≙ ${pVal} ${einheit}<br>1 % ≙ ${pVal / 100} ${einheit}<br>${100 + p} % ≙ <b>${result} ${einheit}</b>`;
+					s = formatUtils.buildSolutionTable([
+						[`100 %`, `${comma(pVal)} ${einheit}`],
+						[`1 %`, `${comma(pVal / 100)} ${einheit}`],
+						[`${100 + p} %`, `<b>${comma(result)} ${einheit}</b>`]
+					]);
 					answer = { kind: 'number', value: result, unit: einheit };
 					break;
 				case 3: // Reduzierung auf 100-p%
 					result = pVal - (pVal / 100 * p);
 					textDisplay = `${pVal} ${einheit} auf ${100 - p} % reduziert sind ${blank(3)}`;
-					s = `100 % ≙ ${pVal} ${einheit}<br>1 % ≙ ${pVal / 100} ${einheit}<br>${100 - p} % ≙ <b>${result} ${einheit}</b>`;
+					s = formatUtils.buildSolutionTable([
+						[`100 %`, `${comma(pVal)} ${einheit}`],
+						[`1 %`, `${comma(pVal / 100)} ${einheit}`],
+						[`${100 - p} %`, `<b>${comma(result)} ${einheit}</b>`]
+					]);
 					answer = { kind: 'number', value: result, unit: einheit };
 					break;
 				case 4: {// Rabatt-Fall 1
@@ -1328,7 +1356,11 @@ function createTask(type, grade = 5, options = {}) {
 					const originalPrice = pVal;
 					result = originalPrice - (originalPrice / 100 * p);
 					textDisplay = `${p} % Rabatt auf ${originalPrice} €. Neuer Preis: ${blank(3)}`;
-					s = `100 % ≙ ${originalPrice} €<br>1 % ≙ ${originalPrice / 100} €<br>${100 - p} % ≙ <b>${result} €</b>`;
+					s = formatUtils.buildSolutionTable([
+						[`100 %`, `${comma(originalPrice)} €`],
+						[`1 %`, `${comma(originalPrice / 100)} €`],
+						[`${100 - p} %`, `<b>${comma(result)} €</b>`]
+					]);
 					answer = { kind: 'number', value: result, unit: '€' };
 					break;
 				}
@@ -1338,7 +1370,11 @@ function createTask(type, grade = 5, options = {}) {
 					const discountedPrice = originalPrice - (originalPrice / 100 * p);
 					result = p;
 					textDisplay = `Preissenkung von ${originalPrice} € auf ${discountedPrice} €. Rabatt: ${blank(2)} %`;
-					s = `100 % ≙ ${originalPrice} €<br>1 % ≙ ${originalPrice / 100} €<br><b>${p} %</b> ≙ ${(originalPrice - discountedPrice)} €`;
+					s = formatUtils.buildSolutionTable([
+						[`100 %`, `${comma(originalPrice)} €`],
+						[`1 %`, `${comma(originalPrice / 100)} €`],
+						[`${p} %`, `<b>${comma(originalPrice - discountedPrice)} €</b>`]
+					]);
 					answer = { kind: 'number', value: result, unit: '%' };
 					break;
 				}
@@ -2635,7 +2671,7 @@ function createTask(type, grade = 5, options = {}) {
 			let reverseQuestion = Math.random() < 0.3;
 			
 			let s1, s2, sFrage, sStep, sRes;
-			let einheitSingular = sz.einheit1.replace('en', 'e'); // Aus "Stunden" wird "Stunde"
+			let einheitSingular = sz.einheit1 === 'Brötchen' ? 'Brötchen' : sz.einheit1.replace('en', 'e'); // Aus "Stunden" wird "Stunde"
 			
 			if (!reverseQuestion) {
 				// --- STANDARD-FRAGE: Nach dem Ziel-Wert (z.B. Preis) fragen ---
@@ -2684,8 +2720,11 @@ function createTask(type, grade = 5, options = {}) {
 			}
 
 			textDisplay = `${s1}.<br> ${sFrage}`;
-			// Einfache Zeilenumbrüche (<br>) ohne die vorherigen Worte (Gegeben, Zielwert etc.)
-			s = `${s2}<br>${sStep}<br>${sRes}`;
+			s = formatUtils.buildSolutionTable([
+				[`${menge1} ${sz.einheit1}`, `${de(wert1)} ${sz.einheit2}`],
+				[`1 ${einheitSingular}`, `${de(einzelwert)} ${sz.einheit2}`],
+				[`${menge2} ${sz.einheit1}`, `${de(wert2)} ${sz.einheit2}`]
+			]);
 			answer = { kind: 'number', value: reverseQuestion ? menge2 : wert2 };
 			break;
 		}

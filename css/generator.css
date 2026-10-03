@@ -1103,6 +1103,30 @@ textarea {
     text-align: center;
 }
 
+.prop-solution-table {
+    border-collapse: collapse;
+    display: inline-table;
+    margin-top: 0.45rem;
+    border-top: 1px solid #64748b;
+}
+
+.prop-solution-table td {
+    padding: 0.35rem 0.8rem;
+    line-height: 1.35;
+    white-space: nowrap;
+}
+
+.prop-solution-table td:first-child {
+    border-right: 1px solid #64748b;
+    text-align: left;
+    padding-right: 0.9rem;
+}
+
+.prop-solution-table td:last-child {
+    text-align: right;
+    padding-left: 0.9rem;
+}
+
 .op-table--terms td,
 .op-table--terms th {
     padding: 12px 10px;
