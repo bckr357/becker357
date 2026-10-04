@@ -833,7 +833,7 @@ textarea {
     background: white;
 }
 
-/* --- PRÃ„SENTATION --- */
+/* --- PRÄSENTATION --- */
 .presentation-view {
     min-height: 100vh;
     display: flex;
@@ -960,17 +960,17 @@ textarea {
 .task-row {
     display: flex;
     align-items: center;
-    border-bottom: 1px solid var(--slate-100);
+    border-bottom: 1px solid var(--slate-300);
     min-height: 60px; 
     height: auto; 
     padding: 20px 0;
 }
 
 .task-num {
-    font-size: 3rem;
-    font-weight: 900;
+    font-size: 1.5rem;
+    font-weight: 600;
     color: var(--slate-500);
-    width: 70px;
+    width: 50px;
     text-align: center;
     flex-shrink: 0;
 }

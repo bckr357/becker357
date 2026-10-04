@@ -10,7 +10,7 @@ const taskCategories = {
 	arithmetic: ['nat_as', 'nat_md', 'z_as', 'z_md', 'potenzen', 'schriftlich_as', 'schriftlich_md', 'db_as', 'db_md', 'pow10', 'round', 'ueberschlag', 'zahlengerade', 'vorrang'],
 	tables: ['table_add', 'table_mul', 'table_sub', 'table_terms'],
 	fractions: ['frac_as', 'frac_md', 'frac_simplify', 'frac_convert', 'frac_order'],
-	percent: ['anteile', 'prop', 'percent', 'pv', 'units'],
+	percent: ['anteile', 'prop', 'percent', 'pv', 'zinsen', 'units'],
 	algebra: ['terme', 'equations', 'equations_adv', 'formel_umstellen'],
 	geometry: ['geometry', 'winkel', 'schraegbild', 'kongruenz'],
 	functions: ['funktionen'],
@@ -38,7 +38,7 @@ const taskTypesByGrade = {
 		'teiler', 'primzahlen', 'units', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'table_add', 'table_sub', 'table_mul', 'table_terms',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
-		'anteile', 
+		'anteile', 'prop', 
 		'word_terms', 
 		'geometry', 'winkel', 'kongruenz'
 	],
@@ -46,7 +46,7 @@ const taskTypesByGrade = {
 		'teiler', 'primzahlen', 'units', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'table_add', 'table_sub', 'table_mul', 'table_terms',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
-		'anteile', 'prop', 'percent', 'pv', 
+		'anteile', 'prop', 'percent', 'pv', 'zinsen',
 		'terme', 'word_terms', 
 		'geometry', 'winkel', 'kongruenz'
 	],
@@ -54,7 +54,7 @@ const taskTypesByGrade = {
 		'teiler', 'primzahlen', 'units', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'table_add', 'table_sub', 'table_mul', 'table_terms',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
-		'anteile', 'prop', 'percent', 'pv', 
+		'anteile', 'prop', 'percent', 'pv', 'zinsen',
 		'terme', 'word_terms', 'equations', 'equations_adv', 'equations_lin', 'formel_umstellen',
 		'geometry', 'winkel', 'kongruenz',
 		'wkt', 'linear_function', 'funktionen'
@@ -63,7 +63,7 @@ const taskTypesByGrade = {
 		'teiler', 'primzahlen', 'units', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'table_add', 'table_sub', 'table_mul', 'table_terms',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
-		'anteile', 'prop', 'percent', 'pv', 
+		'anteile', 'prop', 'percent', 'pv', 'zinsen',
 		'terme', 'word_terms', 'equations', 'equations_adv', 'equations_lin', 'formel_umstellen',
 		'geometry', 'winkel', 'schraegbild', 'kongruenz',
 		'statistik', 'wkt', 'linear_function', 'funktionen'
@@ -87,7 +87,7 @@ const quizTaskTypesByGrade = {
 		'teiler', 'primzahlen', 'units', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'table_add', 'table_sub', 'table_mul', 'table_terms',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order',
-		'anteile', 'prop', 'percent', 'pv', 
+		'anteile', 'prop', 'percent', 'pv', 'zinsen',
 		'equations', 'equations_lin', 'formel_umstellen',
 		'round', 'ueberschlag', 'zahlengerade', 'geometry', 'winkel', 'schraegbild', 'kongruenz', 'statistik', 'wkt'
 	],
@@ -95,7 +95,7 @@ const quizTaskTypesByGrade = {
 		'teiler', 'primzahlen', 'units', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'table_add', 'table_sub', 'table_mul', 'table_terms',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
-		'anteile', 'prop', 'percent', 'pv', 
+		'anteile', 'prop', 'percent', 'pv', 'zinsen',
 		'equations', 'equations_adv', 'equations_lin', 'formel_umstellen',
 		'geometry', 'winkel', 'schraegbild', 'kongruenz', 'statistik', 'wkt'
 	],
@@ -103,14 +103,14 @@ const quizTaskTypesByGrade = {
 		'teiler', 'primzahlen', 'units', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'table_add', 'table_sub', 'table_mul', 'table_terms',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
-		'anteile', 'prop', 'percent', 'pv', 
+		'anteile', 'prop', 'percent', 'pv', 'zinsen',
 		'equations', 'equations_adv', 'equations_lin', 'formel_umstellen',
 		'geometry', 'winkel', 'schraegbild', 'kongruenz', 'statistik', 'wkt'
 	],
 	klasse10: [
 		'teiler', 'units', 'potenzen', 'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang', 'primzahlen',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
-		'anteile', 'prop', 'percent', 'pv', 'word_terms',
+		'anteile', 'prop', 'percent', 'pv', 'zinsen', 'word_terms',
 		'equations', 'geometry', 'winkel', 'statistik', 'wkt'
 	]
 };
@@ -170,6 +170,7 @@ const typeDefinitions = [
 	['prop', 'Proportionalitäten', 'Aufgaben zur direkten Proportionalität'],
 	['percent', 'Prozentrechnung', 'Prozentwert, Grundwert und Prozentsatz berechnen'],
 	['pv', 'Prozentuale Veränderung', 'Prozentuale Zu- und Abnahmen berechnen'],
+	['zinsen', 'Zinsrechnung', 'Zinsen, Kapital und Zinssatz berechnen'],
 
 	// Algebra / Terme / Gleichungen
 	['terme', 'Terme', 'Terme zusammenfassen und Klammern auflösen'],
@@ -1629,6 +1630,138 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 			break;
 		}
 
+		case 'zinsen': {
+			const subType = randInt(0, 6);
+			switch (subType) {
+				case 0: { // 1. Zinsen berechnen (1 Jahr)
+					const kBase = [450, 650, 750, 850, 1200, 1400, 1500, 1750, 1800, 2400, 2500, 3200, 3500, 4200, 4500, 5400, 6500];
+					const pList = [2, 3, 4, 5, 6, 7, 8];
+					const K = kBase[randInt(0, kBase.length - 1)];
+					const p = pList[randInt(0, pList.length - 1)];
+					const Z = (K * p) / 100;
+					textPrint = `Ein Kapital von ${comma(K)} € wird für 1 Jahr zu einem Zinssatz von ${p} % angelegt. Berechne die Zinsen: ${blank(3)}`;
+					textDisplay = `Ein Kapital von ${comma(K)} € wird für 1 Jahr zu einem Zinssatz von ${p} % angelegt. <br>Berechne die Zinsen.`;
+					s = formatUtils.buildSolutionTable([
+						[`100 %`, `${comma(K)} €`],
+						[`1 %`, `${comma(K / 100)} €`],
+						[`${p} %`, `<b>${comma(Z)} €</b>`]
+					]);
+					break;
+				}
+				case 1: { // 2. Kapital nach einem Jahr berechnen
+					const kBase = [450, 650, 750, 850, 1200, 1400, 1500, 1600, 1800, 2400, 2500, 3200, 3500, 4200, 4500, 5400, 6500];
+					const pList = [2, 3, 4, 5, 6, 7, 8];
+					const K = kBase[randInt(0, kBase.length - 1)];
+					const p = pList[randInt(0, pList.length - 1)];
+					const Z = (K * p) / 100;
+					const K1 = K + Z;
+					textPrint = `Ein Kapital von ${comma(K)} € wird für 1 Jahr zu ${p} % angelegt. Berechne das Kapital nach einem Jahr: ${blank(3)}`;
+					textDisplay = `Ein Kapital von ${comma(K)} € wird für 1 Jahr zu einem Zinssatz von ${p} % angelegt. <br>Berechne das Kapital nach einem Jahr.`;
+					s = formatUtils.buildSolutionTable([
+						[`100 %`, `${comma(K)} €`],
+						[`1 %`, `${comma(K / 100)} €`],
+						[`${100 + p} %`, `<b>${comma(K1)} €</b> (${comma(K)} € + ${comma(Z)} €)`]
+					]);
+					break;
+				}
+				case 2: { // 3. Zinssatz berechnen bei gegebenen Zinsen
+					const factors = [14, 15, 16, 18, 22, 24, 25, 28, 32, 35, 42, 45, 48, 55, 64];
+					const pList = [2, 3, 4, 5, 6, 7, 8];
+					const factor = factors[randInt(0, factors.length - 1)];
+					const p = pList[randInt(0, pList.length - 1)];
+					const K = factor * 100;
+					const Z = factor * p;
+					textPrint = `Für ein Kapital von ${comma(K)} € erhält man nach 1 Jahr ${comma(Z)} € Zinsen. Zinssatz: ${blank(2)} %`;
+					textDisplay = `Für ein Kapital von ${comma(K)} € erhält man nach einem Jahr ${comma(Z)} € Zinsen. <br>Berechne den Zinssatz.`;
+					s = formatUtils.buildSolutionTable([
+						[`100 %`, `${comma(K)} €`],
+						[`1 %`, `${comma(factor)} €`],
+						[`<b>${p} %</b>`, `${comma(Z)} €`]
+					]);
+					break;
+				}
+				case 3: { // 4. Zinssatz berechnen bei gegebenem Kapital nach einem Jahr
+					const factors = [14, 15, 16, 18, 22, 24, 25, 28, 32, 35, 42, 45, 48, 55, 64];
+					const pList = [2, 3, 4, 5, 6, 7, 8];
+					const factor = factors[randInt(0, factors.length - 1)];
+					const p = pList[randInt(0, pList.length - 1)];
+					const K = factor * 100;
+					const Z = factor * p;
+					const K1 = K + Z;
+					textPrint = `Ein Kapital von ${comma(K)} € wächst in 1 Jahr auf ${comma(K1)} € an. Zinssatz: ${blank(2)} %`;
+					textDisplay = `Ein Kapital von ${comma(K)} € wächst in einem Jahr auf ${comma(K1)} € an. <br>Berechne den Zinssatz.`;
+					s = `Zinsen: \\( ${comma(K1)} \\text{ €} - ${comma(K)} \\text{ €} = ${comma(Z)} \\text{ €} \\)<br>` +
+						formatUtils.buildSolutionTable([
+							[`100 %`, `${comma(K)} €`],
+							[`1 %`, `${comma(factor)} €`],
+							[`<b>${p} %</b>`, `${comma(Z)} €`]
+						]);
+					break;
+				}
+				case 4: { // 5. Anfangs-Kapital berechnen bei gegebenem End-Kapital
+					const factors = [15, 18, 20, 24, 25, 30, 32, 35, 40, 42, 45, 50];
+					const pList = [2, 3, 4, 5, 6, 8];
+					const factor = factors[randInt(0, factors.length - 1)];
+					const p = pList[randInt(0, pList.length - 1)];
+					const q = 100 + p;
+					const K = factor * 100;
+					const K1 = factor * q;
+					textPrint = `Nach 1 Jahr ist ein Sparguthaben bei ${p} % Zinsen auf ${comma(K1)} € angewachsen. Anfangskapital: ${blank(3)}`;
+					textDisplay = `Nach einem Jahr ist ein Sparguthaben bei einem Zinssatz von ${p} % auf ${comma(K1)} € angewachsen. <br>Berechne das ursprüngliche Anfangskapital.`;
+					s = formatUtils.buildSolutionTable([
+						[`${q} %`, `${comma(K1)} €`],
+						[`1 %`, `${comma(factor)} €`],
+						[`100 %`, `<b>${comma(K)} €</b>`]
+					]);
+					break;
+				}
+				case 5: { // 6. Anfangs-Kapital berechnen bei gegebenen Zinsen
+					const factors = [18, 24, 25, 28, 32, 35, 42, 45, 48, 54, 65];
+					const pList = [2, 3, 4, 5, 6, 7, 8];
+					const factor = factors[randInt(0, factors.length - 1)];
+					const p = pList[randInt(0, pList.length - 1)];
+					const Z = factor * p;
+					const K = factor * 100;
+					textPrint = `Ein Sparguthaben bringt bei ${p} % Zinsen nach 1 Jahr ${comma(Z)} € Zinsen. Anfangskapital: ${blank(3)}`;
+					textDisplay = `Ein Sparguthaben bringt bei einem Zinssatz von ${p} % nach einem Jahr genau ${comma(Z)} € Zinsen. <br>Berechne das Anfangskapital.`;
+					s = formatUtils.buildSolutionTable([
+						[`${p} %`, `${comma(Z)} €`],
+						[`1 %`, `${comma(factor)} €`],
+						[`100 %`, `<b>${comma(K)} €</b>`]
+					]);
+					break;
+				}
+				case 6: { // 7. Zinsen für 1, ..., 11 Monate (Jahreszinsen durch 12 teilbar)
+					const m = randInt(1, 11);
+					const pList = [2, 3, 4, 5, 6, 8];
+					const p = pList[randInt(0, pList.length - 1)];
+					let zMonat;
+					if (p === 5) {
+						zMonat = [5, 10, 15, 20][randInt(0, 3)];
+					} else if (p === 8) {
+						zMonat = [4, 6, 8, 10, 12][randInt(0, 4)];
+					} else {
+						zMonat = randInt(3, 12);
+					}
+					const zJahr = zMonat * 12;
+					const K = (zJahr * 100) / p;
+					const zTotal = zMonat * m;
+					const monateWord = m === 1 ? '1 Monat' : `${m} Monate`;
+					textPrint = `Ein Kapital von ${comma(K)} € wird zu ${p} % für ${monateWord} angelegt. Zinsen: ${blank(3)}`;
+					textDisplay = `Ein Kapital von ${comma(K)} € wird zu einem Zinssatz von ${p} % für ${monateWord} angelegt. <br>Berechne die Zinsen.`;
+					s = formatUtils.buildSolutionTable([
+						[`100 % (12 Monate)`, `${comma(K)} €`],
+						[`1 %`, `${comma(K / 100)} €`],
+						[`${p} % (Jahreszinsen)`, `${comma(zJahr)} €`],
+						[`1 Monat (: 12)`, `${comma(zMonat)} €`],
+						[`<b>${monateWord}</b>`, `<b>${comma(zTotal)} €</b>`]
+					]);
+					break;
+				}
+			}
+			break;
+		}
+
 		case 'schriftlich_as': {
 			const op = randInt(0, 1); // 0: +, 1: -, 2: *, 3: /
 			let v1, v2, res;
@@ -1763,6 +1896,16 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 
 		case 'units': {
 			const toCleanString = formatUtils.toCleanString;
+			const getDisplayVolumeUnits = (units) => {
+				if (Math.random() < 0.5) {
+					return units;
+				}
+				return units.map((unit) => {
+					if (unit === 'cm³') return 'ml';
+					if (unit === 'dm³') return 'l';
+					return unit;
+				});
+			};
 			const createUnitsEntry = () => {
 
 				// 1. Definition der Einheiten-Ketten (geordnet von klein nach groß)
@@ -1777,14 +1920,10 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				if (grade <= 5) {
 					unitGroups = unitGroups.filter(g => g.type !== 'Fläche' && g.type !== 'Volumen');
 				}
-				if (isMentalMode) {
-					unitGroups = unitGroups.filter(g => g.type !== 'Volumen');
-				}
 
 				// 2. Zufällige Gruppe wählen (z.B. Zeit oder Masse)
 				const group = unitGroups[randInt(0, unitGroups.length - 1)];
-				//const group = unitGroups[4];
-
+				const displayUnits = group.type === 'Volumen' ? getDisplayVolumeUnits(group.units) : group.units;
 
 				// 3. Einen Index innerhalb der Gruppe wählen
 				// Wir wählen so, dass wir einen Nachbarn haben (nicht den letzten Index bei 'kleiner', nicht den ersten bei 'größer')
@@ -1796,20 +1935,20 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 			else if (unitIndex === group.units.length - 1) direction = 0; // Muss kleiner werden
 			else direction = Math.random() > 0.5 ? 1 : 0;
 
-			const fromUnit = group.units[unitIndex];
+const fromUnit = displayUnits[unitIndex];
 			let toUnit, startValue, result, operation;
 
 			switch (group.type) {
 				case 'Zeit':
 					if (direction === 0) {
 						// In nächstkleinere Einheit (Zahl wird größer)
-						toUnit = group.units[unitIndex - 1];
+						toUnit = displayUnits[unitIndex - 1];
 						const f = group.factors[unitIndex - 1];
 							operation = `· ${f}`;
 						startValue = [0.1, 0.25, 0.5, 1.5, 2.25, 2.5, 2.75, 3.5, 4][randInt(0, 8)];
 						result = (startValue * f);
 					} else {
-						toUnit = group.units[unitIndex + 1];
+						toUnit = displayUnits[unitIndex + 1];
 						const f = group.factors[unitIndex];
 							operation = `: ${f}`;
 						startValue = [0.1, 0.25, 0.5, 1.5, 2.25, 2.5, 2.75, 3.5, 4][randInt(0, 8)] * f;
@@ -1818,7 +1957,7 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 					break;
 				default:
 					const factor = (direction === 0) ? group.factors[unitIndex - 1] : group.factors[unitIndex];
-					toUnit = (direction === 0) ? group.units[unitIndex - 1] : group.units[unitIndex + 1];
+					toUnit = (direction === 0) ? displayUnits[unitIndex - 1] : displayUnits[unitIndex + 1];
 						operation = (direction === 0) ? `· ${factor}` : `: ${factor}`;
 
 					if (direction === 0) {
@@ -2448,7 +2587,7 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 			let selectedVars = fisherYatesShuffle(vars).slice(0, 2);
 			if (Math.random() < 0.5) selectedVars[1] = '';
 			
-			let mode = grade >= 8 ? randInt(0, 2) : 0;
+			let mode = grade >= 8 ? randInt(0, 3) : 0;
 			let taskStr, resStr;
 			
 			if (mode === 0) {
@@ -2570,6 +2709,91 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 
 				textDisplay = `Löse die Klammer auf: <br>\\( ${taskStr} \\)`;
 				textPrint = `Löse die Klammer auf: \\(\\quad ${taskStr} = \\)`;
+			} else if (mode === 2) {
+				// --- TYP: AUSKLAMMERN ---
+				let v = selectedVars[0] || 'x';
+				let w = selectedVars[1] || '';
+				const getGcd = mathUtils.getGcd;
+				const commonCoef = rnd(2, 6);
+				let a, b;
+				do {
+					a = rnd(2, 9);
+					b = rnd(2, 9);
+				} while (getGcd(a, b) !== 1);
+				const sign = Math.random() < 0.5 ? 1 : -1;
+				const commonFactorHasVar = w !== '' && Math.random() < 0.5;
+				const extraInFirst = w !== '' && Math.random() < 0.5;
+
+				const term1Vars = commonFactorHasVar
+					? v + (extraInFirst ? w : '')
+					: (w !== '' ? v + (extraInFirst ? w : '') : v);
+				const term2Vars = commonFactorHasVar
+					? v + (!extraInFirst ? w : '')
+					: (w !== '' ? (!extraInFirst ? v + w : v) : '');
+				const term1Coef = commonCoef * a;
+				const term2Coef = commonCoef * b;
+
+				const fmtInner = (coef, variable) => {
+					if (variable === '') return `${coef}`;
+					if (coef === 1) return variable;
+					return `${coef}${variable}`;
+				};
+
+				const term1Text = `${fmt(term1Coef)}${term1Vars}`;
+				const term2Text = `${fmt(term2Coef)}${term2Vars}`;
+				taskStr = `${term1Text} ${sign === 1 ? '+' : '-'} ${term2Text}`;
+
+				const commonFactorText = commonFactorHasVar ? `${fmt(commonCoef)}${v}` : fmt(commonCoef);
+				const inner1 = fmtInner(a, commonFactorHasVar ? (extraInFirst ? w : '') : term1Vars);
+				const inner2 = fmtInner(b, commonFactorHasVar ? (!extraInFirst ? w : '') : term2Vars);
+				const innerSign = sign === 1 ? '+' : '-';
+				resStr = `${commonFactorText}(${inner1} ${innerSign} ${inner2})`;
+
+				textDisplay = `Klammere vollständig aus: <br>\\( ${taskStr} \\)`;
+				textPrint = `Klammere vollständig aus: \\(\\quad ${taskStr} = \\)`;
+			} else if (mode === 3) {
+				// --- TYP: KLAMMER AUFLÖSEN UND ZUSAMMENFASSEN ---
+				let v = selectedVars[0] || 'x';
+				let factor, a, b, c, d;
+				let coeff, constTerm;
+				do {
+					factor = rnd(2, 6);
+					a = rnd(2, 9);
+					b = rnd(-8, 8);
+					while (b === 0) b = rnd(-8, 8);
+					c = rnd(-9, 9);
+					while (c === 0) c = rnd(-9, 9);
+					d = rnd(-9, 9);
+					while (d === 0) d = rnd(-9, 9);
+					coeff = factor * a + c;
+					constTerm = factor * b + d;
+				} while (coeff === 0 || constTerm === 0);
+
+				const termB = Math.abs(b);
+				const termC = Math.abs(c);
+				const termD = Math.abs(d);
+				const left1 = `${factor}(${a}${v} ${b >= 0 ? '+' : '-'} ${termB})`;
+				const left2 = `${c >= 0 ? '+' : '-'} ${termC}${v}`;
+				const left3 = `${d >= 0 ? '+' : '-'} ${termD}`;
+				taskStr = `${left1} ${left2} ${left3}`;
+
+				let resParts = [];
+				if (coeff !== 0) {
+					let sStr = coeff > 0 ? (resParts.length === 0 ? '' : '+ ') : '- ';
+					if (resParts.length === 0 && coeff < 0) sStr = '-';
+					const absCoeff = Math.abs(coeff);
+					const cStr = (absCoeff === 1 && v !== '') ? '' : absCoeff;
+					resParts.push(`${sStr}${cStr}${v}`);
+				}
+				if (constTerm !== 0) {
+					let sStr = constTerm > 0 ? (resParts.length === 0 ? '' : '+ ') : '- ';
+					if (resParts.length === 0 && constTerm < 0) sStr = '-';
+					resParts.push(`${sStr}${Math.abs(constTerm)}`);
+				}
+				resStr = resParts.length === 0 ? '0' : resParts.join(' ').trim();
+
+				textDisplay = `Löse die Klammer auf und fasse zusammen: <br>\\( ${taskStr} \\)`;
+				textPrint = `Löse die Klammer auf und fasse zusammen: \\(\\quad ${taskStr} = \\) ${space(0.5)}`;
 			} else {
 				// --- TYP: AUSKLAMMERN ---
 				let v = selectedVars[0] || 'x';
@@ -3702,6 +3926,16 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 		}
 				
 		case 'units_calc': {
+			const getDisplayVolumeUnits = (units) => {
+				if (Math.random() < 0.5) {
+					return units;
+				}
+				return units.map((unit) => {
+					if (unit === 'cm³') return 'ml';
+					if (unit === 'dm³') return 'l';
+					return unit;
+				});
+			};
 			const groups = [
 				{ units: ['mm', 'cm', 'dm', 'm', 'km'], factors: [10, 10, 10, 1000] },
 				{ units: ['mm²', 'cm²', 'dm²', 'm²', 'a', 'ha', 'km²'], factors: [100, 100, 100, 100, 100, 100] },
@@ -3711,6 +3945,7 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 			];
 		
 			const g = groups[randInt(0, groups.length - 1)];
+			const displayUnits = g.units[0] === 'mm³' ? getDisplayVolumeUnits(g.units) : g.units;
 			const isTimeGroup = g.units[0] === 's';
 			const is1000Group = g.units[0] === 'mm³' || g.units[0] === 'mg';
 			const termCount = is1000Group ? 2 : 3; // Bei 1000er-Faktoren nur 2 Summanden
@@ -3734,7 +3969,7 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 			} else {
 				targetIdx = Math.min(...termUnitIdx);
 			}
-			const targetUnit = g.units[targetIdx];
+			const targetUnit = displayUnits[targetIdx];
 		
 			// Skalenfaktoren auf kleinste Einheit der Gruppe
 			const scales = [1];
@@ -3830,9 +4065,9 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				}
 			}
 		
-			const displayExprParts = [`${fmtNum(terms[0].value)} ${terms[0].unit}`];
+const displayExprParts = [`${fmtNum(terms[0].value)} ${displayUnits[terms[0].idx]}`];
 			for (let i = 1; i < terms.length; i++) {
-				displayExprParts.push(`${ops[i - 1]} ${fmtNum(terms[i].value)} ${terms[i].unit}`);
+				displayExprParts.push(`${ops[i - 1]} ${fmtNum(terms[i].value)} ${displayUnits[terms[i].idx]}`);
 			}
 		
 			const targetExprParts = [`${fmtNum(converted[0])} ${targetUnit}`];
