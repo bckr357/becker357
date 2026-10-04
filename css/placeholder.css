@@ -4,7 +4,7 @@
     .placeholder-body {
         margin: 0;
         font-family: 'Reddit Sans', system-ui, -apple-system, sans-serif;
-        background: linear-gradient(180deg, #ffffff 0%, #f8f7ff 100%);
+        background: #ffffff;
         min-height: 100vh;
         color: var(--slate-800);
         overflow-x: hidden;

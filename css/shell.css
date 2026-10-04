@@ -247,15 +247,15 @@
     /* ---- Footer / Impressum ---- */
     .site-footer {
         margin-top: 0px;
-        padding: 22px 20px 28px;
-        border-top: 1px solid var(--shell-border);
-        background: linear-gradient(180deg, rgba(248, 250, 252, 0.85) 0%, rgba(255, 255, 255, 1) 100%);
+        padding: 20px;
+        background: #ffffff;
         color: var(--slate-700);
     }
 
     .site-footer__inner {
         max-width: 1180px;
-margin: 0 auto;
+        margin: 0 auto;
+        height: 20px;
         text-align: center;
     }
 
