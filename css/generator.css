@@ -1105,20 +1105,19 @@ textarea {
 }
 
 .prop-solution-table td {
-    padding: 0.35rem 0.8rem;
     line-height: 1.35;
     white-space: nowrap;
 }
 
 .prop-solution-table td:first-child {
     border-right: 1px solid #64748b;
-    text-align: left;
-    padding-right: 0.9rem;
+    text-align: right;
+    padding-right: 0.5rem;
 }
 
 .prop-solution-table td:last-child {
     text-align: right;
-    padding-left: 0.9rem;
+    padding-left: 0.5rem;
 }
 
 .op-table--terms td,
@@ -2139,6 +2138,7 @@ textarea {
     .site-nav-overlay,
     .settings-drawer,
     .settings-drawer-overlay,
+    .site-footer,
     .no-print {
         display: none !important;
     }

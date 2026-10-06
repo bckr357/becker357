@@ -969,11 +969,11 @@ function createTask(type, grade = 5, options = {}) {
 
 			let allowedDenoms = [2, 4, 5, 20, 25, 50];
 
-			// Alle 10 expliziten Umwandlungspfade
+			// Alle 9 expliziten Umwandlungspfade
 			const paths = [
 				'frac_to_dec', 'dec_to_frac',
 				'frac_to_perc', 'perc_to_frac',
-				'frac_to_mixed', 'mixed_to_frac',
+				'mixed_to_frac',
 				'dec_to_perc', 'perc_to_dec'
 			];
 
@@ -1190,21 +1190,7 @@ function createTask(type, grade = 5, options = {}) {
 				// ---------------------------------------------------------
 				// 3. Bruch <> Gemischte Schreibweise
 				// ---------------------------------------------------------
-				case 'frac_to_mixed': {
-					let n = allowedDenoms[Math.floor(Math.random() * allowedDenoms.length)];
-					let w = Math.floor(Math.random() * 3) + 2;
-					let rem = Math.floor(Math.random() * (n - 1)) + 1;
-					let z = w * n + rem; // Garantiert unechter Bruch (>1)
-					let g = getGcd(z, n); z /= g; n /= g;
 
-					let w_simp = Math.floor(z / n);
-					let rem_simp = z % n;
-
-					textDisplay = `in gemischter Schreibweise: \\( \\quad \\dfrac{${z}}{${n}} = \\)`;
-					s = `\\[ \\frac{${z}}{${n}} = \\frac{${w_simp * n}}{${n}} + \\frac{${rem_simp}}{${n}} = ${w_simp} \\frac{${rem_simp}}{${n}} \\]`;
-					answer = fractionAnswer(z, n, false);
-					break;
-				}
 				case 'mixed_to_frac': {
 					let n = allowedDenoms[Math.floor(Math.random() * allowedDenoms.length)];
 					let w = Math.floor(Math.random() * 3) + 2;
@@ -1215,7 +1201,7 @@ function createTask(type, grade = 5, options = {}) {
 					let w_simp = Math.floor(z / n);
 					let rem_simp = z % n;
 
-					textDisplay = `Als gemeiner Bruch: \\( ${w_simp} \\dfrac{${rem_simp}}{${n}} = \\)`;
+					textDisplay = `als gemeiner Bruch: \\( ${w_simp} \\dfrac{${rem_simp}}{${n}} = \\)`;
 					s = `\\[ ${w_simp} \\frac{${rem_simp}}{${n}} = \\frac{${w_simp * n}}{${n}} + \\frac{${rem_simp}}{${n}} = \\frac{${z}}{${n}} \\]`;
 					answer = fractionAnswer(z, n, false);
 					break;
