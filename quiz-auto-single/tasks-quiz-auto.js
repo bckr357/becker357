@@ -10,13 +10,13 @@ const formatDecimal = formatUtils.formatDecimal;
 const QUIZ_AUTO_DEFAULT_TYPES = [
 	'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10',
 	'frac_as', 'frac_md', 'frac_simplify',
-	'percent', 'pv', 'units', 'round', 'geometry', 'anteile', 'wkt', 'zahlengerade'
+	'percent', 'pv', 'zinsen', 'units', 'round', 'geometry', 'anteile', 'wkt', 'zahlengerade'
 ];
 
 // Alle automatisch auswertbaren Aufgabentypen.
 const QUIZ_AUTO_TYPES = [
 	'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10',
-	'percent', 'pv', 'terme', 'equations', 'equations_adv', 'vorrang', 'round',
+	'percent', 'pv', 'zinsen', 'terme', 'equations', 'equations_adv', 'vorrang', 'round',
 	'potenzen', 'units', 'statistik', 'ueberschlag', 'zahlengerade',
 	'frac_as', 'frac_md', 'frac_simplify', 'frac_convert', 'anteile', 'wkt',
 	'geometry', 'prop', 'units_calc'
@@ -30,7 +30,7 @@ if (typeof window !== 'undefined') {
 const taskCategories = {
 	arithmetic: ['nat_as', 'nat_md', 'z_as', 'z_md', 'potenzen', 'db_as', 'db_md', 'pow10', 'round', 'ueberschlag', 'zahlengerade', 'vorrang'],
 	fractions: ['frac_as', 'frac_md', 'frac_simplify', 'frac_convert', 'frac_order'],
-	percent: ['anteile', 'prop', 'percent', 'pv', 'units'],
+	percent: ['anteile', 'prop', 'percent', 'pv', 'zinsen', 'units'],
 	algebra: ['terme', 'equations', 'equations_adv', 'formel_umstellen'],
 	geometry: ['geometry', 'winkel', 'schraegbild'],
 	functions: ['funktionen'],
@@ -53,28 +53,28 @@ const taskTypesByGrade = {
 	klasse7: [
 		'teiler', 'primzahlen', 'units', 'potenzen', 'nat_as', 'nat_md', 'pow10', 'vorrang',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order',
-		'anteile', 'prop', 'percent', 'pv',
+		'anteile', 'prop', 'percent', 'pv', 'zinsen',
 		'terme', 'word_terms', 'equations', 'equations_adv', 'equations_lin',
 		'round', 'ueberschlag', 'zahlengerade', 'geometry', 'winkel', 'statistik', 'wkt'
 	],
 	klasse8: [
 		'teiler', 'primzahlen', 'units', 'potenzen', 'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
-		'anteile', 'prop', 'percent', 'pv',
+		'anteile', 'prop', 'percent', 'pv', 'zinsen',
 		'terme', 'word_terms', 'equations', 'equations_adv', 'equations_lin',
 		'geometry', 'winkel', 'statistik', 'wkt', 'linear_function'
 	],
 	klasse9: [
 		'teiler', 'primzahlen', 'units', 'potenzen', 'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
-		'anteile', 'prop', 'percent', 'pv',
+		'anteile', 'prop', 'percent', 'pv', 'zinsen',
 		'terme', 'word_terms', 'equations', 'equations_adv', 'equations_lin',
 		'geometry', 'winkel', 'statistik', 'wkt', 'linear_function', 'funktionen'
 	],
 	klasse10: [
 		'teiler', 'primzahlen', 'units', 'potenzen', 'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
-		'anteile', 'prop', 'percent', 'pv',
+		'anteile', 'prop', 'percent', 'pv', 'zinsen',
 		'terme', 'word_terms', 'equations', 'equations_adv', 'equations_lin',
 		'geometry', 'winkel', 'statistik', 'wkt', 'linear_function', 'funktionen'
 	]
@@ -127,6 +127,7 @@ const typeDefinitions = [
 	['prop', 'Proportionalitäten', 'Aufgaben zur direkten Proportionalität'],
 	['percent', 'Prozentrechnung', 'Prozentwert, Grundwert und Prozentsatz berechnen'],
 	['pv', 'Prozentuale Veränderung', 'Prozentuale Zu- und Abnahmen berechnen'],
+	['zinsen', 'Zinsrechnung', 'Zinsen, Kapital und Zinssatz berechnen'],
 
 	// Algebra / Terme / Gleichungen
 	['terme', 'Terme', 'Terme zusammenfassen und Klammern auflösen'],
@@ -1228,6 +1229,103 @@ function createTask(type, grade = 5, options = {}) {
 					textDisplay = `als Dezimalbruch: \\( \\quad ${percStr} = \\)`;
 					s = `\\( ${percStr} = ${decStr} \\)`;
 					answer = numericAnswer(p / 100);
+					break;
+				}
+			}
+			break;
+		}
+
+		case 'zinsen': {
+			const subType = randInt(0, 4);
+			switch (subType) {
+				case 0: {
+					const kBase = [450, 650, 750, 850, 1200, 1400, 1500, 1750, 1800, 2400, 2500, 3200, 3500, 4200, 4500, 5400, 6500];
+					const pList = [2, 3, 4, 5, 6, 7, 8];
+					const K = kBase[randInt(0, kBase.length - 1)];
+					const p = pList[randInt(0, pList.length - 1)];
+					const Z = (K * p) / 100;
+					textDisplay = `${comma(K)} € mit ${p} % Zinsen. Jahreszinsen Z = ${blank(3)}`;
+					s = formatUtils.buildSolutionTable([
+						[`100 %`, `${comma(K)} €`],
+						[`1 %`, `${comma(K / 100)} €`],
+						[`${p} %`, `<b>${comma(Z)} €</b>`]
+					]);
+					answer = { kind: 'number', value: Z, unit: '€' };
+					break;
+				}
+				case 1: {
+					const kBase = [450, 650, 750, 850, 1200, 1400, 1500, 1600, 1800, 2400, 2500, 3200, 3500, 4200, 4500, 5400, 6500];
+					const pList = [2, 3, 4, 5, 6, 7, 8];
+					const K = kBase[randInt(0, kBase.length - 1)];
+					const p = pList[randInt(0, pList.length - 1)];
+					const Z = (K * p) / 100;
+					const K1 = K + Z;
+					textDisplay = `${comma(K)} € mit ${p} % Zinsen. Kapital am Jahresende: ${blank(3)}`;
+					s = formatUtils.buildSolutionTable([
+						[`100 %`, `${comma(K)} €`],
+						[`1 %`, `${comma(K / 100)} €`],
+						[`${100 + p} %`, `<b>${comma(K1)} €</b> (${comma(K)} € + ${comma(Z)} €)`]
+					]);
+					answer = { kind: 'number', value: K1, unit: '€' };
+					break;
+				}
+				case 2: {
+					const factors = [14, 15, 16, 18, 22, 24, 25, 28, 32, 35, 42, 45, 48, 55, 64];
+					const pList = [2, 3, 4, 5, 6, 7, 8];
+					const factor = factors[randInt(0, factors.length - 1)];
+					const p = pList[randInt(0, pList.length - 1)];
+					const K = factor * 100;
+					const Z = factor * p;
+					textDisplay = `Für ${comma(K)} € Kapital gibt es ${comma(Z)} € Jahreszinsen. <br>Zinssatz p % = ${blank(2)}`;
+					s = formatUtils.buildSolutionTable([
+						[`100 %`, `${comma(K)} €`],
+						[`1 %`, `${comma(factor)} €`],
+						[`<b>${p} %</b>`, `${comma(Z)} €`]
+					]);
+					answer = { kind: 'number', value: p, unit: '%' };
+					break;
+				}
+				case 3: {
+					const m = randInt(1, 11);
+					const pList = [2, 3, 4, 5, 6, 8];
+					const p = pList[randInt(0, pList.length - 1)];
+					let zMonat;
+					if (p === 5) {
+						zMonat = [5, 10, 15, 20][randInt(0, 3)];
+					} else if (p === 8) {
+						zMonat = [4, 6, 8, 10, 12][randInt(0, 4)];
+					} else {
+						zMonat = randInt(3, 12);
+					}
+					const zJahr = zMonat * 12;
+					const K = (zJahr * 100) / p;
+					const zTotal = zMonat * m;
+					const monateWord = m === 1 ? '1 Monat' : `${m} Monate`;
+					textDisplay = `${comma(K)} € werden zu ${p} % für ${monateWord} angelegt. <br>Zinsen Z = ${blank(3)}`;
+					s = formatUtils.buildSolutionTable([
+						[`100 % (12 Monate)`, `${comma(K)} €`],
+						[`1 %`, `${comma(K / 100)} €`],
+						[`${p} % (Jahreszinsen)`, `${comma(zJahr)} €`],
+						[`1 Monat (: 12)`, `${comma(zMonat)} €`],
+						[`<b>${monateWord}</b>`, `<b>${comma(zTotal)} €</b>`]
+					]);
+					answer = { kind: 'number', value: zTotal, unit: '€' };
+					break;
+				}
+				case 4: {
+					const factors = [18, 24, 25, 28, 32, 35, 42, 45, 48, 54, 65];
+					const pList = [2, 3, 4, 5, 6, 7, 8];
+					const factor = factors[randInt(0, factors.length - 1)];
+					const p = pList[randInt(0, pList.length - 1)];
+					const Z = factor * p;
+					const K = factor * 100;
+					textDisplay = `Bei ${p} % gibt es ${comma(Z)} € Jahreszinsen. Kapital K = ${blank(3)}`;
+					s = formatUtils.buildSolutionTable([
+						[`${p} %`, `${comma(Z)} €`],
+						[`1 %`, `${comma(factor)} €`],
+						[`100 %`, `<b>${comma(K)} €</b>`]
+					]);
+					answer = { kind: 'number', value: K, unit: '€' };
 					break;
 				}
 			}
