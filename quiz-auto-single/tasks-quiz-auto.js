@@ -1250,11 +1250,12 @@ function createTask(type, grade = 5, options = {}) {
 					[`${p} %`, `<b>${comma(result)} ${einheit}</b>`]
 				]);
 				answer = { kind: 'number', value: result, unit: einheit };
-			} else if (rd > 0.3) {
+			} else if (rd > 0.25) {
 				p = [20, 25, 30, 40, 50, 60, 70, 80, 90][randInt(0, 8)];
 				pVal = rnd(2, 9) * p;
 				result = (pVal / p) * 100;
-				textDisplay = `${p} % sind ${pVal} ${einheit} von ${blank(3)}`;
+				if (Math.random() < 0.5) {textDisplay = `${p} % sind ${pVal} ${einheit} von ${blank(3)}`;} 
+				else { textDisplay = `${pVal} ${einheit} sind ${p} % von ${blank(3)}`;}
 				s = formatUtils.buildSolutionTable([
 					[`${p} %`, `${comma(pVal)} ${einheit}`],
 					[`1 %`, `${comma(pVal / p)} ${einheit}`],
@@ -2589,7 +2590,7 @@ function createTask(type, grade = 5, options = {}) {
 				s = `\\( \\dfrac{${z}}{${n}} \\) von ${comma(G)}  ${einheit} sind <b>${comma(W)} ${einheit}</b><br>
 				\\((${comma(G)} : ${n} \\cdot ${z} = ${comma(W)})\\)`;
 
-			} else if (rd > 0.3) {
+			} else if (rd > 0.25) {
 				// TYP 2: Ganzes berechnen (Bruch sind Anteil von...)
 				// Damit es glatt aufgeht, muss der Anteil ein Vielfaches des Zählers sein.
 				let scale = Math.random() > 0.5 ? 10 : 1;
@@ -2598,7 +2599,8 @@ function createTask(type, grade = 5, options = {}) {
 				let G = (W / z) * n;            // Das Ganze
 				answer = { kind: 'number', value: G, unit: einheit };
 				
-				textDisplay = `\\( \\dfrac{${z}}{${n}} \\)  sind ${comma(W)} ${einheit} von ${blank(3)}`;
+				if (Math.random() < 0.5) {textDisplay = `\\( \\frac{${z}}{${n}} \\)  sind ${comma(W)} ${einheit} von ${blank(3)}`;} 
+				else {textDisplay = `${comma(W)} ${einheit} sind \\( \\frac{${z}}{${n}} \\) von ${blank(3)}`;}
 				s = `\\( \\dfrac{${z}}{${n}} \\) sind ${comma(W)} ${einheit} von <b>${comma(G)} ${einheit}</b><br>
 				\\((${comma(W)} : ${z} \\cdot ${n} = ${comma(G)})\\)`;
 

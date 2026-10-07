@@ -1527,10 +1527,11 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 					[`1 %`, `${comma(pVal / 100)} ${einheit}`],
 					[`${p} %`, `<b>${comma((pVal / 100) * p)} ${einheit}</b>`]
 				]);
-			} else if (rd > 0.3) {
+			} else if (rd > 0.25) {
 				p = [20, 25, 30, 40, 50, 60, 70, 80, 90][randInt(0, 8)];
 				pVal = rnd(2, 9) * p;
-				textDisplay = `${p} % sind ${pVal} ${einheit} von ${blank(3)}`;
+				if (Math.random() < 0.5) {textDisplay = `${p} % sind ${pVal} ${einheit} von ${blank(3)}`;} 
+				else { textDisplay = `${pVal} ${einheit} sind ${p} % von ${blank(3)}`;}
 				s = formatUtils.buildSolutionTable([
 					[`${p} %`, `${comma(pVal)} ${einheit}`],
 					[`1 %`, `${comma(pVal / p)} ${einheit}`],
@@ -1631,7 +1632,7 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 		}
 
 		case 'zinsen': {
-			const subType = randInt(0, 5);
+			const subType = randInt(0, 4);
 			switch (subType) {
 				case 0: { // 1. Zinsen berechnen (1 Jahr)
 					const kBase = [450, 650, 750, 850, 1200, 1400, 1500, 1750, 1800, 2400, 2500, 3200, 3500, 4200, 4500, 5400, 6500];
@@ -1707,24 +1708,7 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 					]);
 					break;
 				}
-				case 4: { // 5. Anfangs-Kapital berechnen bei gegebenem End-Kapital
-					const factors = [15, 18, 20, 24, 25, 30, 32, 35, 40, 42, 45, 50];
-					const pList = [2, 3, 4, 5, 6, 8];
-					const factor = factors[randInt(0, factors.length - 1)];
-					const p = pList[randInt(0, pList.length - 1)];
-					const q = 100 + p;
-					const K = factor * 100;
-					const K1 = factor * q;
-					textPrint = `Bei ${p} % Zinsen ist das Kapital in einem Jahr auf ${comma(K1)} € gewachsen. Start-Kapital K = ${blank(3)}`;
-					textDisplay = `Nach einem Jahr ist ein Sparguthaben bei einem Zinssatz von ${p} % auf ${comma(K1)} € angewachsen. <br>Berechne das ursprüngliche Anfangskapital.`;
-					s = formatUtils.buildSolutionTable([
-						[`${q} %`, `${comma(K1)} €`],
-						[`1 %`, `${comma(factor)} €`],
-						[`100 %`, `<b>${comma(K)} €</b>`]
-					]);
-					break;
-				}
-				case 5: { // 6. Anfangs-Kapital berechnen bei gegebenen Zinsen
+				case 4: { // 5. Anfangs-Kapital berechnen bei gegebenen Zinsen
 					const factors = [18, 24, 25, 28, 32, 35, 42, 45, 48, 54, 65];
 					const pList = [2, 3, 4, 5, 6, 7, 8];
 					const factor = factors[randInt(0, factors.length - 1)];
@@ -2775,7 +2759,7 @@ const fromUnit = displayUnits[unitIndex];
 				resStr = resParts.length === 0 ? '0' : resParts.join(' ').trim();
 
 				textDisplay = `Löse die Klammer auf und fasse zusammen: <br>\\( ${taskStr} \\)`;
-				textPrint = `Löse die Klammer auf und fasse zusammen: \\(\\quad ${taskStr} = \\) ${space(0.5)}`;
+				textPrint = `Vereinfache maximal: \\(\\quad ${taskStr} = \\) ${space(0.5)}`;
 			} else {
 				// --- TYP: AUSKLAMMERN ---
 				let v = selectedVars[0] || 'x';
@@ -3722,15 +3706,16 @@ const fromUnit = displayUnits[unitIndex];
 				s = `\\( \\frac{${z}}{${n}} \\) von ${comma(G)}  ${einheit} sind <b>${comma(W)} ${einheit}</b><br>
 				\\((${comma(G)} : ${n} \\cdot ${z} = ${comma(W)})\\)`;
 
-			} else if (rd > 0.3) {
+			} else if (rd > 0.25) {
 				// TYP 2: Ganzes berechnen (Bruch sind Anteil von...)
 				// Damit es glatt aufgeht, muss der Anteil ein Vielfaches des Zählers sein.
 				let scale = Math.random() > 0.5 ? 10 : 1;
 				let multiplier = isMentalMode ? rnd(2, 9) : rnd(3, 13);
 				let W = z * multiplier * scale; // Der Anteil
 				let G = (W / z) * n;            // Das Ganze
+				if (Math.random() < 0.5) {textDisplay = `\\( \\frac{${z}}{${n}} \\)  sind ${comma(W)} ${einheit} von ${blank(3)}`;} 
+				else {textDisplay = `${comma(W)} ${einheit} sind \\( \\frac{${z}}{${n}} \\) von ${blank(3)}`;}
 				
-				textDisplay = `\\( \\frac{${z}}{${n}} \\)  sind ${comma(W)} ${einheit} von ${blank(3)}`;
 				s = `\\( \\frac{${z}}{${n}} \\) sind ${comma(W)} ${einheit} von <b>${comma(G)} ${einheit}</b><br>
 				\\((${comma(W)} : ${z} \\cdot ${n} = ${comma(G)})\\)`;
 
