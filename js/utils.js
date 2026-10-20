@@ -89,12 +89,13 @@ const formatUtils = {
     },
 
     // Baut eine kompakte 2-Spalten-Lösungstabelle mit einer vertikalen Trennlinie und oberem Rand.
-    buildSolutionTable: (rows, className = 'prop-solution-table') => `
-        <table class="${className}">
+    // Wenn `isEmpty` true, bleibt nur die reine Tabelle mit leeren Zellen übrig.
+    buildSolutionTable: (rows, className = 'prop-solution-table', isEmpty = false) => `
+        <table class="${className}${isEmpty ? ' prop-solution-table--empty' : ''}">
             ${rows.map(([label, value]) => `
                 <tr>
-                    <td>${label}</td>
-                    <td>${value}</td>
+                    <td>${isEmpty ? '&nbsp;' : label}</td>
+                    <td>${isEmpty ? '&nbsp;' : value}</td>
                 </tr>
             `).join('')}
         </table>

@@ -316,6 +316,12 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 		return `<table class="two-column-task"><tr>${cellHtml}</tr></table>`;
 	};
 
+	const buildEmptyRatioTable = () => formatUtils.buildSolutionTable(
+		[['', ''], ['', ''], ['', '']],
+		'prop-solution-table prop-solution-table--empty',
+		true
+	);
+
 	// Beispiel für die Nutzung von isMentalMode:
 	// if (isMentalMode) { Z1 = rnd(2, 5); } else { Z1 = rnd(5, 20); }
 
@@ -1522,21 +1528,30 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				pVal = rnd(2, 11) * 100;
 				p = [3, 4, 5, 6, 7, 8, 9, 11, 12, 20, 25, 30, 35, 40, 60, 70, 80, 90][randInt(0, 17)];
 				textDisplay = `${p} % von ${pVal} ${einheit} sind ${blank(3)}`;
-				s = formatUtils.buildSolutionTable([
+				textPrint = `Berechne mit dem Dreisatz: ${p} % von ${pVal} ${einheit} sind . . .<br>${buildEmptyRatioTable()}`;
+				const ratioRows = [
 					[`100 %`, `${comma(pVal)} ${einheit}`],
 					[`1 %`, `${comma(pVal / 100)} ${einheit}`],
 					[`${p} %`, `<b>${comma((pVal / 100) * p)} ${einheit}</b>`]
-				]);
+				];
+				s = formatUtils.buildSolutionTable(ratioRows);
 			} else if (rd > 0.25) {
 				p = [20, 25, 30, 40, 50, 60, 70, 80, 90][randInt(0, 8)];
 				pVal = rnd(2, 9) * p;
-				if (Math.random() < 0.5) {textDisplay = `${p} % sind ${pVal} ${einheit} von ${blank(3)}`;} 
-				else { textDisplay = `${pVal} ${einheit} sind ${p} % von ${blank(3)}`;}
-				s = formatUtils.buildSolutionTable([
+				if (Math.random() < 0.4) {
+					textDisplay = `${p} % sind ${pVal} ${einheit} von ${blank(3)}`;
+					textPrint = `Berechne mit dem Dreisatz: ${p} % sind ${pVal} ${einheit} von . . .<br>${buildEmptyRatioTable()}`;
+				} 
+				else { 
+					textDisplay = `${pVal} ${einheit} sind ${p} % von ${blank(3)}`;
+					textPrint = `Berechne mit dem Dreisatz: ${pVal} ${einheit} sind ${p} % von . . .<br>${buildEmptyRatioTable()}`;
+				}
+				const ratioRows = [
 					[`100 %`, `<b>${comma((pVal / p) * 100)} ${einheit}</b>`],
-					[`1 %`, `${comma(pVal / p)} ${einheit}`],					
+					[`1 %`, `${comma(pVal / p)} ${einheit}`],
 					[`${p} %`, `${comma(pVal)} ${einheit}`]
-				]);
+				];
+				s = formatUtils.buildSolutionTable(ratioRows);
 			} else {
 				// 1. Wähle einen "schönen" Prozentsatz p (z.B. 5, 10, 20, 25, 50...)
 				const p_list = isMentalMode ? [2, 3, 5, 10, 20, 25, 50, 75, 80, 90] : [2, 3, 5, 10, 15, 20, 25, 40, 50, 75, 80, 90, 95];
@@ -1552,14 +1567,16 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				const G = (W * 100) / p;
 
 				// Aufgabe: W und G sind gegeben, p ist gesucht
-				textDisplay = ` ${comma(W)} ${einheit} von ${comma(G)} ${einheit} sind ${blank(2)} % `;
+				textDisplay = `${comma(W)} ${einheit} von ${comma(G)} ${einheit} sind ${blank(2)} % `;
+				textPrint = `Berechne mit dem Dreisatz: ${comma(W)} ${einheit} von ${comma(G)} ${einheit} sind . . . %<br>${buildEmptyRatioTable()}`;
 
 				// Lösung: Zeigt den Rechenweg oder das Ergebnis
-				s = formatUtils.buildSolutionTable([
+				const ratioRows = [
 					[`100 %`, `${comma(G)} ${einheit}`],
 					[`1 %`, `${comma(G / 100)} ${einheit}`],
 					[`<b>${p} %</b>`, `${comma(W)} ${einheit}`]
-				]);
+				];
+				s = formatUtils.buildSolutionTable(ratioRows);
 			}
 			break;
 

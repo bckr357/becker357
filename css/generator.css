@@ -1120,6 +1120,31 @@ textarea {
     padding-left: 0.5rem;
 }
 
+.prop-solution-table--empty {
+    border-top: 2px solid #64748b;
+    border-bottom: 1px solid rgba(100, 116, 139, 0.45);
+    table-layout: fixed;
+    width: auto;
+}
+
+.prop-solution-table--empty td {
+    border-top: 1px solid rgba(100, 116, 139, 0.45);
+    width: 3cm;
+    min-width: 3cm;
+    max-width: 3cm;
+    text-align: center;
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+}
+
+.prop-solution-table--empty td:first-child {
+    border-right: 2px solid #64748b;
+}
+
+.prop-solution-table--empty td:last-child {
+    text-align: center;
+}
+
 .op-table--terms td,
 .op-table--terms th {
     padding: 12px 10px;
