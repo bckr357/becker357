@@ -1533,9 +1533,9 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				if (Math.random() < 0.5) {textDisplay = `${p} % sind ${pVal} ${einheit} von ${blank(3)}`;} 
 				else { textDisplay = `${pVal} ${einheit} sind ${p} % von ${blank(3)}`;}
 				s = formatUtils.buildSolutionTable([
-					[`${p} %`, `${comma(pVal)} ${einheit}`],
-					[`1 %`, `${comma(pVal / p)} ${einheit}`],
-					[`100 %`, `<b>${comma((pVal / p) * 100)} ${einheit}</b>`]
+					[`100 %`, `<b>${comma((pVal / p) * 100)} ${einheit}</b>`],
+					[`1 %`, `${comma(pVal / p)} ${einheit}`],					
+					[`${p} %`, `${comma(pVal)} ${einheit}`]
 				]);
 			} else {
 				// 1. Wähle einen "schönen" Prozentsatz p (z.B. 5, 10, 20, 25, 50...)
@@ -1574,7 +1574,7 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 					s = formatUtils.buildSolutionTable([
 						[`100 %`, `${comma(pVal)} ${einheit}`],
 						[`1 %`, `${comma(pVal / 100)} ${einheit}`],
-						[`${100 + p} %`, `<b>${comma(pVal + (pVal / 100 * p))} ${einheit}</b>`]
+						[`100 % + ${p} % = ${100 + p} %`, `<b>${comma(pVal + (pVal / 100 * p))} ${einheit}</b>`]
 					]);
 					break;
 				case 1: // Reduzierung um p%
@@ -1582,7 +1582,7 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 					s = formatUtils.buildSolutionTable([
 						[`100 %`, `${comma(pVal)} ${einheit}`],
 						[`1 %`, `${comma(pVal / 100)} ${einheit}`],
-						[`${100 - p} %`, `<b>${comma(pVal - (pVal / 100 * p))} ${einheit}</b>`]
+						[`100 % - ${p} % = ${100 - p} %`, `<b>${comma(pVal - (pVal / 100 * p))} ${einheit}</b>`]
 					]);
 					break;
 				case 2: // Erhöhung auf 100+p%
@@ -1610,7 +1610,7 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 					s = formatUtils.buildSolutionTable([
 						[`100 %`, `${comma(originalPrice)} €`],
 						[`1 %`, `${comma(originalPrice / 100)} €`],
-						[`${100 - p} %`, `<b>${comma(discountedPrice)} €</b>`]
+						[`100 % - ${p} % = ${100 - p} %`, `<b>${comma(discountedPrice)} €</b>`]
 					]);
 					break;
 				}
@@ -1618,12 +1618,12 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				    p = [3, 4, 5, 6, 7, 10, 20, 25][randInt(0, 7)];
 					const originalPrice = pVal;
 					const discountedPrice = originalPrice - (originalPrice / 100 * p);
-					textPrint = `Preissenkung von ${originalPrice} € auf ${discountedPrice} €. Rabatt: ${blank(2)} %`;
+					textPrint = `Preissenkung von ${originalPrice} € auf ${discountedPrice} €. Rabatt: ${blank(1)} %`;
 					textDisplay = `Preissenkung von ${originalPrice} € auf ${discountedPrice} €. <br>Berechne den Rabatt.`;
 					s = formatUtils.buildSolutionTable([
 						[`100 %`, `${comma(originalPrice)} €`],
 						[`1 %`, `${comma(originalPrice / 100)} €`],
-						[`${p} %`, `<b>${comma(originalPrice - discountedPrice)} €</b>`]
+						[`<b>${p} %</b>`, `${comma(originalPrice)} € - ${comma(discountedPrice)} € = ${comma(originalPrice - discountedPrice)} €`]
 					]);
 					break;
 				}
@@ -1632,7 +1632,7 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 		}
 
 		case 'zinsen': {
-			const subType = randInt(0, 4);
+			const subType = randInt(0, 3);
 			switch (subType) {
 				case 0: { // 1. Zinsen berechnen (1 Jahr)
 					const kBase = [450, 650, 750, 850, 1200, 1400, 1500, 1750, 1800, 2400, 2500, 3200, 3500, 4200, 4500, 5400, 6500];
@@ -1661,54 +1661,11 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 					s = formatUtils.buildSolutionTable([
 						[`100 %`, `${comma(K)} €`],
 						[`1 %`, `${comma(K / 100)} €`],
-						[`${100 + p} %`, `<b>${comma(K1)} €</b> (${comma(K)} € + ${comma(Z)} €)`]
+						[`${100 + p} %`, `<b>${comma(K1)} €</b>`]
 					]);
 					break;
 				}
-				case 2: { // 3. Zinssatz berechnen bei gegebenen Zinsen
-					const factors = [14, 15, 16, 18, 22, 24, 25, 28, 32, 35, 42, 45, 48, 55, 64];
-					const pList = [2, 3, 4, 5, 6, 7, 8];
-					const factor = factors[randInt(0, factors.length - 1)];
-					const p = pList[randInt(0, pList.length - 1)];
-					const K = factor * 100;
-					const Z = factor * p;
-					textPrint = ` Für ${comma(K)} € Kapital gibt es ${comma(Z)} € Jahreszinsen. <br>Zinssatz p % = ${blank(2)}`;
-					textDisplay = `Für ein Kapital von ${comma(K)} € erhält man nach einem Jahr ${comma(Z)} € Zinsen. <br>Berechne den Zinssatz.`;
-					s = formatUtils.buildSolutionTable([
-						[`100 %`, `${comma(K)} €`],
-						[`1 %`, `${comma(factor)} €`],
-						[`<b>${p} %</b>`, `${comma(Z)} €`]
-					]);
-					break;
-				}
-				case 3: { // 4. Zinsen für 1, ..., 11 Monate (Jahreszinsen durch 12 teilbar)
-					const m = randInt(1, 11);
-					const pList = [2, 3, 4, 5, 6, 8];
-					const p = pList[randInt(0, pList.length - 1)];
-					let zMonat;
-					if (p === 5) {
-						zMonat = [5, 10, 15, 20][randInt(0, 3)];
-					} else if (p === 8) {
-						zMonat = [4, 6, 8, 10, 12][randInt(0, 4)];
-					} else {
-						zMonat = randInt(3, 12);
-					}
-					const zJahr = zMonat * 12;
-					const K = (zJahr * 100) / p;
-					const zTotal = zMonat * m;
-					const monateWord = m === 1 ? '1 Monat' : `${m} Monate`;
-					textPrint = `${comma(K)} € werden zu ${p} % für ${monateWord} angelegt. <br>Zinsen Z = ${blank(3)}`;
-					textDisplay = `Ein Kapital von ${comma(K)} € wird zu einem Zinssatz von ${p} % für ${monateWord} angelegt. <br>Berechne die Zinsen.`;
-					s = formatUtils.buildSolutionTable([
-						[`100 % (12 Monate)`, `${comma(K)} €`],
-						[`1 %`, `${comma(K / 100)} €`],
-						[`${p} % (Jahreszinsen)`, `${comma(zJahr)} €`],
-						[`1 Monat (: 12)`, `${comma(zMonat)} €`],
-						[`<b>${monateWord}</b>`, `<b>${comma(zTotal)} €</b>`]
-					]);
-					break;
-				}
-				case 4: { // 5. Anfangs-Kapital berechnen bei gegebenen Zinsen
+				case 2: { // 5. Anfangs-Kapital berechnen bei gegebenen Zinsen
 					const factors = [18, 24, 25, 28, 32, 35, 42, 45, 48, 54, 65];
 					const pList = [2, 3, 4, 5, 6, 7, 8];
 					const factor = factors[randInt(0, factors.length - 1)];
@@ -1718,9 +1675,24 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 					textPrint = `Bei ${p} % gibt es ${comma(Z)} € Jahreszinsen. Kapital K = ${blank(3)}`;
 					textDisplay = `Ein Sparguthaben bringt bei einem Zinssatz von ${p} % nach einem Jahr genau ${comma(Z)} € Zinsen. <br>Berechne das Anfangskapital.`;
 					s = formatUtils.buildSolutionTable([
-						[`${p} %`, `${comma(Z)} €`],
+						[`100 %`, `<b>${comma(K)} €</b>`],
 						[`1 %`, `${comma(factor)} €`],
-						[`100 %`, `<b>${comma(K)} €</b>`]
+						[`${p} %`, `${comma(Z)} €`]
+					]);
+					break;
+				}
+				case 3: { // 6. Zinssatz berechnen bei gegebenem Kapital und Zinsen
+					const factors = [14, 15, 16, 18, 22, 24, 25, 28, 32, 35, 42, 45, 48, 55, 64];
+					const pList = [2, 3, 4, 5, 6, 7, 8];
+					const factor = factors[randInt(0, factors.length - 1)];
+					const p = pList[randInt(0, pList.length - 1)];
+					const K = factor * 100;
+					const Z = factor * p;
+					textDisplay = `Auf ${comma(K)} € gibt es ${comma(Z)} € Jahreszinsen. Zinssatz p % = ${blank(1)}`;
+					s = formatUtils.buildSolutionTable([
+						[`100 %`, `${comma(K)} €`],
+						[`1 %`, `${comma(factor)} €`],
+						[`<b>${p} %</b>`, `${comma(Z)} €`]
 					]);
 					break;
 				}
