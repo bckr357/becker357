@@ -47,7 +47,7 @@
         </div>
 
         <!-- SETUP BEREICH -->
-        <section v-if="!quizStarted" class="quiz-single-setup">
+        <section v-if="!quizStarted && !showResultOverview" class="quiz-single-setup">
             <div class="quiz-single-setup-row">
                 <label>
                     Klassenstufe
@@ -74,10 +74,69 @@
             </div>
 
             <div class="quiz-single-setup-actions">
-                <button class="btn" type="button" @click="selectDefaultTypes">Standard (Einfach)</button>
+                <button class="btn" type="button" @click="selectRandomTypes">Zufällige Auswahl</button>
                 <button class="btn" type="button" @click="selectAllTypes">Alle auswählen</button>
                 <button class="btn" type="button" @click="clearTypes">Keine auswählen</button>
                 <button class="btn btn--primary" type="button" @click="startQuiz" :disabled="selectedTypes.length === 0">Quiz starten 🎲</button>
+            </div>
+        </section>
+
+        <!-- ERGEBNIS-ÜBERSICHT -->
+        <section v-else-if="showResultOverview" class="quiz-single-summary">
+            <div class="quiz-single-summary-card">
+                <div class="quiz-single-summary-header">
+                    <h2>Ergebnisübersicht</h2>
+                    <button class="btn btn--primary" type="button" @click="saveResultOverview">Ergebnis speichern</button>
+                </div>
+
+                <div class="quiz-single-summary-grid">
+                    <div class="quiz-single-summary-metric">
+                        <span class="quiz-single-summary-label">Ergebnis</span>
+                        <strong>{{ resultOverview?.correct ?? 0 }}/{{ resultOverview?.totalChecked ?? 0 }} richtig</strong>
+                    </div>
+                    <div class="quiz-single-summary-metric">
+                        <span class="quiz-single-summary-label">Quote</span>
+                        <strong>{{ resultOverview?.successRate ?? 0 }}%</strong>
+                    </div>
+                    <div class="quiz-single-summary-metric">
+                        <span class="quiz-single-summary-label">Bestserie</span>
+                        <strong>{{ resultOverview?.bestStreak ?? 0 }}</strong>
+                    </div>
+                    <div class="quiz-single-summary-metric">
+                        <span class="quiz-single-summary-label">Datum</span>
+                        <strong>{{ resultOverview?.date ?? '-' }}</strong>
+                    </div>
+                </div>
+
+                <div class="quiz-single-summary-table-wrap">
+                    <table class="quiz-single-summary-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Typ</th>
+                                <th>Aufgabe</th>
+                                <th>Antwort</th>
+                                <th>Ergebnis</th>
+                                <th>Musterlösung</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="task in resultOverview?.tasks ?? []" :key="task.taskNumber">
+                                <td>{{ task.taskNumber }}</td>
+                                <td>{{ task.typeLabel }}</td>
+                                <td v-html="task.promptHtml || task.prompt"></td>
+                                <td>{{ task.userInput || '—' }}</td>
+                                <td>{{ task.correct ? 'Richtig' : 'Falsch' }}</td>
+                                <td v-html="task.solutionHtml || task.solution || '—'"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="quiz-single-summary-actions">
+                    <button class="btn btn--primary" type="button" @click="saveResultOverview">Ergebnis speichern</button>
+                    <button class="btn" type="button" @click="startQuiz" :disabled="selectedTypes.length === 0">Neues Quiz starten</button>
+                </div>
             </div>
         </section>
 
@@ -130,14 +189,26 @@
                         @confirm="checkCurrentTask"
                         :disabled="currentTask.checked"
                     ></math-key-input>
-                    <button
-                        class="btn btn--primary quiz-single-check-button"
-                        type="button"
-                        @click="checkCurrentTask"
-                        :disabled="currentTask.checked"
-                    >
-                        Prüfen
-                    </button>
+
+                    <div class="quiz-single-answer-actions">
+                        <button
+                            v-if="!currentTask.checked"
+                            class="btn btn--primary quiz-single-check-button"
+                            type="button"
+                            @click="checkCurrentTask"
+                        >
+                            Prüfen
+                        </button>
+
+                        <button
+                            v-else
+                            class="btn btn--primary quiz-single-next-button"
+                            type="button"
+                            @click="nextTask"
+                        >
+                            Nächste Aufgabe ➡
+                        </button>
+                    </div>
 
                     <div v-if="currentTask.checked" class="quiz-single-feedback" :class="currentTask.correct ? 'quiz-single-feedback--correct' : 'quiz-single-feedback--incorrect'">
                         {{ currentTask.correct ? '✅ Richtig!' : '❌ Falsch' }}
@@ -155,12 +226,20 @@
             <div class="quiz-single-controls">
                 <button class="btn" type="button" @click="exitQuiz">⬅ Quiz beenden</button>
                 <button
-                    class="btn btn--primary"
+                    class="btn"
                     type="button"
-                    @click="nextTask"
-                    :disabled="!currentTask.checked"
+                    @click="goToPreviousTask"
+                    :disabled="currentTaskIndex === 0"
                 >
-                    Nächste Aufgabe ➔
+                    ← Zurück
+                </button>
+                <button
+                    class="btn"
+                    type="button"
+                    @click="goToNextTask"
+                    :disabled="currentTaskIndex >= taskHistory.length - 1"
+                >
+                    Weiter →
                 </button>
             </div>
         </section>

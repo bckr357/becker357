@@ -6,13 +6,6 @@ const fmt = formatUtils.fmt;
 const comma = formatUtils.comma;
 const formatDecimal = formatUtils.formatDecimal;
 
-// Nur Aufgaben, die tatsächlich ein maschinenlesbares `answer`-Objekt liefern.
-const QUIZ_AUTO_DEFAULT_TYPES = [
-	'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10',
-	'frac_as', 'frac_md', 'frac_simplify',
-	'percent', 'pv', 'zinsen', 'units', 'round', 'geometry', 'anteile', 'wkt', 'zahlengerade'
-];
-
 // Alle automatisch auswertbaren Aufgabentypen.
 const QUIZ_AUTO_TYPES = [
 	'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10',
@@ -24,7 +17,6 @@ const QUIZ_AUTO_TYPES = [
 
 if (typeof window !== 'undefined') {
 	window.QUIZ_AUTO_TYPES = QUIZ_AUTO_TYPES;
-	window.QUIZ_AUTO_DEFAULT_TYPES = QUIZ_AUTO_DEFAULT_TYPES;
 }
 
 const taskCategories = {
@@ -41,42 +33,42 @@ const taskCategories = {
 // Sichtbare Aufgabentypen je Klassenstufe (wird vom UI-Dropdown genutzt)
 const taskTypesByGrade = {
 	klasse5: [
-		'teiler', 'primzahlen', 'units', 'potenzen', 'nat_as', 'nat_md', 'pow10', 'vorrang',
+		'units', 'potenzen', 'nat_as', 'nat_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
-		'geometry', 'winkel', 'statistik'
+		'geometry', 'statistik'
 	],
 	klasse6: [
-		'teiler', 'primzahlen', 'units', 'potenzen', 'nat_as', 'nat_md', 'pow10', 'vorrang',
+		'units', 'potenzen', 'nat_as', 'nat_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
-		'anteile', 'percent', 'geometry', 'winkel', 'statistik', 'wkt'
+		'anteile', 'percent', 'geometry', 'statistik', 'wkt'
 	],
 	klasse7: [
-		'teiler', 'primzahlen', 'units', 'potenzen', 'nat_as', 'nat_md', 'pow10', 'vorrang',
+		'units', 'potenzen', 'nat_as', 'nat_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order',
 		'anteile', 'prop', 'percent', 'pv', 'zinsen',
-		'terme', 'word_terms', 'equations', 'equations_adv', 'equations_lin',
-		'round', 'ueberschlag', 'zahlengerade', 'geometry', 'winkel', 'statistik', 'wkt'
+		'equations',
+		'round', 'ueberschlag', 'zahlengerade', 'geometry', 'statistik', 'wkt'
 	],
 	klasse8: [
-		'teiler', 'primzahlen', 'units', 'potenzen', 'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
-		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
+		'units', 'potenzen', 'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
+		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order',
 		'anteile', 'prop', 'percent', 'pv', 'zinsen',
-		'terme', 'word_terms', 'equations', 'equations_adv', 'equations_lin',
-		'geometry', 'winkel', 'statistik', 'wkt', 'linear_function'
+		'equations', 'equations_adv',
+		'round', 'ueberschlag', 'zahlengerade', 'geometry', 'statistik', 'wkt'
 	],
 	klasse9: [
-		'teiler', 'primzahlen', 'units', 'potenzen', 'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
-		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
+		'units', 'potenzen', 'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
+		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order',
 		'anteile', 'prop', 'percent', 'pv', 'zinsen',
-		'terme', 'word_terms', 'equations', 'equations_adv', 'equations_lin',
-		'geometry', 'winkel', 'statistik', 'wkt', 'linear_function', 'funktionen'
+		'equations', 'equations_adv',
+		'round', 'ueberschlag', 'zahlengerade', 'geometry', 'statistik', 'wkt'
 	],
 	klasse10: [
-		'teiler', 'primzahlen', 'units', 'potenzen', 'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
-		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
+		'units', 'potenzen', 'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
+		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order',
 		'anteile', 'prop', 'percent', 'pv', 'zinsen',
-		'terme', 'word_terms', 'equations', 'equations_adv', 'equations_lin',
-		'geometry', 'winkel', 'statistik', 'wkt', 'linear_function', 'funktionen'
+		'equations',
+		'round', 'ueberschlag', 'zahlengerade', 'geometry', 'statistik', 'wkt'
 	]
 };
 
@@ -490,7 +482,7 @@ function createTask(type, grade = 5, options = {}) {
 						v1 = rnd(-20, 20);
 						v2 = rnd(-20, 20);
 					} while (!(v1 < 0 || v2 < 0 || (v1 + v2) < 0));
-					expr = `\\( ${v1} + ${fmt(v2)} =\\)`;
+					expr = `\\[ ${v1} + ${fmt(v2)} = \\]`;
 					const sum = v1 + v2;
 					if (v2 < 0) {
 						solution = `\\[ ${v1} + ${fmt(v2)} = ${v1} - ${Math.abs(v2)} = ${sum} \\]`;
@@ -1609,34 +1601,34 @@ function createTask(type, grade = 5, options = {}) {
 					v1 = grade <= 7 ? randInt(0, 13) : randInt(-13, 13);
 					result = v1 * v1;
 					if (v1 < 0) {
-						expr = `\\( (${v1})^2 = \\)`;
-						solution = `\\( (${v1})^2 = ${result} \\)`;
+						expr = `\\[ (${v1})^2 = \\]`;
+						solution = `\\[ (${v1})^2 = ${result} \\]`;
 					} else {
-						expr = `\\( ${v1}^2 = \\)`;
-						solution = `\\( ${v1}^2 = ${result} \\)`;
+						expr = `\\[ ${v1}^2 = \\]`;
+						solution = `\\[ ${v1}^2 = ${result} \\]`;
 					}
 				} else if (rdLocal > 0.40) {
 					v1 = randInt(3, 13);
 					result = v1;
-					expr = `\\( \\sqrt{${v1 * v1}} = \\)`;
-					solution = grade <= 7 ? `\\( \\sqrt{${v1 * v1}} = ${v1} \\)` : `\\( \\sqrt{${v1 * v1}} = \\pm ${v1} \\)`;
+					expr = `\\[ \\sqrt{${v1 * v1}} = \\]`;
+					solution = grade <= 7 ? `\\[ \\sqrt{${v1 * v1}} = ${v1} \\]` : `\\[ \\sqrt{${v1 * v1}} = \\pm ${v1} \\]`;
 					return { expr, solution, answer: { kind: 'either', options: [v1, -v1] } };
 				} else if (rdLocal > 0.2) {
 					v1 = randInt(0, 9);
 					result = Math.pow(2, v1);
-					expr = `\\( 2^${v1} = \\)`;
-					solution = `\\( 2^${v1} = ${result} \\)`;
+					expr = `\\[ 2^${v1} = \\]`;
+					solution = `\\[ 2^${v1} = ${result} \\]`;
 				} else {
 					const staticTasks = [
-						{ t: `\\( 3^3 = \\)`, s: `\\( 3^3 = ${Math.pow(3, 3)} \\)`, v: Math.pow(3, 3) },
-						{ t: `\\( (-3)^3 = \\)`, s: `\\( (-3)^3 = ${Math.pow(-3, 3)} \\)`, v: Math.pow(-3, 3) },
-						{ t: `\\( 3^4 = \\)`, s: `\\( 3^4 = ${Math.pow(3, 4)} \\)`, v: Math.pow(3, 4) },
-						{ t: `\\( (-3)^4 = \\)`, s: `\\( (-3)^4 = ${Math.pow(-3, 4)} \\)`, v: Math.pow(-3, 4) },
-						{ t: `\\( 4^3 = \\)`, s: `\\( 4^3 = ${Math.pow(4, 3)} \\)`, v: Math.pow(4, 3) },
-						{ t: `\\( (-4)^3 = \\)`, s: `\\( (-4)^3 = ${Math.pow(-4, 3)} \\)`, v: Math.pow(-4, 3) },
-						{ t: `\\( 5^3 = \\)`, s: `\\( 5^3 = ${Math.pow(5, 3)} \\)`, v: Math.pow(5, 3) },
-						{ t: `\\( (-5)^3 = \\)`, s: `\\( (-5)^3 = ${Math.pow(-5, 3)} \\)`, v: Math.pow(-5, 3) },
-						{ t: `\\( 5^4 = \\)`, s: `\\( 5^4 = ${Math.pow(5, 4)} \\)`, v: Math.pow(5, 4) }
+						{ t: `\\[ 3^3 = \\]`, s: `\\[ 3^3 = ${Math.pow(3, 3)} \\]`, v: Math.pow(3, 3) },
+						{ t: `\\[ (-3)^3 = \\]`, s: `\\[ (-3)^3 = ${Math.pow(-3, 3)} \\]`, v: Math.pow(-3, 3) },
+						{ t: `\\[ 3^4 = \\]`, s: `\\[ 3^4 = ${Math.pow(3, 4)} \\]`, v: Math.pow(3, 4) },
+						{ t: `\\[ (-3)^4 = \\]`, s: `\\[ (-3)^4 = ${Math.pow(-3, 4)} \\]`, v: Math.pow(-3, 4) },
+						{ t: `\\[ 4^3 = \\]`, s: `\\[ 4^3 = ${Math.pow(4, 3)} \\]`, v: Math.pow(4, 3) },
+						{ t: `\\[ (-4)^3 = \\]`, s: `\\[ (-4)^3 = ${Math.pow(-4, 3)} \\]`, v: Math.pow(-4, 3) },
+						{ t: `\\[ 5^3 = \\]`, s: `\\[ 5^3 = ${Math.pow(5, 3)} \\]`, v: Math.pow(5, 3) },
+						{ t: `\\[ (-5)^3 = \\]`, s: `\\[ (-5)^3 = ${Math.pow(-5, 3)} \\]`, v: Math.pow(-5, 3) },
+						{ t: `\\[ 5^4 = \\]`, s: `\\[ 5^4 = ${Math.pow(5, 4)} \\]`, v: Math.pow(5, 4) }
 					];
 					const randomIndex = Math.floor(Math.random() * staticTasks.length);
 					expr = staticTasks[randomIndex].t;

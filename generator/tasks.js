@@ -710,7 +710,7 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 						v1 = rnd(-20, 20);
 						v2 = rnd(-20, 20);
 					} while (!(v1 < 0 || v2 < 0 || (v1 + v2) < 0));
-					expr = `\\( ${v1} + ${fmt(v2)} =\\)`;
+					expr = `\\[ ${v1} + ${fmt(v2)} = \\]`;
 					const sum = v1 + v2;
 					if (v2 < 0) {
 						solution = `\\[ ${v1} + ${fmt(v2)} = ${v1} - ${Math.abs(v2)} = ${sum} \\]`;

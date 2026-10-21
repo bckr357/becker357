@@ -12,12 +12,16 @@ const app = createApp({
 		'math-key-input': window.MathKeyInputComponent
 	},
 	setup() {
-		const grade = ref(7);
+		const grade = ref(10);
 		const selectedTypes = ref([]);
 		const quizStarted = ref(false);
+		const showResultOverview = ref(false);
+		const resultOverview = ref(null);
 
 		// Aktuelle Einzelfrage
 		const currentTask = ref(null);
+		const taskHistory = ref([]);
+		const currentTaskIndex = ref(0);
 		const taskCounter = ref(0);
 		const taskInputRef = ref(null);
 
@@ -88,10 +92,68 @@ const app = createApp({
 			} catch (e) {}
 		};
 
-		const selectDefaultTypes = () => {
-			const defaults = window.QUIZ_AUTO_DEFAULT_TYPES || [];
-			const allowed = new Set(availableTypes.value);
-			selectedTypes.value = defaults.filter(type => allowed.has(type));
+		const stripHtml = (value = '') => String(value)
+			.replace(/<br\s*\/?>/gi, '\n')
+			.replace(/<[^>]*>/g, '')
+			.replace(/&nbsp;/gi, ' ')
+			.replace(/&amp;/gi, '&')
+			.replace(/&lt;/gi, '<')
+			.replace(/&gt;/gi, '>')
+			.replace(/&quot;/gi, '"')
+			.replace(/&#039;/gi, "'")
+			.replace(/\s+/g, ' ')
+			.trim();
+
+		const toChecksumString = async (value) => {
+			if (!window.crypto || !window.crypto.subtle) {
+				throw new Error('Web Crypto API nicht verfügbar.');
+			}
+
+			const encoder = new TextEncoder();
+			const data = encoder.encode(value);
+			const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
+			return Array.from(new Uint8Array(hashBuffer))
+				.map(byte => byte.toString(16).padStart(2, '0'))
+				.join('');
+		};
+
+		const buildResultOverview = () => {
+			const tasks = taskHistory.value.map((task, index) => ({
+				taskNumber: index + 1,
+				type: task.type,
+				typeLabel: window.typeLabels?.[task.type] || task.type,
+				prompt: stripHtml(task.textDisplay),
+				promptHtml: task.textDisplay || '',
+				userInput: task.userInput || '',
+				status: task.checked ? (task.correct ? 'richtig' : 'falsch') : 'nicht geprüft',
+				correct: !!task.correct,
+				solution: stripHtml(task.solution || ''),
+				solutionHtml: task.solution || ''
+			}));
+
+			return {
+				quizName: 'Quiz-Auto (Einzelfragen)',
+				grade: grade.value,
+				date: new Date().toLocaleString('de-DE'),
+				selectedTypes: [...selectedTypes.value],
+				totalTasks: tasks.length,
+				totalChecked: stats.totalChecked,
+				correct: stats.correct,
+				incorrect: Math.max(stats.totalChecked - stats.correct, 0),
+				successRate: successRate.value,
+				bestStreak: stats.bestStreak,
+				tasks
+			};
+		};
+
+		const selectRandomTypes = () => {
+			const pool = [...availableTypes.value];
+			const selected = [...pool];
+			for (let i = selected.length - 1; i > 0; i--) {
+				const j = Math.floor(Math.random() * (i + 1));
+				[selected[i], selected[j]] = [selected[j], selected[i]];
+			}
+			selectedTypes.value = selected.slice(0, Math.min(7, selected.length));
 			if (selectedTypes.value.length === 0) {
 				selectedTypes.value = [...availableTypes.value];
 			}
@@ -108,9 +170,6 @@ const app = createApp({
 		const onGradeChange = () => {
 			const allowed = new Set(availableTypes.value);
 			selectedTypes.value = selectedTypes.value.filter(type => allowed.has(type));
-			if (selectedTypes.value.length === 0) {
-				selectDefaultTypes();
-			}
 		};
 
 		const typesetMathJax = async () => {
@@ -148,9 +207,17 @@ const app = createApp({
 		const startQuiz = async () => {
 			if (selectedTypes.value.length === 0) return;
 
+			showResultOverview.value = false;
+			resultOverview.value = null;
+
+			const firstTask = generateSingleTask();
+			if (!firstTask) return;
+
 			quizStarted.value = true;
+			taskHistory.value = [firstTask];
+			currentTaskIndex.value = 0;
 			taskCounter.value = 1;
-			currentTask.value = generateSingleTask();
+			currentTask.value = firstTask;
 
 			await nextTick();
 			await typesetMathJax();
@@ -181,10 +248,50 @@ const app = createApp({
 			await typesetMathJax();
 		};
 
+		const goToPreviousTask = async () => {
+			if (currentTaskIndex.value <= 0) return;
+
+			currentTaskIndex.value -= 1;
+			currentTask.value = taskHistory.value[currentTaskIndex.value];
+			taskCounter.value = currentTaskIndex.value + 1;
+
+			await nextTick();
+			await typesetMathJax();
+			await focusCurrentInput();
+		};
+
+		const goToNextTask = async () => {
+			if (!currentTask.value) return;
+			if (currentTaskIndex.value >= taskHistory.value.length - 1) return;
+
+			currentTaskIndex.value += 1;
+			currentTask.value = taskHistory.value[currentTaskIndex.value];
+			taskCounter.value = currentTaskIndex.value + 1;
+
+			await nextTick();
+			await typesetMathJax();
+			await focusCurrentInput();
+		};
+
 		const nextTask = async () => {
 			if (!currentTask.value) return;
-			taskCounter.value++;
-			currentTask.value = generateSingleTask();
+			if (!currentTask.value.checked) {
+				const lastIndex = taskHistory.value.length - 1;
+				if (lastIndex >= 0 && currentTaskIndex.value !== lastIndex) {
+					currentTaskIndex.value = lastIndex;
+					currentTask.value = taskHistory.value[lastIndex];
+					taskCounter.value = lastIndex + 1;
+				}
+				return;
+			}
+
+			const nextGeneratedTask = generateSingleTask();
+			if (!nextGeneratedTask) return;
+
+			taskHistory.value.push(nextGeneratedTask);
+			currentTaskIndex.value = taskHistory.value.length - 1;
+			currentTask.value = nextGeneratedTask;
+			taskCounter.value = taskHistory.value.length;
 
 			await nextTick();
 			await typesetMathJax();
@@ -215,9 +322,108 @@ const app = createApp({
 			stats.streak = 0;
 		};
 
-		const exitQuiz = () => {
+		const exitQuiz = async () => {
+			const snapshot = buildResultOverview();
+			resultOverview.value = snapshot;
+			showResultOverview.value = true;
 			quizStarted.value = false;
+			taskHistory.value = [];
+			currentTaskIndex.value = 0;
+			taskCounter.value = 0;
 			currentTask.value = null;
+			await nextTick();
+			await typesetMathJax();
+		};
+
+		const saveResultOverview = async () => {
+			try {
+				const data = resultOverview.value || buildResultOverview();
+				const canonicalJson = JSON.stringify(data, null, 2);
+				const checksum = await toChecksumString(canonicalJson);
+
+				const rows = data.tasks.map(task => `
+					<tr>
+						<td>${task.taskNumber}</td>
+						<td>${task.typeLabel}</td>
+						<td>${task.promptHtml || task.prompt || ''}</td>
+						<td>${task.userInput ? task.userInput.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : '—'}</td>
+						<td>${task.correct ? 'Richtig' : 'Falsch'}</td>
+						<td>${task.solutionHtml || task.solution || '—'}</td>
+					</tr>
+				`).join('');
+
+				const html = `<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ergebnisübersicht</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f8fafc; color: #0f172a; margin: 0; padding: 32px; }
+    .wrap { max-width: 1100px; margin: 0 auto; background: #fff; border: 1px solid #e2e8f0; border-radius: 18px; box-shadow: 0 12px 32px rgba(15,23,42,0.05); padding: 28px; }
+    h1 { margin-top: 0; color: #0f172a; }
+    .meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 20px 0; }
+    .meta-item { background: #f1f5f9; border-radius: 12px; padding: 12px 14px; }
+    .label { display: block; color: #475569; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+    .value { font-size: 1.05rem; font-weight: 700; margin-top: 6px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 18px; }
+    th, td { border: 1px solid #e2e8f0; padding: 10px 12px; text-align: left; vertical-align: top; }
+    th { background: #f8fafc; }
+    .checksum { margin-top: 22px; padding: 16px 18px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; word-break: break-all; }
+    .checksum strong { display: block; margin-bottom: 8px; }
+    code { font-family: Consolas, monospace; }
+    @media (max-width: 700px) { body { padding: 16px; } .wrap { padding: 18px; } table { font-size: 0.85rem; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Ergebnisübersicht</h1>
+    <div class="meta">
+      <div class="meta-item"><span class="label">Quiz</span><div class="value">${data.quizName}</div></div>
+      <div class="meta-item"><span class="label">Klasse</span><div class="value">${data.grade}</div></div>
+      <div class="meta-item"><span class="label">Datum</span><div class="value">${data.date}</div></div>
+      <div class="meta-item"><span class="label">Ergebnis</span><div class="value">${data.correct}/${data.totalChecked} richtig</div></div>
+      <div class="meta-item"><span class="label">Quote</span><div class="value">${data.successRate}%</div></div>
+      <div class="meta-item"><span class="label">Bestserie</span><div class="value">${data.bestStreak}</div></div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Typ</th>
+          <th>Aufgabe</th>
+          <th>Antwort</th>
+          <th>Ergebnis</th>
+          <th>Musterlösung</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows}
+      </tbody>
+    </table>
+
+    <div class="checksum">
+      <strong>Prüfsumme (SHA-256):</strong>
+      <code>${checksum}</code>
+    </div>
+  </div>
+</body>
+</html>`;
+
+				const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+				const url = URL.createObjectURL(blob);
+				const link = document.createElement('a');
+				link.href = url;
+				link.download = `quiz-ergebnis-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.html`;
+				document.body.appendChild(link);
+				link.click();
+				link.remove();
+				URL.revokeObjectURL(url);
+			} catch (error) {
+				console.error('Ergebnis konnte nicht exportiert werden:', error);
+				alert('Das Ergebnis konnte nicht gespeichert werden.');
+			}
 		};
 
 		const successRate = computed(() => {
@@ -226,7 +432,6 @@ const app = createApp({
 		});
 
 		// Initalisieren
-		selectDefaultTypes();
 		loadLeaderboard();
 
 		return {
@@ -234,6 +439,8 @@ const app = createApp({
 			selectedTypes,
 			quizStarted,
 			currentTask,
+			taskHistory,
+			currentTaskIndex,
 			taskCounter,
 			taskInputRef,
 			stats,
@@ -241,16 +448,21 @@ const app = createApp({
 			availableTypes,
 			typeLabels: window.typeLabels,
 			successRate,
-			selectDefaultTypes,
+			selectRandomTypes,
 			selectAllTypes,
 			clearTypes,
 			onGradeChange,
 			startQuiz,
 			checkCurrentTask,
+			goToPreviousTask,
+			goToNextTask,
 			nextTask,
 			resetCurrentStats,
 			exitQuiz,
-			clearLeaderboard
+			clearLeaderboard,
+			showResultOverview,
+			resultOverview,
+			saveResultOverview
 		};
 	}
 });

@@ -1101,7 +1101,7 @@ textarea {
     border-collapse: collapse;
     display: inline-table;
     margin-top: 0.45rem;
-    border-top: 1px solid #64748b;
+    border-top: 1px solid #000;
 }
 
 .prop-solution-table td {
@@ -1110,7 +1110,7 @@ textarea {
 }
 
 .prop-solution-table td:first-child {
-    border-right: 1px solid #64748b;
+    border-right: 1px solid #000;
     text-align: right;
     padding-right: 0.5rem;
 }
@@ -1121,14 +1121,16 @@ textarea {
 }
 
 .prop-solution-table--empty {
-    border-top: 2px solid #64748b;
-    border-bottom: 1px solid rgba(100, 116, 139, 0.45);
+    /* border-top: 1px solid #000;
+    border-bottom: 1pt solid #aaa; */
     table-layout: fixed;
     width: auto;
+    margin: 10px 0 0 40px;
+    display: table;
 }
 
 .prop-solution-table--empty td {
-    border-top: 1px solid rgba(100, 116, 139, 0.45);
+    border-bottom: 0.2mm solid #aaa;
     width: 3cm;
     min-width: 3cm;
     max-width: 3cm;
@@ -1138,7 +1140,7 @@ textarea {
 }
 
 .prop-solution-table--empty td:first-child {
-    border-right: 2px solid #64748b;
+    border-right: 1px solid #000;
 }
 
 .prop-solution-table--empty td:last-child {
