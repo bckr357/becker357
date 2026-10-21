@@ -1100,7 +1100,7 @@ function createTask(type, grade = 5, options = {}) {
 					const percentageValue = z * mult;
 
 					// Da wir auf 100 erweitern, ist der neue Zähler direkt die Prozentzahl
-					let percStr = percentageValue.toString() + '\\,\\text{%}';
+					let percStr = percentageValue.toString() + '\\,\\text{\\%}';
 
 					textDisplay = `in Prozent: \\( \\quad \\dfrac{${z}}{${n}} = \\)`;
 					s = `\\[ \\frac{${z}}{${n}} \\overset{${mult}}{=} \\frac{${z * mult}}{100} = ${percStr} \\]`;
@@ -1118,8 +1118,8 @@ function createTask(type, grade = 5, options = {}) {
 						let percVal = is200 ? 200 : 100;
 						let resultVal = is200 ? 2 : 1; // Das gekürzte Ergebnis als ganze Zahl
 
-						textDisplay = `als max. gekürzter gem. Bruch: \\( \\quad ${percVal}\\,\\text{%} = \\)`;
-						s = `\\[ ${percVal}\\,\\text{%} = \\frac{${percVal}}{100} = ${resultVal} \\]`;
+						textDisplay = `als max. gekürzter gem. Bruch: \\( \\quad ${percVal}\\,\\text{\\%} = \\)`;
+						s = `\\[ ${percVal}\\,\\text{\\%} = \\frac{${percVal}}{100} = ${resultVal} \\]`;
 						answer = numericAnswer(resultVal);
 
 						// Hinweis: Wenn dein System zwingend eine Bruch-Schreibweise als Lösung erwartet, 
@@ -1165,7 +1165,7 @@ function createTask(type, grade = 5, options = {}) {
 
 					// Die Prozentzahl berechnet sich aus Zähler mal Erweiterungsfaktor
 					let percVal = z * mult;
-					let percStr = percVal.toString() + '\\,\\text{%}';
+					let percStr = percVal.toString() + '\\,\\text{\\%}';
 
 					// 4. Strings für Aufgabe und Lösung bauen
 					textDisplay = `als max. gekürzter gem. Bruch: \\( \\quad ${percStr} = \\)`;
@@ -1206,7 +1206,7 @@ function createTask(type, grade = 5, options = {}) {
 				case 'dec_to_perc': {
 					let p = (Math.floor(Math.random() * 400) + 1) / 2; // Schritte von 0,5%
 					let decStr = formatDecimal(p / 100, 4);
-					let percStr = p.toString().replace('.', ',') + '\\,\\text{%}';
+					let percStr = p.toString().replace('.', ',') + '\\,\\text{\\%}';
 
 					textDisplay = ` in Prozent: \\( \\quad ${decStr} = \\)`;
 					s = `\\( ${decStr} = ${percStr} \\)`;
@@ -1216,7 +1216,7 @@ function createTask(type, grade = 5, options = {}) {
 				case 'perc_to_dec': {
 					let p = (Math.floor(Math.random() * 400) + 1) / 2;
 					let decStr = formatDecimal(p / 100, 4);
-					let percStr = p.toString().replace('.', ',') + '\\,\\text{%}';
+					let percStr = p.toString().replace('.', ',') + '\\,\\text{\\%}';
 
 					textDisplay = `als Dezimalbruch: \\( \\quad ${percStr} = \\)`;
 					s = `\\( ${percStr} = ${decStr} \\)`;

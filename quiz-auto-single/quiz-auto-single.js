@@ -117,6 +117,21 @@ const app = createApp({
 				.join('');
 		};
 
+		const buildExportVerificationPayload = (data) => ({
+			grade: Number(data.grade),
+			date: String(data.date),
+			totalTasks: Number(data.totalTasks),
+			correct: Number(data.correct),
+			tasks: (data.tasks || []).map(task => ({
+				taskNumber: Number(task.taskNumber),
+				typeLabel: String(task.typeLabel || task.type || ''),
+				prompt: stripHtml(task.promptHtml || task.prompt || ''),
+				userInput: String(task.userInput || ''),
+				correct: Boolean(task.correct),
+				solution: stripHtml(task.solutionHtml || task.solution || '')
+			}))
+		});
+
 		const buildResultOverview = () => {
 			const tasks = taskHistory.value.map((task, index) => ({
 				taskNumber: index + 1,
@@ -180,6 +195,12 @@ const app = createApp({
 					console.warn('MathJax rendering failed:', error);
 				}
 			}
+		};
+
+		const renderMathInSummary = async () => {
+			await nextTick();
+			await new Promise(resolve => setTimeout(resolve, 0));
+			await typesetMathJax();
 		};
 
 		const generateSingleTask = () => {
@@ -331,17 +352,43 @@ const app = createApp({
 			currentTaskIndex.value = 0;
 			taskCounter.value = 0;
 			currentTask.value = null;
-			await nextTick();
-			await typesetMathJax();
+			await renderMathInSummary();
 		};
 
 		const saveResultOverview = async () => {
 			try {
 				const data = resultOverview.value || buildResultOverview();
-				const canonicalJson = JSON.stringify(data, null, 2);
-				const checksum = await toChecksumString(canonicalJson);
+				const exportRows = data.tasks.map(task => ({
+					taskNumber: task.taskNumber,
+					typeLabel: task.typeLabel,
+					prompt: task.prompt,
+					promptHtml: task.promptHtml || task.prompt || '',
+					userInput: task.userInput,
+					correct: !!task.correct,
+					solution: task.solution,
+					solutionHtml: task.solutionHtml || task.solution || ''
+				}));
 
-				const rows = data.tasks.map(task => `
+				const payload = {
+					quizName: data.quizName,
+					grade: data.grade,
+					date: data.date,
+					selectedTypes: data.selectedTypes,
+					totalTasks: data.totalTasks,
+					totalChecked: data.totalChecked,
+					correct: data.correct,
+					incorrect: data.incorrect,
+					successRate: data.successRate,
+					bestStreak: data.bestStreak,
+					tasks: exportRows
+				};
+
+				const payloadJson = JSON.stringify(payload);
+				const canonicalVerificationPayload = buildExportVerificationPayload(payload);
+				const exportId = await toChecksumString(JSON.stringify(canonicalVerificationPayload));
+				const payloadJsonForHtml = payloadJson.replace(/<\/script/gi, '<\\/script');
+
+				const rows = exportRows.map(task => `
 					<tr>
 						<td>${task.taskNumber}</td>
 						<td>${task.typeLabel}</td>
@@ -357,7 +404,17 @@ const app = createApp({
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="x-export-id" content="${exportId}">
   <title>Ergebnisübersicht</title>
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']] },
+      chtml: { mtextInheritFont: true, matchFontHeight: false, scale: 1 },
+      svg: { fontCache: 'global' },
+      startup: { typeset: false }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
   <style>
     body { font-family: Arial, sans-serif; background: #f8fafc; color: #0f172a; margin: 0; padding: 32px; }
     .wrap { max-width: 1100px; margin: 0 auto; background: #fff; border: 1px solid #e2e8f0; border-radius: 18px; box-shadow: 0 12px 32px rgba(15,23,42,0.05); padding: 28px; }
@@ -369,9 +426,6 @@ const app = createApp({
     table { width: 100%; border-collapse: collapse; margin-top: 18px; }
     th, td { border: 1px solid #e2e8f0; padding: 10px 12px; text-align: left; vertical-align: top; }
     th { background: #f8fafc; }
-    .checksum { margin-top: 22px; padding: 16px 18px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; word-break: break-all; }
-    .checksum strong { display: block; margin-bottom: 8px; }
-    code { font-family: Consolas, monospace; }
     @media (max-width: 700px) { body { padding: 16px; } .wrap { padding: 18px; } table { font-size: 0.85rem; } }
   </style>
 </head>
@@ -403,10 +457,15 @@ const app = createApp({
       </tbody>
     </table>
 
-    <div class="checksum">
-      <strong>Prüfsumme (SHA-256):</strong>
-      <code>${checksum}</code>
-    </div>
+    <script type="application/json" id="result-payload">${payloadJsonForHtml}</script>
+
+    <script>
+      window.addEventListener('load', function () {
+        if (window.MathJax && window.MathJax.typesetPromise) {
+          window.MathJax.typesetPromise();
+        }
+      });
+    </script>
   </div>
 </body>
 </html>`;
