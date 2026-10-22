@@ -1007,7 +1007,7 @@ createApp({
             const candidate = queryView || hashView;
 
             if (!candidate || !allowedViews.has(candidate)) {
-                return 'home';
+                return 'worksheet';
             }
 
             return candidate;
@@ -1015,7 +1015,7 @@ createApp({
 
         const initializeViewFromUrl = async () => {
             const initialView = getViewFromUrl();
-            if (initialView !== 'home') {
+            if (initialView !== 'worksheet' && initialView !== 'home') {
                 suppressHistorySync = true;
                 try {
                     if (initialView === 'training') {
@@ -1030,7 +1030,7 @@ createApp({
                 return;
             }
 
-            await navigation.switchView('home');
+            await navigation.switchView('worksheet');
         };
 
         const syncUrlWithView = view => {

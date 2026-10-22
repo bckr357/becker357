@@ -452,6 +452,23 @@
 	color: var(--slate-800);
 }
 
+.result-status {
+	font-weight: 800;
+	text-align: center;
+	border-radius: 8px;
+	padding: 4px 8px;
+}
+
+.result-status--correct {
+	color: #15803d;
+	background: rgba(34, 197, 94, 0.12);
+}
+
+.result-status--incorrect {
+	color: #b91c1c;
+	background: rgba(239, 68, 68, 0.12);
+}
+
 .quiz-single-summary-checksum code {
 	display: block;
 	margin-top: 6px;
@@ -465,6 +482,14 @@
 	margin-top: 22px;
 	border-radius: 14px;
 	border: 1px solid #e2e8f0;
+}
+
+.quiz-single-summary .number-line-svg,
+.quiz-single-summary-card .number-line-svg {
+	width: 100%;
+	height: auto;
+	display: block;
+	margin: 0 auto;
 }
 
 .quiz-single-summary-table {

@@ -15,7 +15,10 @@
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <script>
         window.MathJax = {
-            tex: { inlineMath: [['\\(', '\\)']] },
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            },
             chtml: { mtextInheritFont: true, matchFontHeight: false, scale: 1 },
             output: { font: 'mathjax-stix2' }
         };
@@ -91,6 +94,10 @@
 
                 <div class="quiz-single-summary-grid">
                     <div class="quiz-single-summary-metric">
+                        <span class="quiz-single-summary-label">Name</span>
+                        <strong>{{ resultOverview?.studentName || resultOverview?.quizName || 'Schüler' }}</strong>
+                    </div>
+                    <div class="quiz-single-summary-metric">
                         <span class="quiz-single-summary-label">Ergebnis</span>
                         <strong>{{ resultOverview?.correct ?? 0 }}/{{ resultOverview?.totalChecked ?? 0 }} richtig</strong>
                     </div>
@@ -126,7 +133,7 @@
                                 <td>{{ task.typeLabel }}</td>
                                 <td v-html="task.promptHtml || task.prompt"></td>
                                 <td>{{ task.userInput || '—' }}</td>
-                                <td>{{ task.correct ? 'Richtig' : 'Falsch' }}</td>
+                                <td :class="task.correct ? 'result-status result-status--correct' : 'result-status result-status--incorrect'">{{ task.correct ? 'R' : 'F' }}</td>
                                 <td v-html="task.solutionHtml || task.solution || '—'"></td>
                             </tr>
                         </tbody>

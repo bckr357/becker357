@@ -1,11 +1,9 @@
 // ============================================================
 // QUIZ-AUTO-SINGLE: Vue 3 App für den Endlosmodus (Einzelfragen)
-// mit Streaks, Leaderboard und Musterlösung
+// mit Streaks und Musterlösung
 // ============================================================
 
 const { createApp, ref, reactive, computed, nextTick, onMounted, onBeforeUnmount } = Vue;
-
-const LOCAL_STORAGE_KEY = 'quiz_auto_single_leaderboard';
 
 const app = createApp({
 	components: {
@@ -17,6 +15,7 @@ const app = createApp({
 		const quizStarted = ref(false);
 		const showResultOverview = ref(false);
 		const resultOverview = ref(null);
+		const studentName = ref('');
 
 		// Aktuelle Einzelfrage
 		const currentTask = ref(null);
@@ -33,9 +32,6 @@ const app = createApp({
 			bestStreak: 0
 		});
 
-		// Leaderboard
-		const leaderboard = ref([]);
-
 		// Verfügbare Typen je nach Stufe: alle für die Klasse definierten Aufgabentypen anzeigen
 		const availableTypes = computed(() => {
 			const configured = taskTypesByGrade[`klasse${grade.value}`] || [];
@@ -46,51 +42,6 @@ const app = createApp({
 				return a.localeCompare(b);
 			});
 		});
-
-		const loadLeaderboard = () => {
-			try {
-				const data = localStorage.getItem(LOCAL_STORAGE_KEY);
-				if (data) {
-					leaderboard.value = JSON.parse(data);
-				}
-			} catch (e) {
-				console.warn('Leaderboard konnte nicht geladen werden:', e);
-			}
-		};
-
-		const saveLeaderboard = () => {
-			try {
-				localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(leaderboard.value));
-			} catch (e) {
-				console.warn('Leaderboard konnte nicht gespeichert werden:', e);
-			}
-		};
-
-		const updateLeaderboard = (streakScore) => {
-			if (streakScore <= 0) return;
-
-			const dateStr = new Date().toLocaleDateString('de-DE', {
-				day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
-			});
-
-			const entry = {
-				streak: streakScore,
-				grade: `Klasse ${grade.value}`,
-				date: dateStr
-			};
-
-			leaderboard.value.push(entry);
-			leaderboard.value.sort((a, b) => b.streak - a.streak);
-			leaderboard.value = leaderboard.value.slice(0, 5); // Nur Top 5 behalten
-			saveLeaderboard();
-		};
-
-		const clearLeaderboard = () => {
-			leaderboard.value = [];
-			try {
-				localStorage.removeItem(LOCAL_STORAGE_KEY);
-			} catch (e) {}
-		};
 
 		const stripHtml = (value = '') => String(value)
 			.replace(/<br\s*\/?>/gi, '\n')
@@ -103,6 +54,17 @@ const app = createApp({
 			.replace(/&#039;/gi, "'")
 			.replace(/\s+/g, ' ')
 			.trim();
+
+		const stableSerialize = (value) => {
+			if (Array.isArray(value)) {
+				return `[${value.map(item => stableSerialize(item)).join(',')}]`;
+			}
+			if (value && typeof value === 'object') {
+				const keys = Object.keys(value).sort();
+				return `{${keys.map(key => `${JSON.stringify(key)}:${stableSerialize(value[key])}`).join(',')}}`;
+			}
+			return JSON.stringify(value);
+		};
 
 		const toChecksumString = async (value) => {
 			if (!window.crypto || !window.crypto.subtle) {
@@ -129,7 +91,15 @@ const app = createApp({
 				userInput: String(task.userInput || ''),
 				correct: Boolean(task.correct),
 				solution: stripHtml(task.solutionHtml || task.solution || '')
-			}))
+			})),
+			visibleRows: (data.tasks || []).map(task => [
+				String(task.taskNumber ?? ''),
+				String(task.typeLabel || task.type || ''),
+				stripHtml(task.promptHtml || task.prompt || ''),
+				String(task.userInput || ''),
+				String(task.correct ? 'Richtig' : 'Falsch'),
+				stripHtml(task.solutionHtml || task.solution || '')
+			])
 		});
 
 		const buildResultOverview = () => {
@@ -147,9 +117,10 @@ const app = createApp({
 			}));
 
 			return {
-				quizName: 'Quiz-Auto (Einzelfragen)',
+				studentName: studentName.value || 'Schüler',
+				quizName: studentName.value || 'Schüler',
 				grade: grade.value,
-				date: new Date().toLocaleString('de-DE'),
+				date: new Date().toLocaleDateString('de-DE'),
 				selectedTypes: [...selectedTypes.value],
 				totalTasks: tasks.length,
 				totalChecked: stats.totalChecked,
@@ -188,11 +159,24 @@ const app = createApp({
 		};
 
 		const typesetMathJax = async () => {
-			if (window.MathJax?.typesetPromise) {
+			const waitForMathJax = async (maxAttempts = 30) => {
+				for (let attempt = 0; attempt < maxAttempts; attempt++) {
+					if (window.MathJax?.typesetPromise) return true;
+					await new Promise(resolve => setTimeout(resolve, 150));
+				}
+				return !!window.MathJax?.typesetPromise;
+			};
+
+			if (await waitForMathJax()) {
 				try {
 					await window.MathJax.typesetPromise();
 				} catch (error) {
 					console.warn('MathJax rendering failed:', error);
+					try {
+						window.MathJax.typeset();
+					} catch (fallbackError) {
+						console.warn('MathJax fallback rendering failed:', fallbackError);
+					}
 				}
 			}
 		};
@@ -259,7 +243,6 @@ const app = createApp({
 				stats.streak++;
 				if (stats.streak > stats.bestStreak) {
 					stats.bestStreak = stats.streak;
-					updateLeaderboard(stats.bestStreak);
 				}
 			} else {
 				stats.streak = 0;
@@ -355,9 +338,31 @@ const app = createApp({
 			await renderMathInSummary();
 		};
 
+		const sanitizeFileNamePart = (value = '') => {
+			const normalized = (value == null ? '' : String(value))
+				.trim()
+				.replace(/[\\/:*?"<>|]+/g, '')
+				.replace(/\s+/g, ' ')
+				.replace(/^\.+/, '')
+				.slice(0, 40);
+			return normalized || 'Schueler';
+		};
+
 		const saveResultOverview = async () => {
 			try {
+				let enteredStudentName = '';
+				while (true) {
+					enteredStudentName = window.prompt('Bitte gib deinen Namen ein:', studentName.value || '');
+					if (enteredStudentName === null) return;
+					const trimmedName = enteredStudentName.trim();
+					if (trimmedName.length > 0) {
+						studentName.value = trimmedName;
+						break;
+					}
+					alert('Bitte gib einen Namen ein.');
+				}
 				const data = resultOverview.value || buildResultOverview();
+				const resolvedStudentName = studentName.value || data.studentName || 'Schüler';
 				const exportRows = data.tasks.map(task => ({
 					taskNumber: task.taskNumber,
 					typeLabel: task.typeLabel,
@@ -371,6 +376,7 @@ const app = createApp({
 
 				const payload = {
 					quizName: data.quizName,
+					studentName: resolvedStudentName,
 					grade: data.grade,
 					date: data.date,
 					selectedTypes: data.selectedTypes,
@@ -385,8 +391,11 @@ const app = createApp({
 
 				const payloadJson = JSON.stringify(payload);
 				const canonicalVerificationPayload = buildExportVerificationPayload(payload);
-				const exportId = await toChecksumString(JSON.stringify(canonicalVerificationPayload));
+				const exportId = await toChecksumString(stableSerialize(canonicalVerificationPayload));
 				const payloadJsonForHtml = payloadJson.replace(/<\/script/gi, '<\\/script');
+				const safeName = sanitizeFileNamePart(resolvedStudentName || data.studentName || 'Schueler');
+				const exportDate = new Date().toISOString().slice(0, 10);
+				const exportFileName = `Mathe-Training_${exportDate}_${safeName}.html`;
 
 				const rows = exportRows.map(task => `
 					<tr>
@@ -394,7 +403,7 @@ const app = createApp({
 						<td>${task.typeLabel}</td>
 						<td>${task.promptHtml || task.prompt || ''}</td>
 						<td>${task.userInput ? task.userInput.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : '—'}</td>
-						<td>${task.correct ? 'Richtig' : 'Falsch'}</td>
+						<td class="result-cell ${task.correct ? 'result-cell--correct' : 'result-cell--incorrect'}">${task.correct ? 'R' : 'F'}</td>
 						<td>${task.solutionHtml || task.solution || '—'}</td>
 					</tr>
 				`).join('');
@@ -408,10 +417,12 @@ const app = createApp({
   <title>Ergebnisübersicht</title>
   <script>
     window.MathJax = {
-      tex: { inlineMath: [['\\(', '\\)']] },
+      tex: {
+        inlineMath: [['\\\\(', '\\\\)']],
+        displayMath: [['\\\\[', '\\\\]']]
+      },
       chtml: { mtextInheritFont: true, matchFontHeight: false, scale: 1 },
-      svg: { fontCache: 'global' },
-      startup: { typeset: false }
+      svg: { fontCache: 'global' }
     };
   </script>
   <script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
@@ -426,6 +437,10 @@ const app = createApp({
     table { width: 100%; border-collapse: collapse; margin-top: 18px; }
     th, td { border: 1px solid #e2e8f0; padding: 10px 12px; text-align: left; vertical-align: top; }
     th { background: #f8fafc; }
+    .result-cell { font-weight: 700; text-align: center; }
+    .result-cell--correct { color: #15803d; }
+    .result-cell--incorrect { color: #b91c1c; }
+    .number-line-svg { width: 50%; height: auto; display: block; margin: 0 auto; }
     @media (max-width: 700px) { body { padding: 16px; } .wrap { padding: 18px; } table { font-size: 0.85rem; } }
   </style>
 </head>
@@ -433,7 +448,7 @@ const app = createApp({
   <div class="wrap">
     <h1>Ergebnisübersicht</h1>
     <div class="meta">
-      <div class="meta-item"><span class="label">Quiz</span><div class="value">${data.quizName}</div></div>
+      <div class="meta-item"><span class="label">Name</span><div class="value">${resolvedStudentName}</div></div>
       <div class="meta-item"><span class="label">Klasse</span><div class="value">${data.grade}</div></div>
       <div class="meta-item"><span class="label">Datum</span><div class="value">${data.date}</div></div>
       <div class="meta-item"><span class="label">Ergebnis</span><div class="value">${data.correct}/${data.totalChecked} richtig</div></div>
@@ -460,11 +475,59 @@ const app = createApp({
     <script type="application/json" id="result-payload">${payloadJsonForHtml}</script>
 
     <script>
-      window.addEventListener('load', function () {
-        if (window.MathJax && window.MathJax.typesetPromise) {
-          window.MathJax.typesetPromise();
+      (function () {
+        function waitForMathJax() {
+          return new Promise(function (resolve) {
+            const startedAt = Date.now();
+
+            function check() {
+              if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
+				if (window.MathJax.startup && window.MathJax.startup.promise && typeof window.MathJax.startup.promise.then === 'function') {
+				  window.MathJax.startup.promise.then(resolve, resolve);
+				  return;
+				}
+				resolve();
+				return;
+              }
+
+              if (Date.now() - startedAt > 5000) {
+				resolve();
+				return;
+              }
+
+              setTimeout(check, 50);
+            }
+
+            check();
+          });
         }
-      });
+
+        async function renderMathInExport() {
+          await waitForMathJax();
+
+          if (!window.MathJax || typeof window.MathJax.typesetPromise !== 'function') {
+            return;
+          }
+
+          try {
+            await window.MathJax.typesetPromise();
+          } catch (error) {
+            try {
+              window.MathJax.typeset();
+            } catch (fallbackError) {
+              console.warn('MathJax export render failed:', fallbackError);
+            }
+          }
+        }
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', function () {
+            renderMathInExport();
+          });
+        } else {
+          renderMathInExport();
+        }
+      })();
     </script>
   </div>
 </body>
@@ -474,7 +537,7 @@ const app = createApp({
 				const url = URL.createObjectURL(blob);
 				const link = document.createElement('a');
 				link.href = url;
-				link.download = `quiz-ergebnis-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.html`;
+				link.download = exportFileName;
 				document.body.appendChild(link);
 				link.click();
 				link.remove();
@@ -490,9 +553,6 @@ const app = createApp({
 			return Math.round((stats.correct / stats.totalChecked) * 100);
 		});
 
-		// Initalisieren
-		loadLeaderboard();
-
 		return {
 			grade,
 			selectedTypes,
@@ -503,7 +563,6 @@ const app = createApp({
 			taskCounter,
 			taskInputRef,
 			stats,
-			leaderboard,
 			availableTypes,
 			typeLabels: window.typeLabels,
 			successRate,
@@ -518,7 +577,6 @@ const app = createApp({
 			nextTask,
 			resetCurrentStats,
 			exitQuiz,
-			clearLeaderboard,
 			showResultOverview,
 			resultOverview,
 			saveResultOverview

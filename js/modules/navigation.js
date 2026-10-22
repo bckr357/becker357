@@ -20,7 +20,7 @@ window.MTGNavigationModule = {
 
         const goHome = async () => {
             closeSettingsSidebar();
-            await setCurrentView('home');
+            await setCurrentView('worksheet');
         };
 
         const switchView = async (view, options = {}) => {

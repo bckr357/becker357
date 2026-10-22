@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 // AUFGABEN-KATEGORIEN & TYPEN-LABELS
 // ============================================================
 
@@ -295,7 +295,7 @@ function createTask(type, grade = 5, options = {}) {
 			const renderNumberLine = ({ labels = {}, labelColors = {}, labelWeights = {}, arrowPos = null, scale = 1, widthCm } = {}) => {
 				const renderWidth = `${(widthCm ?? (svgRenderWidthCm * scale))}cm`;
 				const renderHeight = `${svgRenderHeightCm * scale}cm`;
-				let content = `<svg width="${renderWidth}" height="${renderHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" style="display:block; color:#111827;">`;
+				let content = `<svg class="number-line-svg" width="${renderWidth}" height="${renderHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" style="display:block; color:#111827;">`;
 				content += `<line x1="${lineStart}" y1="${axisY}" x2="${lineEnd}" y2="${axisY}" stroke="currentColor" stroke-width="2"/>`;
 				content += `<polygon points="${svgWidth - margin},${axisY} ${lineEnd},${axisY - 6} ${lineEnd},${axisY + 6}" fill="currentColor"/>`;
 				for (let i = 0; i < tickCount; i++) {
