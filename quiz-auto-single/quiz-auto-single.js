@@ -55,55 +55,9 @@ const app = createApp({
 			.replace(/\s+/g, ' ')
 			.trim();
 
-		const stableSerialize = (value) => {
-			if (Array.isArray(value)) {
-				return `[${value.map(item => stableSerialize(item)).join(',')}]`;
-			}
-			if (value && typeof value === 'object') {
-				const keys = Object.keys(value).sort();
-				return `{${keys.map(key => `${JSON.stringify(key)}:${stableSerialize(value[key])}`).join(',')}}`;
-			}
-			return JSON.stringify(value);
-		};
-
-		const toChecksumString = async (value) => {
-			if (!window.crypto || !window.crypto.subtle) {
-				throw new Error('Web Crypto API nicht verfügbar.');
-			}
-
-			const encoder = new TextEncoder();
-			const data = encoder.encode(value);
-			const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
-			return Array.from(new Uint8Array(hashBuffer))
-				.map(byte => byte.toString(16).padStart(2, '0'))
-				.join('');
-		};
-
-		const buildExportVerificationPayload = (data) => ({
-			grade: Number(data.grade),
-			date: String(data.date),
-			totalTasks: Number(data.totalTasks),
-			correct: Number(data.correct),
-			tasks: (data.tasks || []).map(task => ({
-				taskNumber: Number(task.taskNumber),
-				typeLabel: String(task.typeLabel || task.type || ''),
-				prompt: stripHtml(task.promptHtml || task.prompt || ''),
-				userInput: String(task.userInput || ''),
-				correct: Boolean(task.correct),
-				solution: stripHtml(task.solutionHtml || task.solution || '')
-			})),
-			visibleRows: (data.tasks || []).map(task => [
-				String(task.taskNumber ?? ''),
-				String(task.typeLabel || task.type || ''),
-				stripHtml(task.promptHtml || task.prompt || ''),
-				String(task.userInput || ''),
-				String(task.correct ? 'Richtig' : 'Falsch'),
-				stripHtml(task.solutionHtml || task.solution || '')
-			])
-		});
-
 		const buildResultOverview = () => {
-			const tasks = taskHistory.value.map((task, index) => ({
+			const checkedTasks = taskHistory.value.filter(task => !!task.checked);
+			const tasks = checkedTasks.map((task, index) => ({
 				taskNumber: index + 1,
 				type: task.type,
 				typeLabel: window.typeLabels?.[task.type] || task.type,
@@ -115,18 +69,21 @@ const app = createApp({
 				solution: stripHtml(task.solution || ''),
 				solutionHtml: task.solution || ''
 			}));
+			const currentStudentName = (studentName.value || '').trim();
+			const totalChecked = checkedTasks.length;
+			const correctCount = checkedTasks.filter(task => task.correct).length;
 
 			return {
-				studentName: studentName.value || 'Schüler',
-				quizName: studentName.value || 'Schüler',
+				studentName: currentStudentName,
+				quizName: currentStudentName,
 				grade: grade.value,
 				date: new Date().toLocaleDateString('de-DE'),
 				selectedTypes: [...selectedTypes.value],
 				totalTasks: tasks.length,
-				totalChecked: stats.totalChecked,
-				correct: stats.correct,
-				incorrect: Math.max(stats.totalChecked - stats.correct, 0),
-				successRate: successRate.value,
+				totalChecked,
+				correct: correctCount,
+				incorrect: Math.max(totalChecked - correctCount, 0),
+				successRate: totalChecked === 0 ? 0 : Math.round((correctCount / totalChecked) * 100),
 				bestStreak: stats.bestStreak,
 				tasks
 			};
@@ -338,6 +295,19 @@ const app = createApp({
 			await renderMathInSummary();
 		};
 
+		const returnToSetup = () => {
+			showResultOverview.value = false;
+			quizStarted.value = false;
+			resultOverview.value = null;
+			taskHistory.value = [];
+			currentTaskIndex.value = 0;
+			taskCounter.value = 0;
+			currentTask.value = null;
+			stats.correct = 0;
+			stats.totalChecked = 0;
+			stats.streak = 0;
+		};
+
 		const sanitizeFileNamePart = (value = '') => {
 			const normalized = (value == null ? '' : String(value))
 				.trim()
@@ -348,18 +318,25 @@ const app = createApp({
 			return normalized || 'Schueler';
 		};
 
+		const isValidStudentNameWithClass = (value = '') => {
+			const normalized = String(value || '').replace(/\s+/g, '').toLowerCase();
+			if (!normalized) return false;
+			if (!/[a-z]{2,}/.test(normalized)) return false;
+			return /(?:[5-9]|10)[a-c]/.test(normalized);
+		};
+
 		const saveResultOverview = async () => {
 			try {
 				let enteredStudentName = '';
 				while (true) {
-					enteredStudentName = window.prompt('Bitte gib deinen Namen ein:', studentName.value || '');
+					enteredStudentName = window.prompt('Gib für die richtige Zuordnung der Datei deinen Namen und deine Klasse ein:', studentName.value || '');
 					if (enteredStudentName === null) return;
 					const trimmedName = enteredStudentName.trim();
-					if (trimmedName.length > 0) {
+					if (isValidStudentNameWithClass(trimmedName)) {
 						studentName.value = trimmedName;
 						break;
 					}
-					alert('Bitte gib einen Namen ein.');
+					alert('Gib einen gültigen Namen mit Klassenangabe ein, z. B. "Bernd 8b".');
 				}
 				const data = resultOverview.value || buildResultOverview();
 				const resolvedStudentName = studentName.value || data.studentName || 'Schüler';
@@ -389,10 +366,6 @@ const app = createApp({
 					tasks: exportRows
 				};
 
-				const payloadJson = JSON.stringify(payload);
-				const canonicalVerificationPayload = buildExportVerificationPayload(payload);
-				const exportId = await toChecksumString(stableSerialize(canonicalVerificationPayload));
-				const payloadJsonForHtml = payloadJson.replace(/<\/script/gi, '<\\/script');
 				const safeName = sanitizeFileNamePart(resolvedStudentName || data.studentName || 'Schueler');
 				const exportDate = new Date().toISOString().slice(0, 10);
 				const exportFileName = `Mathe-Training_${exportDate}_${safeName}.html`;
@@ -413,7 +386,6 @@ const app = createApp({
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="x-export-id" content="${exportId}">
   <title>Ergebnisübersicht</title>
   <script>
     window.MathJax = {
@@ -430,13 +402,27 @@ const app = createApp({
     body { font-family: Arial, sans-serif; background: #f8fafc; color: #0f172a; margin: 0; padding: 32px; }
     .wrap { max-width: 1100px; margin: 0 auto; background: #fff; border: 1px solid #e2e8f0; border-radius: 18px; box-shadow: 0 12px 32px rgba(15,23,42,0.05); padding: 28px; }
     h1 { margin-top: 0; color: #0f172a; }
-    .meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 20px 0; }
-    .meta-item { background: #f1f5f9; border-radius: 12px; padding: 12px 14px; }
-    .label { display: block; color: #475569; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
-    .value { font-size: 1.05rem; font-weight: 700; margin-top: 6px; }
+    .meta {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 12px;
+      margin: 20px 0;
+      overflow-x: auto;
+      padding-bottom: 6px;
+    }
+    .meta-item {
+      flex: 1 1 160px;
+      min-width: 140px;
+      background: #f1f5f9;
+      border-radius: 12px;
+      padding: 10px 12px;
+      white-space: nowrap;
+    }
+    .label { display: block; color: #475569; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+    .value { font-size: 1rem; font-weight: 700; margin-top: 5px; line-height: 1.2; }
     table { width: 100%; border-collapse: collapse; margin-top: 18px; }
-    th, td { border: 1px solid #e2e8f0; padding: 10px 12px; text-align: left; vertical-align: top; }
-    th { background: #f8fafc; }
+    th, td { border: 1px solid #e2e8f0; padding: 10px 12px; text-align: center; vertical-align: top; }
+    th { background: #f8fafc; text-align: center; }
     .result-cell { font-weight: 700; text-align: center; }
     .result-cell--correct { color: #15803d; }
     .result-cell--incorrect { color: #b91c1c; }
@@ -448,8 +434,8 @@ const app = createApp({
   <div class="wrap">
     <h1>Ergebnisübersicht</h1>
     <div class="meta">
-      <div class="meta-item"><span class="label">Name</span><div class="value">${resolvedStudentName}</div></div>
-      <div class="meta-item"><span class="label">Klasse</span><div class="value">${data.grade}</div></div>
+      <div class="meta-item"><span class="label">Name / Klasse</span><div class="value">${resolvedStudentName}</div></div>
+      <div class="meta-item"><span class="label">Stufe</span><div class="value">${data.grade}</div></div>
       <div class="meta-item"><span class="label">Datum</span><div class="value">${data.date}</div></div>
       <div class="meta-item"><span class="label">Ergebnis</span><div class="value">${data.correct}/${data.totalChecked} richtig</div></div>
       <div class="meta-item"><span class="label">Quote</span><div class="value">${data.successRate}%</div></div>
@@ -463,16 +449,14 @@ const app = createApp({
           <th>Typ</th>
           <th>Aufgabe</th>
           <th>Antwort</th>
-          <th>Ergebnis</th>
-          <th>Musterlösung</th>
+          <th>R/F</th>
+          <th>Lösung</th>
         </tr>
       </thead>
       <tbody>
         ${rows}
       </tbody>
     </table>
-
-    <script type="application/json" id="result-payload">${payloadJsonForHtml}</script>
 
     <script>
       (function () {
@@ -577,6 +561,7 @@ const app = createApp({
 			nextTask,
 			resetCurrentStats,
 			exitQuiz,
+			returnToSetup,
 			showResultOverview,
 			resultOverview,
 			saveResultOverview

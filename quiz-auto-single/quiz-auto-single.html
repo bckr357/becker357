@@ -93,9 +93,17 @@
                 </div>
 
                 <div class="quiz-single-summary-grid">
+                    <div v-if="resultOverview?.studentName" class="quiz-single-summary-metric">
+                        <span class="quiz-single-summary-label">Name / Klasse</span>
+                        <strong>{{ resultOverview.studentName }}</strong>
+                    </div>
                     <div class="quiz-single-summary-metric">
-                        <span class="quiz-single-summary-label">Name</span>
-                        <strong>{{ resultOverview?.studentName || resultOverview?.quizName || 'Schüler' }}</strong>
+                        <span class="quiz-single-summary-label">Stufe</span>
+                        <strong>{{ resultOverview?.grade ?? '-' }}</strong>
+                    </div>
+                    <div class="quiz-single-summary-metric">
+                        <span class="quiz-single-summary-label">Datum</span>
+                        <strong>{{ resultOverview?.date ?? '-' }}</strong>
                     </div>
                     <div class="quiz-single-summary-metric">
                         <span class="quiz-single-summary-label">Ergebnis</span>
@@ -109,10 +117,6 @@
                         <span class="quiz-single-summary-label">Bestserie</span>
                         <strong>{{ resultOverview?.bestStreak ?? 0 }}</strong>
                     </div>
-                    <div class="quiz-single-summary-metric">
-                        <span class="quiz-single-summary-label">Datum</span>
-                        <strong>{{ resultOverview?.date ?? '-' }}</strong>
-                    </div>
                 </div>
 
                 <div class="quiz-single-summary-table-wrap">
@@ -123,8 +127,8 @@
                                 <th>Typ</th>
                                 <th>Aufgabe</th>
                                 <th>Antwort</th>
-                                <th>Ergebnis</th>
-                                <th>Musterlösung</th>
+                                <th>R/F</th>
+                                <th>Lösung</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -141,8 +145,7 @@
                 </div>
 
                 <div class="quiz-single-summary-actions">
-                    <button class="btn btn--primary" type="button" @click="saveResultOverview">Ergebnis speichern</button>
-                    <button class="btn" type="button" @click="startQuiz" :disabled="selectedTypes.length === 0">Neues Quiz starten</button>
+                    <button class="btn" type="button" @click="returnToSetup">Neues Quiz starten</button>
                 </div>
             </div>
         </section>
@@ -231,7 +234,7 @@
 
             <!-- CONTROLS UNTEN -->
             <div class="quiz-single-controls">
-                <button class="btn" type="button" @click="exitQuiz">⬅ Quiz beenden</button>
+                <button class="btn" type="button" @click="exitQuiz">Quiz beenden</button>
                 <button
                     class="btn"
                     type="button"
