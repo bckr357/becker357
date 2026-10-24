@@ -325,6 +325,36 @@ const app = createApp({
 			return /(?:[5-9]|10)[a-c]/.test(normalized);
 		};
 
+		const AUTH_SECRET = 'PythagorasThalesLaplace';
+
+		const encryptJsonAesGcm = async (jsonString, password) => {
+			const enc = new TextEncoder();
+			const keyHash = await crypto.subtle.digest('SHA-256', enc.encode(password));
+			const cryptoKey = await crypto.subtle.importKey(
+				'raw',
+				keyHash,
+				{ name: 'AES-GCM' },
+				false,
+				['encrypt']
+			);
+			const iv = crypto.getRandomValues(new Uint8Array(12));
+			const encryptedBuffer = await crypto.subtle.encrypt(
+				{ name: 'AES-GCM', iv },
+				cryptoKey,
+				enc.encode(jsonString)
+			);
+			const combined = new Uint8Array(iv.length + encryptedBuffer.byteLength);
+			combined.set(iv, 0);
+			combined.set(new Uint8Array(encryptedBuffer), iv.length);
+
+			let binary = '';
+			const chunkSize = 0x8000;
+			for (let i = 0; i < combined.length; i += chunkSize) {
+				binary += String.fromCharCode.apply(null, combined.subarray(i, i + chunkSize));
+			}
+			return btoa(binary);
+		};
+
 		const saveResultOverview = async () => {
 			try {
 				let enteredStudentName = '';
@@ -366,26 +396,20 @@ const app = createApp({
 					tasks: exportRows
 				};
 
+				const plainJson = JSON.stringify(payload, null, 2);
+				const encryptedAuthor = await encryptJsonAesGcm(plainJson, AUTH_SECRET);
+				const safePlainJson = plainJson.replace(/<\/script/gi, '<\\/script');
+
 				const safeName = sanitizeFileNamePart(resolvedStudentName || data.studentName || 'Schueler');
 				const exportDate = new Date().toISOString().slice(0, 10);
 				const exportFileName = `Mathe-Training_${exportDate}_${safeName}.html`;
-
-				const rows = exportRows.map(task => `
-					<tr>
-						<td>${task.taskNumber}</td>
-						<td>${task.typeLabel}</td>
-						<td>${task.promptHtml || task.prompt || ''}</td>
-						<td>${task.userInput ? task.userInput.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : '—'}</td>
-						<td class="result-cell ${task.correct ? 'result-cell--correct' : 'result-cell--incorrect'}">${task.correct ? 'R' : 'F'}</td>
-						<td>${task.solutionHtml || task.solution || '—'}</td>
-					</tr>
-				`).join('');
 
 				const html = `<!DOCTYPE html>
 <html lang="de">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="author" content="${encryptedAuthor}">
   <title>Ergebnisübersicht</title>
   <script>
     window.MathJax = {
@@ -433,13 +457,8 @@ const app = createApp({
 <body>
   <div class="wrap">
     <h1>Ergebnisübersicht</h1>
-    <div class="meta">
-      <div class="meta-item"><span class="label">Name / Klasse</span><div class="value">${resolvedStudentName}</div></div>
-      <div class="meta-item"><span class="label">Stufe</span><div class="value">${data.grade}</div></div>
-      <div class="meta-item"><span class="label">Datum</span><div class="value">${data.date}</div></div>
-      <div class="meta-item"><span class="label">Ergebnis</span><div class="value">${data.correct}/${data.totalChecked} richtig</div></div>
-      <div class="meta-item"><span class="label">Quote</span><div class="value">${data.successRate}%</div></div>
-      <div class="meta-item"><span class="label">Bestserie</span><div class="value">${data.bestStreak}</div></div>
+    <div id="result-meta" class="meta">
+      <!-- Wird beim Öffnen zur Laufzeit aus dem Klartext-JSON generiert -->
     </div>
 
     <table>
@@ -453,67 +472,140 @@ const app = createApp({
           <th>Lösung</th>
         </tr>
       </thead>
-      <tbody>
-        ${rows}
+      <tbody id="result-rows">
+        <!-- Wird beim Öffnen zur Laufzeit aus dem Klartext-JSON generiert -->
       </tbody>
     </table>
-
-    <script>
-      (function () {
-        function waitForMathJax() {
-          return new Promise(function (resolve) {
-            const startedAt = Date.now();
-
-            function check() {
-              if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
-				if (window.MathJax.startup && window.MathJax.startup.promise && typeof window.MathJax.startup.promise.then === 'function') {
-				  window.MathJax.startup.promise.then(resolve, resolve);
-				  return;
-				}
-				resolve();
-				return;
-              }
-
-              if (Date.now() - startedAt > 5000) {
-				resolve();
-				return;
-              }
-
-              setTimeout(check, 50);
-            }
-
-            check();
-          });
-        }
-
-        async function renderMathInExport() {
-          await waitForMathJax();
-
-          if (!window.MathJax || typeof window.MathJax.typesetPromise !== 'function') {
-            return;
-          }
-
-          try {
-            await window.MathJax.typesetPromise();
-          } catch (error) {
-            try {
-              window.MathJax.typeset();
-            } catch (fallbackError) {
-              console.warn('MathJax export render failed:', fallbackError);
-            }
-          }
-        }
-
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', function () {
-            renderMathInExport();
-          });
-        } else {
-          renderMathInExport();
-        }
-      })();
-    </script>
   </div>
+
+  <script type="application/json" id="quiz-result-data">
+${safePlainJson}
+  </script>
+
+  <script>
+    (function () {
+      function escapeHtml(text) {
+        if (!text) return '';
+        return String(text)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+
+      function renderOverview() {
+        var dataElement = document.getElementById('quiz-result-data');
+        if (!dataElement) return;
+
+        var payload;
+        try {
+          payload = JSON.parse(dataElement.textContent || '{}');
+        } catch (e) {
+          console.error('Ungültiges Datenformat im Dokument:', e);
+          return;
+        }
+
+        var metaEl = document.getElementById('result-meta');
+        if (metaEl) {
+          var studentName = payload.studentName || payload.quizName || 'Schüler';
+          var grade = payload.grade !== undefined ? payload.grade : '—';
+          var date = payload.date || '—';
+          var correct = payload.correct != null ? payload.correct : 0;
+          var totalChecked = payload.totalChecked != null ? payload.totalChecked : 0;
+          var successRate = payload.successRate != null ? payload.successRate : (totalChecked > 0 ? Math.round((correct / totalChecked) * 100) : 0);
+          var bestStreak = payload.bestStreak != null ? payload.bestStreak : 0;
+
+          metaEl.innerHTML = [
+            '<div class="meta-item"><span class="label">Name / Klasse</span><div class="value">' + escapeHtml(studentName) + '</div></div>',
+            '<div class="meta-item"><span class="label">Stufe</span><div class="value">' + escapeHtml(grade) + '</div></div>',
+            '<div class="meta-item"><span class="label">Datum</span><div class="value">' + escapeHtml(date) + '</div></div>',
+            '<div class="meta-item"><span class="label">Ergebnis</span><div class="value">' + correct + '/' + totalChecked + ' richtig</div></div>',
+            '<div class="meta-item"><span class="label">Quote</span><div class="value">' + successRate + '%</div></div>',
+            '<div class="meta-item"><span class="label">Bestserie</span><div class="value">' + bestStreak + '</div></div>'
+          ].join('');
+        }
+
+        var rowsEl = document.getElementById('result-rows');
+        if (rowsEl && Array.isArray(payload.tasks)) {
+          var rowsHtml = payload.tasks.map(function (task) {
+            var num = task.taskNumber != null ? task.taskNumber : '';
+            var type = escapeHtml(task.typeLabel || task.type || '');
+            var prompt = task.promptHtml || escapeHtml(task.prompt || '');
+            var answer = task.userInput ? escapeHtml(task.userInput) : '—';
+            var isCorrect = !!task.correct;
+            var resClass = isCorrect ? 'result-cell--correct' : 'result-cell--incorrect';
+            var resText = isCorrect ? 'R' : 'F';
+            var solution = task.solutionHtml || escapeHtml(task.solution || '—');
+
+            return '<tr>' +
+              '<td>' + num + '</td>' +
+              '<td>' + type + '</td>' +
+              '<td>' + prompt + '</td>' +
+              '<td>' + answer + '</td>' +
+              '<td class="result-cell ' + resClass + '">' + resText + '</td>' +
+              '<td>' + solution + '</td>' +
+            '</tr>';
+          }).join('');
+
+          rowsEl.innerHTML = rowsHtml;
+        }
+      }
+
+      function waitForMathJax() {
+        return new Promise(function (resolve) {
+          var startedAt = Date.now();
+
+          function check() {
+            if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
+              if (window.MathJax.startup && window.MathJax.startup.promise && typeof window.MathJax.startup.promise.then === 'function') {
+                window.MathJax.startup.promise.then(resolve, resolve);
+                return;
+              }
+              resolve();
+              return;
+            }
+
+            if (Date.now() - startedAt > 5000) {
+              resolve();
+              return;
+            }
+
+            setTimeout(check, 50);
+          }
+
+          check();
+        });
+      }
+
+      async function renderMath() {
+        await waitForMathJax();
+        if (!window.MathJax || typeof window.MathJax.typesetPromise !== 'function') {
+          return;
+        }
+        try {
+          await window.MathJax.typesetPromise();
+        } catch (error) {
+          try {
+            window.MathJax.typeset();
+          } catch (fallbackError) {
+            console.warn('MathJax export render failed:', fallbackError);
+          }
+        }
+      }
+
+      async function init() {
+        renderOverview();
+        await renderMath();
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+    })();
+  </script>
 </body>
 </html>`;
 
