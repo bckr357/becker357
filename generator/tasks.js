@@ -147,7 +147,7 @@ const typeDefinitions = [
 	['schriftlich_as', 'schriftlich rechnen +/-', 'Schriftliche Addition und Subtraktion'],
 	['schriftlich_md', 'schriftlich rechnen ×/÷', 'Schriftliche Multiplikation und Division'],
 	['potenzen', 'Potenzen und Wurzeln', 'Potenzen und Wurzeln berechnen'],
-	['pow10', 'Zehnerpotenzen ×/÷', 'Multiplikation und Division mit Zehnerpotenzen'],
+	['pow10', 'Zehnerpotenzen ×/÷', 'Multiplikation und Division mit Zehnerpotenzen und Stufenzahlen'],
 	['vorrang', 'Vorrangregeln', 'Terme mit Vorrangregeln berechnen'],
 	['ueberschlag', 'Überschlag', 'Sinnvolle Überschläge für Grundrechenaufgaben bilden'],
 	
@@ -827,90 +827,80 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 
 				const fromScaledInteger = (raw, decimals) => {
 					if (decimals <= 0) {
-						return String(raw);
+						return String(raw) + (decimals < 0 ? '0'.repeat(-decimals) : '');
 					}
-					const padded = String(raw).padStart(decimals + 1, '0');
-					const intPart = padded.slice(0, -decimals);
-					const fracPart = padded.slice(-decimals);
-					return normalizeDecimalString(`${intPart}.${fracPart}`);
+					const sign = raw < 0 ? '-' : '';
+					const absStr = String(Math.abs(raw)).padStart(decimals + 1, '0');
+					const intPart = absStr.slice(0, -decimals);
+					const fracPart = absStr.slice(-decimals);
+					return `${sign}${normalizeDecimalString(`${intPart}.${fracPart}`)}`;
 				};
 
-				const shiftDecimalString = (value, shift) => {
-					let [intPart, fracPart = ''] = value.split('.');
-					let digits = `${intPart}${fracPart}`;
-					if (!digits) {
-						return '0';
-					}
-					const originalDecimalPos = intPart.length;
-					const newDecimalPos = originalDecimalPos + shift;
+				// Stufenzahl / Zehnerpotenz mit oder ohne Vorfaktor (z. B. 0.01, 0.02, 0.5, 10, 200, 3000)
+				// Vorfaktoren: 1 (reine Zehnerpotenz), 2, 3, 4 oder 5
+				const isPure = Math.random() < 0.35;
+				const coeff = isPure ? 1 : [2, 3, 4, 5][randInt(0, 3)];
+				const exponentOptions = [-2, -1, 1, 2, 3];
+				const exponent = exponentOptions[randInt(0, exponentOptions.length - 1)];
 
-					if (newDecimalPos <= 0) {
-						digits = `${'0'.repeat(-newDecimalPos)}${digits}`;
-						return normalizeDecimalString(`0.${digits}`);
-					}
-
-					if (newDecimalPos >= digits.length) {
-						digits = `${digits}${'0'.repeat(newDecimalPos - digits.length)}`;
-						return normalizeDecimalString(digits);
-					}
-
-					return normalizeDecimalString(`${digits.slice(0, newDecimalPos)}.${digits.slice(newDecimalPos)}`);
-				};
-
-				const powerExponents = {
-					0.01: -2,
-					0.1: -1,
-					10: 1,
-					100: 2,
-					1000: 3
-				};
-
-				// Zehnerpotenzen: natürliche Zahl oder Dezimalbruch mit 10, 100 oder 1000
-				const powers = [0.1, 0.01, 10, 10, 100, 100, 1000];
-				const power = powers[randInt(0, 6)];
-				const exponent = powerExponents[power];
+				const stepStrRaw = fromScaledInteger(coeff, -exponent);
 				const isMult = Math.random() > 0.5;
-
-				// Operand: entweder natürliche Zahl oder Dezimalbruch (1-2 Stellen)
 				let operandStrRaw;
-				let isDecimal;
+				let resultStrRaw;
 
-				if (Math.random() > 0.5) {
-					// Dezimalbruch mit 1-2 Stellen nach Komma
-					isDecimal = true;
-					const isDec2 = (power === 0.01 || power === 1000) ? false : Math.random() > 0.5; // Bei 0,01 und 1000 nur 1 Stelle
-					if (isDec2) {
-						const raw = rnd(111, 14999); // 1,11 bis 149,99
-						operandStrRaw = fromScaledInteger(raw, 2);
+				if (isMult) {
+					// MULTIPLIKATION: operand * stepStrRaw = result
+					let mOperand, dOperand;
+					if (Math.random() > 0.4) {
+						// Dezimalbruch mit 1 oder 2 Nachkommastellen
+						dOperand = (coeff === 1 && (exponent === 1 || exponent === 2) && Math.random() > 0.5) ? 2 : 1;
+						mOperand = dOperand === 2 ? rnd(11, 250) : rnd(2, 95);
 					} else {
-						const raw = rnd(2, 1499); // 0,2 bis 149,9
-						operandStrRaw = fromScaledInteger(raw, 1);
+						// Natürliche Zahl
+						dOperand = 0;
+						mOperand = rnd(2, 45);
 					}
+
+					operandStrRaw = fromScaledInteger(mOperand, dOperand);
+					const rawResult = mOperand * coeff;
+					const resultDecimals = dOperand - exponent;
+					resultStrRaw = fromScaledInteger(rawResult, resultDecimals);
 				} else {
-					// Natürliche Zahl
-					isDecimal = false;
-					operandStrRaw = String(rnd(2, 299));
+					// DIVISION: operand : stepStrRaw = result
+					// Glatten Quotienten erzeugen, damit die Aufgabe exakt aufgeht
+					let mQuotient, dQuotient;
+					if (Math.random() > 0.4) {
+						dQuotient = 1;
+						mQuotient = rnd(2, 45);
+					} else {
+						dQuotient = 0;
+						mQuotient = rnd(2, 35);
+					}
+
+					resultStrRaw = fromScaledInteger(mQuotient, dQuotient);
+					const rawDividend = mQuotient * coeff;
+					const dividendDecimals = dQuotient - exponent;
+					operandStrRaw = fromScaledInteger(rawDividend, dividendDecimals);
 				}
 
 				const op = isMult ? '\\cdot' : ':';
-				const shift = isMult ? exponent : -exponent;
-				const resultStrRaw = shiftDecimalString(operandStrRaw, shift);
-
-				// Formatierung des Operanden
-				const operandStr = isDecimal ? comma(operandStrRaw) : operandStrRaw;
+				const operandFormatted = comma(operandStrRaw);
+				const stepFormatted = comma(stepStrRaw);
+				const resultFormatted = comma(resultStrRaw);
 
 				// Aufgabe
-				const expr = `\\[ ${operandStr} ${op} ${comma(power)} =\\]`;
+				const expr = `\\[ ${operandFormatted} ${op} ${stepFormatted} =\\]`;
 
-				// Lösung mit Erklärung der Kommaverschiebung/Stellenwertverschiebung
-				// const shiftCount = power === 10 ? 1 : power === 100 ? 2 : 3;
-				// const shiftDirection = isMult ? '&#x2192;' : '&#x2190;';
-				// const shiftDescription = `(Komma ${shiftCount} x ${shiftDirection})`;
+				// Lösung mit Hilfestellung bei Multiplikation/Division mit Dezimalbrüchen
 				let solution;
-				// const solution = `\\( ${operandStr} ${op} ${power} = ${comma(resultStr)} \\quad \\text{${shiftDescription}}\\)`;
-				if (power < 1 && isMult) solution = `\\[ ${operandStr} ${op} ${comma(power)} = ${comma(resultStrRaw)} \\quad ( : ${1 / power} )\\]`;
-				else if (power < 1 && !isMult) solution = `\\[ ${operandStr} ${op} ${comma(power)} = ${comma(resultStrRaw)} \\quad ( \\cdot ${1 / power} )\\]`;
-				else solution = `\\[ ${operandStr} ${op} ${comma(power)} = ${comma(resultStrRaw)} \\]`;
+				if (coeff === 1 && exponent < 0 && isMult) {
+					solution = `\\[ ${operandFormatted} ${op} ${stepFormatted} = ${resultFormatted} \\quad ( : ${Math.pow(10, -exponent)} )\\]`;
+				} else if (coeff === 1 && exponent < 0 && !isMult) {
+					solution = `\\[ ${operandFormatted} ${op} ${stepFormatted} = ${resultFormatted} \\quad ( \\cdot ${Math.pow(10, -exponent)} )\\]`;
+				} else {
+					solution = `\\[ ${operandFormatted} ${op} ${stepFormatted} = ${resultFormatted} \\]`;
+				}
+
 				return { expr, solution };
 			};
 
@@ -919,7 +909,14 @@ function createTask(type, isMentalMode, grade = 5, options = {}) {
 				textDisplay = entry.expr;
 				s = entry.solution;
 			} else {
-				const entries = [createPow10Entry(), createPow10Entry()];
+				const entry1 = createPow10Entry();
+				let entry2 = createPow10Entry();
+				let attempts = 0;
+				while (entry2.expr === entry1.expr && attempts < 5) {
+					entry2 = createPow10Entry();
+					attempts++;
+				}
+				const entries = [entry1, entry2];
 				textDisplay = buildTwoColumnTaskTable(entries.map(item => item.expr));
 				s = buildTwoColumnTaskTable(entries.map(item => item.solution));
 			}
