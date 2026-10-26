@@ -264,20 +264,6 @@ createApp({
 
         const activeSelectedTypesCount = computed(() => activeSelectedTypes.value.length);
 
-        const activeMentalMathMode = computed({
-            get: () => state.currentView.value === 'quiz'
-                ? state.quizMentalMathMode.value
-                : state.mentalMathMode.value,
-            set: value => {
-                if (state.currentView.value === 'quiz') {
-                    state.quizMentalMathMode.value = value;
-                    return;
-                }
-
-                state.mentalMathMode.value = value;
-            }
-        });
-
         const activeTaskWeights = computed(() => state.currentView.value === 'quiz'
             ? state.quizTaskWeights.value
             : state.taskWeights.value);
@@ -1127,7 +1113,6 @@ createApp({
             activeVisibleTypeKeys,
             activeVisibleTypeEntries,
             activeSelectedTypes,
-            activeMentalMathMode,
             activeTaskWeights,
             activeSelectedTypesCount,
             selectAllTypes,

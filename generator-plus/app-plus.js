@@ -61,7 +61,6 @@ createApp({
         const taskCounts = ref(Object.fromEntries(allTypes.map(type => [type, 0])));
         state.taskCounts = taskCounts;
         state.weights.value = false;
-        state.mentalMathMode.value = false;
         const selectedGrade = ref(10);
         const gradeOptions = [5, 6, 7, 8, 9, 10];
 
@@ -288,20 +287,6 @@ createApp({
         });
 
         const activeSelectedTypesCount = computed(() => activeSelectedTypes.value.length);
-
-        const activeMentalMathMode = computed({
-            get: () => state.currentView.value === 'quiz'
-                ? state.quizMentalMathMode.value
-                : state.mentalMathMode.value,
-            set: value => {
-                if (state.currentView.value === 'quiz') {
-                    state.quizMentalMathMode.value = value;
-                    return;
-                }
-
-                state.mentalMathMode.value = value;
-            }
-        });
 
         const activeTaskWeights = computed(() => state.currentView.value === 'quiz'
             ? state.quizTaskWeights.value
@@ -1159,7 +1144,6 @@ createApp({
             activeVisibleTypeKeys,
             activeVisibleTypeEntries,
             activeSelectedTypes,
-            activeMentalMathMode,
             activeTaskWeights,
             activeSelectedTypesCount,
             incrementActiveTaskWeight,

@@ -115,10 +115,88 @@
 		.replace(/×/g, '*')
 		.replace(/÷/g, '/')
 		.replace(/\s+/g, '')
+		.replace(/²/g, '^2')
+		.replace(/³/g, '^3')
+		.replace(/⁴/g, '^4')
 		.replace(/\^/g, '**')
 		.replace(/(\d)([A-Za-z])/g, '$1*$2')
 		.replace(/([A-Za-z])(\d)/g, '$1*$2')
+		.replace(/(\d|[A-Za-z])\(/g, '$1*(')
 		.replace(/\)([A-Za-z])/g, ')*$1');
+
+	const normalizeTermInput = (value) => {
+		let normalized = normalizeExpressionText(value);
+		normalized = normalized.replace(/\*\*/g, '^');
+		normalized = normalized.replace(/\s+/g, '');
+		normalized = normalized.replace(/\)([A-Za-z])/g, ')*$1');
+		normalized = normalized.replace(/([A-Za-z])\(/g, '$1*(');
+		normalized = normalized.replace(/(\d|[A-Za-z])\(/g, '$1*(');
+		return normalized;
+	};
+
+	const getTermTokens = (value) => {
+		const normalized = normalizeTermInput(value);
+		if (!normalized) return [];
+		const tokens = [];
+		let current = '';
+		for (const ch of normalized) {
+			if ((ch === '+' || ch === '-') && current.length > 0) {
+				tokens.push(current);
+				current = ch;
+			} else {
+				current += ch;
+			}
+		}
+		if (current) tokens.push(current);
+		return tokens.filter(Boolean);
+	};
+
+	const termExpressionStructured = (expr, mode) => {
+		if (!expr || !mode) return true;
+		const normalized = normalizeTermInput(expr);
+		if (mode === 'factor') {
+			return /\(.+\)/.test(normalized);
+		}
+		if (/[()]/.test(normalized)) {
+			return false;
+		}
+		const tokens = getTermTokens(normalized).filter(token => token !== '');
+		if (!tokens.length) return false;
+		const seen = new Map();
+		for (const token of tokens) {
+			const rawTerm = token.replace(/^[+-]/, '');
+			if (!rawTerm) continue;
+			const factors = rawTerm.split('*').filter(Boolean);
+			if (!factors.length) return false;
+			const variablePowers = new Map();
+			for (const factor of factors) {
+				if (/^-?\d+(?:\.\d+)?$/.test(factor)) {
+					continue;
+				}
+				const variableMatch = factor.match(/^([A-Za-z])(?:\^(\d+))?$/);
+				if (!variableMatch) {
+					const numericPrefixMatch = factor.match(/^([A-Za-z])?(\d+)$/);
+					if (!numericPrefixMatch) return false;
+					const variable = numericPrefixMatch[1] || '';
+					if (!variable) continue;
+					const oldPower = variablePowers.get(variable) || 0;
+					variablePowers.set(variable, oldPower + 1);
+					continue;
+				}
+				const variable = variableMatch[1];
+				const power = variableMatch[2] ? Number(variableMatch[2]) : 1;
+				const oldPower = variablePowers.get(variable) || 0;
+				variablePowers.set(variable, oldPower + power);
+			}
+			if (variablePowers.size > 1) return false;
+			const variableKey = variablePowers.size === 1 ? [...variablePowers.keys()][0] : '';
+			const power = variablePowers.size === 1 ? [...variablePowers.values()][0] : 0;
+			const key = variableKey ? `${variableKey}^${power}` : 'const';
+			if (seen.has(key)) return false;
+			seen.set(key, true);
+		}
+		return true;
+	};
 
 	const evaluateExpression = (expr, valueMap) => {
 		const normalized = normalizeExpressionText(expr);
@@ -206,6 +284,14 @@
 			}
 			if (expectedExpr.includes('=') || userExpr.includes('=')) {
 				return equationEquivalent(expectedExpr, userExpr);
+			}
+			if (answer.termMode) {
+				if (!termExpressionStructured(userExpr, answer.termMode)) {
+					return false;
+				}
+				if (answer.termMode === 'collect' && !termExpressionStructured(expectedExpr, answer.termMode)) {
+					return false;
+				}
 			}
 			return expressionEquivalent(expectedExpr, userExpr);
 		}

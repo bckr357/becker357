@@ -6,7 +6,6 @@ window.MTGTaskGenerationModule = {
                     selectedTypes: state.quizSelectedTypes.value,
                     taskWeights: state.quizTaskWeights.value,
                     taskCounts: null,
-                    mentalMathMode: state.quizMentalMathMode.value,
                     weightsEnabled: false,
                     countsEnabled: false
                 };
@@ -16,7 +15,6 @@ window.MTGTaskGenerationModule = {
                 selectedTypes: state.selectedTypes.value,
                 taskWeights: state.taskWeights.value,
                 taskCounts: state.taskCounts?.value ?? null,
-                mentalMathMode: state.mentalMathMode.value,
                 weightsEnabled: state.weights.value,
                 countsEnabled: Boolean(state.taskCounts)
             };
@@ -292,7 +290,7 @@ window.MTGTaskGenerationModule = {
                 }
 
                 state.tasks.value = typePool.map(type => {
-                    const generated = createTask(type, config.mentalMathMode, getNumericGrade(), taskOptions);
+                    const generated = createTask(type, getNumericGrade(), taskOptions);
                     return {
                         type,
                         textDisplay: generated.textDisplay ?? '',
@@ -423,7 +421,7 @@ window.MTGTaskGenerationModule = {
             }
 
             state.tasks.value = typePool.map(type => {
-                const generated = createTask(type, config.mentalMathMode, getNumericGrade(), taskOptions);
+                const generated = createTask(type, getNumericGrade(), taskOptions);
                 return {
                     type,
                     textDisplay: generated.textDisplay ?? '',
@@ -457,7 +455,7 @@ window.MTGTaskGenerationModule = {
 
             const randomIndex = Math.floor(Math.random() * weightedTypes.length);
             const selectedType = weightedTypes[randomIndex];
-            const generated = createTask(selectedType, config.mentalMathMode, getNumericGrade(), options);
+            const generated = createTask(selectedType, getNumericGrade(), options);
 
             return {
                 type: selectedType,
@@ -474,7 +472,7 @@ window.MTGTaskGenerationModule = {
 
             const normalizedType = type.trim();
             const config = getScopeConfig(scope);
-            const generated = createTask(normalizedType, config.mentalMathMode, getNumericGrade(), options);
+            const generated = createTask(normalizedType, getNumericGrade(), options);
 
             return {
                 type: normalizedType,

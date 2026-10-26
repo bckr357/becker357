@@ -327,7 +327,8 @@ function sortByTypeDefinitions(types) {
 // AUFGABEN-GENERATOR
 // ============================================================
 
-function createTask(type, isEasyMode, grade = 5, options = {}) {
+function createTask(type, grade = 5, options = {}) {
+
 	const karo = (rows = 4, cols = 10, cellSizeCm = 0.5) => {
 		let rowsHtml = '';
 		for (let r = 0; r < rows; r++) {
@@ -405,8 +406,6 @@ function createTask(type, isEasyMode, grade = 5, options = {}) {
 	const toRadians = (degrees) => degrees * Math.PI / 180;
 	const toDegrees = (radians) => radians * 180 / Math.PI;
 
-	// Beispiel für die Nutzung von isEasyMode:
-	// if (isEasyMode) { Z1 = rnd(2, 5); } else { Z1 = rnd(5, 20); }
 
 	let v1, v2;
 	let rd;
@@ -418,13 +417,13 @@ function createTask(type, isEasyMode, grade = 5, options = {}) {
 			const einheit = ['€', 'm', 'kg', 't', 'g', 'm²', 'm³', 'ha', 's', 'h'][randInt(0, 9)];
 			rd = Math.random();
 			if (rd > 0.5) {
-				pVal = effectiveEasyMode ? rnd(2, 11) * 100 : randInt(250, 2800) / 10;
+				pVal = false ? rnd(2, 11) * 100 : randInt(250, 2800) / 10;
 				p = [3, 4, 5, 6, 7, 8, 9, 11, 12, 20, 25, 30, 35, 40, 60, 70, 80, 90][randInt(0, 17)];
 				textDisplay = `${p} % von ${formatByUnit(pVal, einheit, 1)} ${einheit} sind ${blank(3)}`;
 				s = `100 % ≙ ${formatByUnit(pVal, einheit, 1)} ${einheit}<br>1 % ≙ ${formatByUnit(pVal / 100, einheit, 2)} ${einheit}<br>${p} % ≙ <b>${formatByUnit((pVal / 100) * p, einheit, 2)} ${einheit}</b>`;
 			} else if (rd > 0.3) {
 				p = [20, 25, 30, 40, 50, 60, 70, 80, 90][randInt(0, 8)];
-				if (effectiveEasyMode) {
+				if (false) {
 					pVal = rnd(2, 9) * p;
 				} else {
 					const baseValue = randInt(200, 4000) / 10;
@@ -433,9 +432,9 @@ function createTask(type, isEasyMode, grade = 5, options = {}) {
 				textDisplay = `${p} % sind ${formatByUnit(pVal, einheit, 2)} ${einheit} von ${blank(3)}`;
 				s = `${p} % ≙ ${formatByUnit(pVal, einheit, 2)} ${einheit}<br>1 % ≙ ${formatByUnit(pVal / p, einheit, 2)} ${einheit}<br>100 % ≙ <b>${formatByUnit((pVal / p) * 100, einheit, 2)} ${einheit}</b>`;
 			} else {
-				const pList = effectiveEasyMode ? [2, 3, 5, 10, 20, 25, 50, 75, 80, 90] : [2, 3, 5, 10, 15, 20, 25, 40, 50, 75, 80, 90, 95];
+				const pList = false ? [2, 3, 5, 10, 20, 25, 50, 75, 80, 90] : [2, 3, 5, 10, 15, 20, 25, 40, 50, 75, 80, 90, 95];
 				const p = pList[randInt(0, pList.length - 1)];
-				const G = effectiveEasyMode ? (rnd(2, 15) * 10) : (randInt(200, 4500) / 10);
+				const G = false ? (rnd(2, 15) * 10) : (randInt(200, 4500) / 10);
 				const W = (G * p) / 100;
 				textDisplay = `${formatByUnit(W, einheit, 2)} ${einheit} von ${formatByUnit(G, einheit, 1)} ${einheit} sind ${blank(2)} %`;
 				s = `100 % ≙ ${formatByUnit(G, einheit, 1)} ${einheit}<br>1 % ≙ ${formatByUnit(G / 100, einheit, 2)} ${einheit}<br><b>${p} %</b> ≙ ${formatByUnit(W, einheit, 2)} ${einheit}`;
@@ -445,7 +444,7 @@ function createTask(type, isEasyMode, grade = 5, options = {}) {
 		case 'pv': {
 			const einheit = ['€', 'm', 'kg', 't', 'g', 'm²', 'm³', 'ha', 's', 'h'][randInt(0, 9)];
 			let p = [3, 4, 5, 6, 7, 10, 20, 25, 50][randInt(0, 8)];
-			const pVal = effectiveEasyMode ? (rnd(2, 11) * 100) : (randInt(250, 3500) / 10);
+			const pVal = false ? (rnd(2, 11) * 100) : (randInt(250, 3500) / 10);
 			const pvType = randInt(0, 5); // 0: Erhöhung um p%, 1: Reduzierung um p%, 2: Erhöhung auf 100+p%, 3: Reduzierung auf 100-p%, 4: Rabatt-Fall 1, 5: Rabatt-Fall 2
 			switch (pvType) {
 				case 0: // Erhöhung um p%
@@ -735,8 +734,8 @@ function createTask(type, isEasyMode, grade = 5, options = {}) {
 			};
 			const forcedShape = geometryShapeByType[normalizedType] || null;
 			const pickLen = (easyMin, easyMax, normalMin, normalMax) => {
-				const min = effectiveEasyMode ? easyMin : normalMin;
-				const max = effectiveEasyMode ? easyMax : normalMax;
+				const min = false ? easyMin : normalMin;
+				const max = false ? easyMax : normalMax;
 				if (Math.random() < 0.65) {
 					return rndD1(min, max);
 				}
@@ -750,7 +749,7 @@ function createTask(type, isEasyMode, grade = 5, options = {}) {
 				shapePool.push('kreis', 'kreisring');
 			}
 			const shape = forcedShape || shapePool[randInt(0, shapePool.length - 1)];
-			const isInverse = !effectiveEasyMode && Math.random() < 0.5;
+			const isInverse = !false && Math.random() < 0.5;
 
 			switch (shape) {
 				case 'rechteck': {
@@ -986,17 +985,17 @@ function createTask(type, isEasyMode, grade = 5, options = {}) {
 			const unitO = 'cm^2';
 			const round2 = (val) => Math.round(val * 100) / 100;
 			const num2 = (val) => formatDecimal(val, 2);
-			const pickInt = (easyMin, easyMax, normalMin, normalMax) => randInt(effectiveEasyMode ? easyMin : normalMin, effectiveEasyMode ? easyMax : normalMax);
+			const pickInt = (easyMin, easyMax, normalMin, normalMax) => randInt(false ? easyMin : normalMin, false ? easyMax : normalMax);
 			const material = bodyMaterialDensities[randInt(0, bodyMaterialDensities.length - 1)];
 			const rho = material.rho;
-			const isRearrange = !effectiveEasyMode && Math.random() < 0.5;
+			const isRearrange = !false && Math.random() < 0.5;
 
 			if (!isRearrange) {
 				const a = pickInt(2, 8, 3, 14);
 				const V = round2(a ** 3);
 				const O = round2(6 * a * a);
 
-				if (effectiveEasyMode) {
+				if (false) {
 					textDisplay = `Ein Würfel hat die Kantenlänge \\( a = ${a} \\) ${unitL}.<br>Berechne Volumen \\(V\\) und Oberfläche \\(O\\).`;
 					textPrint = `Würfel: a = ${a} ${unitL}. Berechne V und O.${space(1.8)}`;
 					s = `\\[ \\begin{aligned}
@@ -1038,10 +1037,10 @@ function createTask(type, isEasyMode, grade = 5, options = {}) {
 			const unitO = 'cm^2';
 			const round2 = (val) => Math.round(val * 100) / 100;
 			const num2 = (val) => formatDecimal(val, 2);
-			const pickInt = (easyMin, easyMax, normalMin, normalMax) => randInt(effectiveEasyMode ? easyMin : normalMin, effectiveEasyMode ? easyMax : normalMax);
+			const pickInt = (easyMin, easyMax, normalMin, normalMax) => randInt(false ? easyMin : normalMin, false ? easyMax : normalMax);
 			const material = bodyMaterialDensities[randInt(0, bodyMaterialDensities.length - 1)];
 			const rho = material.rho;
-			const isRearrange = !effectiveEasyMode && Math.random() < 0.5;
+			const isRearrange = !false && Math.random() < 0.5;
 
 			if (!isRearrange) {
 				const a = pickInt(2, 8, 3, 14);
@@ -1050,7 +1049,7 @@ function createTask(type, isEasyMode, grade = 5, options = {}) {
 				const V = round2(a * b * c);
 				const O = round2(2 * (a * b + a * c + b * c));
 
-				if (effectiveEasyMode) {
+				if (false) {
 					textDisplay = `Ein Quader hat \\( a = ${a} \\) ${unitL}, \\( b = ${b} \\) ${unitL}, \\( c = ${c} \\) ${unitL}.<br>Berechne Volumen \\(V\\) und Oberfläche \\(O\\).`;
 					textPrint = `Quader: a = ${a} ${unitL}, b = ${b} ${unitL}, c = ${c} ${unitL}. Berechne V und O.${space(1.8)}`;
 					s = `\\[ \\begin{aligned}
@@ -1094,11 +1093,11 @@ function createTask(type, isEasyMode, grade = 5, options = {}) {
 			const unitO = 'cm^2';
 			const round2 = (val) => Math.round(val * 100) / 100;
 			const num2 = (val) => formatDecimal(val, 2);
-			const pickInt = (easyMin, easyMax, normalMin, normalMax) => randInt(effectiveEasyMode ? easyMin : normalMin, effectiveEasyMode ? easyMax : normalMax);
+			const pickInt = (easyMin, easyMax, normalMin, normalMax) => randInt(false ? easyMin : normalMin, false ? easyMax : normalMax);
 			const material = bodyMaterialDensities[randInt(0, bodyMaterialDensities.length - 1)];
 			const rho = material.rho;
-			const isRearrange = !effectiveEasyMode && Math.random() < 0.5;
-			const useHeightTask = !effectiveEasyMode && !isRearrange && Math.random() < 0.4;
+			const isRearrange = !false && Math.random() < 0.5;
+			const useHeightTask = !false && !isRearrange && Math.random() < 0.4;
 
 			if (!isRearrange) {
 				const g = pickInt(3, 10, 3, 12);
@@ -1110,7 +1109,7 @@ function createTask(type, isEasyMode, grade = 5, options = {}) {
 				const V = round2(G * H);
 				const O = round2(2 * G + uG * H);
 
-				if (effectiveEasyMode) {
+				if (false) {
 					textDisplay = `Ein Prisma hat ein rechtwinkliges Dreieck als Grundfläche mit \\( g = ${g} \\) ${unitL}, \\( h_g = ${hG} \\) ${unitL} und Höhe \\( H = ${H} \\) ${unitL}.<br>Berechne Volumen \\(V\\) und Oberfläche \\(O\\).`;
 					textPrint = `Dreiecksprisma: g = ${g} ${unitL}, h_g = ${hG} ${unitL}, H = ${H} ${unitL}. Berechne V und O.${space(2)}`;
 					s = `\\[ \\begin{aligned}
@@ -1186,11 +1185,11 @@ function createTask(type, isEasyMode, grade = 5, options = {}) {
 			const unitO = 'cm^2';
 			const round2 = (val) => Math.round(val * 100) / 100;
 			const num2 = (val) => formatDecimal(val, 2);
-			const pickInt = (easyMin, easyMax, normalMin, normalMax) => randInt(effectiveEasyMode ? easyMin : normalMin, effectiveEasyMode ? easyMax : normalMax);
+			const pickInt = (easyMin, easyMax, normalMin, normalMax) => randInt(false ? easyMin : normalMin, false ? easyMax : normalMax);
 			const material = bodyMaterialDensities[randInt(0, bodyMaterialDensities.length - 1)];
 			const rho = material.rho;
-			const isRearrange = !effectiveEasyMode && Math.random() < 0.5;
-			const useHeightTask = !effectiveEasyMode && !isRearrange && Math.random() < 0.4;
+			const isRearrange = !false && Math.random() < 0.5;
+			const useHeightTask = !false && !isRearrange && Math.random() < 0.4;
 
 			if (!isRearrange) {
 				const r = pickInt(2, 7, 2, 11);
@@ -1198,7 +1197,7 @@ function createTask(type, isEasyMode, grade = 5, options = {}) {
 				const V = round2(Math.PI * r * r * h);
 				const O = round2(2 * Math.PI * r * (r + h));
 
-				if (effectiveEasyMode) {
+				if (false) {
 					textDisplay = `Ein Kreiszylinder hat Radius \\( r = ${r} \\) ${unitL} und Höhe \\( h = ${h} \\) ${unitL}.<br>Berechne Volumen \\(V\\) und Oberfläche \\(O\\).`;
 					textPrint = `Kreiszylinder: r = ${r} ${unitL}, h = ${h} ${unitL}. Berechne V und O.${space(1.8)}`;
 					s = `\\[ \\begin{aligned}
@@ -1258,11 +1257,11 @@ function createTask(type, isEasyMode, grade = 5, options = {}) {
 			const unitO = 'cm^2';
 			const round2 = (val) => Math.round(val * 100) / 100;
 			const num2 = (val) => formatDecimal(val, 2);
-			const pickInt = (easyMin, easyMax, normalMin, normalMax) => randInt(effectiveEasyMode ? easyMin : normalMin, effectiveEasyMode ? easyMax : normalMax);
+			const pickInt = (easyMin, easyMax, normalMin, normalMax) => randInt(false ? easyMin : normalMin, false ? easyMax : normalMax);
 			const material = bodyMaterialDensities[randInt(0, bodyMaterialDensities.length - 1)];
 			const rho = material.rho;
-			const isRearrange = !effectiveEasyMode && Math.random() < 0.5;
-			const useHeightTask = !effectiveEasyMode && !isRearrange && Math.random() < 0.45;
+			const isRearrange = !false && Math.random() < 0.5;
+			const useHeightTask = !false && !isRearrange && Math.random() < 0.45;
 
 			if (!isRearrange) {
 				const a = pickInt(3, 8, 3, 10);
@@ -1272,7 +1271,7 @@ function createTask(type, isEasyMode, grade = 5, options = {}) {
 				const sMantel = round2(Math.sqrt((a / 2) ** 2 + h ** 2));
 				const O = round2(G + 2 * a * sMantel);
 
-				if (effectiveEasyMode) {
+				if (false) {
 					textDisplay = `Eine regelmäßige quadratische Pyramide hat \\( a = ${a} \\) ${unitL} und Höhe \\( h = ${h} \\) ${unitL}.<br>Berechne Volumen \\(V\\) und Oberfläche \\(O\\).`;
 					textPrint = `Pyramide: a = ${a} ${unitL}, h = ${h} ${unitL}. Berechne V und O.${space(2)}`;
 					s = `\\[ \\begin{aligned}
@@ -1340,11 +1339,11 @@ function createTask(type, isEasyMode, grade = 5, options = {}) {
 			const unitO = 'cm^2';
 			const round2 = (val) => Math.round(val * 100) / 100;
 			const num2 = (val) => formatDecimal(val, 2);
-			const pickInt = (easyMin, easyMax, normalMin, normalMax) => randInt(effectiveEasyMode ? easyMin : normalMin, effectiveEasyMode ? easyMax : normalMax);
+			const pickInt = (easyMin, easyMax, normalMin, normalMax) => randInt(false ? easyMin : normalMin, false ? easyMax : normalMax);
 			const material = bodyMaterialDensities[randInt(0, bodyMaterialDensities.length - 1)];
 			const rho = material.rho;
-			const isRearrange = !effectiveEasyMode && Math.random() < 0.5;
-			const useHeightTask = !effectiveEasyMode && !isRearrange && Math.random() < 0.45;
+			const isRearrange = !false && Math.random() < 0.5;
+			const useHeightTask = !false && !isRearrange && Math.random() < 0.45;
 
 			if (!isRearrange) {
 				const r = pickInt(2, 7, 2, 10);
@@ -1353,7 +1352,7 @@ function createTask(type, isEasyMode, grade = 5, options = {}) {
 				const V = round2((Math.PI * r * r * h) / 3);
 				const O = round2(Math.PI * r * (r + sMantel));
 
-				if (effectiveEasyMode) {
+				if (false) {
 					textDisplay = `Ein Kreiskegel hat Radius \\( r = ${r} \\) ${unitL} und Höhe \\( h = ${h} \\) ${unitL}.<br>Berechne Volumen \\(V\\) und Oberfläche \\(O\\).`;
 					textPrint = `Kreiskegel: r = ${r} ${unitL}, h = ${h} ${unitL}. Berechne V und O.${space(2)}`;
 					s = `\\[ \\begin{aligned}
@@ -1417,17 +1416,17 @@ function createTask(type, isEasyMode, grade = 5, options = {}) {
 			const unitO = 'cm^2';
 			const round2 = (val) => Math.round(val * 100) / 100;
 			const num2 = (val) => formatDecimal(val, 2);
-			const pickInt = (easyMin, easyMax, normalMin, normalMax) => randInt(effectiveEasyMode ? easyMin : normalMin, effectiveEasyMode ? easyMax : normalMax);
+			const pickInt = (easyMin, easyMax, normalMin, normalMax) => randInt(false ? easyMin : normalMin, false ? easyMax : normalMax);
 			const material = bodyMaterialDensities[randInt(0, bodyMaterialDensities.length - 1)];
 			const rho = material.rho;
-			const isRearrange = !effectiveEasyMode && Math.random() < 0.5;
+			const isRearrange = !false && Math.random() < 0.5;
 
 			if (!isRearrange) {
 				const r = pickInt(2, 8, 2, 10);
 				const V = round2((4 / 3) * Math.PI * r ** 3);
 				const O = round2(4 * Math.PI * r * r);
 
-				if (effectiveEasyMode) {
+				if (false) {
 					textDisplay = `Eine Kugel hat Radius \\( r = ${r} \\) ${unitL}.<br>Berechne Volumen \\(V\\) und Oberfläche \\(O\\).`;
 					textPrint = `Kugel: r = ${r} ${unitL}. Berechne V und O.${space(1.8)}`;
 					s = `\\[ \\begin{aligned}
@@ -2051,10 +2050,10 @@ function createTask(type, isEasyMode, grade = 5, options = {}) {
 		case 'linear_function': {
 			// Generiere eine zufällige lineare Funktion
 			let m;
-			let b = effectiveEasyMode ? randInt(-6, 6) / 2 : randInt(-8, 8) / 2;
-			if (b >= 2) m = effectiveEasyMode ? randInt(-4, -2) / 2 : randInt(-6, -2) / 2;
-			else if (b <= -2) m = effectiveEasyMode ? randInt(2, 4) / 2 : randInt(2, 6) / 2;
-			else m = effectiveEasyMode ? randInt(-4, 4) / 2 : randInt(-6, 6) / 2;
+			let b = false ? randInt(-6, 6) / 2 : randInt(-8, 8) / 2;
+			if (b >= 2) m = false ? randInt(-4, -2) / 2 : randInt(-6, -2) / 2;
+			else if (b <= -2) m = false ? randInt(2, 4) / 2 : randInt(2, 6) / 2;
+			else m = false ? randInt(-4, 4) / 2 : randInt(-6, 6) / 2;
 
 			// Funktion
 			const f = (x) => m * x + b;
@@ -2866,7 +2865,7 @@ function createTask(type, isEasyMode, grade = 5, options = {}) {
 			}
 
 			let sortedData = [...data].sort((a, b) => a - b);
-			let displayData = effectiveEasyMode ? sortedData : data;
+			let displayData = false ? sortedData : data;
 
 			// Bestimmung der einen gesuchten Kenngröße
 			let taskType = randInt(0, 3);
@@ -2883,7 +2882,7 @@ function createTask(type, isEasyMode, grade = 5, options = {}) {
 					if (n === 5) {
 						// Bei 5 Daten: Genau der 3. Wert
 						let median = sortedData[2];
-						loesung = effectiveEasyMode ?
+						loesung = false ?
 						`${displayData.join(', ')}<br>Zentralwert (Median) = ${median}.` :
 						`geordnete Liste: ${sortedData.join(', ')}<br>Zentralwert (Median) = ${median}`;
 					} else {
@@ -2893,7 +2892,7 @@ function createTask(type, isEasyMode, grade = 5, options = {}) {
 						let median = (m1 + m2) / 2;
 						let medianStr = formatDecimal(median, 2);
 						
-						loesung = effectiveEasyMode ?
+						loesung = false ?
 							`${sortedData.join(', ')}<br>Zentralwert = (${m1} + ${m2}) : 2 = ${medianStr}` :
 							`geordnete Liste: ${sortedData.join(', ')}<br>Zentralwert = (${m1} + ${m2}) : 2 = ${medianStr}`;
 						}
@@ -3202,8 +3201,8 @@ function createTask(type, isEasyMode, grade = 5, options = {}) {
 				// TYP 1: Anteil berechnen (Bruch von Ganzem)
 				// Damit es glatt aufgeht, muss das Ganze ein Vielfaches des Nenners sein.
 				const scale = Math.random() > 0.5 ? 10 : 1; // Sorgt manchmal für Hunderter/Zehner-Werte
-				const multiplier = effectiveEasyMode ? rnd(2, 9) : rnd(3, 15);
-				const normalFactor = effectiveEasyMode ? 1 : (randInt(10, 25) / 10);
+				const multiplier = false ? rnd(2, 9) : rnd(3, 15);
+				const normalFactor = false ? 1 : (randInt(10, 25) / 10);
 				const G = n * multiplier * scale * normalFactor; // Das Ganze (Grundwert)
 				const W = (G / n) * z;                           // Der Anteil
 
@@ -3215,8 +3214,8 @@ function createTask(type, isEasyMode, grade = 5, options = {}) {
 				// TYP 2: Ganzes berechnen (Bruch sind Anteil von...)
 				// Damit es glatt aufgeht, muss der Anteil ein Vielfaches des Zählers sein.
 				const scale = Math.random() > 0.5 ? 10 : 1;
-				const multiplier = effectiveEasyMode ? rnd(2, 9) : rnd(3, 15);
-				const normalFactor = effectiveEasyMode ? 1 : (randInt(10, 25) / 10);
+				const multiplier = false ? rnd(2, 9) : rnd(3, 15);
+				const normalFactor = false ? 1 : (randInt(10, 25) / 10);
 				const W = z * multiplier * scale * normalFactor; // Der Anteil
 				const G = (W / z) * n;                            // Das Ganze
 				
@@ -3264,7 +3263,7 @@ function createTask(type, isEasyMode, grade = 5, options = {}) {
 			let einzelwert;
 			
 			// Realistische Werte je nach Typ festlegen
-			if (effectiveEasyMode) {
+			if (false) {
 				if (sz.type === 'print') {
 					einzelwert = randInt(5, 15); // 5 bis 15 Seiten pro Minute
 				} else if (sz.type === 'job') {
@@ -3394,7 +3393,7 @@ function createTask(type, isEasyMode, grade = 5, options = {}) {
 			const fmtNum = (num) => formatDecimal(num, 1);
 		
 			const pickSimpleValue = () => {
-				if (effectiveEasyMode) {
+				if (false) {
 					if (Math.random() < 0.8) {
 						return randInt(1, 12); // bevorzugt ganze Zahlen
 					}

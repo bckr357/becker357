@@ -46,28 +46,28 @@ const taskTypesByGrade = {
 		'units', 'potenzen', 'nat_as', 'nat_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order',
 		'anteile', 'prop', 'percent', 'pv', 'zinsen',
-		'equations',
+		'terme', 'equations',
 		'round', 'ueberschlag', 'zahlengerade', 'geometry', 'statistik', 'wkt'
 	],
 	klasse8: [
 		'units', 'potenzen', 'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order',
 		'anteile', 'prop', 'percent', 'pv', 'zinsen',
-		'equations', 'equations_adv',
+		'terme', 'equations', 'equations_adv',
 		'round', 'ueberschlag', 'zahlengerade', 'geometry', 'statistik', 'wkt'
 	],
 	klasse9: [
 		'units', 'potenzen', 'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order',
 		'anteile', 'prop', 'percent', 'pv', 'zinsen',
-		'equations', 'equations_adv',
+		'terme', 'equations', 'equations_adv',
 		'round', 'ueberschlag', 'zahlengerade', 'geometry', 'statistik', 'wkt'
 	],
 	klasse10: [
 		'units', 'potenzen', 'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
 		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order',
 		'anteile', 'prop', 'percent', 'pv', 'zinsen',
-		'equations',
+		'terme', 'equations',
 		'round', 'ueberschlag', 'zahlengerade', 'geometry', 'statistik', 'wkt'
 	]
 };
@@ -1955,22 +1955,21 @@ function createTask(type, grade = 5, options = {}) {
 			let selectedVars = fisherYatesShuffle(vars).slice(0, 2);
 			if (Math.random() < 0.5) selectedVars[1] = '';
 			
-			let mode = randInt(0, 1);
+			let mode = grade >= 9 ? randInt(0, 4) : 0;
 			let taskStr, resStr;
 			
 			if (mode === 0) {
 				// --- TYP: ZUSAMMENFASSEN ---
-				const numGlieder = randInt(4, 5); // Mind. 4 Glieder für echtes Zusammenfassen
+				const numGlieder = randInt(4, 5);
 				let glieder = [];
 				let usedCombinations = new Set();
 				let counts = { [selectedVars[0]]: 0, [selectedVars[1]]: 0 };
 
 				for (let i = 0; i < numGlieder; i++) {
 					let v;
-					// DIDAKTISCHE GARANTIE:
-					if (i === 0 || i === 1) v = selectedVars[0]; // Typ A (muss zusammengefasst werden)
-					else if (i === 2) v = selectedVars[1];       // Typ B (muss vorkommen)
-					else v = selectedVars[randInt(0, 1)];        // Rest zufällig
+					if (i === 0 || i === 1) v = selectedVars[0];
+					else if (i === 2) v = selectedVars[1];
+					else v = selectedVars[randInt(0, 1)];
 					
 					let val, combo;
 					do {
@@ -1982,28 +1981,22 @@ function createTask(type, grade = 5, options = {}) {
 
 					usedCombinations.add(combo);
 					counts[v] += val;
-					
-					// Wir speichern hier nur die Rohdaten, das Vorzeichen-Handling 
-					// machen wir nach dem Mischen für das erste Glied neu.
 					let absCoef = Math.abs(val);
 					let coefStr = (absCoef === 1 && v !== '') ? '' : absCoef;
 					glieder.push({ val: val, v: v, text: `${coefStr}${v}` });
 				}
 
-				// Glieder mischen
 				for (let i = glieder.length - 1; i > 0; i--) {
 					const j = Math.floor(Math.random() * (i + 1));
 					[glieder[i], glieder[j]] = [glieder[j], glieder[i]];
 				}
 
-				// TaskString bauen mit korrektem Vorzeichen-Handling
 				taskStr = glieder.map((g, idx) => {
 					let sStr = g.val > 0 ? '+ ' : '- ';
 					if (idx === 0) sStr = g.val > 0 ? '' : '-';
 					return `${sStr}${g.text}`;
 				}).join(' ').trim();
 
-				// Ergebnis berechnen
 				let resParts = [];
 				[selectedVars[0], selectedVars[1]].forEach(v => {
 					let total = counts[v];
@@ -2016,24 +2009,23 @@ function createTask(type, grade = 5, options = {}) {
 					}
 				});
 				resStr = resParts.length === 0 ? '0' : resParts.join(' ').trim();
-				answer = expressionAnswer(resStr);
-				textDisplay = `Fasse zusammen: <br>\\( ${taskStr} \\)`;
-				textPrint = `Fasse zusammen: \\(\\quad ${taskStr} = \\) ${space(0.5)}`;
+				answer = expressionAnswer(resStr, { termMode: 'collect' });
+				textDisplay = `Fasse zusammen: <br>\( ${taskStr} \)`;
+				textPrint = `Fasse zusammen: \(\quad ${taskStr} = \) ${space(0.5)}`;
 
-			} else {
-				// --- TYP: KLAMMER AUFLÖSEN ---
+			} else if (mode === 1) {
+				// --- TYP: KLAMMER AUFL?SEN ---
 				let v = selectedVars[0] || 'x';
 				let cVarCoef = rnd(-9, 9);
 				let cNum = rnd(-12, 12);
 
-				// Mit 50% Chance ist der Faktor selbst eine Variable (z.B. 3x), sonst eine Zahl
 				const useVarFactor = v !== '' && Math.random() < 0.5;
 				const fmtFactorVar = (coef, variable) => {
 					if (coef === 1) return variable;
 					if (coef === -1) return fmt(`-${variable}`);
 					return fmt(`${coef}${variable}`);
 				};
-				const fmtProductFactor = (factorText, termText) => `${fmt(termText)} \\cdot ${fmt(factorText)}`;
+				const fmtProductFactor = (factorText, termText) => `${fmt(termText)} \cdot ${fmt(factorText)}`;
 
 				let factorCoef, fDisplay;
 				if (useVarFactor) {
@@ -2049,7 +2041,6 @@ function createTask(type, grade = 5, options = {}) {
 				taskStr = `${fDisplay} (${cVarCoef}${v} ${cNum > 0 ? '+' : '-'} ${Math.abs(cNum)})`;
 
 				if (useVarFactor) {
-					// Ergebnis enthält v² und v
 					const resVV = factorCoef * cVarCoef;
 					const resV  = factorCoef * cNum;
 					const term1 = fmtProductFactor(fDisplay, `${cVarCoef}${v}`);
@@ -2063,8 +2054,8 @@ function createTask(type, grade = 5, options = {}) {
 					       :               ` - ${Math.abs(resV)}${v}`;
 					const step = cNum > 0 ? `${term1} + ${term2}` : `${term1} - ${term2}`;
 					const finalRes = `${p1}${p2}`.trim();
-					resStr = `${step} \\\\ = ${finalRes}`;
-					answer = expressionAnswer(finalRes);
+					resStr = `${step} \ = ${finalRes}`;
+					answer = expressionAnswer(finalRes, { termMode: 'expand' });
 				} else {
 					const resV = factorCoef * cVarCoef;
 					const resN = factorCoef * cNum;
@@ -2076,19 +2067,159 @@ function createTask(type, grade = 5, options = {}) {
 					let p2 = resN > 0 ? `+ ${resN}` : `- ${Math.abs(resN)}`;
 					const step = cNum > 0 ? `${term1} + ${term2}` : `${term1} - ${term2}`;
 					const finalRes = `${p1} ${p2}`.trim();
-					resStr = `${step} \\\\ = ${finalRes}`;
-					answer = expressionAnswer(finalRes);
+					resStr = `${step} \ = ${finalRes}`;
+					answer = expressionAnswer(finalRes, { termMode: 'expand' });
 				}
 
-				textDisplay = `Löse die Klammer auf: <br>\\( ${taskStr} \\)`;
-				textPrint = `Löse die Klammer auf: \\(\\quad ${taskStr} = \\)`;
-			} 
+				textDisplay = `L?se die Klammer auf: <br>\( ${taskStr} \)`;
+				textPrint = `L?se die Klammer auf: \(\quad ${taskStr} = \)`;
+			} else if (mode === 2) {
+				// --- TYP: AUSKLAMMERN ---
+				let v = selectedVars[0] || 'x';
+				let w = selectedVars[1] || '';
+				const getGcd = mathUtils.getGcd;
+				const commonCoef = rnd(2, 6);
+				let a, b;
+				do {
+					a = rnd(2, 9);
+					b = rnd(2, 9);
+				} while (getGcd(a, b) !== 1);
+				const sign = Math.random() < 0.5 ? 1 : -1;
+				const commonFactorHasVar = w === '' || Math.random() < 0.5;
+				const extraInFirst = w !== '' && Math.random() < 0.5;
+				let term1Vars, term2Vars;
 
-			s = `\\[ ${taskStr} = ${resStr} \\]`;
-			if (!answer) answer = expressionAnswer(String(resStr).replace(/^.*?=\s*/, '').trim());
+				if (w === '') {
+					term1Vars = v;
+					term2Vars = v;
+				} else if (commonFactorHasVar) {
+					term1Vars = v + (extraInFirst ? w : '');
+					term2Vars = v + (!extraInFirst ? w : '');
+				} else {
+					term1Vars = extraInFirst ? w : v;
+					term2Vars = !extraInFirst ? w : v;
+				}
+				const term1Coef = commonCoef * a;
+				const term2Coef = commonCoef * b;
+
+				const fmtInner = (coef, variable) => {
+					if (variable === '') return `${coef}`;
+					if (coef === 1) return variable;
+					return `${coef}${variable}`;
+				};
+
+				const term1Text = `${fmt(term1Coef)}${term1Vars}`;
+				const term2Text = `${fmt(term2Coef)}${term2Vars}`;
+				taskStr = `${term1Text} ${sign === 1 ? '+' : '-'} ${term2Text}`;
+
+				const commonFactorText = commonFactorHasVar ? `${fmt(commonCoef)}${v}` : fmt(commonCoef);
+				const inner1 = fmtInner(a, commonFactorHasVar ? (extraInFirst ? w : '') : term1Vars);
+				const inner2 = fmtInner(b, commonFactorHasVar ? (!extraInFirst ? w : '') : term2Vars);
+				const innerSign = sign === 1 ? '+' : '-';
+				resStr = `${commonFactorText}(${inner1} ${innerSign} ${inner2})`;
+				answer = expressionAnswer(resStr, { termMode: 'factor' });
+
+				textDisplay = `Klammere vollst?ndig aus: <br>\( ${taskStr} \)`;
+				textPrint = `Klammere vollst?ndig aus: \(\quad ${taskStr} = \)`;
+			} else if (mode === 3) {
+				// --- TYP: KLAMMER AUFL?SEN UND ZUSAMMENFASSEN ---
+				let v = selectedVars[0] || 'x';
+				const useMinusBracket = Math.random() < 0.5;
+				let factor, a, b, c, d;
+				let coeff, constTerm;
+				if (useMinusBracket) {
+					do {
+						a = rnd(2, 9);
+						b = rnd(-8, 8);
+						while (b === 0) b = rnd(-8, 8);
+						c = rnd(-9, 9);
+						while (c === 0) c = rnd(-9, 9);
+						d = rnd(-9, 9);
+						while (d === 0) d = rnd(-9, 9);
+						coeff = -a + c;
+						constTerm = -b + d;
+					} while (coeff === 0 || constTerm === 0);
+
+					const termB = Math.abs(b);
+					const termC = Math.abs(c);
+					const termD = Math.abs(d);
+					const left1 = `-(${a}${v} ${b >= 0 ? '+' : '-'} ${termB})`;
+					const left2 = `${c >= 0 ? '+' : '-'} ${termC}${v}`;
+					const left3 = `${d >= 0 ? '+' : '-'} ${termD}`;
+					taskStr = `${left1} ${left2} ${left3}`;
+				} else {
+					do {
+						factor = rnd(2, 6);
+						a = rnd(2, 9);
+						b = rnd(-8, 8);
+						while (b === 0) b = rnd(-8, 8);
+						c = rnd(-9, 9);
+						while (c === 0) c = rnd(-9, 9);
+						d = rnd(-9, 9);
+						while (d === 0) d = rnd(-9, 9);
+						coeff = factor * a + c;
+						constTerm = factor * b + d;
+					} while (coeff === 0 || constTerm === 0);
+
+					const termB = Math.abs(b);
+					const termC = Math.abs(c);
+					const termD = Math.abs(d);
+					const left1 = `${factor}(${a}${v} ${b >= 0 ? '+' : '-'} ${termB})`;
+					const left2 = `${c >= 0 ? '+' : '-'} ${termC}${v}`;
+					const left3 = `${d >= 0 ? '+' : '-'} ${termD}`;
+					taskStr = `${left1} ${left2} ${left3}`;
+				}
+
+				let resParts = [];
+				if (coeff !== 0) {
+					let sStr = coeff > 0 ? (resParts.length === 0 ? '' : '+ ') : '- ';
+					if (resParts.length === 0 && coeff < 0) sStr = '-';
+					const absCoeff = Math.abs(coeff);
+					const cStr = (absCoeff === 1 && v !== '') ? '' : absCoeff;
+					resParts.push(`${sStr}${cStr}${v}`);
+				}
+				if (constTerm !== 0) {
+					let sStr = constTerm > 0 ? (resParts.length === 0 ? '' : '+ ') : '- ';
+					if (resParts.length === 0 && constTerm < 0) sStr = '-';
+					resParts.push(`${sStr}${Math.abs(constTerm)}`);
+				}
+				resStr = resParts.length === 0 ? '0' : resParts.join(' ').trim();
+				answer = expressionAnswer(resStr, { termMode: 'expand' });
+
+				textDisplay = `L?se die Klammer auf und fasse zusammen: <br>\( ${taskStr} \)`;
+				textPrint = `Vereinfache maximal: \(\quad ${taskStr} = \) ${space(0.5)}`;
+			} else if (mode === 4) {
+				// --- TYP: MINUSKLAMMER AUFL?SEN ---
+				let v = selectedVars[0] || 'x';
+				const termText = (coef, variable) => {
+					if (variable === '') return `${coef}`;
+					if (coef === 1) return variable;
+					if (coef === -1) return `-${variable}`;
+					return `${coef}${variable}`;
+				};
+
+				const useVarTerm = v !== '' && Math.random() < 0.75;
+				const plusInside = Math.random() < 0.5;
+				const a = rnd(2, 9);
+				const b = rnd(2, 9);
+
+				if (useVarTerm) {
+					const rightTerm = termText(b, v);
+					taskStr = `-(${a} ${plusInside ? '+' : '-'} ${rightTerm})`;
+					resStr = `-${a} ${plusInside ? '-' : '+'} ${rightTerm}`;
+				} else {
+					taskStr = `-(${a} ${plusInside ? '+' : '-'} ${b})`;
+					resStr = `-${a} ${plusInside ? '-' : '+'} ${b}`;
+				}
+				answer = expressionAnswer(resStr, { termMode: 'expand' });
+
+				textDisplay = `L?se die Minusklammer auf: <br>\( ${taskStr} \)`;
+				textPrint = `L?se die Minusklammer auf: \(\quad ${taskStr} = \)`;
+			}
+
+			s = `\[ ${taskStr} = ${resStr} \]`;
 			break;
 		}
-
 		case 'word_terms': {
 			const templates = [
 				{ text: (a, b) => `Addiere ${a} und ${b}.`, symbol: '+' },

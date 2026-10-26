@@ -64,7 +64,6 @@
         <div class="settings-drawer-section">
             <div class="settings-selection-bar">
                 <div class="settings-topbar-label settings-checkbox-group">
-                    <label class="settings-checkbox-option"><input type="checkbox" v-model="activeMentalMathMode" class="settings-checkbox"><span>Easy-Mode</span></label>
                     <label v-if="currentView !== 'quiz'" class="settings-checkbox-option"><input type="checkbox" v-model="weights" class="settings-checkbox"><span>Gewichtung</span></label>
                 </div>
                 <label v-if="currentView !== 'training'" class="settings-topbar-label">
@@ -298,7 +297,6 @@
         <aside class="builder-sidebar">
             <div class="builder-sidebar-top">
                 <div class="builder-sidebar-controls">
-                    <label class="settings-checkbox-option builder-inline-control"><input type="checkbox" v-model="activeMentalMathMode" class="settings-checkbox"><span>Easy-Mode</span></label>
                     <label class="settings-checkbox-option builder-inline-control"><input type="checkbox" v-model="builderQuizMode" class="settings-checkbox"><span>Quiz-Mode</span></label>
                     <label class="settings-topbar-label builder-inline-control">
                         <span>Klasse</span>
