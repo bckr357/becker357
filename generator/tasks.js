@@ -2756,6 +2756,19 @@ const fromUnit = displayUnits[unitIndex];
 		}
 
 		case 'round': {
+			const useNaturalNumberRound = grade <= 5 || (grade >= 6 && Math.random() < 0.3);
+			if (useNaturalNumberRound) {
+				const unitNames = ['Zehner', 'Hunderter', 'Tausender'];
+				const unit = unitNames[randInt(0, unitNames.length - 1)];
+				const factor = unit === 'Zehner' ? 10 : unit === 'Hunderter' ? 100 : 1000;
+				const value = randInt(10, 9999);
+				const result = Math.round(value / factor) * factor;
+
+				textDisplay = `Runde auf ${unit}: \\( \\quad ${comma(value)} \\approx \\) ${blank(2)}`;
+				s = `Runde auf ${unit}: \\( \\; \\; ${comma(value)} \\approx ${comma(result)} \\)`;
+				break;
+			}
+
 			const carryBias = 0.4; // Wahrscheinlichkeit für Übertrag (9 an der Rundungsstelle)
 			
 			rd = Math.random();
