@@ -1882,17 +1882,20 @@ function createTask(type, grade = 5, options = {}) {
 			
 			if (mode === 0) {
 				// --- TYP: ZUSAMMENFASSEN ---
-				const numGlieder = randInt(4, 5); // Mind. 4 Glieder für echtes Zusammenfassen
+				const useThreeTermTypes = Math.random() < 0.35;
+				const termTypes = useThreeTermTypes
+					? [selectedVars[0], selectedVars[1] || fisherYatesShuffle(vars.filter(v => v !== selectedVars[0]))[0], '']
+					: [selectedVars[0], selectedVars[1]];
+				const numGlieder = useThreeTermTypes ? 5 : randInt(4, 5); // Drei Typen müssen jeweils vorkommen
+				const typeSequence = useThreeTermTypes
+					? [0, 0, 1, 1, 2]
+					: numGlieder === 4 ? [0, 0, 1, 1] : [0, 0, 1, 1, 0];
 				let glieder = [];
 				let usedCombinations = new Set();
-				let counts = { [selectedVars[0]]: 0, [selectedVars[1]]: 0 };
+				let counts = Object.fromEntries(termTypes.map(v => [v, 0]));
 
 				for (let i = 0; i < numGlieder; i++) {
-					let v;
-					// DIDAKTISCHE GARANTIE:
-					if (i === 0 || i === 1) v = selectedVars[0]; // Typ A (muss zusammengefasst werden)
-					else if (i === 2) v = selectedVars[1];       // Typ B (muss vorkommen)
-					else v = selectedVars[randInt(0, 1)];        // Rest zufällig
+					const v = termTypes[typeSequence[i]];
 					
 					let val, combo;
 					do {
@@ -1927,7 +1930,7 @@ function createTask(type, grade = 5, options = {}) {
 
 				// Ergebnis berechnen
 				let resParts = [];
-				[selectedVars[0], selectedVars[1]].forEach(v => {
+				termTypes.forEach(v => {
 					let total = counts[v];
 					if (total !== 0) {
 						let sStr = total > 0 ? (resParts.length === 0 ? '' : '+ ') : '- ';
@@ -3503,8 +3506,6 @@ function createTask(type, grade = 5, options = {}) {
 		solution: s
 	};
 };
-
-
 
 
 
