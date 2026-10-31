@@ -87,6 +87,10 @@ createApp({
         if (initialShareConfig.worksheetTitle !== null) {
             state.worksheetTitle.value = initialShareConfig.worksheetTitle;
         }
+        if (initialShareConfig.weights) {
+            Object.assign(state.taskWeights.value, initialShareConfig.weights);
+            state.weights.value = true;
+        }
 
         const classConfig = (typeof taskTypesByGrade === 'object' && taskTypesByGrade)
             ? taskTypesByGrade
@@ -218,7 +222,9 @@ createApp({
                 taskCount: state.taskCount.value,
                 arrangement: state.taskArrangementMode.value,
                 pages: state.worksheetA5Pages.value,
-                worksheetTitle: state.worksheetTitle.value
+                worksheetTitle: state.worksheetTitle.value,
+                weights: state.taskWeights.value,
+                weightsEnabled: state.weights.value
             });
             const nextUrl = `${url.pathname}${url.search}${url.hash}`;
             const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;

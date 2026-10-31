@@ -22,6 +22,16 @@ window.MTGShareLinkModule = {
         }
 
         const maxIndex = indexToKey.length - 1;
+        const byteToBase64Url = bytes => {
+            let binary = '';
+            for (const byte of bytes) binary += String.fromCharCode(byte);
+            return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        };
+        const base64UrlToBytes = value => {
+            const normalized = value.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - value.length % 4) % 4);
+            const binary = atob(normalized);
+            return Uint8Array.from(binary, char => char.charCodeAt(0));
+        };
 
         const encode = types => {
             const bytes = new Uint8Array(Math.ceil((maxIndex + 1) / 8));
@@ -38,9 +48,7 @@ window.MTGShareLinkModule = {
             if (lastNonZero < 0) return '';
 
             const trimmedBytes = bytes.subarray(0, lastNonZero + 1);
-            let binary = '';
-            for (const byte of trimmedBytes) binary += String.fromCharCode(byte);
-            return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+            return byteToBase64Url(trimmedBytes);
         };
 
         const decode = value => {
@@ -62,6 +70,55 @@ window.MTGShareLinkModule = {
             } catch (error) {
                 console.warn('MTG: Ungueltige Aufgabentypen-Codierung in der URL.', error);
                 return [];
+            }
+        };
+
+        const encodeWeights = weights => {
+            const nibbles = new Uint8Array(maxIndex + 1);
+            nibbles.fill(1);
+            let hasCustomWeight = false;
+
+            for (const [type, rawWeight] of Object.entries(weights || {})) {
+                const index = keyToIndex.get(type);
+                const weight = Number(rawWeight);
+                if (index === undefined || !Number.isInteger(weight) || weight < 0 || weight > 9) continue;
+                nibbles[index] = weight;
+                hasCustomWeight ||= weight !== 1;
+            }
+
+            if (!hasCustomWeight) return '';
+
+            let lastNonDefault = nibbles.length - 1;
+            while (lastNonDefault >= 0 && nibbles[lastNonDefault] === 1) {
+                lastNonDefault--;
+            }
+
+            const bytes = new Uint8Array(Math.ceil((lastNonDefault + 1) / 2));
+            for (let index = 0; index <= lastNonDefault; index++) {
+                bytes[Math.floor(index / 2)] |= nibbles[index] << (index % 2 ? 4 : 0);
+            }
+            return byteToBase64Url(bytes);
+        };
+
+        const decodeWeights = value => {
+            if (typeof value !== 'string' || !value) return null;
+
+            try {
+                const bytes = base64UrlToBytes(value);
+                const weights = {};
+                for (let index = 0; index <= maxIndex; index++) {
+                    if (!indexToKey[index]) continue;
+                    const byte = bytes[Math.floor(index / 2)];
+                    const weight = byte === undefined
+                        ? 1
+                        : (byte >> (index % 2 ? 4 : 0)) & 0x0f;
+                    if (weight > 9) continue;
+                    weights[indexToKey[index]] = weight;
+                }
+                return weights;
+            } catch (error) {
+                console.warn('MTG: Ungueltige Gewichtungs-Codierung in der URL.', error);
+                return null;
             }
         };
 
@@ -104,15 +161,16 @@ window.MTGShareLinkModule = {
                 const worksheetTitle = url.searchParams.get('h')
                     ?? url.searchParams.get('title')
                     ?? url.searchParams.get('ueberschrift');
+                const weights = decodeWeights(url.searchParams.get('w'));
 
-                return { grade, types, taskCount, arrangement, pages, worksheetTitle };
+                return { grade, types, taskCount, arrangement, pages, worksheetTitle, weights };
             } catch (error) {
                 console.warn('MTG: Fehler beim Lesen der URL.', error);
-                return { grade: null, types: [], taskCount: null, arrangement: null, pages: null, worksheetTitle: null };
+                return { grade: null, types: [], taskCount: null, arrangement: null, pages: null, worksheetTitle: null, weights: null };
             }
         };
 
-        const write = (urlLike, { grade, types, taskCount, arrangement, pages, worksheetTitle }) => {
+        const write = (urlLike, { grade, types, taskCount, arrangement, pages, worksheetTitle, weights, weightsEnabled }) => {
             const url = new URL(urlLike, window.location.href);
             url.searchParams.delete('klasse');
             url.searchParams.delete('grade');
@@ -163,6 +221,13 @@ window.MTGShareLinkModule = {
                 url.searchParams.set('h', normalizedTitle);
             } else {
                 url.searchParams.delete('h');
+            }
+
+            const encodedWeights = weightsEnabled ? encodeWeights(weights) : '';
+            if (encodedWeights) {
+                url.searchParams.set('w', encodedWeights);
+            } else {
+                url.searchParams.delete('w');
             }
 
             return url;
