@@ -41,10 +41,12 @@ window.MTGStateModule = {
             const left = [];
             const right = [];
 
+            const leftTaskCount = Math.ceil(tasks.value.length / 2);
+
             tasks.value.forEach((task, index) => {
                 const entry = { task, number: index + 1, key: `col-${index}` };
 
-                if (index % 2 === 0) {
+                if (index < leftTaskCount) {
                     left.push(entry);
                 } else {
                     right.push(entry);

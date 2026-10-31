@@ -2255,8 +2255,10 @@ textarea {
     .worksheet-sheet {
         width: 269mm;
         /* margin: 7mm 12mm 7mm 16mm; */
-        padding: 0;
+        padding: 10px 0;
         box-sizing: border-box;
+        -webkit-box-decoration-break: clone;
+        box-decoration-break: clone;
         border: none;
         border-radius: 0;
         box-shadow: none;
