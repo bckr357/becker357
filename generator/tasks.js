@@ -3380,7 +3380,7 @@ const fromUnit = displayUnits[unitIndex];
 					if (coef === -1) return fmt(`-${variable}`);
 					return fmt(`${coef}${variable}`);
 				};
-				const fmtProductFactor = (factorText, termText) => `${fmt(termText)} \\cdot ${fmt(factorText)}`;
+				const fmtProductFactor = (factorText, termText) => `${fmt(factorText)} \\cdot ${fmt(termText)}`;
 
 				let factorCoef, fDisplay;
 				if (useVarFactor) {

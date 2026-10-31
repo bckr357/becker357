@@ -1750,18 +1750,19 @@ textarea {
 .worksheet-name-copy {
     display: block;
     width: 100%;
-    padding-bottom: 3mm;
+    padding-bottom: 2mm;
     border-bottom: 0.3mm solid var(--slate-500);
 }
 
 .worksheet-title-copy {
     display: block;
     width: 100%;
-    margin-top: 3mm;
-    padding-bottom: 3mm;
+    margin-top: 1mm;
+    padding-bottom: 1mm;
     border-bottom: 0.3mm solid var(--slate-500);
     text-align: center;
-    font-weight: 700;
+    font-size: 12pt;
+    font-weight: 400;
 }
 
 .worksheet-title-input {
