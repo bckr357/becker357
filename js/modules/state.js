@@ -18,6 +18,7 @@ window.MTGStateModule = {
         );
         const taskCount = ref(20);
         const taskArrangementMode = ref('ordered');
+        const worksheetTitle = ref('');
         const gtNumber = ref(1);
         const worksheetA5Pages = ref(2);
         const weights = ref(false);
@@ -83,6 +84,7 @@ window.MTGStateModule = {
             taskWeights,
             taskCount,
             taskArrangementMode,
+            worksheetTitle,
             gtNumber,
             worksheetA5Pages,
             weights,

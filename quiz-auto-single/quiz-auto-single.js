@@ -3,7 +3,7 @@
 // mit Streaks und Musterlösung
 // ============================================================
 
-const { createApp, ref, reactive, computed, nextTick, onMounted, onBeforeUnmount } = Vue;
+const { createApp, ref, reactive, computed, watch, nextTick, onMounted, onBeforeUnmount } = Vue;
 
 const app = createApp({
 	components: {
@@ -12,6 +12,11 @@ const app = createApp({
 	setup() {
 		const grade = ref(10);
 		const selectedTypes = ref([]);
+		const shareLink = window.MTGShareLinkModule.createCodec(window.MTGShareLinkTypeRegistry);
+		const initialShareConfig = shareLink.read(window.location.href);
+		if (initialShareConfig.grade !== null) {
+			grade.value = initialShareConfig.grade;
+		}
 		const quizStarted = ref(false);
 		const showResultOverview = ref(false);
 		const resultOverview = ref(null);
@@ -42,6 +47,11 @@ const app = createApp({
 				return a.localeCompare(b);
 			});
 		});
+
+		if (initialShareConfig.types && initialShareConfig.types.length > 0) {
+			const allowed = new Set(availableTypes.value);
+			selectedTypes.value = initialShareConfig.types.filter(type => allowed.has(type));
+		}
 
 		const stripHtml = (value = '') => String(value)
 			.replace(/<br\s*\/?>/gi, '\n')
@@ -114,6 +124,26 @@ const app = createApp({
 			const allowed = new Set(availableTypes.value);
 			selectedTypes.value = selectedTypes.value.filter(type => allowed.has(type));
 		};
+
+		const syncShareUrl = () => {
+			const allowed = new Set(availableTypes.value);
+			const types = selectedTypes.value.filter(type => allowed.has(type));
+			const url = shareLink.write(window.location.href, {
+				grade: grade.value,
+				types
+			});
+			const nextUrl = `${url.pathname}${url.search}${url.hash}`;
+			const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+			if (nextUrl !== currentUrl) {
+				try {
+					window.history.replaceState({}, '', url);
+				} catch (e) {
+					// Ignore on restrictive file:// environments
+				}
+			}
+		};
+
+		watch([grade, selectedTypes], syncShareUrl, { deep: true });
 
 		const typesetMathJax = async () => {
 			const waitForMathJax = async (maxAttempts = 30) => {

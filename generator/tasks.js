@@ -7,111 +7,111 @@ const comma = formatUtils.comma;
 const formatDecimal = formatUtils.formatDecimal;
 
 const taskCategories = {
-	arithmetic: ['nat_as', 'nat_md', 'z_as', 'z_md', 'potenzen', 'schriftlich_as', 'schriftlich_md', 'db_as', 'db_md', 'pow10', 'round', 'ueberschlag', 'zahlengerade', 'vorrang'],
-	tables: ['table_add', 'table_mul', 'table_sub', 'table_terms'],
-	fractions: ['frac_as', 'frac_md', 'frac_simplify', 'frac_convert', 'frac_order'],
-	percent: ['anteile', 'prop', 'percent', 'pv', 'zinsen', 'units'],
-	algebra: ['terme', 'equations', 'equations_adv', 'formel_umstellen'],
-	geometry: ['geometry', 'geometry_diagram', 'winkel', 'schraegbild', 'kongruenz'],
+	arithmetic: ['natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'potenzen', 'schriftliche_addition_subtraktion', 'schriftliche_multiplikation_division', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'runden', 'ueberschlag', 'zahlengerade', 'vorrang'],
+	tables: ['additionstabellen', 'multiplikationstabellen', 'subtraktionstabellen', 'termtabellen'],
+	fractions: ['brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_kuerzen', 'brueche_umwandeln', 'brueche_ordnen'],
+	percent: ['anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen', 'einheiten'],
+	algebra: ['terme', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig', 'formel_umstellen'],
+	geometry: ['geometrie', 'dreiecksberechnungen_zeichnung', 'winkel', 'schraegbild', 'kongruenz'],
 	functions: ['funktionen'],
-	statistics: ['statistik', 'wkt'],
+	statistics: ['statistik', 'wahrscheinlichkeiten'],
 	advanced: ['teiler', 'primzahlen']
 };
 
 // Sichtbare Aufgabentypen je Klassenstufe (wird vom UI-Dropdown genutzt)
 const taskTypesByGrade = {
 	klasse5: [
-		'teiler', 'primzahlen', 'units', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'db_as', 'db_md', 'pow10', 'vorrang',
-		'table_add', 'table_sub', 'table_mul', 
-		'round', 'ueberschlag', 'zahlengerade',
-		'word_terms', 
-		'geometry', 'geometry_diagram', 'winkel'
+		'teiler', 'primzahlen', 'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'schriftliche_addition_subtraktion', 'schriftliche_multiplikation_division', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
+		'additionstabellen', 'subtraktionstabellen', 'multiplikationstabellen',
+		'runden', 'ueberschlag', 'zahlengerade',
+		'wortterme',
+		'geometrie', 'dreiecksberechnungen_zeichnung', 'winkel'
 	],
 	klasse6: [
-		'teiler', 'primzahlen', 'units', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'db_as', 'db_md', 'pow10', 'vorrang',
-		'table_add', 'table_sub', 'table_mul', 
-		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
-		'word_terms', 
-		'geometry', 'geometry_diagram', 'winkel'
+		'teiler', 'primzahlen', 'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'schriftliche_addition_subtraktion', 'schriftliche_multiplikation_division', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
+		'additionstabellen', 'subtraktionstabellen', 'multiplikationstabellen',
+		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen', 'runden', 'ueberschlag', 'zahlengerade',
+		'wortterme',
+		'geometrie', 'dreiecksberechnungen_zeichnung', 'winkel'
 	],
 	klasse7: [
-		'teiler', 'primzahlen', 'units', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'db_as', 'db_md', 'pow10', 'vorrang',
-		'table_add', 'table_sub', 'table_mul', 'table_terms',
-		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
-		'anteile', 'prop', 
-		'word_terms', 
-		'geometry', 'geometry_diagram', 'winkel', 'kongruenz'
+		'teiler', 'primzahlen', 'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'schriftliche_addition_subtraktion', 'schriftliche_multiplikation_division', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
+		'additionstabellen', 'subtraktionstabellen', 'multiplikationstabellen', 'termtabellen',
+		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen', 'runden', 'ueberschlag', 'zahlengerade',
+		'anteile', 'proportionalitaet',
+		'wortterme',
+		'geometrie', 'dreiecksberechnungen_zeichnung', 'winkel', 'kongruenz'
 	],
 	klasse8: [
-		'teiler', 'primzahlen', 'units', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
-		'table_add', 'table_sub', 'table_mul', 'table_terms',
-		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
-		'anteile', 'prop', 'percent', 'pv', 'zinsen',
-		'terme', 'word_terms', 
-		'geometry', 'geometry_diagram', 'winkel', 'kongruenz'
+		'teiler', 'primzahlen', 'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'schriftliche_addition_subtraktion', 'schriftliche_multiplikation_division', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
+		'additionstabellen', 'subtraktionstabellen', 'multiplikationstabellen', 'termtabellen',
+		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen', 'runden', 'ueberschlag', 'zahlengerade',
+		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen',
+		'terme', 'wortterme',
+		'geometrie', 'dreiecksberechnungen_zeichnung', 'winkel', 'kongruenz'
 	],
 	klasse9: [
-		'teiler', 'primzahlen', 'units', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
-		'table_add', 'table_sub', 'table_mul', 'table_terms',
-		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
-		'anteile', 'prop', 'percent', 'pv', 'zinsen',
-		'terme', 'word_terms', 'equations', 'equations_adv', 'equations_lin', 'formel_umstellen',
-		'geometry', 'geometry_diagram', 'winkel', 'kongruenz',
-		'wkt', 'linear_function', 'funktionen'
+		'teiler', 'primzahlen', 'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'schriftliche_addition_subtraktion', 'schriftliche_multiplikation_division', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
+		'additionstabellen', 'subtraktionstabellen', 'multiplikationstabellen', 'termtabellen',
+		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen', 'runden', 'ueberschlag', 'zahlengerade',
+		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen',
+		'terme', 'wortterme', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig', 'lineare_gleichungen_umstellen', 'formel_umstellen',
+		'geometrie', 'dreiecksberechnungen_zeichnung', 'winkel', 'kongruenz',
+		'wahrscheinlichkeiten', 'lineare_funktionen_zeichnen', 'funktionen'
 	],
 	klasse10: [
-		'teiler', 'primzahlen', 'units', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
-		'table_add', 'table_sub', 'table_mul', 'table_terms',
-		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
-		'anteile', 'prop', 'percent', 'pv', 'zinsen',
-		'terme', 'word_terms', 'equations', 'equations_adv', 'equations_lin', 'formel_umstellen',
-		'geometry', 'geometry_diagram', 'winkel', 'schraegbild', 'kongruenz',
-		'statistik', 'wkt', 'linear_function', 'funktionen'
+		'teiler', 'primzahlen', 'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'schriftliche_addition_subtraktion', 'schriftliche_multiplikation_division', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
+		'additionstabellen', 'subtraktionstabellen', 'multiplikationstabellen', 'termtabellen',
+		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen', 'runden', 'ueberschlag', 'zahlengerade',
+		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen',
+		'terme', 'wortterme', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig', 'lineare_gleichungen_umstellen', 'formel_umstellen',
+		'geometrie', 'dreiecksberechnungen_zeichnung', 'winkel', 'schraegbild', 'kongruenz',
+		'statistik', 'wahrscheinlichkeiten', 'lineare_funktionen_zeichnen', 'funktionen'
 	]
 };
 
 const quizTaskTypesByGrade = {
 	klasse5: [
-		'teiler', 'primzahlen', 'units', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'db_as', 'db_md', 'pow10', 'vorrang',
-		'table_add',  'table_sub', 'table_mul','table_terms',
-		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
-		'geometry', 'geometry_diagram', 'winkel', 'schraegbild', 'statistik'
+		'teiler', 'primzahlen', 'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'schriftliche_addition_subtraktion', 'schriftliche_multiplikation_division', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
+		'additionstabellen',  'subtraktionstabellen', 'multiplikationstabellen','termtabellen',
+		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen', 'runden', 'ueberschlag', 'zahlengerade',
+		'geometrie', 'dreiecksberechnungen_zeichnung', 'winkel', 'schraegbild', 'statistik'
 	],
 	klasse6: [
-		'teiler', 'primzahlen', 'units', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'db_as', 'db_md', 'pow10', 'vorrang',
-		'table_add',  'table_sub', 'table_mul','table_terms',
-		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
-		'anteile', 'percent', 'geometry', 'geometry_diagram', 'winkel', 'schraegbild', 'statistik', 'wkt'
+		'teiler', 'primzahlen', 'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'schriftliche_addition_subtraktion', 'schriftliche_multiplikation_division', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
+		'additionstabellen',  'subtraktionstabellen', 'multiplikationstabellen','termtabellen',
+		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen', 'runden', 'ueberschlag', 'zahlengerade',
+		'anteile', 'prozentrechnung', 'geometrie', 'dreiecksberechnungen_zeichnung', 'winkel', 'schraegbild', 'statistik', 'wahrscheinlichkeiten'
 	],
 	klasse7: [
-		'teiler', 'primzahlen', 'units', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'db_as', 'db_md', 'pow10', 'vorrang',
-		'table_add', 'table_sub', 'table_mul', 'table_terms',
-		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order',
-		'anteile', 'prop', 'percent', 'pv', 'zinsen',
-		'equations', 'equations_lin', 'formel_umstellen',
-		'round', 'ueberschlag', 'zahlengerade', 'geometry', 'geometry_diagram', 'winkel', 'schraegbild', 'kongruenz', 'statistik', 'wkt'
+		'teiler', 'primzahlen', 'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'schriftliche_addition_subtraktion', 'schriftliche_multiplikation_division', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
+		'additionstabellen', 'subtraktionstabellen', 'multiplikationstabellen', 'termtabellen',
+		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen',
+		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen',
+		'lineare_gleichungen', 'lineare_gleichungen_umstellen', 'formel_umstellen',
+		'runden', 'ueberschlag', 'zahlengerade', 'geometrie', 'dreiecksberechnungen_zeichnung', 'winkel', 'schraegbild', 'kongruenz', 'statistik', 'wahrscheinlichkeiten'
 	],
 	klasse8: [
-		'teiler', 'primzahlen', 'units', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
-		'table_add', 'table_sub', 'table_mul', 'table_terms',
-		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
-		'anteile', 'prop', 'percent', 'pv', 'zinsen',
-		'equations', 'equations_adv', 'equations_lin', 'formel_umstellen',
-		'geometry', 'geometry_diagram', 'winkel', 'schraegbild', 'kongruenz', 'statistik', 'wkt'
+		'teiler', 'primzahlen', 'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'schriftliche_addition_subtraktion', 'schriftliche_multiplikation_division', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
+		'additionstabellen', 'subtraktionstabellen', 'multiplikationstabellen', 'termtabellen',
+		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen', 'runden', 'ueberschlag', 'zahlengerade',
+		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen',
+		'lineare_gleichungen', 'lineare_gleichungen_beidseitig', 'lineare_gleichungen_umstellen', 'formel_umstellen',
+		'geometrie', 'dreiecksberechnungen_zeichnung', 'winkel', 'schraegbild', 'kongruenz', 'statistik', 'wahrscheinlichkeiten'
 	],
 	klasse9: [
-		'teiler', 'primzahlen', 'units', 'potenzen', 'nat_as', 'nat_md', 'schriftlich_as', 'schriftlich_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
-		'table_add', 'table_sub', 'table_mul', 'table_terms',
-		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
-		'anteile', 'prop', 'percent', 'pv', 'zinsen',
-		'equations', 'equations_adv', 'equations_lin', 'formel_umstellen',
-		'geometry', 'geometry_diagram', 'winkel', 'schraegbild', 'kongruenz', 'statistik', 'wkt'
+		'teiler', 'primzahlen', 'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'schriftliche_addition_subtraktion', 'schriftliche_multiplikation_division', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
+		'additionstabellen', 'subtraktionstabellen', 'multiplikationstabellen', 'termtabellen',
+		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen', 'runden', 'ueberschlag', 'zahlengerade',
+		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen',
+		'lineare_gleichungen', 'lineare_gleichungen_beidseitig', 'lineare_gleichungen_umstellen', 'formel_umstellen',
+		'geometrie', 'dreiecksberechnungen_zeichnung', 'winkel', 'schraegbild', 'kongruenz', 'statistik', 'wahrscheinlichkeiten'
 	],
 	klasse10: [
-		'teiler', 'units', 'potenzen', 'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang', 'primzahlen',
-		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
-		'anteile', 'prop', 'percent', 'pv', 'zinsen', 'word_terms',
-		'equations', 'geometry', 'geometry_diagram', 'winkel', 'statistik', 'wkt'
+		'teiler', 'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang', 'primzahlen',
+		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen', 'runden', 'ueberschlag', 'zahlengerade',
+		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen', 'wortterme',
+		'lineare_gleichungen', 'geometrie', 'dreiecksberechnungen_zeichnung', 'winkel', 'statistik', 'wahrscheinlichkeiten'
 	]
 };
 
@@ -134,62 +134,62 @@ const typeDefinitions = [
 	// Zahlentheorie / fortgeschrittene Themen
 	['teiler', 'Teiler', 'Teiler einer Zahl bestimmen'],
 	['primzahlen', 'Primzahlen', 'Primzahlen finden'], 
-	['units', 'Einheiten', 'Größen in verschiedene Einheiten umrechnen'],
-	['round', 'Runden', 'Runden'],
+	['einheiten', 'Einheiten', 'Größen in verschiedene Einheiten umrechnen'],
+	['runden', 'Runden', 'Runden'],
 	
 	// Arithmetik: Ganze Zahlen, Dezimalbrüche, Stellenwerte
-	['nat_as', 'Natürliche Zahlen +/-', 'Natürliche Zahlen addieren und subtrahieren'],
-	['nat_md', 'Natürliche Zahlen ×/÷', 'Natürliche Zahlen multiplizieren und dividieren'],
-	['z_as', 'Ganze Zahlen +/-', 'Ganze Zahlen addieren und subtrahieren'],
-	['z_md', 'Ganze Zahlen ×/÷', 'Ganze Zahlen multiplizieren und dividieren'],
-	['db_as', 'Dezimalbrüche +/-', 'Dezimalbrüche addieren und subtrahieren'],
-	['db_md', 'Dezimalbrüche ×/÷', 'Dezimalbrüche multiplizieren und dividieren'],
-	['schriftlich_as', 'schriftlich rechnen +/-', 'Schriftliche Addition und Subtraktion'],
-	['schriftlich_md', 'schriftlich rechnen ×/÷', 'Schriftliche Multiplikation und Division'],
+	['natuerliche_zahlen_addieren_subtrahieren', 'Natürliche Zahlen +/-', 'Natürliche Zahlen addieren und subtrahieren'],
+	['natuerliche_zahlen_multiplizieren_dividieren', 'Natürliche Zahlen ×/÷', 'Natürliche Zahlen multiplizieren und dividieren'],
+	['ganze_zahlen_addieren_subtrahieren', 'Ganze Zahlen +/-', 'Ganze Zahlen addieren und subtrahieren'],
+	['ganze_zahlen_multiplizieren_dividieren', 'Ganze Zahlen ×/÷', 'Ganze Zahlen multiplizieren und dividieren'],
+	['dezimalbrueche_addieren_subtrahieren', 'Dezimalbrüche +/-', 'Dezimalbrüche addieren und subtrahieren'],
+	['dezimalbrueche_multiplizieren_dividieren', 'Dezimalbrüche ×/÷', 'Dezimalbrüche multiplizieren und dividieren'],
+	['schriftliche_addition_subtraktion', 'schriftlich rechnen +/-', 'Schriftliche Addition und Subtraktion'],
+	['schriftliche_multiplikation_division', 'schriftlich rechnen ×/÷', 'Schriftliche Multiplikation und Division'],
 	['potenzen', 'Potenzen und Wurzeln', 'Potenzen und Wurzeln berechnen'],
-	['pow10', 'Zehnerpotenzen ×/÷', 'Multiplikation und Division mit Zehnerpotenzen und Stufenzahlen'],
+	['zehnerpotenzen_multiplizieren_dividieren', 'Zehnerpotenzen ×/÷', 'Multiplikation und Division mit Zehnerpotenzen und Stufenzahlen'],
 	['vorrang', 'Vorrangregeln', 'Terme mit Vorrangregeln berechnen'],
 	['ueberschlag', 'Überschlag', 'Sinnvolle Überschläge für Grundrechenaufgaben bilden'],
 	
 	// Tabellen / Kopfrechnen
-	['table_add', 'Additionstabelle', 'Tabellenaufgaben mit Summen'],
-	['table_sub', 'Subtraktionstabelle', 'Tabellenaufgaben mit Differenzen'],
-	['table_mul', 'Multiplikationstabelle', 'Tabellenaufgaben mit Produkten'],
-	['table_terms', 'Termtabelle', 'Terme mit Variablen'],
+	['additionstabellen', 'Additionstabelle', 'Tabellenaufgaben mit Summen'],
+	['subtraktionstabellen', 'Subtraktionstabelle', 'Tabellenaufgaben mit Differenzen'],
+	['multiplikationstabellen', 'Multiplikationstabelle', 'Tabellenaufgaben mit Produkten'],
+	['termtabellen', 'Termtabelle', 'Terme mit Variablen'],
 	
 	// Brüche
-	['frac_convert', 'Brüche umwandeln', 'Brüche, Dezimalzahlen und Prozentwerte umwandeln'],
-	['frac_simplify', 'Brüche kürzen', 'Brüche vollständig kürzen'],
-	['frac_as', 'Brüche +/-', 'Brüche addieren und subtrahieren'],
-	['frac_md', 'Brüche ×/÷', 'Brüche multiplizieren und dividieren'],
-	['frac_order', 'Brüche ordnen', 'Brüche der Größe nach sortieren'],
+	['brueche_umwandeln', 'Brüche umwandeln', 'Brüche, Dezimalzahlen und Prozentwerte umwandeln'],
+	['brueche_kuerzen', 'Brüche kürzen', 'Brüche vollständig kürzen'],
+	['brueche_addieren_subtrahieren', 'Brüche +/-', 'Brüche addieren und subtrahieren'],
+	['brueche_multiplizieren_dividieren', 'Brüche ×/÷', 'Brüche multiplizieren und dividieren'],
+	['brueche_ordnen', 'Brüche ordnen', 'Brüche der Größe nach sortieren'],
 	['zahlengerade', 'Zahlenstrahl', 'Zahlenstrahl-Aufgaben lesen, eintragen und zeichnen'],
 	
 	// Prozent / Proportionalität / Maßeinheiten
 	['anteile', 'Anteile berechnen', 'Anteile berechnen'],
-	['prop', 'Proportionalitäten', 'Aufgaben zur direkten Proportionalität'],
-	['percent', 'Prozentrechnung', 'Prozentwert, Grundwert und Prozentsatz berechnen'],
-	['pv', 'Prozentuale Veränderung', 'Prozentuale Zu- und Abnahmen berechnen'],
+	['proportionalitaet', 'Proportionalitäten', 'Aufgaben zur direkten Proportionalität'],
+	['prozentrechnung', 'Prozentrechnung', 'Prozentwert, Grundwert und Prozentsatz berechnen'],
+	['prozentuale_veraenderung', 'Prozentuale Veränderung', 'Prozentuale Zu- und Abnahmen berechnen'],
 	['zinsen', 'Zinsrechnung', 'Zinsen, Kapital und Zinssatz berechnen'],
 
 	// Algebra / Terme / Gleichungen
 	['terme', 'Terme', 'Terme zusammenfassen und Klammern auflösen'],
-	['word_terms', 'Wortterme', 'Wortterme in mathematische Symbole übersetzen und berechnen'],
-	['equations', 'lin. Gl. ax+b = c', 'Lineare Gleichung der Form ax + b = c lösen'],
-	['equations_adv', 'lin. Gl. ax+b = cx+d', 'Lineare Gleichung der Form ax + b = cx + d lösen'],
-	['equations_lin', 'lin. Gl. umstellen', 'Lineare Gleichungen nach y umstellen'],
+	['wortterme', 'Wortterme', 'Wortterme in mathematische Symbole übersetzen und berechnen'],
+	['lineare_gleichungen', 'lin. Gl. ax+b = c', 'Lineare Gleichung der Form ax + b = c lösen'],
+	['lineare_gleichungen_beidseitig', 'lin. Gl. ax+b = cx+d', 'Lineare Gleichung der Form ax + b = cx + d lösen'],
+	['lineare_gleichungen_umstellen', 'lin. Gl. umstellen', 'Lineare Gleichungen nach y umstellen'],
 	['formel_umstellen', 'Formeln umstellen', 'Formeln nach einer anderen Variablen umstellen'],
 
 	// Geometrie
-	['geometry', 'A und u ebener Figuren', 'Flächeninhalte und Umfänge berechnen'],
-	['geometry_diagram', 'Dreiecksberechnungen (Zeichnung)', 'Flächeninhalt, Umfang, Seiten und Winkel mit Pythagoras, Sinus-/Kosinussatz berechnen'],
+	['geometrie', 'A und u ebener Figuren', 'Flächeninhalte und Umfänge berechnen'],
+	['dreiecksberechnungen_zeichnung', 'Dreiecksberechnungen (Zeichnung)', 'Flächeninhalt, Umfang, Seiten und Winkel mit Pythagoras, Sinus-/Kosinussatz berechnen'],
 	['winkel', 'Winkel', 'Winkel zeichnen und berechnen'],
 	['schraegbild', 'Schrägbilder', 'Schrägbilder von Körpern zeichnen'],
 	['kongruenz', 'Kongruenzsätze', 'Dreiecke mit Kongruenzsätzen konstruieren'],
 
 	// Funktionen, Statistik & Wahrscheinlichkeiten
-	['wkt', 'Wahrscheinlichkeiten', 'Wahrscheinlichkeiten bestimmen'],
-	['linear_function', 'Lineare Funktionen zeichnen', 'Lineare Funktionen grafisch darstellen'],
+	['wahrscheinlichkeiten', 'Wahrscheinlichkeiten', 'Wahrscheinlichkeiten bestimmen'],
+	['lineare_funktionen_zeichnen', 'Lineare Funktionen zeichnen', 'Lineare Funktionen grafisch darstellen'],
 	['funktionen', 'Funktionen', 'Funktionswerte, Argumente und Eigenschaften von Funktionen bestimmen'],
 	['statistik', 'Statistik', 'Kenngrößen der Statistik bestimmen']
 ];
@@ -197,8 +197,60 @@ const typeDefinitions = [
 const typeLabels = Object.fromEntries(typeDefinitions.map(([key, label]) => [key, label]));
 const typeDescriptions = Object.fromEntries(typeDefinitions.map(([key, , description]) => [key, description]));
 
+// Stabile Share-Link-IDs fuer den Generator. Neue Typen erhalten neue IDs;
+// bestehende IDs duerfen weder geaendert noch wiederverwendet werden.
+const shareLinkTypeRegistry = {
+	teiler: 0,
+	primzahlen: 1,
+	einheiten: 2,
+	runden: 3,
+	natuerliche_zahlen_addieren_subtrahieren: 4,
+	natuerliche_zahlen_multiplizieren_dividieren: 5,
+	ganze_zahlen_addieren_subtrahieren: 6,
+	ganze_zahlen_multiplizieren_dividieren: 7,
+	dezimalbrueche_addieren_subtrahieren: 8,
+	dezimalbrueche_multiplizieren_dividieren: 9,
+	schriftliche_addition_subtraktion: 10,
+	schriftliche_multiplikation_division: 11,
+	potenzen: 12,
+	zehnerpotenzen_multiplizieren_dividieren: 13,
+	vorrang: 14,
+	ueberschlag: 15,
+	additionstabellen: 16,
+	subtraktionstabellen: 17,
+	multiplikationstabellen: 18,
+	termtabellen: 19,
+	brueche_umwandeln: 20,
+	brueche_kuerzen: 21,
+	brueche_addieren_subtrahieren: 22,
+	brueche_multiplizieren_dividieren: 23,
+	brueche_ordnen: 24,
+	zahlengerade: 25,
+	anteile: 26,
+	proportionalitaet: 27,
+	prozentrechnung: 28,
+	prozentuale_veraenderung: 29,
+	zinsen: 30,
+	terme: 31,
+	wortterme: 32,
+	lineare_gleichungen: 33,
+	lineare_gleichungen_beidseitig: 34,
+	lineare_gleichungen_umstellen: 35,
+	formel_umstellen: 36,
+	geometrie: 37,
+	dreiecksberechnungen_zeichnung: 38,
+	winkel: 39,
+	schraegbild: 40,
+	kongruenz: 41,
+	wahrscheinlichkeiten: 42,
+	lineare_funktionen_zeichnen: 43,
+	funktionen: 44,
+	statistik: 45
+};
+
 if (typeof window !== 'undefined') {
 	window.typeLabels = typeLabels;
+	window.MTGShareLinkTypeRegistry = shareLinkTypeRegistry;
 }
 
 const typeOrderIndex = Object.fromEntries(typeDefinitions.map(([key], index) => [key, index]));
@@ -645,9 +697,9 @@ function createTask(type, grade = 5, options = {}) {
 	let rd;
 	switch (type) {
 
-		case 'table_add':
-		case 'table_mul': {
-			const isAdd = type === 'table_add';
+		case 'additionstabellen':
+		case 'multiplikationstabellen': {
+			const isAdd = type === 'additionstabellen';
 			const isGrade5Natural = grade === 5;
 			const isPositiveOnly = grade <= 7;
 			const min = isGrade5Natural ? (isAdd ? 20 : 2) : (isPositiveOnly ? (isAdd ? 0 : 1) : (isAdd ? -50 : -13));
@@ -704,7 +756,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 
-		case 'table_sub': {
+		case 'subtraktionstabellen': {
 			const isGrade5Natural = grade === 5;
 			const isPositiveOnly = grade <= 7;
 			let rowHeaders;
@@ -776,7 +828,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 
-		case 'table_terms': {
+		case 'termtabellen': {
 			const useNaturalNumbers = grade <= 7;
 			const formatLinearExpr = (a, b) => {
 				if (b === 0) return `${a}x`;
@@ -917,7 +969,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 
-		case 'db_as': {
+		case 'dezimalbrueche_addieren_subtrahieren': {
 			const allowNegativeDecimals = grade >= 8;
 
 			const createDbAsEntry = () => {
@@ -942,7 +994,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 
-		case 'db_md': {
+		case 'dezimalbrueche_multiplizieren_dividieren': {
 			const allowNegativeDecimals = grade >= 8;
 
 			const createDbMdEntry = () => {
@@ -985,7 +1037,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 
-		case 'nat_as': {
+		case 'natuerliche_zahlen_addieren_subtrahieren': {
 			const createNatAsEntry = () => {
 				let expr;
 				let solution;
@@ -1017,7 +1069,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 
-		case 'z_as': {
+		case 'ganze_zahlen_addieren_subtrahieren': {
 			const createZAsEntry = () => {
 				let expr;
 				let solution;
@@ -1061,7 +1113,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 
-		case 'nat_md': {
+		case 'natuerliche_zahlen_multiplizieren_dividieren': {
 			const createNatMdEntry = () => {
 				let expr;
 				let solution;
@@ -1092,7 +1144,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 
-		case 'z_md': {
+		case 'ganze_zahlen_multiplizieren_dividieren': {
 			const createZMdEntry = () => {
 				let expr;
 				let solution;
@@ -1129,7 +1181,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 
-		case 'pow10': {
+		case 'zehnerpotenzen_multiplizieren_dividieren': {
 			const createPow10Entry = () => {
 				const normalizeDecimalString = (value) => {
 					let [intPart, fracPart = ''] = value.split('.');
@@ -1239,7 +1291,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 
-		case 'frac_as': {
+		case 'brueche_addieren_subtrahieren': {
 			const getGcd = mathUtils.getGcd;
 
 			// Erzeugt einen vollständig gekürzten Bruch.
@@ -1294,7 +1346,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 
-		case 'frac_md': {
+		case 'brueche_multiplizieren_dividieren': {
 			let Z1, N1, Z2, N2, z1_base, n1_base, z2_base, n2_base, isMult;
 
 			const getGcd = mathUtils.getGcd;
@@ -1383,7 +1435,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 
-		case 'frac_simplify': {
+		case 'brueche_kuerzen': {
 			const factors = [3, 4, 5, 6, 8, 9, 12, 15, 18, 20, 25];
 
 			const getGcd = mathUtils.getGcd;
@@ -1420,7 +1472,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 
-		case 'frac_order': {
+		case 'brueche_ordnen': {
 			const getGcd = mathUtils.getGcd;
 
 			const mainDenominators = [12, 15, 18, 20, 24, 30, 36, 40, 60];
@@ -1520,7 +1572,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 
-		case 'frac_convert': {
+		case 'brueche_umwandeln': {
 			// Hilfsfunktionen für diesen Case
 			const getGcd = mathUtils.getGcd;
 
@@ -1799,7 +1851,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 
-		case 'percent':
+		case 'prozentrechnung':
 			let p, pVal;
 			let einheit = ['€', 'm', 'kg', 't', 'g', 'm²', 'm³', 'ha', 's', 'h', 'l', 'cm', 'mm', 'km', 'dm'][randInt(0, 14)];
 			rd = Math.random();
@@ -1859,7 +1911,7 @@ function createTask(type, grade = 5, options = {}) {
 			}
 			break;
 
-		case 'pv': {
+		case 'prozentuale_veraenderung': {
 			let einheit = ['€', 'm', 'kg', 't', 'g', 'm²', 'm³', 'ha', 's', 'h', 'l', 'cm', 'mm', 'km', 'dm'][randInt(0, 14)];
 			let p = [3, 4, 5, 6, 7, 10, 20, 25, 50][randInt(0, 8)];
 			let pVal = rnd(2, 11) * 100;
@@ -1996,7 +2048,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 
-		case 'schriftlich_as': {
+		case 'schriftliche_addition_subtraktion': {
 			const op = randInt(0, 1); // 0: +, 1: -, 2: *, 3: /
 			let v1, v2, res;
 			const countDigits = (value) => Math.max(1, String(value).replace(/[^0-9]/g, '').length);
@@ -2048,7 +2100,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 
-		case 'schriftlich_md': {
+		case 'schriftliche_multiplikation_division': {
 			const op = randInt(2, 3); // 0: +, 1: -, 2: *, 3: /
 			let v1, v2, res;
 			const countDigits = (value) => Math.max(1, String(value).replace(/[^0-9]/g, '').length);
@@ -2128,7 +2180,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 
-		case 'units': {
+		case 'einheiten': {
 			const toCleanString = formatUtils.toCleanString;
 			const getDisplayVolumeUnits = (units) => {
 				if (Math.random() < 0.5) {
@@ -2225,7 +2277,7 @@ const fromUnit = displayUnits[unitIndex];
 			break;
 		}
 
-		case 'geometry':
+		case 'geometrie':
 			const shapeType = randInt(0, grade >= 7 ? 2 : 1);
 			const goal = Math.random() > 0.5 ? 'A' : 'u';
 			const lengthUnits = ['cm', 'dm', 'm'];
@@ -2260,7 +2312,7 @@ const fromUnit = displayUnits[unitIndex];
 			}
 			break;
 
-		case 'geometry_diagram': {
+		case 'dreiecksberechnungen_zeichnung': {
 			// Umfassender Aufgabentyp: Dreiecksberechnungen anhand maßstäblicher Zeichnungen
 			// Unterstützt: Flächeninhalt, Umfang, fehlende Seiten/Winkel mit Pythagoras, Trigonometrie, Sinussatz, Kosinussatz
 			const unit = 'cm';
@@ -2755,7 +2807,7 @@ const fromUnit = displayUnits[unitIndex];
 			break;
 		}
 
-		case 'round': {
+		case 'runden': {
 			const useNaturalNumberRound = grade <= 5 || (grade >= 6 && Math.random() < 0.3);
 			if (useNaturalNumberRound) {
 				const unitNames = ['Zehner', 'Hunderter', 'Tausender'];
@@ -2908,7 +2960,7 @@ const fromUnit = displayUnits[unitIndex];
 			break;
 		}
 		
-		case 'equations': {
+		case 'lineare_gleichungen': {
 			// 1. Bestimme die Lösung x (ein Vielfaches von 0,5)
 			// rnd(-20, 20) / 2 ergibt Werte wie -5, -4.5, -4, ..., 4.5, 5
 			const x = rnd(-12, 12);
@@ -2933,7 +2985,7 @@ const fromUnit = displayUnits[unitIndex];
 			break;
 		}
 
-		case 'equations_adv':
+		case 'lineare_gleichungen_beidseitig':
 			// 1. Bestimme die Lösung x (als ganze Zahl)
 			const x = rnd(-13, 13);
 			
@@ -2974,7 +3026,7 @@ const fromUnit = displayUnits[unitIndex];
 			\\end{aligned} \\]`;
 			break;
 		
-		case 'equations_lin': {
+		case 'lineare_gleichungen_umstellen': {
 			const forms = ['ax+by=c', 'ax+c=by', 'ax=by+c', 'by=ax+c'];
 			const form = forms[randInt(0, forms.length - 1)];
 
@@ -3518,7 +3570,7 @@ const fromUnit = displayUnits[unitIndex];
 			break;
 		}
 
-		case 'word_terms': {
+		case 'wortterme': {
 			const templates = [
 				{ text: (a, b) => `Addiere ${a} und ${b}.`, symbol: '+' },
 				{ text: (a, b) => `Subtrahiere ${b} von ${a}.`, symbol: '-' },
@@ -3575,7 +3627,7 @@ const fromUnit = displayUnits[unitIndex];
 			break;
 		}
 
-		case 'linear_function': {
+		case 'lineare_funktionen_zeichnen': {
 			// Generiere eine zufällige lineare Funktion
 			let m;
 			let b = randInt(-8, 8) / 2; 
@@ -3803,7 +3855,7 @@ const fromUnit = displayUnits[unitIndex];
 		break;
 	}
 
-	case 'wkt': {
+	case 'wahrscheinlichkeiten': {
 			let mode = randInt(0, 4); // 0: Urne (3 Farben), 1: Rel. Häufigkeit, 2: 12-seitiger Würfel, 3: Glücksrad, 4: Würfel 
 			let taskStr, resStr;
 			
@@ -4440,7 +4492,7 @@ const fromUnit = displayUnits[unitIndex];
 			break;
 		}
 		
-		case 'prop': {
+		case 'proportionalitaet': {
 			const szenarien = [
 				{ einheit1: 'kg Äpfel', einheit2: '€', objekt: 'Äpfel', type: 'food' },
 				{ einheit1: 'Brötchen', einheit2: '€', objekt: 'Brötchen', type: 'food' },
@@ -4591,7 +4643,7 @@ const fromUnit = displayUnits[unitIndex];
 
 		
 		/*		
-		case 'units_calc': {
+		case 'einheiten_umrechnen': {
 			const getDisplayVolumeUnits = (units) => {
 				if (Math.random() < 0.5) {
 					return units;
@@ -4759,6 +4811,3 @@ const fromUnit = displayUnits[unitIndex];
 		solution: s
 	};
 };
-
-
-

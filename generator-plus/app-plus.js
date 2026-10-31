@@ -984,7 +984,7 @@ createApp({
             }
 
             classTypes.forEach(type => {
-                taskWeightsRef.value[type] = config.hardCodedWeights[type] ?? (selected.has(type) ? 2 : 0);
+                taskWeightsRef.value[type] = config.hardCodedWeights[type] ?? 1;
             });
 
             selectedTypesRef.value = classTypes.filter(type => selected.has(type));

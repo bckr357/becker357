@@ -63,42 +63,39 @@
 
         <div class="settings-drawer-section">
             <div class="settings-selection-bar">
-                <div class="settings-topbar-label settings-checkbox-group">
-                    <label v-if="currentView !== 'quiz'" class="settings-checkbox-option"><input type="checkbox" v-model="weights" class="settings-checkbox"><span>Gewichtung</span></label>
+                <div class="settings-selection-controls">
+                    <label v-if="currentView !== 'quiz'" class="settings-topbar-label settings-checkbox-option">
+                        <input type="checkbox" v-model="weights" class="settings-checkbox">
+                        <span>Gewichte</span>
+                    </label>
+                    <label v-if="currentView !== 'training'" class="settings-topbar-label">
+                        <span>Anzahl</span>
+                        <input type="number" v-model.number="taskCount" min="1" max="200" class="settings-input settings-count-input">
+                    </label>
+                    <label class="settings-topbar-label">
+                        <span>Klasse</span>
+                        <select v-model="selectedGrade" class="settings-input settings-grade-input">
+                            <option v-for="grade in gradeOptions" :key="grade" :value="grade">{{ grade }}</option>
+                        </select>
+                    </label>
+                    <div class="settings-topbar-label settings-topbar-label--summary">
+                        <span>Typen</span>
+                        <strong>{{ activeSelectedTypesCount }}</strong>
+                    </div>
                 </div>
-                <label v-if="currentView !== 'training'" class="settings-topbar-label">
-                    <span>Anzahl</span>
-                    <input type="number" v-model.number="taskCount" min="1" max="200" class="settings-input settings-count-input">
-                </label>
-                <label v-if="currentView !== 'training'" class="settings-topbar-label">
-                    <!-- <span>Anordnung</span>
-                    <select v-model="taskArrangementMode" class="settings-input settings-arrangement-input">
-                        <option value="ordered">sortiert</option>
-                        <option value="random">zufällig</option>
-                        <option value="random-ordered">zuf. sortiert</option>
-                    </select> -->
-                </label>
-                <label class="settings-topbar-label">
-                    <span>Klasse</span>
-                    <select v-model="selectedGrade" class="settings-input settings-grade-input">
-                        <option v-for="grade in gradeOptions" :key="grade" :value="grade">{{ grade }}</option>
-                    </select>
-                </label>
-                <div class="settings-topbar-label settings-topbar-label--summary">
-                    <span>Typen</span>
-                    <strong>{{ activeSelectedTypesCount }}</strong>
+                <div class="settings-selection-actions">
+                    <button @click="selectAllTypes" class="btn btn--export settings-compact-btn">Alle</button>
+                    <button @click="randomizeTypeSelection" class="btn btn--export settings-compact-btn">Zufall</button>
+                    <button @click="refreshCurrentView" class="btn btn--primary settings-quick-generate settings-compact-btn" :disabled="!hasSelectedTypes">
+                        {{ currentView === 'training' ? 'Starten' : 'Erzeugen' }}
+                    </button>
                 </div>
-                <button @click="selectAllTypes" class="btn btn--export settings-compact-btn">Alle</button>
-                <button @click="randomizeTypeSelection" class="btn btn--export settings-compact-btn">Zufall</button>
-                <button @click="refreshCurrentView" class="btn btn--primary settings-quick-generate settings-compact-btn" :disabled="!hasSelectedTypes">
-                    {{ currentView === 'training' ? 'Starten' : 'Erzeugen' }}
-                </button>
             </div>
             <div class="type-grid settings-type-grid">
                 <div v-for="([key, label]) in activeVisibleTypeEntries" :key="'drawer-'+key" class="type-option">
                     <label class="checkbox-label type-label">
                         <input type="checkbox" v-model="activeSelectedTypes" :value="key">
-                        <input v-if="weights && currentView !== 'quiz'" type="number" v-model.number="activeTaskWeights[key]" min="0" max="9" step="1" class="weight-input" title="Gewichtung (0 = einmal pro Satz)">
+                        <input v-if="weights && currentView !== 'quiz'" type="number" v-model.number="activeTaskWeights[key]" min="0" max="9" step="1" class="weight-input" title="Gewichte (0 = einmal pro Satz)">
                         <span>{{ label }}</span>
                     </label>
                 </div>
@@ -159,6 +156,15 @@
                         </select>
                     </label>
                     <label class="settings-topbar-label">
+                        Überschrift
+                        <input
+                            type="text"
+                            v-model="worksheetTitle"
+                            class="settings-input settings-topbar-input worksheet-title-input"
+                            placeholder="optional"
+                        >
+                    </label>
+                    <label class="settings-topbar-label">
                         A5 Seiten
                         <select v-model.number="worksheetA5Pages" class="settings-input settings-select settings-topbar-select">
                             <option :value="1">Einzeln</option>
@@ -201,12 +207,17 @@
         <div v-else :class="['worksheet-sheet', { 'worksheet-sheet--solutions': worksheetLayoutMode === 'presentation' }]">
             <template v-if="worksheetLayoutMode === 'worksheet'">
                 <template v-if="!showWorksheetSolutions">
-                    <div v-if="worksheetA5Pages !== 1" class="worksheet-sheet-header">
+                    <div
+                        v-if="worksheetA5Pages !== 1 || worksheetTitle.trim()"
+                        class="worksheet-sheet-header"
+                    >
                         <div class="worksheet-header-copy">
-                            <span v-if="worksheetA5Pages !== 1">Name:</span>
+                            <span v-if="worksheetA5Pages !== 1" class="worksheet-name-copy">Name:</span>
+                            <span v-if="worksheetTitle.trim()" class="worksheet-title-copy">{{ worksheetTitle }}</span>
                         </div>
-                        <div class="worksheet-header-copy">
-                            <span v-if="worksheetA5Pages !== 1">Name:</span>
+                        <div v-if="worksheetA5Pages !== 1" class="worksheet-header-copy">
+                            <span class="worksheet-name-copy">Name:</span>
+                            <span v-if="worksheetTitle.trim()" class="worksheet-title-copy">{{ worksheetTitle }}</span>
                         </div>
                     </div>
 
@@ -297,7 +308,7 @@
         <aside class="builder-sidebar">
             <div class="builder-sidebar-top">
                 <div class="builder-sidebar-controls">
-                    <label class="settings-checkbox-option builder-inline-control"><input type="checkbox" v-model="builderQuizMode" class="settings-checkbox"><span>Quiz-Mode</span></label>
+                    <label class="settings-checkbox-option builder-inline-control"><input type="checkbox" v-model="builderQuizMode" class="settings-checkbox"><span>nur Einzelaufgaben</span></label>
                     <label class="settings-topbar-label builder-inline-control">
                         <span>Klasse</span>
                         <select v-model="selectedGrade" class="settings-input settings-grade-input">
@@ -695,6 +706,7 @@
 </div>
 
     <script src="../js/utils.js"></script>
+    <script src="../js/modules/share-link.js"></script>
     <script src="./tasks.js"></script>
     <script src="../js/modules/state.js"></script>
     <script src="../js/modules/task-generation.js"></script>
@@ -707,5 +719,3 @@
     <script src="./app.js"></script>
 </body>
 </html>
-
-

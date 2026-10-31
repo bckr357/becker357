@@ -8,11 +8,11 @@ const formatDecimal = formatUtils.formatDecimal;
 
 // Alle automatisch auswertbaren Aufgabentypen.
 const QUIZ_AUTO_TYPES = [
-	'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10',
-	'percent', 'pv', 'zinsen', 'terme', 'equations', 'equations_adv', 'vorrang', 'round',
-	'potenzen', 'units', 'statistik', 'ueberschlag', 'zahlengerade',
-	'frac_as', 'frac_md', 'frac_simplify', 'frac_convert', 'anteile', 'wkt',
-	'geometry', 'prop', 'units_calc'
+	'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren',
+	'prozentrechnung', 'prozentuale_veraenderung', 'zinsen', 'terme', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig', 'vorrang', 'runden',
+	'potenzen', 'einheiten', 'statistik', 'ueberschlag', 'zahlengerade',
+	'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_kuerzen', 'brueche_umwandeln', 'anteile', 'wahrscheinlichkeiten',
+	'geometrie', 'proportionalitaet', 'einheiten_umrechnen'
 ];
 
 if (typeof window !== 'undefined') {
@@ -20,55 +20,55 @@ if (typeof window !== 'undefined') {
 }
 
 const taskCategories = {
-	arithmetic: ['nat_as', 'nat_md', 'z_as', 'z_md', 'potenzen', 'db_as', 'db_md', 'pow10', 'round', 'ueberschlag', 'zahlengerade', 'vorrang'],
-	fractions: ['frac_as', 'frac_md', 'frac_simplify', 'frac_convert', 'frac_order'],
-	percent: ['anteile', 'prop', 'percent', 'pv', 'zinsen', 'units'],
-	algebra: ['terme', 'equations', 'equations_adv', 'formel_umstellen'],
-	geometry: ['geometry', 'winkel', 'schraegbild'],
+	arithmetic: ['natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'potenzen', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'runden', 'ueberschlag', 'zahlengerade', 'vorrang'],
+	fractions: ['brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_kuerzen', 'brueche_umwandeln', 'brueche_ordnen'],
+	percent: ['anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen', 'einheiten'],
+	algebra: ['terme', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig', 'formel_umstellen'],
+	geometry: ['geometrie', 'winkel', 'schraegbild'],
 	functions: ['funktionen'],
-	statistics: ['statistik', 'wkt'],
+	statistics: ['statistik', 'wahrscheinlichkeiten'],
 	advanced: ['teiler', 'primzahlen']
 };
 
 // Sichtbare Aufgabentypen je Klassenstufe (wird vom UI-Dropdown genutzt)
 const taskTypesByGrade = {
 	klasse5: [
-		'units', 'potenzen', 'nat_as', 'nat_md', 'db_as', 'db_md', 'pow10', 'vorrang',
-		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
-		'geometry', 'statistik'
+		'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
+		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen', 'runden', 'ueberschlag', 'zahlengerade',
+		'geometrie', 'statistik'
 	],
 	klasse6: [
-		'units', 'potenzen', 'nat_as', 'nat_md', 'db_as', 'db_md', 'pow10', 'vorrang',
-		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order', 'round', 'ueberschlag', 'zahlengerade',
-		'anteile', 'percent', 'geometry', 'statistik', 'wkt'
+		'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
+		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen', 'runden', 'ueberschlag', 'zahlengerade',
+		'anteile', 'prozentrechnung', 'geometrie', 'statistik', 'wahrscheinlichkeiten'
 	],
 	klasse7: [
-		'units', 'potenzen', 'nat_as', 'nat_md', 'db_as', 'db_md', 'pow10', 'vorrang',
-		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order',
-		'anteile', 'prop', 'percent', 'pv', 'zinsen',
-		'terme', 'equations',
-		'round', 'ueberschlag', 'zahlengerade', 'geometry', 'statistik', 'wkt'
+		'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
+		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen',
+		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen',
+		'terme', 'lineare_gleichungen',
+		'runden', 'ueberschlag', 'zahlengerade', 'geometrie', 'statistik', 'wahrscheinlichkeiten'
 	],
 	klasse8: [
-		'units', 'potenzen', 'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
-		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order',
-		'anteile', 'prop', 'percent', 'pv', 'zinsen',
-		'terme', 'equations', 'equations_adv',
-		'round', 'ueberschlag', 'zahlengerade', 'geometry', 'statistik', 'wkt'
+		'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
+		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen',
+		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen',
+		'terme', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig',
+		'runden', 'ueberschlag', 'zahlengerade', 'geometrie', 'statistik', 'wahrscheinlichkeiten'
 	],
 	klasse9: [
-		'units', 'potenzen', 'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
-		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order',
-		'anteile', 'prop', 'percent', 'pv', 'zinsen',
-		'terme', 'equations', 'equations_adv',
-		'round', 'ueberschlag', 'zahlengerade', 'geometry', 'statistik', 'wkt'
+		'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
+		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen',
+		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen',
+		'terme', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig',
+		'runden', 'ueberschlag', 'zahlengerade', 'geometrie', 'statistik', 'wahrscheinlichkeiten'
 	],
 	klasse10: [
-		'units', 'potenzen', 'nat_as', 'nat_md', 'z_as', 'z_md', 'db_as', 'db_md', 'pow10', 'vorrang',
-		'frac_simplify', 'frac_convert', 'frac_as', 'frac_md', 'frac_order',
-		'anteile', 'prop', 'percent', 'pv', 'zinsen',
-		'terme', 'equations',
-		'round', 'ueberschlag', 'zahlengerade', 'geometry', 'statistik', 'wkt'
+		'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
+		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen',
+		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen',
+		'terme', 'lineare_gleichungen',
+		'runden', 'ueberschlag', 'zahlengerade', 'geometrie', 'statistik', 'wahrscheinlichkeiten'
 	]
 };
 
@@ -91,52 +91,53 @@ const typeDefinitions = [
 	// Zahlentheorie / fortgeschrittene Themen
 	['teiler', 'Teiler', 'Teiler einer Zahl bestimmen'],
 	['primzahlen', 'Primzahlen', 'Primzahlen finden'], 
-	['units', 'Einheiten', 'Größen in verschiedene Einheiten umrechnen'],
+	['einheiten', 'Einheiten', 'Größen in verschiedene Einheiten umrechnen'],
+	['einheiten_umrechnen', 'Einheiten umrechnen', 'Größen in verschiedene Einheiten umrechnen'],
 	
 	// Arithmetik: Ganze Zahlen, Dezimalbrüche, Stellenwerte
 	['potenzen', 'Potenzen und Wurzeln', 'Potenzen und Wurzeln berechnen'],
-	['nat_as', 'Natürliche Zahlen +/-', 'Natürliche Zahlen addieren und subtrahieren'],
-	['nat_md', 'Natürliche Zahlen ×/÷', 'Natürliche Zahlen multiplizieren und dividieren'],
-	['z_as', 'Ganze Zahlen +/-', 'Ganze Zahlen addieren und subtrahieren'],
-	['z_md', 'Ganze Zahlen ×/÷', 'Ganze Zahlen multiplizieren und dividieren'],
-	['db_as', 'Dezimalbrüche +/-', 'Dezimalbrüche addieren und subtrahieren'],
-	['db_md', 'Dezimalbrüche ×/÷', 'Dezimalbrüche multiplizieren und dividieren'],
-	['pow10', 'Zehnerpotenzen ×/÷', 'Multiplikation und Division mit Zehnerpotenzen und Stufenzahlen'],
+	['natuerliche_zahlen_addieren_subtrahieren', 'Natürliche Zahlen +/-', 'Natürliche Zahlen addieren und subtrahieren'],
+	['natuerliche_zahlen_multiplizieren_dividieren', 'Natürliche Zahlen ×/÷', 'Natürliche Zahlen multiplizieren und dividieren'],
+	['ganze_zahlen_addieren_subtrahieren', 'Ganze Zahlen +/-', 'Ganze Zahlen addieren und subtrahieren'],
+	['ganze_zahlen_multiplizieren_dividieren', 'Ganze Zahlen ×/÷', 'Ganze Zahlen multiplizieren und dividieren'],
+	['dezimalbrueche_addieren_subtrahieren', 'Dezimalbrüche +/-', 'Dezimalbrüche addieren und subtrahieren'],
+	['dezimalbrueche_multiplizieren_dividieren', 'Dezimalbrüche ×/÷', 'Dezimalbrüche multiplizieren und dividieren'],
+	['zehnerpotenzen_multiplizieren_dividieren', 'Zehnerpotenzen ×/÷', 'Multiplikation und Division mit Zehnerpotenzen und Stufenzahlen'],
 	['vorrang', 'Vorrangregeln', 'Terme mit Vorrangregeln berechnen'],
 	['ueberschlag', 'Überschlag', 'Sinnvolle Überschläge für Grundrechenaufgaben bilden'],
 	
 	// Brüche
-	['frac_simplify', 'Brüche kürzen', 'Brüche vollständig kürzen'],
-	['frac_convert', 'Brüche umwandeln', 'Brüche, Dezimalzahlen und Prozentwerte umwandeln'],
-	['frac_as', 'Brüche +/-', 'Brüche addieren und subtrahieren'],
-	['frac_md', 'Brüche ×/÷', 'Brüche multiplizieren und dividieren'],
-	['frac_order', 'Brüche ordnen', 'Brüche der Größe nach sortieren'],
-	['round', 'Dezimalbrüche runden', 'Dezimalbrüche runden'],
+	['brueche_kuerzen', 'Brüche kürzen', 'Brüche vollständig kürzen'],
+	['brueche_umwandeln', 'Brüche umwandeln', 'Brüche, Dezimalzahlen und Prozentwerte umwandeln'],
+	['brueche_addieren_subtrahieren', 'Brüche +/-', 'Brüche addieren und subtrahieren'],
+	['brueche_multiplizieren_dividieren', 'Brüche ×/÷', 'Brüche multiplizieren und dividieren'],
+	['brueche_ordnen', 'Brüche ordnen', 'Brüche der Größe nach sortieren'],
+	['runden', 'Dezimalbrüche runden', 'Dezimalbrüche runden'],
 	['zahlengerade', 'Zahlenstrahl', 'Zahlen am Zahlenstrahl ablesen'],
 	
 	// Prozent / Proportionalität / Maßeinheiten
 	['anteile', 'Anteile berechnen', 'Anteile berechnen'],
-	['prop', 'Proportionalitäten', 'Aufgaben zur direkten Proportionalität'],
-	['percent', 'Prozentrechnung', 'Prozentwert, Grundwert und Prozentsatz berechnen'],
-	['pv', 'Prozentuale Veränderung', 'Prozentuale Zu- und Abnahmen berechnen'],
+	['proportionalitaet', 'Proportionalitäten', 'Aufgaben zur direkten Proportionalität'],
+	['prozentrechnung', 'Prozentrechnung', 'Prozentwert, Grundwert und Prozentsatz berechnen'],
+	['prozentuale_veraenderung', 'Prozentuale Veränderung', 'Prozentuale Zu- und Abnahmen berechnen'],
 	['zinsen', 'Zinsrechnung', 'Zinsen, Kapital und Zinssatz berechnen'],
 
 	// Algebra / Terme / Gleichungen
 	['terme', 'Terme', 'Terme zusammenfassen und Klammern auflösen'],
-	['word_terms', 'Wortterme', 'Wortterme in mathematische Symbole übersetzen und berechnen'],
-	['equations', 'lin. Gl. ax+b = c', 'Lineare Gleichung der Form ax + b = c lösen'],
-	['equations_adv', 'lin. Gl. ax+b = cx+d', 'Lineare Gleichung der Form ax + b = cx + d lösen'],
-	['equations_lin', 'lin. Gl. umstellen', 'Lineare Gleichungen nach y umstellen'],
+	['wortterme', 'Wortterme', 'Wortterme in mathematische Symbole übersetzen und berechnen'],
+	['lineare_gleichungen', 'lin. Gl. ax+b = c', 'Lineare Gleichung der Form ax + b = c lösen'],
+	['lineare_gleichungen_beidseitig', 'lin. Gl. ax+b = cx+d', 'Lineare Gleichung der Form ax + b = cx + d lösen'],
+	['lineare_gleichungen_umstellen', 'lin. Gl. umstellen', 'Lineare Gleichungen nach y umstellen'],
 	['formel_umstellen', 'Formeln umstellen', 'Formeln nach einer anderen Variablen umstellen'],
 
 	// Geometrie
-	['geometry', 'A und u ebener Figuren', 'Flächeninhalte und Umfänge berechnen'],
+	['geometrie', 'A und u ebener Figuren', 'Flächeninhalte und Umfänge berechnen'],
 	['winkel', 'Winkel', 'Winkel zeichnen und berechnen'],
 	['schraegbild', 'Schrägbilder', 'Schrägbilder von Körpern zeichnen'],
 
 	// Funktionen, Statistik & Wahrscheinlichkeiten
-	['wkt', 'Wahrscheinlichkeiten', 'Wahrscheinlichkeiten bestimmen'],
-	['linear_function', 'Lineare Funktionen zeichnen', 'Lineare Funktionen grafisch darstellen'],
+	['wahrscheinlichkeiten', 'Wahrscheinlichkeiten', 'Wahrscheinlichkeiten bestimmen'],
+	['lineare_funktionen_zeichnen', 'Lineare Funktionen zeichnen', 'Lineare Funktionen grafisch darstellen'],
 	['funktionen', 'Funktionen', 'Funktionswerte, Argumente und Eigenschaften von Funktionen bestimmen'],
 	['statistik', 'Statistik', 'Kenngrößen der Statistik bestimmen']
 ];
@@ -144,8 +145,53 @@ const typeDefinitions = [
 const typeLabels = Object.fromEntries(typeDefinitions.map(([key, label]) => [key, label]));
 const typeDescriptions = Object.fromEntries(typeDefinitions.map(([key, , description]) => [key, description]));
 
+// Stabile Share-Link-IDs fuer das Quiz Auto Single. Neue Typen erhalten neue
+// IDs; bestehende IDs duerfen weder geaendert noch wiederverwendet werden.
+const shareLinkTypeRegistry = {
+	teiler: 0,
+	primzahlen: 1,
+	einheiten: 2,
+	einheiten_umrechnen: 3,
+	potenzen: 4,
+	natuerliche_zahlen_addieren_subtrahieren: 5,
+	natuerliche_zahlen_multiplizieren_dividieren: 6,
+	ganze_zahlen_addieren_subtrahieren: 7,
+	ganze_zahlen_multiplizieren_dividieren: 8,
+	dezimalbrueche_addieren_subtrahieren: 9,
+	dezimalbrueche_multiplizieren_dividieren: 10,
+	zehnerpotenzen_multiplizieren_dividieren: 11,
+	vorrang: 12,
+	ueberschlag: 13,
+	brueche_kuerzen: 14,
+	brueche_umwandeln: 15,
+	brueche_addieren_subtrahieren: 16,
+	brueche_multiplizieren_dividieren: 17,
+	brueche_ordnen: 18,
+	runden: 19,
+	zahlengerade: 20,
+	anteile: 21,
+	proportionalitaet: 22,
+	prozentrechnung: 23,
+	prozentuale_veraenderung: 24,
+	zinsen: 25,
+	terme: 26,
+	wortterme: 27,
+	lineare_gleichungen: 28,
+	lineare_gleichungen_beidseitig: 29,
+	lineare_gleichungen_umstellen: 30,
+	formel_umstellen: 31,
+	geometrie: 32,
+	winkel: 33,
+	schraegbild: 34,
+	wahrscheinlichkeiten: 35,
+	lineare_funktionen_zeichnen: 36,
+	funktionen: 37,
+	statistik: 38
+};
+
 if (typeof window !== 'undefined') {
 	window.typeLabels = typeLabels;
+	window.MTGShareLinkTypeRegistry = shareLinkTypeRegistry;
 }
 
 const typeOrderIndex = Object.fromEntries(typeDefinitions.map(([key], index) => [key, index]));
@@ -365,7 +411,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}		
 
-		case 'db_as': {
+		case 'dezimalbrueche_addieren_subtrahieren': {
 			const allowNegativeDecimals = grade >= 8;
 
 			const createDbAsEntry = () => {
@@ -396,7 +442,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 
-		case 'db_md': {
+		case 'dezimalbrueche_multiplizieren_dividieren': {
 			const allowNegativeDecimals = grade >= 8;
 
 			const createDbMdEntry = () => {
@@ -440,7 +486,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 
-		case 'nat_as': {
+		case 'natuerliche_zahlen_addieren_subtrahieren': {
 			const createNatAsEntry = () => {
 				let expr;
 				let solution;
@@ -472,7 +518,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 
-		case 'z_as': {
+		case 'ganze_zahlen_addieren_subtrahieren': {
 			const createZAsEntry = () => {
 				let expr;
 				let solution;
@@ -514,7 +560,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 
-		case 'nat_md': {
+		case 'natuerliche_zahlen_multiplizieren_dividieren': {
 			const createNatMdEntry = () => {
 				let expr;
 				let solution;
@@ -546,7 +592,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 
-		case 'z_md': {
+		case 'ganze_zahlen_multiplizieren_dividieren': {
 			const createZMdEntry = () => {
 				let expr;
 				let solution;
@@ -582,7 +628,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 
-		case 'pow10': {
+		case 'zehnerpotenzen_multiplizieren_dividieren': {
 			const createPow10Entry = () => {
 				const normalizeDecimalString = (value) => {
 					let [intPart, fracPart = ''] = value.split('.');
@@ -680,7 +726,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 
-		case 'frac_as': {
+		case 'brueche_addieren_subtrahieren': {
 			const getGcd = mathUtils.getGcd;
 
 			// Erzeugt einen vollständig gekürzten Bruch.
@@ -738,7 +784,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 
-		case 'frac_md': {
+		case 'brueche_multiplizieren_dividieren': {
 			let Z1, N1, Z2, N2, isMult;
 
 			const getGcd = mathUtils.getGcd;
@@ -805,7 +851,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 
-		case 'frac_simplify': {
+		case 'brueche_kuerzen': {
 			const factors = [3, 4, 6, 8, 9, 12, 15, 20, 25];
 
 			const getGcd = mathUtils.getGcd;
@@ -843,7 +889,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 
-		case 'frac_order': {
+		case 'brueche_ordnen': {
 			const getGcd = mathUtils.getGcd;
 
 			const mainDenominators = [12, 15, 18, 20, 24, 30, 36];
@@ -939,7 +985,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 
-		case 'frac_convert': {
+		case 'brueche_umwandeln': {
 			// Hilfsfunktionen für diesen Case
 			const getGcd = mathUtils.getGcd;
 
@@ -1312,7 +1358,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 
-		case 'percent': {
+		case 'prozentrechnung': {
 			let result;
 			let p, pVal;
 			let einheit = ['€', 'm', 'kg', 't', 'g', 'm²', 'm³', 'ha', 's', 'h', 'l', 'cm', 'mm', 'km', 'dm'][randInt(0, 14)];
@@ -1369,7 +1415,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 
-		case 'pv': {
+		case 'prozentuale_veraenderung': {
 			let result;
 			let einheit = ['€', 'm', 'kg', 't', 'g', 'm²', 'm³', 'ha', 's', 'h', 'l', 'cm', 'mm', 'km', 'dm'][randInt(0, 14)];
 			let p = [3, 4, 5, 6, 7, 10, 20, 25, 50][randInt(0, 8)];
@@ -1447,7 +1493,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 
-		case 'units': {
+		case 'einheiten': {
 			const toCleanString = formatUtils.toCleanString;
 			const createUnitsEntry = () => {
 
@@ -1539,7 +1585,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 
-		case 'geometry':
+		case 'geometrie':
 			const shapeType = randInt(0, grade >= 7 ? 2 : 1);
 			const goal = Math.random() > 0.5 ? 'A' : 'u';
 			const lengthUnits = ['cm', 'dm', 'm'];
@@ -1653,7 +1699,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 
-		case 'round': {
+		case 'runden': {
 			const useNaturalNumberRound = grade <= 5 || (grade >= 6 && Math.random() < 0.3);
 			if (useNaturalNumberRound) {
 				const unitNames = ['Zehner', 'Hunderter', 'Tausender'];
@@ -1800,7 +1846,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 		
-		case 'equations': {
+		case 'lineare_gleichungen': {
 			// 1. Bestimme die Lösung x (ein Vielfaches von 0,5)
 			// rnd(-20, 20) / 2 ergibt Werte wie -5, -4.5, -4, ..., 4.5, 5
 			const x = rnd(-12, 12);
@@ -1826,7 +1872,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 
-		case 'equations_adv': {
+		case 'lineare_gleichungen_beidseitig': {
 			// 1. Bestimme die Lösung x (als ganze Zahl)
 			const x = rnd(-13, 13);
 			
@@ -1869,7 +1915,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 		
-		case 'equations_lin': {
+		case 'lineare_gleichungen_umstellen': {
 			const forms = ['ax+by=c', 'ax+c=by', 'ax=by+c', 'by=ax+c'];
 			const form = forms[randInt(0, forms.length - 1)];
 
@@ -2238,7 +2284,7 @@ function createTask(type, grade = 5, options = {}) {
 			s = `\[ ${taskStr} = ${resStr} \]`;
 			break;
 		}
-		case 'word_terms': {
+		case 'wortterme': {
 			const templates = [
 				{ text: (a, b) => `Addiere ${a} und ${b}.`, symbol: '+' },
 				{ text: (a, b) => `Subtrahiere ${b} von ${a}.`, symbol: '-' },
@@ -2296,7 +2342,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 
-		case 'linear_function': {
+		case 'lineare_funktionen_zeichnen': {
 			// Generiere eine zufällige lineare Funktion
 			let m;
 			let b = randInt(-8, 8) / 2; 
@@ -2436,7 +2482,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 
-		case 'wkt': {
+		case 'wahrscheinlichkeiten': {
 			let mode = randInt(0, 4); // 0: Urne (3 Farben), 1: Rel. Häufigkeit, 2: 12-seitiger Würfel, 3: Glücksrad, 4: Würfel 
 			let taskStr, resStr, answerValue;
 			
@@ -2846,7 +2892,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 		
-		case 'prop': {
+		case 'proportionalitaet': {
 			const szenarien = [
 				{ einheit1: 'kg Äpfel', einheit2: '€', objekt: 'Äpfel', type: 'food' },
 				{ einheit1: 'Brötchen', einheit2: '€', objekt: 'Brötchen', type: 'food' },
@@ -2996,7 +3042,7 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 				
-		case 'units_calc': {
+		case 'einheiten_umrechnen': {
 			const groups = [
 				{ units: ['mm', 'cm', 'dm', 'm', 'km'], factors: [10, 10, 10, 1000] },
 				{ units: ['mm²', 'cm²', 'dm²', 'm²', 'a', 'ha', 'km²'], factors: [100, 100, 100, 100, 100, 100] },
@@ -3159,6 +3205,3 @@ function createTask(type, grade = 5, options = {}) {
 		answer: typeof answer !== 'undefined' ? answer : null
 	};
 };
-
-
-

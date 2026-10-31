@@ -70,6 +70,23 @@ createApp({
         const allTypes = sortByTypeDefinitions(Object.keys(typeLabels));
         const selectedGrade = ref(10);
         const gradeOptions = [5, 6, 7, 8, 9, 10];
+        const shareLink = window.MTGShareLinkModule.createCodec(window.MTGShareLinkTypeRegistry);
+        const initialShareConfig = shareLink.read(window.location.href);
+        if (initialShareConfig.grade !== null) {
+            selectedGrade.value = initialShareConfig.grade;
+        }
+        if (initialShareConfig.taskCount !== null) {
+            state.taskCount.value = initialShareConfig.taskCount;
+        }
+        if (initialShareConfig.arrangement !== null) {
+            state.taskArrangementMode.value = initialShareConfig.arrangement;
+        }
+        if (initialShareConfig.pages !== null) {
+            state.worksheetA5Pages.value = initialShareConfig.pages;
+        }
+        if (initialShareConfig.worksheetTitle !== null) {
+            state.worksheetTitle.value = initialShareConfig.worksheetTitle;
+        }
 
         const classConfig = (typeof taskTypesByGrade === 'object' && taskTypesByGrade)
             ? taskTypesByGrade
@@ -104,6 +121,12 @@ createApp({
         const quizVisibleTypeEntries = computed(() => quizVisibleTypeKeys.value.map(key => [key, typeLabels[key]]));
         const activeVisibleTypeEntries = computed(() => state.currentView.value === 'quiz' ? quizVisibleTypeEntries.value : visibleTypeEntries.value);
         const activeVisibleTypeKeys = computed(() => state.currentView.value === 'quiz' ? quizVisibleTypeKeys.value : visibleTypeKeys.value);
+
+        if (initialShareConfig.types && initialShareConfig.types.length > 0) {
+            const initialTypes = new Set(initialShareConfig.types);
+            state.selectedTypes.value = visibleTypeKeys.value.filter(type => initialTypes.has(type));
+            state.quizSelectedTypes.value = quizVisibleTypeKeys.value.filter(type => initialTypes.has(type));
+        }
  
         const parseRawTaskArray = data => Array.isArray(data)
             ? data
@@ -182,6 +205,46 @@ createApp({
             const allowed = new Set(keys);
             state.quizSelectedTypes.value = state.quizSelectedTypes.value.filter(type => allowed.has(type));
         }, { immediate: true });
+
+        const syncShareUrl = () => {
+            const allowed = new Set(activeVisibleTypeKeys.value);
+            const rawTypes = state.currentView.value === 'quiz'
+                ? state.quizSelectedTypes.value
+                : state.selectedTypes.value;
+            const types = rawTypes.filter(type => allowed.has(type));
+            const url = shareLink.write(window.location.href, {
+                grade: selectedGrade.value,
+                types,
+                taskCount: state.taskCount.value,
+                arrangement: state.taskArrangementMode.value,
+                pages: state.worksheetA5Pages.value,
+                worksheetTitle: state.worksheetTitle.value
+            });
+            const nextUrl = `${url.pathname}${url.search}${url.hash}`;
+            const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+            if (nextUrl !== currentUrl) {
+                try {
+                    window.history.replaceState({}, '', url);
+                } catch (e) {
+                    // Ignore on restrictive file:// environments
+                }
+            }
+        };
+
+        watch(
+            [
+                selectedGrade,
+                () => state.selectedTypes.value,
+                () => state.quizSelectedTypes.value,
+                () => state.currentView.value,
+                () => state.taskCount.value,
+                () => state.taskArrangementMode.value,
+                () => state.worksheetA5Pages.value,
+                () => state.worksheetTitle.value
+            ],
+            syncShareUrl,
+            { deep: true }
+        );
 
         const taskGeneration = window.MTGTaskGenerationModule.createTaskGenerationModule({
             state,
@@ -829,30 +892,30 @@ createApp({
 
             const config = {
                 requiredTypes: [
-                    'units',
-                    'z_as',
-                    'z_md',
-                    'db_as',
-                    'db_md',
-                    'nat_as',
-                    'nat_md',
-                    'percent',
-                    'pow10'
+                    'einheiten',
+                    'ganze_zahlen_addieren_subtrahieren',
+                    'ganze_zahlen_multiplizieren_dividieren',
+                    'dezimalbrueche_addieren_subtrahieren',
+                    'dezimalbrueche_multiplizieren_dividieren',
+                    'natuerliche_zahlen_addieren_subtrahieren',
+                    'natuerliche_zahlen_multiplizieren_dividieren',
+                    'prozentrechnung',
+                    'zehnerpotenzen_multiplizieren_dividieren'
                 ],
                 exactOneGroups: [
-                    ['schriftlich_as', 'schriftlich_md']
+                    ['schriftliche_addition_subtraktion', 'schriftliche_multiplikation_division']
                 ],
                 atMostOneGroups: [
-                    ['table_add', 'table_sub', 'table_mul', 'table_terms']
+                    ['additionstabellen', 'subtraktionstabellen', 'multiplikationstabellen', 'termtabellen']
                 ],
                 hardCodedWeights: {
-                    units: 3,
-                    schriftlich_as: 0,
-                    schriftlich_md: 0,
-                    table_add: 0,
-                    table_sub: 0,
-                    table_mul: 0,
-                    table_terms: 0
+                    einheiten: 3,
+                    schriftliche_addition_subtraktion: 0,
+                    schriftliche_multiplikation_division: 0,
+                    additionstabellen: 0,
+                    subtraktionstabellen: 0,
+                    multiplikationstabellen: 0,
+                    termtabellen: 0
                 },
                 optionalPickChance: 0.5
             };
@@ -934,7 +997,7 @@ createApp({
             selectedTypesRef.value = classTypes.filter(type => selected.has(type));
 
             classTypes.forEach(type => {
-                taskWeightsRef.value[type] = config.hardCodedWeights[type] ?? (selected.has(type) ? 1 : 0);
+                taskWeightsRef.value[type] = config.hardCodedWeights[type] ?? 1;
             });
 
             syncSelectedTypesFromCounts(activeVisibleTypeKeys.value);
@@ -985,6 +1048,9 @@ createApp({
         };
 
         const allowedViews = new Set([...viewTabs.map(tab => tab.key), 'training']);
+        const getShareableView = view => ['quiz', 'worksheet-builder'].includes(view)
+            ? 'worksheet'
+            : view;
 
         const getViewFromUrl = () => {
             const url = new URL(window.location.href);
@@ -996,7 +1062,7 @@ createApp({
                 return 'worksheet';
             }
 
-            return candidate;
+            return getShareableView(candidate);
         };
 
         const initializeViewFromUrl = async () => {
@@ -1010,6 +1076,7 @@ createApp({
                         return;
                     }
                     await navigation.switchView(initialView);
+                    await generateFromSharedUrl(initialView);
                 } finally {
                     suppressHistorySync = false;
                 }
@@ -1017,6 +1084,22 @@ createApp({
             }
 
             await navigation.switchView('worksheet');
+            await generateFromSharedUrl('worksheet');
+        };
+
+        const generateFromSharedUrl = async view => {
+            if (state.selectedTypes.value.length === 0) {
+                return;
+            }
+
+            if (view === 'worksheet') {
+                await worksheetMode.generateWorksheet();
+                return;
+            }
+
+            if (view === 'presentation') {
+                await presentationMode.generateAll();
+            }
         };
 
         const syncUrlWithView = view => {
@@ -1026,12 +1109,14 @@ createApp({
 
             const url = new URL(window.location.href);
 
-            if (view === 'home') {
+            const shareableView = getShareableView(view);
+
+            if (shareableView === 'home') {
                 url.searchParams.delete('view');
                 url.hash = '';
             } else {
-                url.searchParams.set('view', view);
-                url.hash = view;
+                url.searchParams.set('view', shareableView);
+                url.hash = shareableView;
             }
 
             const nextUrl = `${url.pathname}${url.search}${url.hash}`;
@@ -1044,7 +1129,7 @@ createApp({
             window.history.pushState({}, '', url);
         };
 
-        let suppressHistorySync = false;
+        let suppressHistorySync = true;
 
         watch(() => state.currentView.value, view => {
             syncUrlWithView(view);
@@ -1090,6 +1175,8 @@ createApp({
 
         onMounted(async () => {
             await initializeViewFromUrl();
+            suppressHistorySync = false;
+            syncUrlWithView(state.currentView.value);
             updatePresentationHeaderVisibility();
             window.addEventListener('popstate', applyViewFromUrl);
             window.addEventListener('scroll', updatePresentationHeaderVisibility, { passive: true });

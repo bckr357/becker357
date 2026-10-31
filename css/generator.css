@@ -1,4 +1,4 @@
-﻿input,
+input,
 textarea {
     font-family: 'Reddit Sans', system-ui, -apple-system, sans-serif;
 }
@@ -217,50 +217,120 @@ textarea {
 }
 
 .settings-selection-bar {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: center;
+    padding: 8px;
     margin-bottom: 18px;
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    border-radius: 14px;
+    background: #f8fafc;
 }
 
-/* In training mode keep selection bar elements side-by-side */
-.settings-drawer.mode-training .settings-selection-bar {
+.settings-selection-controls,
+.settings-selection-actions {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.settings-selection-controls {
     flex-wrap: nowrap;
-    gap: 10px;
-    align-items: center;
+    min-width: 0;
 }
 
-.settings-drawer.mode-quiz .settings-selection-bar {
-    align-items: center;
+.settings-selection-controls .settings-checkbox-option {
+    flex-direction: row-reverse;
+    justify-content: space-between;
 }
 
-.settings-drawer.mode-training .settings-selection-bar > * {
-    flex: 0 1 auto;
+.settings-selection-actions {
+    flex-shrink: 0;
+    justify-content: flex-end;
+}
+
+.settings-topbar-label {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
+    min-height: 30px;
+    padding: 3px 6px;
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    border-radius: 9px;
+    background: #ffffff;
+    color: var(--slate-700);
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.settings-topbar-label > span {
+    white-space: nowrap;
+}
+
+.settings-topbar-label--summary {
+    min-width: 52px;
+    justify-content: space-between;
+    text-align: left;
+}
+
+.settings-topbar-label--summary strong {
+    color: var(--primary);
+    font-size: 0.9rem;
+}
+
+.settings-checkbox-option {
+    cursor: pointer;
+    line-height: 1.2;
+}
+
+.settings-quick-generate {
+    margin-left: 0;
+}
+
+.settings-selection-actions .settings-compact-btn {
+    min-height: 34px;
+    padding: 7px 11px;
+    font-size: 0.82rem;
+    white-space: nowrap;
 }
 
 @media (max-width: 520px) {
-    /* On very small screens allow wrapping again to avoid overflow */
-    .settings-drawer.mode-training .settings-selection-bar {
+    .settings-selection-bar {
+        grid-template-columns: 1fr;
+    }
+
+    .settings-selection-controls {
         flex-wrap: wrap;
-        gap: 10px;
+    }
+
+    .settings-selection-actions {
+        justify-content: stretch;
+    }
+
+    .settings-selection-actions .btn {
+        flex: 1 1 auto;
     }
 }
 
 /* Compact controls in training mode: reduce padding and font-size */
 .settings-drawer.mode-training .settings-selection-bar .btn {
-    padding: 8px 10px;
-    font-size: 0.9rem;
+    min-height: 34px;
+    padding: 7px 11px;
+    font-size: 0.82rem;
     font-weight: 500;
 }
 
 .settings-drawer.mode-training .settings-selection-bar .settings-compact-btn {
-    padding: 7px;
+    padding: 7px 10px;
 }
 
 .settings-drawer.mode-training .settings-selection-bar input,
 .settings-drawer.mode-training .settings-selection-bar select,
 .settings-drawer.mode-training .settings-selection-bar .settings-topbar-label {
-    font-size: 0.92rem;
+    font-size: 0.78rem;
 }
 
 /* Ensure task card math and text wrap to avoid overflow */
@@ -283,8 +353,9 @@ textarea {
 
 @media (max-width: 520px) {
     .settings-drawer.mode-training .settings-selection-bar .btn {
-        padding: 7px;
-        font-size: 0.90rem;
+        min-height: 32px;
+        padding: 6px 9px;
+        font-size: 0.8rem;
         font-weight: 500;
     }
 }
@@ -392,8 +463,8 @@ textarea {
 
 .builder-sidebar {
     position: sticky;
-    top: 20px;
-    max-height: calc(100vh - 40px);
+    top: calc(var(--shell-header-h) + 28px);
+    max-height: calc(100vh - var(--shell-header-h) - 56px);
     min-width: 500px;
     overflow-y: auto;
     padding: 16px;
@@ -896,21 +967,6 @@ textarea {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
-}
-
-.settings-topbar-label {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    font-size: 0.82rem;
-    font-weight: 700;
-    color: var(--slate-500);
-    margin: 0;
-}
-
-.settings-topbar-label--summary {
-    margin: auto 0;
-    text-align: center;
 }
 
 .u-hidden-file-input {
@@ -1673,15 +1729,14 @@ textarea {
 }
 
 .worksheet-header-copy {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    display: block;
     font-weight: 400;
     margin: 0 0 3mm 0;
-    padding: 0 0mm 3mm 0mm;
+    padding: 0;
     box-sizing: border-box;
-    border-bottom: 0.3mm solid var(--slate-500);
 }
+
+
 
 .worksheet-header-gt {
     margin-left: 10px;
@@ -1690,6 +1745,28 @@ textarea {
 
 .worksheet-header-copy + .worksheet-header-copy {
     padding-left: 0;
+}
+
+.worksheet-name-copy {
+    display: block;
+    width: 100%;
+    padding-bottom: 3mm;
+    border-bottom: 0.3mm solid var(--slate-500);
+}
+
+.worksheet-title-copy {
+    display: block;
+    width: 100%;
+    margin-top: 3mm;
+    padding-bottom: 3mm;
+    border-bottom: 0.3mm solid var(--slate-500);
+    text-align: center;
+    font-weight: 700;
+}
+
+.worksheet-title-input {
+    width: 180px;
+    text-align: left;
 }
 
 .worksheet-list {
@@ -2383,5 +2460,3 @@ textarea {
         max-width: 10mm;
     }
 }
-
-
