@@ -892,7 +892,6 @@ createApp({
                 classTypes.forEach(type => {
                     taskWeightsRef.value[type] = 0;
                 });
-                syncSelectedTypesFromCounts(activeVisibleTypeKeys.value);
                 return;
             }
 
@@ -1005,8 +1004,6 @@ createApp({
             classTypes.forEach(type => {
                 taskWeightsRef.value[type] = config.hardCodedWeights[type] ?? 1;
             });
-
-            syncSelectedTypesFromCounts(activeVisibleTypeKeys.value);
         };
 
         const generateRandomWorksheet = async () => {

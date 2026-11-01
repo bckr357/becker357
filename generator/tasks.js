@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 // AUFGABEN-KATEGORIEN & TYPEN-LABELS
 // ============================================================
 
@@ -135,7 +135,7 @@ const typeDefinitions = [
 	['teiler', 'Teiler', 'Teiler einer Zahl bestimmen'],
 	['primzahlen', 'Primzahlen', 'Primzahlen finden'], 
 	['einheiten', 'Einheiten', 'Größen in verschiedene Einheiten umrechnen'],
-	['runden', 'Runden', 'Runden'],
+	['runden', 'Zahlen runden', 'Zahlen runden'],
 	
 	// Arithmetik: Ganze Zahlen, Dezimalbrüche, Stellenwerte
 	['natuerliche_zahlen_addieren_subtrahieren', 'Natürliche Zahlen +/-', 'Natürliche Zahlen addieren und subtrahieren'],
@@ -1119,12 +1119,17 @@ function createTask(type, grade = 5, options = {}) {
 				let solution;
 				if (Math.random() > 0.5) {
 					const v1 = randInt(0, 13);
-					const v2 = randInt(0, 13);
+					const v2 = randInt(2, 11);
 					expr = `\\[ ${v1} \\cdot ${v2} = \\]`;
 					solution = `\\[ ${v1} \\cdot ${v2} = ${v1 * v2} \\]`;
 				} else {
 					const divisor = randInt(1, 13);
-					const quotient = randInt(0, 13);
+					let quotient;
+					if (divisor >= 11) {
+						quotient = randInt(0, 5);
+					} else {
+						quotient = randInt(0, 12);
+					}
 					const dividend = divisor * quotient;
 					expr = `\\[ ${dividend} : ${divisor} = \\]`;
 					solution = `\\[ ${dividend} : ${divisor} = ${quotient} \\]`;
@@ -1296,11 +1301,13 @@ function createTask(type, grade = 5, options = {}) {
 
 			// Erzeugt einen vollständig gekürzten Bruch.
 			// Zähler darf 1 sein, Nenner liegt bewusst bei 2..9.
-			const makeCoprimeFraction = (minNum = 2, maxNum = 10, minDen = 2, maxDen = 9, forbiddenDen = null) => {
+			const makeCoprimeFraction = (minNum = 2, maxNum = 10, minDen = 2, maxDen = 9, forbiddenDen = null, denominatorOptions = null) => {
 				let num, den;
 				do {
 					num = rnd(minNum, maxNum) - 1;   // 1 ist explizit erlaubt
-					den = rnd(minDen, maxDen);
+					den = denominatorOptions
+						? denominatorOptions[randInt(0, denominatorOptions.length - 1)]
+						: rnd(minDen, maxDen);
 				} while (getGcd(num, den) !== 1 || den === forbiddenDen);
 				return [num, den];
 			};
@@ -1308,8 +1315,22 @@ function createTask(type, grade = 5, options = {}) {
 			// Erster Bruch
 			let [z1, n1] = makeCoprimeFraction();
 
+			// In einem Teil der Aufgaben soll genau ein Bruch erweitert werden.
+			// Dafür wird der zweite Nenner bevorzugt als Teiler oder Vielfaches
+			// des ersten Nenners gewählt. Das ergibt eine deutlich sichtbare,
+			// aber weiterhin abwechslungsreiche Quote von ungefähr einem Drittel.
+			const relatedDenominators = [];
+			for (let denominator = 2; denominator <= 9; denominator++) {
+				if (denominator !== n1 && (denominator % n1 === 0 || n1 % denominator === 0)) {
+					relatedDenominators.push(denominator);
+				}
+			}
+			const useRelatedDenominator = relatedDenominators.length > 0 && Math.random() < 0.4;
+
 			// Zweiter Bruch: ebenfalls teilerfremd, aber mit verschiedenem Nenner
-			let [z2, n2] = makeCoprimeFraction(1, 9, 2, 9, n1);
+			let [z2, n2] = useRelatedDenominator
+				? makeCoprimeFraction(1, 9, 2, 9, n1, relatedDenominators)
+				: makeCoprimeFraction(1, 9, 2, 9, n1);
 
 			const isAdd = Math.random() > 0.5;
 
@@ -1562,7 +1583,7 @@ function createTask(type, grade = 5, options = {}) {
 				const factor = hn / f.orig[1];
 				if (factor === 1) return `\\dfrac{${f.orig[0]}}{${f.orig[1]}}`;
 				return `\\dfrac{${f.orig[0]}}{${f.orig[1]}} \\overset{${factor}}{=} \\dfrac{${f.ext}}{${hn}}`;
-			}).join(' \\qquad ');
+			}).join(' \\quad ');
 
 			// Sortierte Lösung
 			const sortedStr = sortedAsc.map(f => fmtFrac(f.orig)).join(' < ');
@@ -2808,16 +2829,27 @@ const fromUnit = displayUnits[unitIndex];
 		}
 
 		case 'runden': {
-			const useNaturalNumberRound = grade <= 5 || (grade >= 6 && Math.random() < 0.3);
+			const useNaturalNumberRound = grade <= 5 || (grade >= 6 && Math.random() < 0.25);
 			if (useNaturalNumberRound) {
 				const unitNames = ['Zehner', 'Hunderter', 'Tausender'];
 				const unit = unitNames[randInt(0, unitNames.length - 1)];
 				const factor = unit === 'Zehner' ? 10 : unit === 'Hunderter' ? 100 : 1000;
 				const value = randInt(10, 9999);
 				const result = Math.round(value / factor) * factor;
+				const decisionDigit = factor === 10
+					? value % 10
+					: factor === 100
+						? Math.floor(value / 10) % 10
+						: Math.floor(value / 100) % 10;
+				const decisionPlace = factor === 10 ? 'Einer' : factor === 100 ? 'Zehner' : 'Hunderter';
+				const roundingAction = decisionDigit >= 5 ? 'aufrunden' : 'abrunden';
 
 				textDisplay = `Runde auf ${unit}: \\( \\quad ${comma(value)} \\approx \\) ${blank(2)}`;
-				s = `Runde auf ${unit}: \\( \\; \\; ${comma(value)} \\approx ${comma(result)} \\)`;
+				s = `\\[
+					${comma(value)} \\approx ${comma(result)}
+					\\quad\\bigl(\\text{${decisionDigit} ${decisionPlace}
+					\\;\\rightarrow\\; \\text{${roundingAction}}\\bigr)
+				\\]`;
 				break;
 			}
 
@@ -2865,9 +2897,16 @@ const fromUnit = displayUnits[unitIndex];
 				result = Math.round(v1 * 100) / 100;
 				digits = 2;
 			}
+			const decisionDigit = rd > 0.8 ? d1 : rd > 0.4 ? d2 : d3;
+			const decisionPlace = rd > 0.8 ? 'Zehntel' : rd > 0.4 ? 'Hundertstel' : 'Tausendstel';
+			const roundingAction = decisionDigit >= 5 ? 'aufrunden' : 'abrunden';
 
 			textDisplay = `Runde auf ${target}: \\( \\quad ${comma(v1.toFixed(3))} \\approx \\) ${blank(2)}`;
-			s = `Runde auf ${target}: \\( \\; \\; ${comma(v1.toFixed(3))} \\approx ${comma(result.toFixed(digits))} \\)`;
+			s = `\\[
+				${comma(v1.toFixed(3))} \\approx ${comma(result.toFixed(digits))}
+				\\quad\\bigl(\\text{${decisionDigit} ${decisionPlace}
+				\\;\\rightarrow\\; \\text{${roundingAction}}\\bigr)
+			\\]`;
 			break;
 		}
 
@@ -3409,7 +3448,7 @@ const fromUnit = displayUnits[unitIndex];
 					       : resV > 0     ? ` + ${resV}${v}`
 					       :               ` - ${Math.abs(resV)}${v}`;
 					const step = cNum > 0 ? `${term1} + ${term2}` : `${term1} - ${term2}`;
-					resStr = `${step} \\\\ = ${p1}${p2}`;
+					resStr = `\\begin{aligned} ${taskStr} &= ${step} \\\\ &= ${p1}${p2} \\end{aligned}`;
 				} else {
 					const resV = factorCoef * cVarCoef;
 					const resN = factorCoef * cNum;
@@ -3420,7 +3459,7 @@ const fromUnit = displayUnits[unitIndex];
 					       :              `${resV}${v}`;
 					let p2 = resN > 0 ? `+ ${resN}` : `- ${Math.abs(resN)}`;
 					const step = cNum > 0 ? `${term1} + ${term2}` : `${term1} - ${term2}`;
-					resStr = `${step} \\\\ = ${p1} ${p2}`;
+					resStr = `\\begin{aligned} ${taskStr} &= ${step} \\\\ &= ${p1} ${p2} \\end{aligned}`;
 				}
 
 				textDisplay = `Löse die Klammer auf: <br>\\( ${taskStr} \\)`;
@@ -3437,13 +3476,13 @@ const fromUnit = displayUnits[unitIndex];
 					b = rnd(2, 9);
 				} while (getGcd(a, b) !== 1);
 				const sign = Math.random() < 0.5 ? 1 : -1;
-				const commonFactorHasVar = w === '' || Math.random() < 0.5;
+				const commonFactorHasVar = w !== '' && Math.random() < 0.5;
 				const extraInFirst = w !== '' && Math.random() < 0.5;
 				let term1Vars, term2Vars;
 
 				if (w === '') {
 					term1Vars = v;
-					term2Vars = v;
+					term2Vars = '';
 				} else if (commonFactorHasVar) {
 					term1Vars = v + (extraInFirst ? w : '');
 					term2Vars = v + (!extraInFirst ? w : '');
@@ -3478,6 +3517,11 @@ const fromUnit = displayUnits[unitIndex];
 				const useMinusBracket = Math.random() < 0.5;
 				let factor, a, b, c, d;
 				let coeff, constTerm;
+				let expandedStr;
+				const formatTerms = (terms) => terms.map(({ sign, text }, index) => {
+					if (index === 0) return sign < 0 ? `-${text}` : text;
+					return `${sign < 0 ? '-' : '+'} ${text}`;
+				}).join(' ');
 				if (useMinusBracket) {
 					do {
 						a = rnd(2, 9);
@@ -3494,13 +3538,33 @@ const fromUnit = displayUnits[unitIndex];
 					const termB = Math.abs(b);
 					const termC = Math.abs(c);
 					const termD = Math.abs(d);
-					const left1 = `-(${a}${v} ${b >= 0 ? '+' : '-'} ${termB})`;
-					const left2 = `${c >= 0 ? '+' : '-'} ${termC}${v}`;
-					const left3 = `${d >= 0 ? '+' : '-'} ${termD}`;
-					taskStr = `${left1} ${left2} ${left3}`;
+					const terms = [
+						{
+							sign: -1,
+							text: `(${a}${v} ${b >= 0 ? '+' : '-'} ${termB})`,
+							expanded: [
+								{ sign: -1, text: `${a}${v}` },
+								{ sign: b >= 0 ? -1 : 1, text: `${termB}` }
+							]
+						},
+						{
+							sign: Math.sign(c),
+							text: `${termC}${v}`,
+							expanded: [{ sign: Math.sign(c), text: `${termC}${v}` }]
+						},
+						{
+							sign: Math.sign(d),
+							text: `${termD}`,
+							expanded: [{ sign: Math.sign(d), text: `${termD}` }]
+						}
+					];
+					const bracketTerm = terms.shift();
+					terms.splice(randInt(0, terms.length), 0, bracketTerm);
+					taskStr = formatTerms(terms);
+					expandedStr = formatTerms(terms.flatMap(term => term.expanded));
 				} else {
 					do {
-						factor = rnd(2, 6);
+						factor = rnd(2, 6) * (Math.random() < 0.7 ? -1 : 1);
 						a = rnd(2, 9);
 						b = rnd(-8, 8);
 						while (b === 0) b = rnd(-8, 8);
@@ -3515,10 +3579,30 @@ const fromUnit = displayUnits[unitIndex];
 					const termB = Math.abs(b);
 					const termC = Math.abs(c);
 					const termD = Math.abs(d);
-					const left1 = `${factor}(${a}${v} ${b >= 0 ? '+' : '-'} ${termB})`;
-					const left2 = `${c >= 0 ? '+' : '-'} ${termC}${v}`;
-					const left3 = `${d >= 0 ? '+' : '-'} ${termD}`;
-					taskStr = `${left1} ${left2} ${left3}`;
+					const terms = [
+						{
+							sign: Math.sign(factor),
+							text: `${Math.abs(factor)}(${a}${v} ${b >= 0 ? '+' : '-'} ${termB})`,
+							expanded: [
+								{ sign: Math.sign(factor), text: `${Math.abs(factor) * a}${v}` },
+								{ sign: Math.sign(factor) * (b >= 0 ? 1 : -1), text: `${Math.abs(factor) * termB}` }
+							]
+						},
+						{
+							sign: Math.sign(c),
+							text: `${termC}${v}`,
+							expanded: [{ sign: Math.sign(c), text: `${termC}${v}` }]
+						},
+						{
+							sign: Math.sign(d),
+							text: `${termD}`,
+							expanded: [{ sign: Math.sign(d), text: `${termD}` }]
+						}
+					];
+					const bracketTerm = terms.shift();
+					terms.splice(randInt(0, terms.length), 0, bracketTerm);
+					taskStr = formatTerms(terms);
+					expandedStr = formatTerms(terms.flatMap(term => term.expanded));
 				}
 
 				let resParts = [];
@@ -3534,7 +3618,8 @@ const fromUnit = displayUnits[unitIndex];
 					if (resParts.length === 0 && constTerm < 0) sStr = '-';
 					resParts.push(`${sStr}${Math.abs(constTerm)}`);
 				}
-				resStr = resParts.length === 0 ? '0' : resParts.join(' ').trim();
+				const combinedStr = resParts.length === 0 ? '0' : resParts.join(' ').trim();
+				resStr = `\\begin{aligned} ${taskStr} &= ${expandedStr} \\\\ &= ${combinedStr} \\end{aligned}`;
 
 				textDisplay = `Löse die Klammer auf und fasse zusammen: <br>\\( ${taskStr} \\)`;
 				textPrint = `Vereinfache maximal: \\(\\quad ${taskStr} = \\) ${space(0.5)}`;
@@ -3548,25 +3633,19 @@ const fromUnit = displayUnits[unitIndex];
 					return `${coef}${variable}`;
 				};
 
-				const useVarTerm = v !== '' && Math.random() < 0.75;
 				const plusInside = Math.random() < 0.5;
 				const a = rnd(2, 9);
 				const b = rnd(2, 9);
 
-				if (useVarTerm) {
-					const rightTerm = termText(b, v);
-					taskStr = `-(${a} ${plusInside ? '+' : '-'} ${rightTerm})`;
-					resStr = `-${a} ${plusInside ? '-' : '+'} ${rightTerm}`;
-				} else {
-					taskStr = `-(${a} ${plusInside ? '+' : '-'} ${b})`;
-					resStr = `-${a} ${plusInside ? '-' : '+'} ${b}`;
-				}
+				const rightTerm = termText(b, v);
+				taskStr = `-(${a} ${plusInside ? '+' : '-'} ${rightTerm})`;
+				resStr = `-${a} ${plusInside ? '-' : '+'} ${rightTerm}`;
 
 				textDisplay = `Löse die Minusklammer auf: <br>\\( ${taskStr} \\)`;
 				textPrint = `Löse die Minusklammer auf: \\(\\quad ${taskStr} = \\)`;
 			}
 
-			s = `\\[ ${taskStr} = ${resStr} \\]`;
+			s = `\\[ ${mode === 1 || mode === 3 ? resStr : `${taskStr} = ${resStr}`} \\]`;
 			break;
 		}
 
