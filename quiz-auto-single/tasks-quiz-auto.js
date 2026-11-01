@@ -292,7 +292,7 @@ function createTask(type, grade = 5, options = {}) {
 	const numericAnswer = value => ({ kind: 'number', value });
 	const fractionAnswer = (num, den, requireReduced = false) => ({ kind: 'fraction', num, den, requireReduced });
 	const listAnswer = values => ({ kind: 'list', values: values.map(value => Number(value)) });
-	const expressionAnswer = expr => ({ kind: 'expression', expr: String(expr) });
+	const expressionAnswer = (expr, options = {}) => ({ kind: 'expression', expr: String(expr), ...options });
 	const probabilityAnswer = (value) => {
 		const candidates = [value, value * 100];
 		const uniqueValues = [...new Set(candidates.map(v => Number(v.toFixed(12))))];
@@ -779,7 +779,11 @@ function createTask(type, grade = 5, options = {}) {
 			} else if (f2 > 1) {
 				step1 = `\\frac{${z1}}{${n1}} ${op} \\frac{${z2} \\cdot ${f2}}{${n2} \\cdot ${f2}} = \\frac{${ez1} ${op} ${ez2}}{${hn}}`;
 			} 
-			s = `\\[ \\frac{${z1}}{${n1}} ${op} \\frac{${z2}}{${n2}} = ${step1} = \\frac{${finalZ}}{${hn}} \\]`;
+			let kuerzStep = "";
+			if (finalReduced.num !== finalZ || finalReduced.den !== hn) {
+				kuerzStep = finalReduced.den === 1 ? ` = ${finalReduced.num}` : ` = \\frac{${finalReduced.num}}{${finalReduced.den}}`;
+			}
+			s = `\\[ \\frac{${z1}}{${n1}} ${op} \\frac{${z2}}{${n2}} = ${step1} = \\frac{${finalZ}}{${hn}}${kuerzStep} \\]`;
 			answer = answerFraction;
 			break;
 		}
@@ -981,7 +985,12 @@ function createTask(type, grade = 5, options = {}) {
 			answer = exactAnswer;
 
 			textDisplay = `Welcher Bruch ist am kleinsten? \\( \\quad ${displayStr} \\)`;
-			s = `\\[ ${fmtFrac(exactSmallest)} \\]`;
+			const comparison = sortedAsc.map(f => `\\dfrac{${f.ext}}{${hn}}`).join(' < ');
+			s = `\\[
+				\\text{Erweitert auf den Hauptnenner } ${hn}: \\\\
+				${comparison} \\quad\\Longrightarrow\\quad
+				\\text{kleinster Bruch: } ${fmtFrac(exactSmallest)}
+			\\]`;
 			break;
 		}
 
@@ -1707,9 +1716,18 @@ function createTask(type, grade = 5, options = {}) {
 				const factor = unit === 'Zehner' ? 10 : unit === 'Hunderter' ? 100 : 1000;
 				const value = randInt(10, 9999);
 				const result = Math.round(value / factor) * factor;
+				const decisionDigit = factor === 10
+					? value % 10
+					: factor === 100
+						? Math.floor(value / 10) % 10
+						: Math.floor(value / 100) % 10;
+				const roundingAction = decisionDigit >= 5 ? 'Aufrunden' : 'Abrunden';
 
 				textDisplay = `Runde auf ${unit}: \\( \\quad ${comma(value)} \\approx \\) ${blank(2)}`;
-				s = `Runde auf ${unit}: \\( \\; \\; ${comma(value)} \\approx ${comma(result)} \\)`;
+				s = `\\[
+					${comma(value)} \\approx ${comma(result)}
+					\\quad\\text{(Entscheidungsziffer: ${decisionDigit} \\;\\rightarrow\\; ${roundingAction})}
+				\\]`;
 				answer = { kind: 'number', value: result };
 				break;
 			}
@@ -1758,9 +1776,14 @@ function createTask(type, grade = 5, options = {}) {
 				result = Math.round(v1 * 100) / 100;
 				digits = 2;
 			}
+			const decisionDigit = rd > 0.8 ? d1 : rd > 0.4 ? d2 : d3;
+			const roundingAction = decisionDigit >= 5 ? 'Aufrunden' : 'Abrunden';
 
 			textDisplay = `Runde auf ${target}: \\( \\quad ${comma(v1.toFixed(3))} \\approx \\) ${blank(2)}`;
-			s = `Runde auf ${target}: \\( \\; \\; ${comma(v1.toFixed(3))} \\approx ${comma(result.toFixed(digits))} \\)`;
+			s = `\\[
+				${comma(v1.toFixed(3))} \\approx ${comma(result.toFixed(digits))}
+				\\quad\\text{(Entscheidungsziffer: ${decisionDigit} \\;\\rightarrow\\; ${roundingAction})}
+			\\]`;
 			answer = { kind: 'number', value: result };
 			break;
 		}
@@ -1799,6 +1822,7 @@ function createTask(type, grade = 5, options = {}) {
 				if (divisor >= 10 && divisor <= 50) return 4.9;
 				return 19.9;
 			};
+			const dividendDeviationLimit = (divisor) => divisorDeviationLimit(divisor) * 10;
 
 			const mode = ['mul', 'div'][randInt(0, 1)];
 			let taskExpr = '';
@@ -2017,6 +2041,7 @@ function createTask(type, grade = 5, options = {}) {
 			
 			let mode = grade >= 9 ? randInt(0, 4) : 0;
 			let taskStr, resStr;
+			let expandedStep = '';
 			
 			if (mode === 0) {
 				// --- TYP: ZUSAMMENFASSEN ---
@@ -2074,11 +2099,11 @@ function createTask(type, grade = 5, options = {}) {
 				});
 				resStr = resParts.length === 0 ? '0' : resParts.join(' ').trim();
 				answer = expressionAnswer(resStr, { termMode: 'collect' });
-				textDisplay = `Fasse zusammen: <br>\( ${taskStr} \)`;
-				textPrint = `Fasse zusammen: \(\quad ${taskStr} = \) ${space(0.5)}`;
+				textDisplay = `Fasse zusammen: <br>\\( ${taskStr} \\)`;
+				textPrint = `Fasse zusammen: \\(\\quad ${taskStr} = \\) ${space(0.5)}`;
 
 			} else if (mode === 1) {
-				// --- TYP: KLAMMER AUFL?SEN ---
+				// --- TYP: KLAMMER AUFLÖSEN ---
 				let v = selectedVars[0] || 'x';
 				let cVarCoef = rnd(-9, 9);
 				let cNum = rnd(-12, 12);
@@ -2089,7 +2114,7 @@ function createTask(type, grade = 5, options = {}) {
 					if (coef === -1) return fmt(`-${variable}`);
 					return fmt(`${coef}${variable}`);
 				};
-				const fmtProductFactor = (factorText, termText) => `${fmt(factorText)} \cdot ${fmt(termText)}`;
+				const fmtProductFactor = (factorText, termText) => `${fmt(factorText)} \\cdot ${fmt(termText)}`;
 
 				let factorCoef, fDisplay;
 				if (useVarFactor) {
@@ -2118,7 +2143,7 @@ function createTask(type, grade = 5, options = {}) {
 					       :               ` - ${Math.abs(resV)}${v}`;
 					const step = cNum > 0 ? `${term1} + ${term2}` : `${term1} - ${term2}`;
 					const finalRes = `${p1}${p2}`.trim();
-					resStr = `${step} \ = ${finalRes}`;
+					resStr = `${step} = ${finalRes}`;
 					answer = expressionAnswer(finalRes, { termMode: 'expand' });
 				} else {
 					const resV = factorCoef * cVarCoef;
@@ -2131,12 +2156,12 @@ function createTask(type, grade = 5, options = {}) {
 					let p2 = resN > 0 ? `+ ${resN}` : `- ${Math.abs(resN)}`;
 					const step = cNum > 0 ? `${term1} + ${term2}` : `${term1} - ${term2}`;
 					const finalRes = `${p1} ${p2}`.trim();
-					resStr = `${step} \ = ${finalRes}`;
+					resStr = `${step} = ${finalRes}`;
 					answer = expressionAnswer(finalRes, { termMode: 'expand' });
 				}
 
-				textDisplay = `L?se die Klammer auf: <br>\( ${taskStr} \)`;
-				textPrint = `L?se die Klammer auf: \(\quad ${taskStr} = \)`;
+				textDisplay = `Löse die Klammer auf: <br>\\( ${taskStr} \\)`;
+				textPrint = `Löse die Klammer auf: \\(\\quad ${taskStr} = \\)`;
 			} else if (mode === 2) {
 				// --- TYP: AUSKLAMMERN ---
 				let v = selectedVars[0] || 'x';
@@ -2149,13 +2174,13 @@ function createTask(type, grade = 5, options = {}) {
 					b = rnd(2, 9);
 				} while (getGcd(a, b) !== 1);
 				const sign = Math.random() < 0.5 ? 1 : -1;
-				const commonFactorHasVar = w === '' || Math.random() < 0.5;
+				const commonFactorHasVar = w !== '' && Math.random() < 0.5;
 				const extraInFirst = w !== '' && Math.random() < 0.5;
 				let term1Vars, term2Vars;
 
 				if (w === '') {
 					term1Vars = v;
-					term2Vars = v;
+					term2Vars = '';
 				} else if (commonFactorHasVar) {
 					term1Vars = v + (extraInFirst ? w : '');
 					term2Vars = v + (!extraInFirst ? w : '');
@@ -2183,10 +2208,10 @@ function createTask(type, grade = 5, options = {}) {
 				resStr = `${commonFactorText}(${inner1} ${innerSign} ${inner2})`;
 				answer = expressionAnswer(resStr, { termMode: 'factor' });
 
-				textDisplay = `Klammere vollst?ndig aus: <br>\( ${taskStr} \)`;
-				textPrint = `Klammere vollst?ndig aus: \(\quad ${taskStr} = \)`;
+				textDisplay = `Klammere vollständig aus: <br>\\( ${taskStr} \\)`;
+				textPrint = `Klammere vollständig aus: \\(\\quad ${taskStr} = \\)`;
 			} else if (mode === 3) {
-				// --- TYP: KLAMMER AUFL?SEN UND ZUSAMMENFASSEN ---
+				// --- TYP: KLAMMER AUFLÖSEN UND ZUSAMMENFASSEN ---
 				let v = selectedVars[0] || 'x';
 				const useMinusBracket = Math.random() < 0.5;
 				let factor, a, b, c, d;
@@ -2234,6 +2259,11 @@ function createTask(type, grade = 5, options = {}) {
 					taskStr = `${left1} ${left2} ${left3}`;
 				}
 
+				const externalTerms = `${c >= 0 ? '+' : '-'} ${Math.abs(c)}${v} ${d >= 0 ? '+' : '-'} ${Math.abs(d)}`;
+				expandedStep = useMinusBracket
+					? `-${a}${v} ${b >= 0 ? '-' : '+'} ${Math.abs(b)} ${externalTerms}`
+					: `${factor * a}${v} ${factor * b >= 0 ? '+' : '-'} ${Math.abs(factor * b)} ${externalTerms}`;
+
 				let resParts = [];
 				if (coeff !== 0) {
 					let sStr = coeff > 0 ? (resParts.length === 0 ? '' : '+ ') : '- ';
@@ -2250,10 +2280,10 @@ function createTask(type, grade = 5, options = {}) {
 				resStr = resParts.length === 0 ? '0' : resParts.join(' ').trim();
 				answer = expressionAnswer(resStr, { termMode: 'expand' });
 
-				textDisplay = `L?se die Klammer auf und fasse zusammen: <br>\( ${taskStr} \)`;
-				textPrint = `Vereinfache maximal: \(\quad ${taskStr} = \) ${space(0.5)}`;
+				textDisplay = `Löse die Klammer auf und fasse zusammen: <br>\\( ${taskStr} \\)`;
+				textPrint = `Vereinfache maximal: \\(\\quad ${taskStr} = \\) ${space(0.5)}`;
 			} else if (mode === 4) {
-				// --- TYP: MINUSKLAMMER AUFL?SEN ---
+				// --- TYP: MINUSKLAMMER AUFLÖSEN ---
 				let v = selectedVars[0] || 'x';
 				const termText = (coef, variable) => {
 					if (variable === '') return `${coef}`;
@@ -2262,26 +2292,29 @@ function createTask(type, grade = 5, options = {}) {
 					return `${coef}${variable}`;
 				};
 
-				const useVarTerm = v !== '' && Math.random() < 0.75;
 				const plusInside = Math.random() < 0.5;
 				const a = rnd(2, 9);
 				const b = rnd(2, 9);
 
-				if (useVarTerm) {
-					const rightTerm = termText(b, v);
-					taskStr = `-(${a} ${plusInside ? '+' : '-'} ${rightTerm})`;
-					resStr = `-${a} ${plusInside ? '-' : '+'} ${rightTerm}`;
-				} else {
-					taskStr = `-(${a} ${plusInside ? '+' : '-'} ${b})`;
-					resStr = `-${a} ${plusInside ? '-' : '+'} ${b}`;
-				}
+				const rightTerm = termText(b, v);
+				taskStr = `-(${a} ${plusInside ? '+' : '-'} ${rightTerm})`;
+				resStr = `-${a} ${plusInside ? '-' : '+'} ${rightTerm}`;
 				answer = expressionAnswer(resStr, { termMode: 'expand' });
 
-				textDisplay = `L?se die Minusklammer auf: <br>\( ${taskStr} \)`;
-				textPrint = `L?se die Minusklammer auf: \(\quad ${taskStr} = \)`;
+				textDisplay = `Löse die Minusklammer auf: <br>\\( ${taskStr} \\)`;
+				textPrint = `Löse die Minusklammer auf: \\(\\quad ${taskStr} = \\)`;
 			}
 
-			s = `\[ ${taskStr} = ${resStr} \]`;
+			if (mode === 3) {
+				s = `\\[
+					\\begin{aligned}
+					${taskStr} &= ${expandedStep} \\\\
+					          &= ${resStr}
+					\\end{aligned}
+				\\]`;
+			} else {
+				s = `\\[ ${taskStr} = ${resStr} \\]`;
+			}
 			break;
 		}
 		case 'wortterme': {
@@ -2828,7 +2861,7 @@ function createTask(type, grade = 5, options = {}) {
 				let a = rnd(25, 45), b = rnd(61, 129);
 				textPrint = `Dreieck mit Winkeln \\( \\alpha = ${a}° \\) und \\( \\beta = ${b}°. \\quad \\gamma = \\) ${blank(1.5)} `;
 				textDisplay = `Dreieck mit Winkeln \\( \\alpha = ${a}° \\) und \\( \\beta = ${b}°\\). Winkel \\(\\gamma \\)?`;
-				s = `\\( \\gamma \\) = 180° - ${a}° - ${b}\° = ${180 - a - b}°`;
+				s = `\\( \\gamma = 180° - ${a}° - ${b}° = ${180 - a - b}° \\)`;
 				answer = numericAnswer(180 - a - b);
 
 			} 
