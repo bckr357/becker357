@@ -1,5 +1,5 @@
 window.MTGPresentationModeModule = {
-    createPresentationMode({ state, taskGeneration, nextTick, typesetMathJax, createJsonImportHandler }) {
+    createPresentationMode({ state, taskGeneration, nextTick, typesetMathJax, createJsonImportHandler, onTasksGenerated }) {
         const toggleSolutions = async () => {
             state.showSolutions.value = !state.showSolutions.value;
             await nextTick();
@@ -15,6 +15,9 @@ window.MTGPresentationModeModule = {
 
             state.currentView.value = 'presentation';
             state.isSettingsSidebarOpen.value = false;
+            if (typeof onTasksGenerated === 'function') {
+                onTasksGenerated();
+            }
 
             await nextTick();
             await typesetMathJax();

@@ -24,7 +24,7 @@
             key: 'training',
             label: 'Training',
             icon: '🧠',
-            url: 'generator/generator.html?view=training&standalone=1',
+            url: 'generator/generator.html?view=training',
             desc: 'Einzelaufgaben üben'
         },
         {

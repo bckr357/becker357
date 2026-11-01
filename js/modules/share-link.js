@@ -1,6 +1,9 @@
 // Kompakte URL-Codierung fuer vorausgewaehlte Aufgabentypen.
 // Die IDs kommen aus einer stabilen, anwendungsbezogenen Registry und sind
 // unabhaengig von der Reihenfolge der sichtbaren typeDefinitions.
+const MTG_SHARE_DEFAULT_GRADE = 10;
+const MTG_SHARE_DEFAULT_TASK_COUNT = 20;
+
 window.MTGShareLinkModule = {
     createCodec(typeRegistry) {
         const keyToIndex = new Map();
@@ -74,36 +77,54 @@ window.MTGShareLinkModule = {
         };
 
         const encodeWeights = weights => {
-            const nibbles = new Uint8Array(maxIndex + 1);
-            nibbles.fill(1);
-            let hasCustomWeight = false;
+            const entries = [];
 
             for (const [type, rawWeight] of Object.entries(weights || {})) {
                 const index = keyToIndex.get(type);
                 const weight = Number(rawWeight);
                 if (index === undefined || !Number.isInteger(weight) || weight < 0 || weight > 9) continue;
-                nibbles[index] = weight;
-                hasCustomWeight ||= weight !== 1;
+                if (weight !== 1) {
+                    entries.push([index, weight]);
+                }
             }
 
-            if (!hasCustomWeight) return '';
+            if (entries.length === 0) return '';
 
-            let lastNonDefault = nibbles.length - 1;
-            while (lastNonDefault >= 0 && nibbles[lastNonDefault] === 1) {
-                lastNonDefault--;
+            const bytes = new Uint8Array(entries.length * 2);
+            entries.forEach(([index, weight], entryIndex) => {
+                const packed = (index << 4) | weight;
+                bytes[entryIndex * 2] = packed >> 8;
+                bytes[entryIndex * 2 + 1] = packed & 0xff;
+            });
+            return `.${byteToBase64Url(bytes)}`;
+        };
+
+        const decodeSparseWeights = value => {
+            if (!value.startsWith('.')) return null;
+
+            const bytes = base64UrlToBytes(value.slice(1));
+            if (bytes.length === 0 || bytes.length % 2 !== 0) {
+                throw new Error('Ungueltige Sparse-Gewichtungs-Codierung.');
             }
 
-            const bytes = new Uint8Array(Math.ceil((lastNonDefault + 1) / 2));
-            for (let index = 0; index <= lastNonDefault; index++) {
-                bytes[Math.floor(index / 2)] |= nibbles[index] << (index % 2 ? 4 : 0);
+            const weights = {};
+            for (let offset = 0; offset < bytes.length; offset += 2) {
+                const packed = (bytes[offset] << 8) | bytes[offset + 1];
+                const index = packed >> 4;
+                const weight = packed & 0x0f;
+                if (!indexToKey[index] || weight > 9) continue;
+                weights[indexToKey[index]] = weight;
             }
-            return byteToBase64Url(bytes);
+            return weights;
         };
 
         const decodeWeights = value => {
             if (typeof value !== 'string' || !value) return null;
 
             try {
+                const sparseWeights = decodeSparseWeights(value);
+                if (sparseWeights) return sparseWeights;
+
                 const bytes = base64UrlToBytes(value);
                 const weights = {};
                 for (let index = 0; index <= maxIndex; index++) {
@@ -148,9 +169,14 @@ window.MTGShareLinkModule = {
                     ? rawTaskCount
                     : null;
                 const rawArrangement = url.searchParams.get('a');
-                const arrangement = ['ordered', 'random', 'random-ordered'].includes(rawArrangement)
-                    ? rawArrangement
-                    : null;
+                const arrangement = {
+                    o: 'ordered',
+                    r: 'random',
+                    ro: 'random-ordered',
+                    ordered: 'ordered',
+                    random: 'random',
+                    'random-ordered': 'random-ordered'
+                }[rawArrangement] || null;
                 const rawPagesParam = url.searchParams.get('p');
                 const rawPages = Number(rawPagesParam);
                 const pages = rawPagesParam === null
@@ -172,6 +198,7 @@ window.MTGShareLinkModule = {
 
         const write = (urlLike, { grade, types, taskCount, arrangement, pages, worksheetTitle, weights, weightsEnabled }) => {
             const url = new URL(urlLike, window.location.href);
+            url.searchParams.delete('view');
             url.searchParams.delete('klasse');
             url.searchParams.delete('grade');
             url.searchParams.delete('typen');
@@ -179,7 +206,7 @@ window.MTGShareLinkModule = {
             url.searchParams.delete('title');
             url.searchParams.delete('ueberschrift');
 
-            if (Number.isInteger(grade) && grade >= 5 && grade <= 10) {
+            if (Number.isInteger(grade) && grade >= 5 && grade <= 10 && grade !== MTG_SHARE_DEFAULT_GRADE) {
                 url.searchParams.set('c', String(grade));
             } else {
                 url.searchParams.delete('c');
@@ -196,14 +223,19 @@ window.MTGShareLinkModule = {
                 url.searchParams.delete('t');
             }
 
-            if (Number.isInteger(taskCount) && taskCount >= 1 && taskCount <= 300) {
+            if (Number.isInteger(taskCount) && taskCount >= 1 && taskCount <= 300 && taskCount !== MTG_SHARE_DEFAULT_TASK_COUNT) {
                 url.searchParams.set('n', String(taskCount));
             } else {
                 url.searchParams.delete('n');
             }
 
-            if (['ordered', 'random', 'random-ordered'].includes(arrangement)) {
-                url.searchParams.set('a', arrangement);
+            const arrangementCode = {
+                ordered: 'o',
+                random: 'r',
+                'random-ordered': 'ro'
+            }[arrangement];
+            if (arrangementCode) {
+                url.searchParams.set('a', arrangementCode);
             } else {
                 url.searchParams.delete('a');
             }

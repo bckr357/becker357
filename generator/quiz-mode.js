@@ -1,5 +1,5 @@
 window.MTGQuizModeModule = {
-    createQuizMode({ state, taskGeneration, nextTick, typesetMathJax, createJsonImportHandler, getVisibleTypeKeys }) {
+    createQuizMode({ state, taskGeneration, nextTick, typesetMathJax, createJsonImportHandler, onTasksGenerated, getVisibleTypeKeys }) {
         const showQuizSolutions = Vue.computed(() => state.showWorksheetSolutions.value);
 
         const quizColumns = Vue.computed(() => {
@@ -42,6 +42,9 @@ window.MTGQuizModeModule = {
             state.currentView.value = 'quiz';
             state.isSettingsSidebarOpen.value = false;
             state.showWorksheetSolutions.value = false;
+            if (typeof onTasksGenerated === 'function') {
+                onTasksGenerated();
+            }
 
             await nextTick();
             await typesetMathJax();

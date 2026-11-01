@@ -1,5 +1,5 @@
 window.MTGTrainingModeModule = {
-    createTrainingMode({ state, taskGeneration, nextTick, typesetMathJax, onMounted, onBeforeUnmount }) {
+    createTrainingMode({ state, taskGeneration, nextTick, typesetMathJax, onMounted, onBeforeUnmount, onTasksGenerated }) {
         const startTraining = async () => {
             if (state.selectedTypes.value.length === 0) return;
 
@@ -13,6 +13,9 @@ window.MTGTrainingModeModule = {
             state.currentView.value = 'training';
             state.showTrainingSolution.value = false;
             state.isSettingsSidebarOpen.value = false;
+            if (typeof onTasksGenerated === 'function') {
+                onTasksGenerated();
+            }
 
             await nextTick();
             await typesetMathJax();

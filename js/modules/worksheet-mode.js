@@ -1,5 +1,5 @@
 window.MTGWorksheetModeModule = {
-    createWorksheetMode({ state, taskGeneration, nextTick, typesetMathJax, selectedGrade, typeLabels, taskTypesByGrade, createJsonImportHandler }) {
+    createWorksheetMode({ state, taskGeneration, nextTick, typesetMathJax, selectedGrade, typeLabels, taskTypesByGrade, createJsonImportHandler, onTasksGenerated }) {
         const getVisibleTypeKeys = () => {
             const allTypes = Object.keys(typeLabels || {});
             const classConfig = (typeof taskTypesByGrade === 'object' && taskTypesByGrade)
@@ -36,6 +36,9 @@ window.MTGWorksheetModeModule = {
 
             state.currentView.value = 'worksheet';
             state.isSettingsSidebarOpen.value = false;
+            if (typeof onTasksGenerated === 'function') {
+                onTasksGenerated();
+            }
 
             await nextTick();
             await typesetMathJax();

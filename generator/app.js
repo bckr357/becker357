@@ -57,16 +57,6 @@ createApp({
         const viewTabs = isQuizEnabled
             ? state.viewTabs
             : state.viewTabs.filter(tab => tab.key !== 'quiz');
-        const directTrainingView = (() => {
-            const url = new URL(window.location.href);
-            const isStandalone = url.searchParams.get('standalone') === '1';
-            const isTraining = url.searchParams.get('view') === 'training' || url.hash.replace(/^#/, '') === 'training';
-            return isStandalone || isTraining;
-        })();
-
-        if (directTrainingView) {
-            state.currentView.value = 'training';
-        }
         const allTypes = sortByTypeDefinitions(Object.keys(typeLabels));
         const selectedGrade = ref(10);
         const gradeOptions = [5, 6, 7, 8, 9, 10];
@@ -237,21 +227,6 @@ createApp({
             }
         };
 
-        watch(
-            [
-                selectedGrade,
-                () => state.selectedTypes.value,
-                () => state.quizSelectedTypes.value,
-                () => state.currentView.value,
-                () => state.taskCount.value,
-                () => state.taskArrangementMode.value,
-                () => state.worksheetA5Pages.value,
-                () => state.worksheetTitle.value
-            ],
-            syncShareUrl,
-            { deep: true }
-        );
-
         const taskGeneration = window.MTGTaskGenerationModule.createTaskGenerationModule({
             state,
             createTask,
@@ -263,6 +238,7 @@ createApp({
             taskGeneration,
             nextTick,
             typesetMathJax,
+            onTasksGenerated: syncShareUrl,
             onMounted,
             onBeforeUnmount
         });
@@ -272,7 +248,8 @@ createApp({
             taskGeneration,
             nextTick,
             typesetMathJax,
-            createJsonImportHandler
+            createJsonImportHandler,
+            onTasksGenerated: syncShareUrl
         });
 
         const worksheetMode = window.MTGWorksheetModeModule.createWorksheetMode({
@@ -283,7 +260,8 @@ createApp({
             selectedGrade,
             typeLabels,
             taskTypesByGrade,
-            createJsonImportHandler
+            createJsonImportHandler,
+            onTasksGenerated: syncShareUrl
         });
 
         const quizMode = isQuizEnabled
@@ -293,6 +271,7 @@ createApp({
                 nextTick,
                 typesetMathJax,
                 createJsonImportHandler,
+                onTasksGenerated: syncShareUrl,
                 getVisibleTypeKeys: () => quizVisibleTypeKeys.value
             })
             : {
@@ -1076,6 +1055,9 @@ createApp({
                     if (initialView === 'training') {
                         state.currentView.value = 'training';
                         await navigation.switchView('training');
+                        if (state.selectedTypes.value.length > 0) {
+                            await trainingMode.startTraining();
+                        }
                         return;
                     }
                     await navigation.switchView(initialView);
@@ -1113,12 +1095,11 @@ createApp({
             const url = new URL(window.location.href);
 
             const shareableView = getShareableView(view);
+            url.searchParams.delete('view');
 
             if (shareableView === 'home') {
-                url.searchParams.delete('view');
                 url.hash = '';
             } else {
-                url.searchParams.set('view', shareableView);
                 url.hash = shareableView;
             }
 
@@ -1194,7 +1175,6 @@ createApp({
 
         return {
             ...state,
-            directTrainingView,
             presentationHeaderVisible,
             viewTabs,
             selectedGrade,
