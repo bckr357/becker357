@@ -987,7 +987,7 @@ textarea {
 }
 
 .settings-topbar-select {
-    width: 100px;
+    width: 80px;
     padding: 4px;
     font-size: 0.95rem;
     text-align: left;
@@ -1704,6 +1704,20 @@ textarea {
     box-shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
 }
 
+.worksheet-sheet--single {
+    max-width: 900px;
+}
+
+.worksheet-sheet--single .worksheet-sheet-header,
+.worksheet-sheet--single .worksheet-list--columns {
+    grid-template-columns: 1fr;
+}
+
+.worksheet-sheet--single .worksheet-header-copy:nth-child(2),
+.worksheet-sheet--single .worksheet-column:nth-child(2) {
+    display: none;
+}
+
 .worksheet-sheet--solutions {
     max-width: none;
     margin: 0;
@@ -1766,7 +1780,7 @@ textarea {
 }
 
 .worksheet-title-input {
-    width: 180px;
+    width: 120px;
     text-align: left;
 }
 
@@ -2216,6 +2230,10 @@ textarea {
         margin: 7mm 12mm 7mm 16mm;
     }
 
+    @page worksheet-single {
+        size: A4 portrait;
+    }
+
     html,
     body {
         width: auto;
@@ -2265,6 +2283,11 @@ textarea {
         box-shadow: none;
     }
 
+    .worksheet-sheet--single {
+        page: worksheet-single;
+        width: 186mm;
+    }
+
     .worksheet-sheet-header {
         padding-top: 5mm;
         grid-template-columns: 121mm 121mm;
@@ -2297,6 +2320,12 @@ textarea {
     .worksheet-list--columns {
         grid-template-columns: 121mm 121mm;
         gap: 27mm;
+    }
+
+    .worksheet-sheet--single .worksheet-sheet-header,
+    .worksheet-sheet--single .worksheet-list--columns {
+        grid-template-columns: 1fr;
+        width: 186mm;
     }
 
     /* .worksheet-column {

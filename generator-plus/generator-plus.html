@@ -206,7 +206,7 @@
             </div>
         </div>
 
-        <div v-else :class="['worksheet-sheet', { 'worksheet-sheet--solutions': worksheetLayoutMode === 'presentation' }]">
+        <div v-else :class="['worksheet-sheet', { 'worksheet-sheet--solutions': worksheetLayoutMode === 'presentation', 'worksheet-sheet--single': worksheetA5Pages === 1 }]">
             <template v-if="worksheetLayoutMode === 'worksheet'">
                 <template v-if="!showWorksheetSolutions">
                     <div v-if="worksheetA5Pages !== 1" class="worksheet-sheet-header">
@@ -663,5 +663,4 @@
     <script src="./app-plus.js"></script>
 </body>
 </html>
-
 

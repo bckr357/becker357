@@ -38,22 +38,14 @@ window.MTGStateModule = {
                 };
             }
 
-            const left = [];
-            const right = [];
-
-            const leftTaskCount = Math.ceil(tasks.value.length / 2);
-
-            tasks.value.forEach((task, index) => {
-                const entry = { task, number: index + 1, key: `col-${index}` };
-
-                if (index < leftTaskCount) {
-                    left.push(entry);
-                } else {
-                    right.push(entry);
-                }
-            });
-
-            return { left, right };
+            return {
+                left: tasks.value.map((task, index) => ({
+                    task,
+                    number: index + 1,
+                    key: `single-${index}`
+                })),
+                right: []
+            };
         });
         const currentTrainingTask = computed(() => trainingHistory.value[currentTrainingIndex.value] ?? null);
         const hasGeneratedTasks = computed(() => tasks.value.length > 0);
