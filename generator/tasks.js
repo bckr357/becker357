@@ -25,14 +25,14 @@ const taskTypesByGrade = {
 		'additionstabellen', 'subtraktionstabellen', 'multiplikationstabellen',
 		'runden', 'ueberschlag', 'zahlengerade',
 		'wortterme',
-		'geometrie', 'dreiecksberechnungen_zeichnung', 'winkel'
+		'geometrie', 'winkel'
 	],
 	klasse6: [
 		'teiler', 'primzahlen', 'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'schriftliche_addition_subtraktion', 'schriftliche_multiplikation_division', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
 		'additionstabellen', 'subtraktionstabellen', 'multiplikationstabellen',
 		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen', 'runden', 'ueberschlag', 'zahlengerade',
 		'wortterme',
-		'geometrie', 'dreiecksberechnungen_zeichnung', 'winkel'
+		'geometrie', 'winkel'
 	],
 	klasse7: [
 		'teiler', 'primzahlen', 'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'schriftliche_addition_subtraktion', 'schriftliche_multiplikation_division', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
@@ -40,7 +40,7 @@ const taskTypesByGrade = {
 		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen', 'runden', 'ueberschlag', 'zahlengerade',
 		'anteile', 'proportionalitaet',
 		'wortterme',
-		'geometrie', 'dreiecksberechnungen_zeichnung', 'winkel', 'kongruenz'
+		'geometrie', 'winkel', 'kongruenz'
 	],
 	klasse8: [
 		'teiler', 'primzahlen', 'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'schriftliche_addition_subtraktion', 'schriftliche_multiplikation_division', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
@@ -48,7 +48,7 @@ const taskTypesByGrade = {
 		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen', 'runden', 'ueberschlag', 'zahlengerade',
 		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen',
 		'terme', 'wortterme',
-		'geometrie', 'dreiecksberechnungen_zeichnung', 'winkel', 'kongruenz'
+		'geometrie', 'winkel', 'kongruenz'
 	],
 	klasse9: [
 		'teiler', 'primzahlen', 'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'schriftliche_addition_subtraktion', 'schriftliche_multiplikation_division', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
@@ -56,7 +56,7 @@ const taskTypesByGrade = {
 		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen', 'runden', 'ueberschlag', 'zahlengerade',
 		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen',
 		'terme', 'wortterme', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig', 'lineare_gleichungen_umstellen', 'formel_umstellen',
-		'geometrie', 'dreiecksberechnungen_zeichnung', 'winkel', 'kongruenz',
+		'geometrie', 'winkel', 'kongruenz',
 		'wahrscheinlichkeiten', 'lineare_funktionen_zeichnen', 'funktionen'
 	],
 	klasse10: [
@@ -65,7 +65,7 @@ const taskTypesByGrade = {
 		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen', 'runden', 'ueberschlag', 'zahlengerade',
 		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen',
 		'terme', 'wortterme', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig', 'lineare_gleichungen_umstellen', 'formel_umstellen',
-		'geometrie', 'dreiecksberechnungen_zeichnung', 'winkel', 'schraegbild', 'kongruenz',
+		'geometrie', 'winkel', 'kongruenz',
 		'statistik', 'wahrscheinlichkeiten', 'lineare_funktionen_zeichnen', 'funktionen'
 	]
 };
@@ -1209,10 +1209,8 @@ function createTask(type, grade = 5, options = {}) {
 					return `${sign}${normalizeDecimalString(`${intPart}.${fracPart}`)}`;
 				};
 
-				// Stufenzahl / Zehnerpotenz mit oder ohne Vorfaktor (z. B. 0.01, 0.02, 0.5, 10, 200, 3000)
-				// Vorfaktoren: 1 (reine Zehnerpotenz), 2, 3, 4 oder 5
-				const isPure = Math.random() < 0.35;
-				const coeff = isPure ? 1 : [2, 3, 4, 5][randInt(0, 3)];
+				// In dieser Aufgabenart werden nur Vorfaktoren von 1 oder 2 verwendet.
+				const coeff = [1, 2][randInt(0, 1)];
 				const exponentOptions = [-2, -1, 1, 2, 3];
 				const exponent = exponentOptions[randInt(0, exponentOptions.length - 1)];
 

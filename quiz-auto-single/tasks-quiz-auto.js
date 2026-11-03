@@ -652,8 +652,8 @@ function createTask(type, grade = 5, options = {}) {
 
 				// Stufenzahl / Zehnerpotenz mit oder ohne Vorfaktor (z. B. 0.01, 0.02, 0.5, 10, 200, 3000)
 				// Vorfaktoren: 1 (reine Zehnerpotenz), 2, 3, 4 oder 5
-				const isPure = Math.random() < 0.35;
-				const coeff = isPure ? 1 : [2, 3, 4, 5][randInt(0, 3)];
+				// In dieser Aufgabenart werden nur Vorfaktoren von 1 oder 2 verwendet.
+				const coeff = [1, 2][randInt(0, 1)]; // Vorfaktor: 1 oder 2
 				const exponentOptions = [-2, -1, 1, 2, 3];
 				const exponent = exponentOptions[randInt(0, exponentOptions.length - 1)];
 
