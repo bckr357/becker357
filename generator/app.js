@@ -60,6 +60,7 @@ createApp({
         const allTypes = sortByTypeDefinitions(Object.keys(typeLabels));
         const selectedGrade = ref(10);
         const gradeOptions = [5, 6, 7, 8, 9, 10];
+        const randomSelectionConfig = ref(window.MTG_RANDOM_SELECTION_CONFIG ?? null);
         const shareLink = window.MTGShareLinkModule.createCodec(window.MTGShareLinkTypeRegistry);
         const initialShareConfig = shareLink.read(window.location.href);
         if (initialShareConfig.grade !== null) {
@@ -856,6 +857,12 @@ createApp({
         };
 
         const randomizeTypeSelection = () => {
+            const selectionConfig = randomSelectionConfig.value;
+            if (!selectionConfig?.default) {
+                window.alert('Die Zufallsauswahl-Konfiguration konnte nicht geladen werden.');
+                return false;
+            }
+
             if (state.currentView.value !== 'quiz') {
                 state.weights.value = true;
             }
@@ -864,45 +871,34 @@ createApp({
             const selectedTypesRef = getActiveSelectedTypesRef();
             const taskWeightsRef = getActiveTaskWeightsRef();
             const availableTypes = new Set(classTypes);
-            const targetTypeCount = Math.min(18, classTypes.length);
+            const gradeConfig = selectionConfig.grades?.[String(selectedGrade.value)] ?? {};
+            const config = {
+                ...selectionConfig.default,
+                ...gradeConfig,
+                requiredTypes: gradeConfig.requiredTypes ?? selectionConfig.default.requiredTypes ?? [],
+                exactOneGroups: gradeConfig.exactOneGroups ?? selectionConfig.default.exactOneGroups ?? [],
+                atMostOneGroups: gradeConfig.atMostOneGroups ?? selectionConfig.default.atMostOneGroups ?? [],
+                weights: {
+                    ...(selectionConfig.default.weights ?? {}),
+                    ...(gradeConfig.weights ?? {})
+                }
+            };
+            const configuredTaskCount = Number(config.taskCount);
+            if (Number.isFinite(configuredTaskCount)) {
+                state.taskCount.value = Math.min(200, Math.max(1, Math.floor(configuredTaskCount)));
+            }
+            const targetTypeCount = Math.min(
+                Math.max(0, Math.floor(Number(config.targetTypeCount) || 0)),
+                classTypes.length
+            );
 
             if (targetTypeCount === 0) {
                 selectedTypesRef.value = [];
                 classTypes.forEach(type => {
                     taskWeightsRef.value[type] = 0;
                 });
-                return;
+                return true;
             }
-
-            const config = {
-                requiredTypes: [
-                    'einheiten',
-                    'ganze_zahlen_addieren_subtrahieren',
-                    'ganze_zahlen_multiplizieren_dividieren',
-                    'dezimalbrueche_addieren_subtrahieren',
-                    'dezimalbrueche_multiplizieren_dividieren',
-                    'natuerliche_zahlen_addieren_subtrahieren',
-                    'natuerliche_zahlen_multiplizieren_dividieren',
-                    'prozentrechnung',
-                    'zehnerpotenzen_multiplizieren_dividieren'
-                ],
-                exactOneGroups: [
-                    ['schriftliche_addition_subtraktion', 'schriftliche_multiplikation_division']
-                ],
-                atMostOneGroups: [
-                    ['additionstabellen', 'subtraktionstabellen', 'multiplikationstabellen', 'termtabellen']
-                ],
-                hardCodedWeights: {
-                    einheiten: 3,
-                    schriftliche_addition_subtraktion: 0,
-                    schriftliche_multiplikation_division: 0,
-                    additionstabellen: 0,
-                    subtraktionstabellen: 0,
-                    multiplikationstabellen: 0,
-                    termtabellen: 0
-                },
-                optionalPickChance: 0.5
-            };
 
             const pickOneFrom = keys => {
                 const candidates = keys.filter(type => availableTypes.has(type));
@@ -914,7 +910,8 @@ createApp({
 
             const pickAtMostOneFrom = keys => {
                 const candidates = keys.filter(type => availableTypes.has(type));
-                if (candidates.length === 0 || Math.random() >= 0.5) {
+                const pickChance = Number(config.atMostOnePickChance);
+                if (candidates.length === 0 || Math.random() >= (Number.isFinite(pickChance) ? pickChance : 0.5)) {
                     return [];
                 }
                 return [candidates[Math.floor(Math.random() * candidates.length)]];
@@ -945,7 +942,15 @@ createApp({
                     config.atMostOneGroups.some(group => group.includes(type) && group.some(member => selected.has(member) && member !== type));
             };
 
-            const addableTypes = classTypes.filter(type => !selected.has(type) && !isConflictingWithGroup(type));
+            const restrictedGroupTypes = new Set([
+                ...config.exactOneGroups.flat(),
+                ...config.atMostOneGroups.flat()
+            ]);
+            const addableTypes = classTypes.filter(type =>
+                !selected.has(type) &&
+                !isConflictingWithGroup(type) &&
+                !restrictedGroupTypes.has(type)
+            );
             const shuffledAddable = [...addableTypes];
             for (let i = shuffledAddable.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -957,14 +962,13 @@ createApp({
                 if (!type) {
                     break;
                 }
-
-                if (Math.random() < config.optionalPickChance || selected.size < Math.min(targetTypeCount, config.requiredTypes.length)) {
-                    selected.add(type);
-                }
+                selected.add(type);
             }
 
             if (selected.size < targetTypeCount) {
-                const backupPool = classTypes.filter(type => !selected.has(type));
+                const backupPool = classTypes.filter(type =>
+                    !selected.has(type) && !restrictedGroupTypes.has(type)
+                );
                 for (let i = backupPool.length - 1; i > 0 && selected.size < targetTypeCount; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
                     [backupPool[i], backupPool[j]] = [backupPool[j], backupPool[i]];
@@ -981,17 +985,27 @@ createApp({
             selectedTypesRef.value = classTypes.filter(type => selected.has(type));
 
             classTypes.forEach(type => {
-                taskWeightsRef.value[type] = config.hardCodedWeights[type] ?? 1;
+                const configuredWeight = Number(config.weights[type]);
+                const defaultWeight = Number(config.defaultWeight);
+                const weight = Number.isFinite(configuredWeight)
+                    ? configuredWeight
+                    : (Number.isFinite(defaultWeight) ? defaultWeight : 1);
+                taskWeightsRef.value[type] = Math.max(0, Math.floor(weight));
             });
+            return true;
         };
 
         const generateRandomWorksheet = async () => {
-            randomizeTypeSelection();
+            if (!randomizeTypeSelection()) {
+                return;
+            }
             await worksheetMode.generateWorksheet();
         };
 
         const generateRandomPresentation = async () => {
-            randomizeTypeSelection();
+            if (!randomizeTypeSelection()) {
+                return;
+            }
             await presentationMode.generateAll();
         };
 
@@ -1157,7 +1171,20 @@ createApp({
             }
         };
 
+        const loadRandomSelectionConfig = async () => {
+            const config = window.MTG_RANDOM_SELECTION_CONFIG;
+            if (!config || typeof config !== 'object' || !config.default || typeof config.default !== 'object') {
+                throw new Error('MTG: Zufallsauswahl-Konfiguration fehlt oder ist ungültig.');
+            }
+            randomSelectionConfig.value = config;
+        };
+
+        const printWorksheet = () => {
+            window.print();
+        };
+
         onMounted(async () => {
+            await loadRandomSelectionConfig();
             await initializeViewFromUrl();
             suppressHistorySync = false;
             syncUrlWithView(state.currentView.value);
@@ -1261,6 +1288,7 @@ createApp({
             toggleWorksheetSolutions: worksheetMode.toggleWorksheetSolutions,
             toggleWorksheetLayoutMode: worksheetMode.toggleWorksheetLayoutMode,
             exportWorksheetJSON: worksheetMode.exportWorksheetJSON,
+            printWorksheet,
             importWorksheetJSON: worksheetMode.importWorksheetJSON,
             openWorksheetImportDialog: worksheetMode.openWorksheetImportDialog,
             worksheetImportInput: worksheetMode.worksheetImportInput,

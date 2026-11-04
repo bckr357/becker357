@@ -180,10 +180,11 @@
                 <button @click="toggleWorksheetSolutions" class="btn btn--toggle">
                     {{ showWorksheetSolutions ? 'Aufgaben' : 'Lösungen' }}
                 </button>
-                <button @click="generateWorksheet" class="btn btn--primary">Erzeugen 🎲</button>
+                <button @click="generateWorksheet" class="btn btn--primary">Erzeugen</button>
                 <button @click="builderResortTasks" class="btn btn--export" :disabled="!hasGeneratedTasks">Anordnen</button>
                 <button @click="openWorksheetImportDialog" class="btn btn--export">Öffnen</button>
                 <button @click="exportWorksheetJSON" class="btn btn--export">Speichern</button>
+                <button @click="printWorksheet" class="btn btn--export" type="button">Drucken</button>
                 <!-- <button @click="switchView('worksheet-builder')" class="btn btn--primary">Anpassen</button> -->
                 <input type="file" ref="worksheetImportInput" @change="importWorksheetJSON" accept=".json" class="u-hidden-file-input">
             </div>
@@ -716,6 +717,7 @@
     <script src="./quiz-mode.js"></script>
     <script src="../js/modules/navigation.js"></script>
     <script src="../js/modules/site-shell.js"></script>
+    <script src="./random-selection-config.js"></script>
     <script src="./app.js"></script>
 </body>
 </html>

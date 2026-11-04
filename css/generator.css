@@ -1688,6 +1688,35 @@ textarea {
     font-size: 12pt;
 }
 
+.worksheet-toolbar .settings-topbar-settings {
+    gap: 6px;
+}
+
+.worksheet-toolbar .settings-topbar-label {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+    min-height: 0;
+    padding: 2px 4px;
+    font-size: 0.72rem;
+}
+
+.worksheet-toolbar .settings-topbar-input {
+    width: 48px;
+    padding: 2px 3px;
+    font-size: 0.88rem;
+}
+
+.worksheet-toolbar .settings-topbar-select {
+    width: 95px;
+    padding: 2px 3px;
+    font-size: 0.84rem;
+}
+
+.worksheet-toolbar .worksheet-title-input {
+    width: 140px;
+}
+
 .worksheet-toolbar-actions {
     display: flex;
     gap: 10px;

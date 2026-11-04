@@ -15,12 +15,38 @@ Ein leichtgewichtiges, client-seitiges Tool zum Erzeugen von Mathematik-Aufgaben
 
 ## Dateien (wichtig)
 - `index.html` — Hauptseite / UI
+- `generator/random-selection-config.js` — Regeln für die Schaltfläche „Zufall“ im Aufgabengenerator
 - `js/` — JavaScript-Quellcode
 	- `js/tasks.js` — Aufgaben-Generator (Kernlogik)
 	- `js/app.js` — App-Initialisierung und UI-Integration
 	- `js/utils.js` — Hilfsfunktionen
 - `css/` — Stile
 - `img/` — Bilder und Icons
+
+### Zufällige Aufgabenauswahl konfigurieren
+
+Die Datei `generator/random-selection-config.js` steuert die automatische Auswahl
+von Aufgabentypen im normalen Generator. Unter `default` stehen die gemeinsamen
+Regeln; unter `grades` können sie je Klassenstufe überschrieben werden.
+
+- `targetTypeCount`: exakte Anzahl ausgewählter Aufgabentypen
+- `taskCount`: Anzahl der zu generierenden Aufgaben; wird beim Klick auf „Zufall“ gesetzt
+- `requiredTypes`: Aufgabentypen, die immer ausgewählt werden
+- `exactOneGroups`: aus jeder Gruppe wird genau ein Typ ausgewählt
+- `atMostOneGroups`: aus jeder Gruppe wird höchstens ein Typ ausgewählt
+- `atMostOnePickChance`: Wahrscheinlichkeit, dass aus einer „höchstens einer“-Gruppe ein Typ ausgewählt wird
+- `defaultWeight`: Standardgewicht für nicht einzeln aufgeführte Typen
+- `weights`: Gewichte einzelner Typen
+
+Nach der Auswahl der Pflichtgruppen werden die übrigen Typen zufällig gemischt
+und direkt bis zu `targetTypeCount` ergänzt. Typen aus `exactOneGroups` und
+`atMostOneGroups` werden beim Auffüllen vollständig ausgelassen, damit die
+Gruppenbeschränkungen nicht nachträglich verletzt werden.
+
+Ein Gewicht von `0` schließt einen Typ nicht aus, sondern erzeugt ihn im
+Arbeitsblatt genau einmal. Die Namen der Aufgabentypen entsprechen den
+internen Schlüsseln in `generator/tasks.js`. Nach Änderungen an der JSON-Datei
+muss die Generator-Seite neu geladen werden.
 
 ## Entwicklung
 - Lokales Editieren: Änderungen im Projektordner vornehmen und `index.html` im Browser neu laden.
