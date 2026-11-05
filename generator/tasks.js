@@ -700,10 +700,9 @@ function createTask(type, grade = 5, options = {}) {
 		case 'additionstabellen':
 		case 'multiplikationstabellen': {
 			const isAdd = type === 'additionstabellen';
-			const isGrade5Natural = grade === 5;
 			const isPositiveOnly = grade <= 7;
-			const min = isGrade5Natural ? (isAdd ? 20 : 2) : (isPositiveOnly ? (isAdd ? 0 : 1) : (isAdd ? -50 : -13));
-			const max = isGrade5Natural ? (isAdd ? 400 : 15) : (isPositiveOnly ? (isAdd ? 50 : 15) : (isAdd ? 50 : 13));
+			const min = isPositiveOnly ? (isAdd ? 20 : 2) : (isAdd ? -50 : -13);
+			const max = isPositiveOnly ? (isAdd ? 100 : 12) : (isAdd ? 50 : 13);
 			const allValues = pickDistinctIntegers(min, max, 7);
 			const rowHeaders = allValues.slice(0, 2);
 			const colHeaders = allValues.slice(2);
@@ -757,25 +756,18 @@ function createTask(type, grade = 5, options = {}) {
 		}
 
 		case 'subtraktionstabellen': {
-			const isGrade5Natural = grade === 5;
 			const isPositiveOnly = grade <= 7;
 			let rowHeaders;
 			let colHeaders;
 
-			if (isGrade5Natural) {
-				const maxSubtrahend = Math.max(4, randInt(0, 10));
-				const firstRow = randInt(maxSubtrahend + 5, maxSubtrahend + 15);
-				const secondRow = firstRow + randInt(1, 6);
-				rowHeaders = [firstRow, secondRow];
-				colHeaders = pickDistinctIntegers(0, maxSubtrahend, 5);
-			} else if (isPositiveOnly) {
-				const maxSubtrahend = Math.max(4, randInt(0, 10));
-				const firstRow = randInt(maxSubtrahend + 5, maxSubtrahend + 15);
-				const secondRow = firstRow + randInt(1, 6);
+			if (isPositiveOnly) {
+				const maxSubtrahend = randInt(20, 50);
+				const firstRow = maxSubtrahend + randInt(10, 30);
+				const secondRow = firstRow + randInt(10, 20);
 				rowHeaders = [firstRow, secondRow];
 				colHeaders = pickDistinctIntegers(0, maxSubtrahend, 5);
 			} else {
-				const min = -20, max = 20;
+				const min = -50, max = 50;
 				const allValues = pickDistinctIntegers(min, max, 7);
 				rowHeaders = allValues.slice(0, 2);
 				colHeaders = allValues.slice(2);
@@ -1118,12 +1110,12 @@ function createTask(type, grade = 5, options = {}) {
 				let expr;
 				let solution;
 				if (Math.random() > 0.5) {
-					const v1 = randInt(0, 13);
-					const v2 = randInt(2, 11);
+					const v1 = Math.random() < 0.5 ? randInt(0, 13) : randInt(2, 9); 
+					const v2 = Math.random() < 0.5 ? randInt(0, 13) : randInt(2, 9);
 					expr = `\\[ ${v1} \\cdot ${v2} = \\]`;
 					solution = `\\[ ${v1} \\cdot ${v2} = ${v1 * v2} \\]`;
 				} else {
-					const divisor = randInt(1, 13);
+					const divisor = Math.random() < 0.5 ? randInt(1, 13) : randInt(2, 9);
 					let quotient;
 					if (divisor >= 11) {
 						quotient = randInt(0, 5);
@@ -2845,8 +2837,8 @@ const fromUnit = displayUnits[unitIndex];
 				textDisplay = `Runde auf ${unit}: \\( \\quad ${comma(value)} \\approx \\) ${blank(2)}`;
 				s = `\\[
 					${comma(value)} \\approx ${comma(result)}
-					\\quad\\bigl(\\text{${decisionDigit} ${decisionPlace}
-					\\;\\rightarrow\\; \\text{${roundingAction}}\\bigr)
+					\\quad(\\text{${decisionDigit} ${decisionPlace}}
+					\\;\\rightarrow\\; \\text{${roundingAction}})
 				\\]`;
 				break;
 			}
@@ -2902,8 +2894,8 @@ const fromUnit = displayUnits[unitIndex];
 			textDisplay = `Runde auf ${target}: \\( \\quad ${comma(v1.toFixed(3))} \\approx \\) ${blank(2)}`;
 			s = `\\[
 				${comma(v1.toFixed(3))} \\approx ${comma(result.toFixed(digits))}
-				\\quad\\bigl(\\text{${decisionDigit} ${decisionPlace}
-				\\;\\rightarrow\\; \\text{${roundingAction}}\\bigr)
+				\\quad(\\text{${decisionDigit} ${decisionPlace}}
+				\\;\\rightarrow\\; \\text{${roundingAction}})
 			\\]`;
 			break;
 		}

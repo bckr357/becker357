@@ -567,15 +567,15 @@ function createTask(type, grade = 5, options = {}) {
 				const isMultiplication = Math.random() > 0.5;
 
 				if (isMultiplication) {
-					const v1 = randInt(0, 13);
-					const v2 = randInt(0, 13);
+					const v1 = Math.random() < 0.5 ? randInt(0, 13) : randInt(2, 9); 
+					const v2 = Math.random() < 0.5 ? randInt(0, 13) : randInt(2, 9);
 					expr = `\\[ ${v1} \\cdot ${v2} = \\]`;
 					const product = v1 * v2;
 					solution = `\\[ ${v1} \\cdot ${v2} = ${product} \\]`;
 					answer = numericAnswer(product);
 				} else {
-					const divisor = randInt(1, 13);
-					const quotient = randInt(0, 13);
+					const divisor = Math.random() < 0.5 ? randInt(1, 13) : randInt(2, 9);
+					const quotient = Math.random() < 0.5 ? randInt(0, 13) : randInt(2, 9);
 					const dividend = divisor * quotient;
 					expr = `\\[ ${dividend} : ${divisor} = \\]`;
 					solution = `\\[ ${dividend} : ${divisor} = ${quotient} \\]`;
@@ -1731,8 +1731,8 @@ function createTask(type, grade = 5, options = {}) {
 				textDisplay = `Runde auf ${unit}: \\( \\quad ${comma(value)} \\approx \\) ${blank(2)}`;
 				s = `\\[
 					${comma(value)} \\approx ${comma(result)}
-					\\quad\\bigl(\\text{${decisionDigit} ${decisionPlace}}
-					\\;\\rightarrow\\; \\text{${roundingAction}}\\bigr)
+					\\quad(\\text{${decisionDigit} ${decisionPlace}}
+					\\;\\rightarrow\\; \\text{${roundingAction}})
 				\\]`;
 				answer = { kind: 'number', value: result };
 				break;
@@ -1789,8 +1789,8 @@ function createTask(type, grade = 5, options = {}) {
 			textDisplay = `Runde auf ${target}: \\( \\quad ${comma(v1.toFixed(3))} \\approx \\) ${blank(2)}`;
 			s = `\\[
 				${comma(v1.toFixed(3))} \\approx ${comma(result.toFixed(digits))}
-				\\quad\\bigl(\\text{${decisionDigit} ${decisionPlace}}
-				\\;\\rightarrow\\; \\text{${roundingAction}}\\bigr)
+				\\quad(\\text{${decisionDigit} ${decisionPlace}}
+				\\;\\rightarrow\\; \\text{${roundingAction}})
 			\\]`;
 			answer = { kind: 'number', value: result };
 			break;
