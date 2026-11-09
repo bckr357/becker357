@@ -45,8 +45,9 @@ window.MTGWorksheetModeModule = {
         };
 
         const exportWorksheetJSON = () => {
+            const date = new Date().toISOString().slice(0, 10);
             taskGeneration.downloadJSONFile(
-                `arbeitsblatt_aufgaben_${state.taskCount.value}.json`,
+                `becker357-arbeitsblatt-${date}.json`,
                 taskGeneration.getTaskExportData()
             );
         };

@@ -1,4 +1,4 @@
-const grading = require('../quiz-auto-single/grading.js');
+const grading = require('../quiz-auto/grading.js');
 
 const cases = [
   { answer: { kind: 'number', value: 3 }, raw: '3', expected: true },

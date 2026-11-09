@@ -252,6 +252,7 @@ textarea {
 
 .settings-topbar-label {
     display: inline-flex;
+    justify-content: center;
     flex-direction: row;
     align-items: center;
     gap: 4px;
@@ -264,6 +265,12 @@ textarea {
     font-size: 0.78rem;
     font-weight: 700;
     margin: 0;
+}
+
+.worksheet-view .settings-topbar-label,
+.presentation-view .settings-topbar-label {
+    height: 50px;
+    box-sizing: border-box;
 }
 
 .settings-topbar-label > span {
@@ -951,7 +958,8 @@ textarea {
     flex-wrap: wrap;
 }
 
-.presentation-floating-toggle {
+.presentation-floating-toggle,
+.worksheet-floating-toggle {
     position: fixed;
     top: 16px;
     right: 16px;
@@ -980,25 +988,69 @@ textarea {
 }
 
 .settings-topbar-input {
-    width: 60px;
     text-align: center;
     padding: 4px;
     font-size: 1rem;
 }
 
 .settings-topbar-select {
-    width: 80px;
     padding: 4px;
     font-size: 0.95rem;
     text-align: left;
+}
+
+.settings-topbar-control--count {
+    width: 48px;
+}
+
+.settings-topbar-control--arrangement {
+    width: 90px;
+}
+
+.settings-topbar-control--worksheet-pages {
+    width: 45px;
+}
+
+.settings-topbar-control--title {
+    width: 140px;
+    text-align: left;
+}
+
+.settings-topbar-control--quiz-number {
+    width: 60px;
+}
+
+.settings-topbar-control--columns {
+    width: 40px;
 }
 
 .task-grid {
     flex-grow: 1;
     display: flex;
     gap: 60px;
-    border-top: 2px solid var(--slate-100);
+    border-top: 1px solid var(--slate-300);
     margin-top: 10px;
+}
+
+.presentation-content {
+    flex-grow: 1;
+}
+
+.presentation-title {
+    padding: 10px 0 10px 70px;
+    background: var(--slate-100);
+    color: var(--slate-700);
+    font-size: 2rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.task-grid--single {
+    display: block;
+}
+
+.task-grid--single .column-wrapper {
+    width: 100%;
 }
 
 .column-wrapper {
@@ -1698,23 +1750,13 @@ textarea {
     gap: 2px;
     min-height: 0;
     padding: 2px 4px;
-    font-size: 0.72rem;
+    font-size: 0.7rem;
 }
 
-.worksheet-toolbar .settings-topbar-input {
-    width: 48px;
-    padding: 2px 3px;
-    font-size: 0.88rem;
-}
-
+.worksheet-toolbar .settings-topbar-input,
 .worksheet-toolbar .settings-topbar-select {
-    width: 95px;
     padding: 2px 3px;
-    font-size: 0.84rem;
-}
-
-.worksheet-toolbar .worksheet-title-input {
-    width: 140px;
+    font-size: 0.8rem;
 }
 
 .worksheet-toolbar-actions {
@@ -1734,7 +1776,7 @@ textarea {
 }
 
 .worksheet-sheet--single {
-    max-width: 900px;
+    max-width: 700px;
 }
 
 .worksheet-sheet--single .worksheet-sheet-header,
@@ -1806,11 +1848,6 @@ textarea {
     text-align: center;
     font-size: 12pt;
     font-weight: 400;
-}
-
-.worksheet-title-input {
-    width: 120px;
-    text-align: left;
 }
 
 .worksheet-list {

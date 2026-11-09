@@ -24,7 +24,8 @@ window.MTGPresentationModeModule = {
         };
 
         const exportJSON = () => {
-            taskGeneration.downloadJSONFile(`mathe_aufgaben_${state.taskCount.value}.json`, taskGeneration.getTaskExportData());
+			const date = new Date().toISOString().slice(0, 10);
+            taskGeneration.downloadJSONFile(`becker357-präsentation-${date}.json`, taskGeneration.getTaskExportData());
         };
 
         const presentationImportInput = Vue.ref(null);

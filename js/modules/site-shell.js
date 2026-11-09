@@ -17,35 +17,35 @@
             key: 'generator',
             label: 'Aufgabengenerator',
             icon: '📝',
-            url: 'generator/generator.html',
+            url: 'generator/',
             desc: 'Aufgaben ohne TR & TW'
         },
         {
             key: 'training',
             label: 'Training',
             icon: '🧠',
-            url: 'generator/generator.html?view=training',
+            url: 'generator/?view=training',
             desc: 'Einzelaufgaben üben'
         },
         {
             key: 'visualisierung',
             label: 'Animationen',
             icon: '📊',
-            url: 'visualisierung/visualisierung.html',
+            url: 'visualisierung/',
             desc: 'Grafische Darstellungen'
         },
         {
             key: 'quiz',
             label: 'Mathe-Quiz',
             icon: '⚔️',
-            url: 'quiz/quiz.html',
+            url: 'quiz/',
             desc: 'Quiz für die ganze Klasse'
         },
         {
-            key: 'quiz-auto-single',
+            key: 'quiz-auto',
             label: 'Individuelles Quiz',
             icon: '🎯',
-            url: 'quiz-auto-single/quiz-auto-single.html',
+            url: 'quiz-auto/',
             desc: 'Löse Aufgaben in Serien'
         }
     ];
@@ -59,7 +59,7 @@
         const path = window.location.pathname;
         const dir = path.substring(0, path.lastIndexOf('/'));
         const lastSegment = dir.split('/').filter(Boolean).pop() || '';
-        const SUBFOLDERS = ['generator', 'generator-plus', 'quiz', 'quiz-auto', 'quiz-auto-single', 'kompetenzraster', 'rechner-tools', 'visualisierung'];
+        const SUBFOLDERS = ['generator', 'generator-plus', 'quiz', 'quiz-auto', 'kompetenzraster', 'rechner-tools', 'visualisierung'];
         return SUBFOLDERS.includes(lastSegment) ? '../' : '';
     }
 
@@ -76,7 +76,7 @@
         const dirMap = {
             'generator': 'generator',
             'quiz': 'quiz',
-            'quiz-auto-single': 'quiz-auto-single',
+            'quiz-auto': 'quiz-auto',
             'visualisierung': 'visualisierung'
         };
         return dirMap[lastSegment] ?? 'home';

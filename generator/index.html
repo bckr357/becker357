@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Aufgabengenerator – Mathe-Werkzeuge</title>
+    <link rel="icon" type="image/x-icon" href="../img/favicon.ico">
+    <title>becker357 - Aufgabengenerator</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <script>
         window.MathJax = {
@@ -23,7 +24,7 @@
         };
     </script>
     <script id="MathJax-script" defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Reddit+Sans:ital,wght@0,300..900;1,300..900&display=swap">
@@ -65,16 +66,16 @@
             <div class="settings-selection-bar">
                 <div class="settings-selection-controls">
                     <label v-if="currentView !== 'quiz'" class="settings-topbar-label settings-checkbox-option">
-                        <input type="checkbox" v-model="weights" class="settings-checkbox">
+                        <input type="checkbox" v-model="weights" name="weights" class="settings-checkbox">
                         <span>Gewichte</span>
                     </label>
                     <label v-if="currentView !== 'training'" class="settings-topbar-label">
                         <span>Anzahl</span>
-                        <input type="number" v-model.number="taskCount" min="1" max="200" class="settings-input settings-count-input">
+                        <input type="number" v-model.number="taskCount" name="taskCount" min="1" max="200" class="settings-input settings-count-input">
                     </label>
                     <label class="settings-topbar-label">
                         <span>Klasse</span>
-                        <select v-model="selectedGrade" class="settings-input settings-grade-input">
+                        <select v-model="selectedGrade" name="selectedGrade" class="settings-input settings-grade-input">
                             <option v-for="grade in gradeOptions" :key="grade" :value="grade">{{ grade }}</option>
                         </select>
                     </label>
@@ -94,8 +95,8 @@
             <div class="type-grid settings-type-grid">
                 <div v-for="([key, label]) in activeVisibleTypeEntries" :key="'drawer-'+key" class="type-option">
                     <label class="checkbox-label type-label">
-                        <input type="checkbox" v-model="activeSelectedTypes" :value="key">
-                        <input v-if="weights && currentView !== 'quiz'" type="number" v-model.number="activeTaskWeights[key]" min="0" max="9" step="1" class="weight-input" title="Gewichte (0 = einmal pro Satz)">
+                        <input type="checkbox" v-model="activeSelectedTypes" name="selectedTypes" :value="key">
+                        <input v-if="weights && currentView !== 'quiz'" type="number" v-model.number="activeTaskWeights[key]" name="taskWeight" min="0" max="9" step="1" class="weight-input" title="Gewichte (0 = einmal pro Satz)">
                         <span>{{ label }}</span>
                     </label>
                 </div>
@@ -137,7 +138,7 @@
             <div class="toolbar-main-controls">
                 <button @click="toggleSettingsSidebar" class="btn btn--export">Aufgabenauswahl</button>
                 <h3 class="settings-drawer-section-title">Modul:</h3>
-                <select :value="currentView" @change="onModuleSelect" @mouseenter="openViewDropdown" class="view-switch-select">
+                <select :value="currentView" name="currentView" @change="onModuleSelect" @mouseenter="openViewDropdown" class="view-switch-select">
                     <option v-for="tab in viewTabs" :key="'worksheet-select-'+tab.key" :value="tab.key">{{ tab.label }}</option>
                 </select>
             </div>
@@ -145,14 +146,14 @@
                 <div class="settings-topbar-settings">
                     <label class="settings-topbar-label">
                         Aufgaben
-                        <input type="number" v-model.number="taskCount" min="1" max="200" class="settings-input settings-topbar-input">
+                        <input type="number" v-model.number="taskCount" name="taskCount" min="1" max="200" class="settings-input settings-topbar-input settings-topbar-control--count">
                     </label>
                     <label class="settings-topbar-label">
                         Anordnung
-                        <select v-model="taskArrangementMode" class="settings-input settings-select settings-topbar-select">
-                            <option value="ordered">sortiert</option>
+                        <select v-model="taskArrangementMode" name="taskArrangementMode" class="settings-input settings-select settings-topbar-select settings-topbar-control--arrangement">
+                            <option value="ordered">Blöcke</option>
                             <option value="random">zufällig</option>
-                            <option value="random-ordered">zuf. sortiert</option>
+                            <option value="random-ordered">zuf. Blöcke</option>
                         </select>
                     </label>
                     <label class="settings-topbar-label">
@@ -160,15 +161,16 @@
                         <input
                             type="text"
                             v-model="worksheetTitle"
-                            class="settings-input settings-topbar-input worksheet-title-input"
+                            name="worksheetTitle"
+                            class="settings-input settings-topbar-input settings-topbar-control--title"
                             placeholder="optional"
                         >
                     </label>
                     <label class="settings-topbar-label">
-                        A5 Seiten
-                        <select v-model.number="worksheetA5Pages" class="settings-input settings-select settings-topbar-select">
-                            <option :value="1">Einzeln</option>
-                            <option :value="2">Kopie</option>
+                        Seiten
+                        <select v-model.number="worksheetA5Pages" name="worksheetA5Pages" class="settings-input settings-select settings-topbar-select settings-topbar-control--worksheet-pages">
+                            <option :value="1">A4</option>
+                            <option :value="2">A5</option>
                         </select>
                     </label>
                 </div>
@@ -186,7 +188,7 @@
                 <button @click="exportWorksheetJSON" class="btn btn--export">Speichern</button>
                 <button @click="printWorksheet" class="btn btn--export" type="button">Drucken</button>
                 <!-- <button @click="switchView('worksheet-builder')" class="btn btn--primary">Anpassen</button> -->
-                <input type="file" ref="worksheetImportInput" @change="importWorksheetJSON" accept=".json" class="u-hidden-file-input">
+                <input type="file" ref="worksheetImportInput" name="worksheetImport" @change="importWorksheetJSON" accept=".json" class="u-hidden-file-input">
             </div>
         </div>
 
@@ -303,16 +305,26 @@
                 </div>
             </template>
         </div>
+
+        <button
+            v-if="hasGeneratedTasks && !worksheetHeaderVisible"
+            @click="toggleWorksheetSolutions"
+            class="btn btn--toggle worksheet-floating-toggle"
+            :title="showWorksheetSolutions ? 'Aufgaben anzeigen' : 'Lösungen anzeigen'"
+            type="button"
+        >
+            {{ showWorksheetSolutions ? 'A' : 'L' }}
+        </button>
     </div>
 
     <div v-else-if="currentView === 'worksheet-builder'" class="worksheet-builder-view" :style="{ '--builder-sidebar-width': builderSidebarWidth + 'px' }">
         <aside class="builder-sidebar">
             <div class="builder-sidebar-top">
                 <div class="builder-sidebar-controls">
-                    <label class="settings-checkbox-option builder-inline-control"><input type="checkbox" v-model="builderQuizMode" class="settings-checkbox"><span>nur Einzelaufgaben</span></label>
+                    <label class="settings-checkbox-option builder-inline-control"><input type="checkbox" v-model="builderQuizMode" name="builderQuizMode" class="settings-checkbox"><span>nur Einzelaufgaben</span></label>
                     <label class="settings-topbar-label builder-inline-control">
                         <span>Klasse</span>
-                        <select v-model="selectedGrade" class="settings-input settings-grade-input">
+                        <select v-model="selectedGrade" name="selectedGrade" class="settings-input settings-grade-input">
                             <option v-for="grade in gradeOptions" :key="'builder-grade-'+grade" :value="grade">{{ grade }}</option>
                         </select>
                     </label>
@@ -398,10 +410,10 @@
                 <div class="worksheet-toolbar-actions">
                     <label class="settings-topbar-label">
                         Anordnung
-                        <select v-model="taskArrangementMode" class="settings-input settings-select settings-topbar-select">
-                            <option value="ordered">sortiert</option>
+                        <select v-model="taskArrangementMode" name="taskArrangementMode" class="settings-input settings-select settings-topbar-select settings-topbar-control--arrangement">
+                            <option value="ordered">Blöcke</option>
                             <option value="random">zufällig</option>
-                            <option value="random-ordered">zuf. sortiert</option>
+                            <option value="random-ordered">zuf. Blöcke</option>
                         </select>
                     </label>
                     <button @click="builderToggleTaskSolutions" class="btn btn--toggle" :disabled="!hasGeneratedTasks">
@@ -415,7 +427,7 @@
                     <button @click="exportBuilderJSON" class="btn btn--export" :disabled="!hasGeneratedTasks">Speichern</button>
                     <!-- <button @click="builderClearTasks" class="btn btn--back" :disabled="!hasGeneratedTasks">Leeren</button> -->
                     <!-- <button @click="switchView('worksheet')" class="btn btn--primary" :disabled="!hasGeneratedTasks">Arbeitsblatt öffnen</button> -->
-                    <input type="file" ref="builderImportInput" @change="importBuilderJSON" accept=".json" class="u-hidden-file-input">
+                    <input type="file" ref="builderImportInput" name="builderImport" @change="importBuilderJSON" accept=".json" class="u-hidden-file-input">
                 </div>
             </div>
 
@@ -449,11 +461,11 @@
                             <div class="builder-inline-edit-grid">
                                 <label class="builder-edit-label">
                                     <span>Aufgabe</span>
-                                    <textarea v-model="builderEditTaskText" class="builder-edit-textarea" rows="6"></textarea>
+                                    <textarea v-model="builderEditTaskText" name="builderEditTaskText" class="builder-edit-textarea" rows="6"></textarea>
                                 </label>
                                 <label class="builder-edit-label">
                                     <span>Lösung</span>
-                                    <textarea v-model="builderEditSolutionText" class="builder-edit-textarea" rows="6"></textarea>
+                                    <textarea v-model="builderEditSolutionText" name="builderEditSolutionText" class="builder-edit-textarea" rows="6"></textarea>
                                 </label>
                             </div>
                             <div class="builder-task-actions">
@@ -497,7 +509,7 @@
         <div class="training-top-bar">
             <div class="toolbar-main-controls">
                 <button @click="toggleSettingsSidebar" class="btn btn--export">Aufgabenauswahl</button>
-                <select v-if="currentView !== 'training'" :value="currentView" @change="onModuleSelect" @mouseenter="openViewDropdown" class="view-switch-select">
+                <select v-if="currentView !== 'training'" :value="currentView" name="currentView" @change="onModuleSelect" @mouseenter="openViewDropdown" class="view-switch-select">
                     <option v-for="tab in viewTabs" :key="'training-select-'+tab.key" :value="tab.key">{{ tab.label }}</option>
                 </select>
             </div>
@@ -507,7 +519,7 @@
                 <button @click="startTraining" class="btn btn--primary">Neu starten</button>
             </div>
         </div>
-        <input type="file" ref="trainingImportInput" @change="importTrainingJSON" accept=".json" class="u-hidden-file-input">
+        <input type="file" ref="trainingImportInput" name="trainingImport" @change="importTrainingJSON" accept=".json" class="u-hidden-file-input">
 
         <div v-if="!currentTrainingTask" class="empty-state empty-state--training">
             <h2>Trainingsmodus</h2>
@@ -546,7 +558,7 @@
             <div class="toolbar-main-controls">
                 <button @click="toggleSettingsSidebar" class="btn btn--export">Aufgabenauswahl</button>
                 <h3 class="settings-drawer-section-title">Modul:</h3>
-                <select :value="currentView" @change="onModuleSelect" @mouseenter="openViewDropdown" class="view-switch-select">
+                <select :value="currentView" name="currentView" @change="onModuleSelect" @mouseenter="openViewDropdown" class="view-switch-select">
                     <option v-for="tab in viewTabs" :key="'quiz-select-'+tab.key" :value="tab.key">{{ tab.label }}</option>
                 </select>
             </div>
@@ -555,18 +567,18 @@
                 <div class="settings-topbar-settings">
                     <label class="settings-topbar-label">
                         Aufgaben
-                        <input type="number" v-model.number="taskCount" min="1" max="300" class="settings-input settings-topbar-input">
+                        <input type="number" v-model.number="taskCount" name="taskCount" min="1" max="300" class="settings-input settings-topbar-input settings-topbar-control--count">
                     </label>
                     <label class="settings-topbar-label">
                         Quiz-Nr.
-                        <input type="text" v-model="quizNumber" class="settings-input settings-topbar-input" placeholder="z. B. A1">
+                        <input type="text" v-model="quizNumber" name="quizNumber" class="settings-input settings-topbar-input settings-topbar-control--quiz-number" placeholder="z. B. A1">
                     </label>
                     <label class="settings-topbar-label">
                         Anordnung
-                        <select v-model="taskArrangementMode" class="settings-input settings-select settings-topbar-select">
-                            <option value="ordered">sortiert</option>
+                        <select v-model="taskArrangementMode" name="taskArrangementMode" class="settings-input settings-select settings-topbar-select settings-topbar-control--arrangement">
+                            <option value="ordered">Blöcke</option>
                             <option value="random">zufällig</option>
-                            <option value="random-ordered">zuf. sortiert</option>
+                            <option value="random-ordered">zuf. Blöcke</option>
                         </select>
                     </label>
                 </div>
@@ -580,7 +592,7 @@
                 <button @click="builderResortTasks" class="btn btn--export" :disabled="!hasGeneratedTasks">Anordnen</button>
                 <button @click="openQuizImportDialog" class="btn btn--export">Öffnen</button>
                 <button @click="exportQuizJSON" class="btn btn--export" :disabled="!hasGeneratedTasks">Speichern</button>
-                <input type="file" ref="quizImportInput" @change="importQuizJSON" accept=".json" class="u-hidden-file-input">
+                <input type="file" ref="quizImportInput" name="quizImport" @change="importQuizJSON" accept=".json" class="u-hidden-file-input">
             </div>
         </div>
 
@@ -622,7 +634,7 @@
             <div class="toolbar-main-controls">
                 <button @click="toggleSettingsSidebar" class="btn btn--export">Aufgabenauswahl</button>
                 <h3 class="settings-drawer-section-title">Modul:</h3>
-                <select :value="currentView" @change="onModuleSelect" @mouseenter="openViewDropdown" class="view-switch-select">
+                <select :value="currentView" name="currentView" @change="onModuleSelect" @mouseenter="openViewDropdown" class="view-switch-select">
                     <option v-for="tab in viewTabs" :key="'presentation-select-'+tab.key" :value="tab.key">{{ tab.label }}</option>
                 </select>
             </div>
@@ -631,14 +643,32 @@
                 <div class="settings-topbar-settings">
                     <label class="settings-topbar-label">
                         Aufgaben
-                        <input type="number" v-model.number="taskCount" min="1" max="200" class="settings-input settings-topbar-input">
+                        <input type="number" v-model.number="taskCount" name="taskCount" min="1" max="200" class="settings-input settings-topbar-input settings-topbar-control--count">
                     </label>
                     <label class="settings-topbar-label">
                         Anordnung
-                        <select v-model="taskArrangementMode" class="settings-input settings-select settings-topbar-select">
-                            <option value="ordered">sortiert</option>
+                        <select v-model="taskArrangementMode" name="taskArrangementMode" class="settings-input settings-select settings-topbar-select settings-topbar-control--arrangement">
+                            <option value="ordered">Blöcke</option>
                             <option value="random">zufällig</option>
-                            <option value="random-ordered">zuf. sortiert</option>
+                            <option value="random-ordered">zuf. Blöcke</option>
+                        </select>
+                    </label>
+                    <label class="settings-topbar-label">
+                        Überschrift
+                        <input
+                        type="text"
+                        v-model="worksheetTitle"
+                        name="worksheetTitle"
+                        class="settings-input settings-topbar-input settings-topbar-control--title"
+                        placeholder="optional"
+                        >
+
+                    </label>
+                    <label class="settings-topbar-label">
+                        Spalten
+                        <select v-model.number="presentationColumns" name="presentationColumns" class="settings-input settings-select settings-topbar-select settings-topbar-control--columns">
+                            <option :value="2">2</option>
+                            <option :value="1">1</option>
                         </select>
                     </label>
                 </div>
@@ -654,7 +684,7 @@
                     {{ isDarkMode ? 'Light-Mode' : 'Dark-Mode' }}
                 </button>
                 <button @click="openPresentationImportDialog" class="btn btn--export">Öffnen</button>
-                <input type="file" ref="presentationImportInput" @change="importPresentationJSON" accept=".json" class="u-hidden-file-input">
+                <input type="file" ref="presentationImportInput" name="presentationImport" @change="importPresentationJSON" accept=".json" class="u-hidden-file-input">
                 <button @click="exportJSON" class="btn btn--export">Speichern</button>
                 <!-- <button @click="exportHTML" class="btn btn--export">Speichern 💾</button> -->
             </div>
@@ -682,23 +712,19 @@
             </div>
         </div>
 
-        <div v-else class="task-grid">
-            <div class="column-wrapper">
-                <div v-for="(task, index) in rowWiseFirstColumnTasks" :key="'col1-'+index" class="task-row">
-                    <div class="task-num">{{ (index * 2) + 1 }}</div>
-                    <div class="content">
-                        <div v-if="!showSolutions" class="math-q" v-html="task.textDisplay"></div>
-                        <div v-else class="math-a" v-html="task.solution"></div>
-                    </div>
-                </div>
+        <div v-else class="presentation-content">
+            <div v-if="worksheetTitle.trim()" class="presentation-title">
+                {{ worksheetTitle }}
             </div>
 
-            <div class="column-wrapper">
-                <div v-for="(task, index) in rowWiseSecondColumnTasks" :key="'col2-'+index" class="task-row">
-                    <div class="task-num">{{ (index * 2) + 2 }}</div>
-                    <div class="content">
-                        <div v-if="!showSolutions" class="math-q" v-html="task.textDisplay"></div>
-                        <div v-else class="math-a" v-html="task.solution"></div>
+            <div :class="['task-grid', { 'task-grid--single': presentationColumns === 1 }]">
+                <div v-for="(column, columnIndex) in presentationTaskColumns" :key="'presentation-column-'+columnIndex" class="column-wrapper">
+                    <div v-for="entry in column" :key="'presentation-'+columnIndex+'-'+entry.number" class="task-row">
+                        <div class="task-num">{{ entry.number }}</div>
+                        <div class="content">
+                            <div v-if="!showSolutions" class="math-q" v-html="entry.task.textDisplay"></div>
+                            <div v-else class="math-a" v-html="entry.task.solution"></div>
+                        </div>
                     </div>
                 </div>
             </div>

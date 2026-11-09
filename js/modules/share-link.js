@@ -184,20 +184,46 @@ window.MTGShareLinkModule = {
                     : Number.isInteger(rawPages) && [1, 2].includes(rawPages)
                         ? rawPages
                         : 1;
+                const rawColumns = Number(url.searchParams.get('col'));
+                const presentationColumns = Number.isInteger(rawColumns) && [1, 2].includes(rawColumns)
+                    ? rawColumns
+                    : null;
                 const worksheetTitle = url.searchParams.get('h')
                     ?? url.searchParams.get('title')
                     ?? url.searchParams.get('ueberschrift');
                 const weights = decodeWeights(url.searchParams.get('w'));
 
-                return { grade, types, taskCount, arrangement, pages, worksheetTitle, weights };
+                return { grade, types, taskCount, arrangement, pages, presentationColumns, worksheetTitle, weights };
             } catch (error) {
                 console.warn('MTG: Fehler beim Lesen der URL.', error);
-                return { grade: null, types: [], taskCount: null, arrangement: null, pages: null, worksheetTitle: null, weights: null };
+                return {
+                    grade: null,
+                    types: [],
+                    taskCount: null,
+                    arrangement: null,
+                    pages: null,
+                    presentationColumns: null,
+                    worksheetTitle: null,
+                    weights: null
+                };
             }
         };
 
-        const write = (urlLike, { grade, types, taskCount, arrangement, pages, worksheetTitle, weights, weightsEnabled }) => {
+        const write = (urlLike, {
+            grade,
+            types,
+            taskCount,
+            arrangement,
+            pages,
+            presentationColumns,
+            worksheetTitle,
+            weights,
+            weightsEnabled
+        }) => {
             const url = new URL(urlLike, window.location.href);
+            if (['http:', 'https:'].includes(url.protocol) && url.pathname.endsWith('/index.html')) {
+                url.pathname = url.pathname.slice(0, -'index.html'.length);
+            }
             url.searchParams.delete('view');
             url.searchParams.delete('klasse');
             url.searchParams.delete('grade');
@@ -244,6 +270,12 @@ window.MTGShareLinkModule = {
                 url.searchParams.set('p', String(pages));
             } else {
                 url.searchParams.delete('p');
+            }
+
+            if (Number.isInteger(presentationColumns) && [1, 2].includes(presentationColumns)) {
+                url.searchParams.set('col', String(presentationColumns));
+            } else {
+                url.searchParams.delete('col');
             }
 
             const normalizedTitle = typeof worksheetTitle === 'string'

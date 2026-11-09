@@ -77,10 +77,10 @@ Get-ChildItem -Path . -Filter *.html -Recurse |
 	Select-String -Pattern 'Hauptmenue|schliessen|oeffnen'
 
 # Prüfen: Keine alten Quiz-Button-Klassen (btn-start/score/plus/minus)
-Select-String -Path "css/quiz.css","quiz.html" -Pattern '\bbtn-(start|score|plus|minus)\b'
+Select-String -Path "css/quiz.css","quiz/index.html" -Pattern '\bbtn-(start|score|plus|minus)\b'
 
-# Prüfen: Keine Inline-Stile in quiz.html
-Select-String -Path "quiz.html" -Pattern ' style='
+# Prüfen: Keine Inline-Stile in quiz/index.html
+Select-String -Path "quiz/index.html" -Pattern ' style='
 ```
 
 ### Manueller Smoke-Test
@@ -93,5 +93,5 @@ Select-String -Path "quiz.html" -Pattern ' style='
 | 4 | Kompetenzraster → Klasse 6 öffnen | Kompetenzen und Buttons sichtbar, Fachbegriffe ein-/ausklappbar |
 | 5 | Video-Link in Kompetenzraster anklicken | Öffnet YouTube in neuem Tab ohne `window.opener` (rel=noreferrer) |
 | 6 | JSON-Export erstellen, JSON-Import testen | Aufgaben werden korrekt wiederhergestellt |
-| 7 | Quiz-Modus starten (quiz.html) | Punktebuttons (+/–) funktionieren, Karten wechseln |
+| 7 | Quiz-Modus starten (quiz/) | Punktebuttons (+/–) funktionieren, Karten wechseln |
 | 8 | DevTools → Console | Keine Fehler, höchstens harmlose Warnungen |

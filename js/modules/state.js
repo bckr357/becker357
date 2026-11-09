@@ -18,6 +18,7 @@ window.MTGStateModule = {
         );
         const taskCount = ref(20);
         const taskArrangementMode = ref('ordered');
+        const presentationColumns = ref(2);
         const worksheetTitle = ref('');
         const gtNumber = ref(1);
         const worksheetA5Pages = ref(2);
@@ -30,6 +31,16 @@ window.MTGStateModule = {
 
         const rowWiseFirstColumnTasks = computed(() => tasks.value.filter((_, index) => index % 2 === 0));
         const rowWiseSecondColumnTasks = computed(() => tasks.value.filter((_, index) => index % 2 === 1));
+        const presentationTaskColumns = computed(() => {
+            if (presentationColumns.value === 1) {
+                return [[...tasks.value].map((task, index) => ({ task, number: index + 1 }))];
+            }
+
+            return [
+                rowWiseFirstColumnTasks.value.map((task, index) => ({ task, number: (index * 2) + 1 })),
+                rowWiseSecondColumnTasks.value.map((task, index) => ({ task, number: (index * 2) + 2 }))
+            ];
+        });
         const worksheetTaskColumns = computed(() => {
             if (worksheetA5Pages.value === 2) {
                 return {
@@ -78,6 +89,7 @@ window.MTGStateModule = {
             taskWeights,
             taskCount,
             taskArrangementMode,
+            presentationColumns,
             worksheetTitle,
             gtNumber,
             worksheetA5Pages,
@@ -87,6 +99,7 @@ window.MTGStateModule = {
             quizNumber,
             rowWiseFirstColumnTasks,
             rowWiseSecondColumnTasks,
+            presentationTaskColumns,
             worksheetTaskColumns,
             currentTrainingTask,
             hasGeneratedTasks,

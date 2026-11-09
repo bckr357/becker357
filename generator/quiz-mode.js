@@ -93,8 +93,9 @@ window.MTGQuizModeModule = {
         });
 
         const exportQuizJSON = () => {
+            const date = new Date().toISOString().slice(0, 10);
             taskGeneration.downloadJSONFile(
-                `quiz_${state.quizNumber.value}.json`,
+                `becker357-quiz-${date}-${state.quizNumber.value}.json`,
                 {
                     quizNumber: state.quizNumber.value,
                     tasks: taskGeneration.getTaskExportData()

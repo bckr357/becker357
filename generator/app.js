@@ -75,6 +75,9 @@ createApp({
         if (initialShareConfig.pages !== null) {
             state.worksheetA5Pages.value = initialShareConfig.pages;
         }
+        if (initialShareConfig.presentationColumns !== null) {
+            state.presentationColumns.value = initialShareConfig.presentationColumns;
+        }
         if (initialShareConfig.worksheetTitle !== null) {
             state.worksheetTitle.value = initialShareConfig.worksheetTitle;
         }
@@ -134,16 +137,16 @@ createApp({
             .filter(type => typeof type === 'string' && type))];
 
         const presentationHeaderVisible = ref(true);
+        const worksheetHeaderVisible = ref(true);
 
         const updatePresentationHeaderVisibility = () => {
             const toolbar = document.querySelector('.presentation-view .top-bar');
-            if (!toolbar) {
-                presentationHeaderVisible.value = true;
-                return;
-            }
+            presentationHeaderVisible.value = !toolbar
+                || toolbar.getBoundingClientRect().top >= -toolbar.offsetHeight + 12;
 
-            const rect = toolbar.getBoundingClientRect();
-            presentationHeaderVisible.value = rect.top >= -toolbar.offsetHeight + 12;
+            const worksheetToolbar = document.querySelector('.worksheet-view .worksheet-toolbar');
+            worksheetHeaderVisible.value = !worksheetToolbar
+                || worksheetToolbar.getBoundingClientRect().top >= -worksheetToolbar.offsetHeight + 12;
         };
 
         const createJsonImportHandler = ({ loadTasks, getVisibleKeys, setSelectedTypes, onAfterLoad }) => async event => {
@@ -213,6 +216,7 @@ createApp({
                 taskCount: state.taskCount.value,
                 arrangement: state.taskArrangementMode.value,
                 pages: state.worksheetA5Pages.value,
+                presentationColumns: state.presentationColumns.value,
                 worksheetTitle: state.worksheetTitle.value,
                 weights: state.taskWeights.value,
                 weightsEnabled: state.weights.value
@@ -674,9 +678,9 @@ createApp({
         });
 
         const exportBuilderJSON = () => {
-            const taskLength = state.tasks.value.length;
+            const date = new Date().toISOString().slice(0, 10);
             taskGeneration.downloadJSONFile(
-                `arbeitsblatt_individuell_${Math.max(1, taskLength)}.json`,
+                `becker357-arbeitsblatt-${date}.json`,
                 taskGeneration.getTaskExportData()
             );
         };
@@ -1107,6 +1111,9 @@ createApp({
             }
 
             const url = new URL(window.location.href);
+            if (['http:', 'https:'].includes(url.protocol) && url.pathname.endsWith('/index.html')) {
+                url.pathname = url.pathname.slice(0, -'index.html'.length);
+            }
 
             const shareableView = getShareableView(view);
             url.searchParams.delete('view');
@@ -1129,7 +1136,7 @@ createApp({
 
         let suppressHistorySync = true;
 
-        watch(() => state.currentView.value, view => {
+        watch(() => state.currentView.value, async view => {
             syncUrlWithView(view);
             document.body.dataset.view = view;
 
@@ -1145,10 +1152,24 @@ createApp({
                 builderEditingIndex.value = null;
                 builderDragIndex.value = null;
             }
+
+            await nextTick();
+            await typesetMathJax();
         }, { immediate: true });
 
         watch(() => state.worksheetA5Pages.value, async () => {
             if (state.currentView.value !== 'worksheet' || !state.hasGeneratedTasks.value) {
+                return;
+            }
+
+            await nextTick();
+            await typesetMathJax();
+        });
+
+        watch(() => state.presentationColumns.value, async () => {
+            syncShareUrl();
+
+            if (state.currentView.value !== 'presentation' || !state.hasGeneratedTasks.value) {
                 return;
             }
 
@@ -1203,6 +1224,7 @@ createApp({
         return {
             ...state,
             presentationHeaderVisible,
+            worksheetHeaderVisible,
             viewTabs,
             selectedGrade,
             gradeOptions,
