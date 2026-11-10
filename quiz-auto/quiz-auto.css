@@ -45,9 +45,13 @@
 	box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
 }
 
+.u-hidden-file-input {
+	display: none;
+}
+
 .quiz-single-setup-row {
 	display: flex;
-	justify-content: center;
+	justify-content: space-between;
 	flex-wrap: wrap;
 	gap: 20px;
 	align-items: center;
@@ -60,7 +64,7 @@
 	gap: 8px;
 	font-weight: 700;
 	color: var(--slate-700);
-	text-align: center;
+	text-align: left;
 }
 
 .quiz-single-setup-row select {
@@ -175,6 +179,17 @@
 	flex-wrap: wrap;
 	gap: 12px;
 	align-items: center;
+}
+
+@media (max-width: 580px) {
+	.quiz-single-setup-row {
+		align-items: stretch;
+	}
+
+	.quiz-single-setup-row > label,
+	.quiz-single-setup-row > button {
+		width: 100%;
+	}
 }
 
 /* Stat-Bar / Streak-Bar oben im Quiz */

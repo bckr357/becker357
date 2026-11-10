@@ -28,6 +28,7 @@ const app = createApp({
 		const currentTaskIndex = ref(0);
 		const taskCounter = ref(0);
 		const taskInputRef = ref(null);
+		const worksheetImportInput = ref(null);
 
 		// Laufende Statistiken
 		const stats = reactive({
@@ -40,7 +41,8 @@ const app = createApp({
 		// Verfügbare Typen je nach Stufe: alle für die Klasse definierten Aufgabentypen anzeigen
 		const availableTypes = computed(() => {
 			const configured = taskTypesByGrade[`klasse${grade.value}`] || [];
-			return [...new Set(configured)].sort((a, b) => {
+			const quizTypes = new Set(window.QUIZ_AUTO_TYPES || []);
+			return [...new Set(configured)].filter(type => quizTypes.has(type)).sort((a, b) => {
 				const orderA = typeOrderIndex[a] ?? Number.MAX_SAFE_INTEGER;
 				const orderB = typeOrderIndex[b] ?? Number.MAX_SAFE_INTEGER;
 				if (orderA !== orderB) return orderA - orderB;
@@ -123,6 +125,54 @@ const app = createApp({
 		const onGradeChange = () => {
 			const allowed = new Set(availableTypes.value);
 			selectedTypes.value = selectedTypes.value.filter(type => allowed.has(type));
+		};
+
+		const openWorksheetImportDialog = () => {
+			worksheetImportInput.value?.click();
+		};
+
+		const importWorksheetJSON = event => {
+			const file = event.target.files?.[0];
+			if (!file) return;
+
+			const reader = new FileReader();
+			reader.onload = ev => {
+				try {
+					const parseResult = safeJSONParse(ev.target?.result || '');
+					if (!parseResult.ok) {
+						window.alert('Fehler beim Laden der JSON-Datei. Bitte prüfe das Format.');
+						return;
+					}
+
+					const data = parseResult.data;
+					const rawTasks = Array.isArray(data)
+						? data
+						: Array.isArray(data?.tasks)
+							? data.tasks
+							: [];
+					const importedTypes = [...new Set(rawTasks
+						.filter(item => item && typeof item === 'object')
+						.map(item => item.aufgabentyp || item.type || '')
+						.filter(type => typeof type === 'string' && type))];
+					const allowedTypes = new Set(availableTypes.value);
+					const selected = importedTypes.filter(type => allowedTypes.has(type));
+
+					selectedTypes.value = selected;
+					if (selected.length === 0) {
+						window.alert('Die JSON-Datei enthält keine für Quiz-Auto verfügbaren Aufgabentypen in der aktuellen Klassenstufe.');
+					}
+				} catch (error) {
+					console.error('Quiz-Auto: JSON-Datei konnte nicht verarbeitet werden.', error);
+					window.alert('Fehler beim Laden der JSON-Datei. Bitte prüfe das Format.');
+				} finally {
+					event.target.value = '';
+				}
+			};
+			reader.onerror = () => {
+				window.alert('Die JSON-Datei konnte nicht gelesen werden.');
+				event.target.value = '';
+			};
+			reader.readAsText(file);
 		};
 
 		const syncShareUrl = () => {
@@ -668,6 +718,7 @@ ${safePlainJson}
 			currentTaskIndex,
 			taskCounter,
 			taskInputRef,
+			worksheetImportInput,
 			stats,
 			availableTypes,
 			typeLabels: window.typeLabels,
@@ -676,6 +727,8 @@ ${safePlainJson}
 			selectAllTypes,
 			clearTypes,
 			onGradeChange,
+			openWorksheetImportDialog,
+			importWorksheetJSON,
 			startQuiz,
 			checkCurrentTask,
 			goToPreviousTask,

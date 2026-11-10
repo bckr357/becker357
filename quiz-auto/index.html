@@ -58,6 +58,17 @@
                         <option v-for="g in [5,6,7,8,9,10]" :key="g" :value="g">Klasse {{ g }}</option>
                     </select>
                 </label>
+                <button class="btn" type="button" @click="openWorksheetImportDialog">
+                    Aufgabentypen laden
+                </button>
+                <input
+                    ref="worksheetImportInput"
+                    type="file"
+                    name="worksheetImport"
+                    accept=".json,application/json"
+                    class="u-hidden-file-input"
+                    @change="importWorksheetJSON"
+                >
             </div>
 
             <div style="margin-bottom: 12px; font-weight: 600; color: var(--slate-700);">
