@@ -40,7 +40,8 @@ const app = createApp({
 
 		// Verfügbare Typen je nach Stufe: alle für die Klasse definierten Aufgabentypen anzeigen
 		const availableTypes = computed(() => {
-			const configured = taskTypesByGrade[`klasse${grade.value}`] || [];
+			const gradeKey = grade.value === 'GS' ? 'grundschule' : `klasse${grade.value}`;
+			const configured = taskTypesByGrade[gradeKey] || [];
 			const quizTypes = new Set(window.QUIZ_AUTO_TYPES || []);
 			return [...new Set(configured)].filter(type => quizTypes.has(type)).sort((a, b) => {
 				const orderA = typeOrderIndex[a] ?? Number.MAX_SAFE_INTEGER;

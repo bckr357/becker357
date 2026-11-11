@@ -148,9 +148,11 @@ window.MTGShareLinkModule = {
                 const url = new URL(urlLike, window.location.href);
                 const rawGradeStr = url.searchParams.get('c') || url.searchParams.get('klasse') || url.searchParams.get('grade');
                 const rawGrade = Number(rawGradeStr);
-                const grade = Number.isInteger(rawGrade) && rawGrade >= 5 && rawGrade <= 10
-                    ? rawGrade
-                    : null;
+                const grade = rawGradeStr === 'GS'
+                    ? 'GS'
+                    : Number.isInteger(rawGrade) && rawGrade >= 5 && rawGrade <= 10
+                        ? rawGrade
+                        : null;
 
                 const tParam = url.searchParams.get('t');
                 let types = [];
@@ -232,7 +234,7 @@ window.MTGShareLinkModule = {
             url.searchParams.delete('title');
             url.searchParams.delete('ueberschrift');
 
-            if (Number.isInteger(grade) && grade >= 5 && grade <= 10 && grade !== MTG_SHARE_DEFAULT_GRADE) {
+            if (grade === 'GS' || (Number.isInteger(grade) && grade >= 5 && grade <= 10 && grade !== MTG_SHARE_DEFAULT_GRADE)) {
                 url.searchParams.set('c', String(grade));
             } else {
                 url.searchParams.delete('c');

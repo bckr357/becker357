@@ -59,7 +59,7 @@ createApp({
             : state.viewTabs.filter(tab => tab.key !== 'quiz');
         const allTypes = sortByTypeDefinitions(Object.keys(typeLabels));
         const selectedGrade = ref(10);
-        const gradeOptions = [5, 6, 7, 8, 9, 10];
+        const gradeOptions = ['GS', 5, 6, 7, 8, 9, 10];
         const randomSelectionConfig = ref(window.MTG_RANDOM_SELECTION_CONFIG ?? null);
         const shareLink = window.MTGShareLinkModule.createCodec(window.MTGShareLinkTypeRegistry);
         const initialShareConfig = shareLink.read(window.location.href);
@@ -94,7 +94,8 @@ createApp({
             : classConfig;
 
         const visibleTypeKeys = computed(() => {
-            const configured = classConfig[`klasse${selectedGrade.value}`];
+            const gradeKey = selectedGrade.value === 'GS' ? 'grundschule' : `klasse${selectedGrade.value}`;
+            const configured = classConfig[gradeKey];
 
             if (!Array.isArray(configured)) {
                 return allTypes;
@@ -106,7 +107,8 @@ createApp({
 
         const visibleTypeEntries = computed(() => visibleTypeKeys.value.map(key => [key, typeLabels[key]]));
         const quizVisibleTypeKeys = computed(() => {
-            const configured = quizClassConfig[`klasse${selectedGrade.value}`];
+            const gradeKey = selectedGrade.value === 'GS' ? 'grundschule' : `klasse${selectedGrade.value}`;
+            const configured = quizClassConfig[gradeKey];
 
             if (!Array.isArray(configured)) {
                 return allTypes;

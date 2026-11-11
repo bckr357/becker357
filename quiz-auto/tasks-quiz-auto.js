@@ -12,7 +12,17 @@ const QUIZ_AUTO_TYPES = [
 	'prozentrechnung', 'prozentuale_veraenderung', 'zinsen', 'terme', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig', 'vorrang', 'runden',
 	'potenzen', 'einheiten', 'statistik', 'zahlengerade',
 	'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_kuerzen', 'brueche_umwandeln', 'anteile', 'wahrscheinlichkeiten',
-	'geometrie', 'proportionalitaet', 'einheiten_umrechnen'
+	'geometrie', 'proportionalitaet', 'einheiten_umrechnen',
+	'einmaleins_2', 'geteilt_durch_2', 'einmaleins_3', 'geteilt_durch_3',
+	'einmaleins_4', 'geteilt_durch_4', 'einmaleins_5', 'geteilt_durch_5',
+	'einmaleins_6', 'geteilt_durch_6', 'einmaleins_7', 'geteilt_durch_7',
+	'einmaleins_8', 'geteilt_durch_8', 'einmaleins_9', 'geteilt_durch_9',
+	'einmaleins_10', 'geteilt_durch_10',
+	'addition_bis_10', 'subtraktion_bis_10', 'addition_bis_20', 'subtraktion_bis_20',
+	'addition_bis_50', 'subtraktion_bis_50', 'addition_bis_100', 'subtraktion_bis_100',
+	'addition_bis_1000', 'subtraktion_bis_1000',
+	'kleines_1x1_multiplikation', 'kleines_1x1_division', 'kleines_1x1_komplett',
+	'addition_subtraktion_bis_20', 'addition_subtraktion_bis_100', 'addition_subtraktion_bis_1000'
 ];
 
 if (typeof window !== 'undefined') {
@@ -32,6 +42,16 @@ const taskCategories = {
 
 // Sichtbare Aufgabentypen je Klassenstufe (wird vom UI-Dropdown genutzt)
 const taskTypesByGrade = {
+	grundschule: [
+		'einmaleins_2', 'einmaleins_3', 'einmaleins_4', 'einmaleins_5', 'einmaleins_6',
+		'einmaleins_7', 'einmaleins_8', 'einmaleins_9', 'einmaleins_10',
+		'geteilt_durch_2', 'geteilt_durch_3', 'geteilt_durch_4', 'geteilt_durch_5',
+		'geteilt_durch_6', 'geteilt_durch_7', 'geteilt_durch_8', 'geteilt_durch_9', 'geteilt_durch_10',
+		'addition_bis_10', 'addition_bis_20', 'addition_bis_50', 'addition_bis_100', 'addition_bis_1000',
+		'subtraktion_bis_10', 'subtraktion_bis_20', 'subtraktion_bis_50', 'subtraktion_bis_100', 'subtraktion_bis_1000',
+		'kleines_1x1_multiplikation', 'kleines_1x1_division', 'kleines_1x1_komplett',
+		'addition_subtraktion_bis_20', 'addition_subtraktion_bis_100', 'addition_subtraktion_bis_1000'
+	],
 	klasse5: [
 		'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
 		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen', 'runden', 'zahlengerade',
@@ -138,7 +158,43 @@ const typeDefinitions = [
 	['wahrscheinlichkeiten', 'Wahrscheinlichkeiten', 'Wahrscheinlichkeiten bestimmen'],
 	['lineare_funktionen_zeichnen', 'Lineare Funktionen zeichnen', 'Lineare Funktionen grafisch darstellen'],
 	['funktionen', 'Funktionen', 'Funktionswerte, Argumente und Eigenschaften von Funktionen bestimmen'],
-	['statistik', 'Statistik', 'Kenngrößen der Statistik bestimmen']
+	['statistik', 'Statistik', 'Kenngrößen der Statistik bestimmen'],
+
+	// Grundschule: kleines Einmaleins, jeweils eine Reihe pro Aufgabentyp
+	['einmaleins_2', '2er-Reihe', 'Aufgaben aus der 2er-Reihe des kleinen Einmaleins'],
+	['geteilt_durch_2', 'geteilt durch 2', 'Divisionsaufgaben mit 2 aus dem kleinen Einmaleins'],
+	['einmaleins_3', '3er-Reihe', 'Aufgaben aus der 3er-Reihe des kleinen Einmaleins'],
+	['geteilt_durch_3', 'geteilt durch 3', 'Divisionsaufgaben mit 3 aus dem kleinen Einmaleins'],
+	['einmaleins_4', '4er-Reihe', 'Aufgaben aus der 4er-Reihe des kleinen Einmaleins'],
+	['geteilt_durch_4', 'geteilt durch 4', 'Divisionsaufgaben mit 4 aus dem kleinen Einmaleins'],
+	['einmaleins_5', '5er-Reihe', 'Aufgaben aus der 5er-Reihe des kleinen Einmaleins'],
+	['geteilt_durch_5', 'geteilt durch 5', 'Divisionsaufgaben mit 5 aus dem kleinen Einmaleins'],
+	['einmaleins_6', '6er-Reihe', 'Aufgaben aus der 6er-Reihe des kleinen Einmaleins'],
+	['geteilt_durch_6', 'geteilt durch 6', 'Divisionsaufgaben mit 6 aus dem kleinen Einmaleins'],
+	['einmaleins_7', '7er-Reihe', 'Aufgaben aus der 7er-Reihe des kleinen Einmaleins'],
+	['geteilt_durch_7', 'geteilt durch 7', 'Divisionsaufgaben mit 7 aus dem kleinen Einmaleins'],
+	['einmaleins_8', '8er-Reihe', 'Aufgaben aus der 8er-Reihe des kleinen Einmaleins'],
+	['geteilt_durch_8', 'geteilt durch 8', 'Divisionsaufgaben mit 8 aus dem kleinen Einmaleins'],
+	['einmaleins_9', '9er-Reihe', 'Aufgaben aus der 9er-Reihe des kleinen Einmaleins'],
+	['geteilt_durch_9', 'geteilt durch 9', 'Divisionsaufgaben mit 9 aus dem kleinen Einmaleins'],
+	['einmaleins_10', '10er-Reihe', 'Aufgaben aus der 10er-Reihe des kleinen Einmaleins'],
+	['geteilt_durch_10', 'geteilt durch 10', 'Divisionsaufgaben mit 10 aus dem kleinen Einmaleins'],
+	['addition_bis_10', 'Addition bis 10', 'Additionsaufgaben mit Zahlen bis 10'],
+	['subtraktion_bis_10', 'Subtraktion bis 10', 'Subtraktionsaufgaben mit Zahlen bis 10'],
+	['addition_bis_20', 'Addition bis 20', 'Additionsaufgaben mit Zahlen bis 20'],
+	['subtraktion_bis_20', 'Subtraktion bis 20', 'Subtraktionsaufgaben mit Zahlen bis 20'],
+	['addition_bis_50', 'Addition bis 50', 'Additionsaufgaben mit Zahlen bis 50'],
+	['subtraktion_bis_50', 'Subtraktion bis 50', 'Subtraktionsaufgaben mit Zahlen bis 50'],
+	['addition_bis_100', 'Addition bis 100', 'Additionsaufgaben mit Zahlen bis 100'],
+	['subtraktion_bis_100', 'Subtraktion bis 100', 'Subtraktionsaufgaben mit Zahlen bis 100'],
+	['addition_bis_1000', 'Addition bis 1000', 'Additionsaufgaben mit Zahlen bis 1000'],
+	['subtraktion_bis_1000', 'Subtraktion bis 1000', 'Subtraktionsaufgaben mit Zahlen bis 1000'],
+	['kleines_1x1_multiplikation', 'Kleines 1×1 Multiplikation', 'Alle Multiplikationsaufgaben des kleinen Einmaleins'],
+	['kleines_1x1_division', 'Kleines 1×1 Division', 'Alle Divisionsaufgaben des kleinen Einmaleins'],
+	['kleines_1x1_komplett', 'Kleines 1×1 komplett', 'Multiplikations- und Divisionsaufgaben des kleinen Einmaleins'],
+	['addition_subtraktion_bis_20', '+ und - bis 20', 'Gemischte Additions- und Subtraktionsaufgaben bis 20'],
+	['addition_subtraktion_bis_100', '+ und - bis 100', 'Gemischte Additions- und Subtraktionsaufgaben bis 100'],
+	['addition_subtraktion_bis_1000', '+ und - bis 1000', 'Gemischte Additions- und Subtraktionsaufgaben bis 1000']
 ];
 
 const typeLabels = Object.fromEntries(typeDefinitions.map(([key, label]) => [key, label]));
@@ -185,7 +241,42 @@ const shareLinkTypeRegistry = {
 	wahrscheinlichkeiten: 35,
 	lineare_funktionen_zeichnen: 36,
 	funktionen: 37,
-	statistik: 38
+	statistik: 38,
+	einmaleins_2: 39,
+	einmaleins_3: 40,
+	einmaleins_4: 41,
+	einmaleins_5: 42,
+	einmaleins_6: 43,
+	einmaleins_7: 44,
+	einmaleins_8: 45,
+	einmaleins_9: 46,
+	einmaleins_10: 47,
+	geteilt_durch_1: 48,
+	geteilt_durch_2: 49,
+	geteilt_durch_3: 50,
+	geteilt_durch_4: 51,
+	geteilt_durch_5: 52,
+	geteilt_durch_6: 53,
+	geteilt_durch_7: 54,
+	geteilt_durch_8: 55,
+	geteilt_durch_9: 56,
+	geteilt_durch_10: 57,
+	addition_bis_10: 58,
+	addition_bis_20: 59,
+	addition_bis_50: 60,
+	addition_bis_100: 61,
+	addition_bis_1000: 62,
+	subtraktion_bis_10: 63,
+	subtraktion_bis_20: 64,
+	subtraktion_bis_50: 65,
+	subtraktion_bis_100: 66,
+	subtraktion_bis_1000: 67,
+	kleines_1x1_multiplikation: 68,
+	kleines_1x1_division: 69,
+	kleines_1x1_komplett: 70,
+	addition_subtraktion_bis_20: 71,
+	addition_subtraktion_bis_100: 72,
+	addition_subtraktion_bis_1000: 73
 };
 
 if (typeof window !== 'undefined') {
@@ -588,6 +679,120 @@ function createTask(type, grade = 5, options = {}) {
 			textDisplay = entry.expr;
 			s = entry.solution;
 			answer = entry.answer;
+			break;
+		}
+
+		case 'einmaleins_2':
+		case 'einmaleins_3':
+		case 'einmaleins_4':
+		case 'einmaleins_5':
+		case 'einmaleins_6':
+		case 'einmaleins_7':
+		case 'einmaleins_8':
+		case 'einmaleins_9':
+		case 'einmaleins_10': {
+			const row = Number(type.slice('einmaleins_'.length));
+			const otherFactor = randInt(1, 10);
+			const factorsReversed = Math.random() < 0.5;
+			const firstFactor = factorsReversed ? otherFactor : row;
+			const secondFactor = factorsReversed ? row : otherFactor;
+			const product = firstFactor * secondFactor;
+
+			textDisplay = `\\[ ${firstFactor} \\cdot ${secondFactor} = \\]`;
+			s = `\\[ ${firstFactor} \\cdot ${secondFactor} = ${product} \\]`;
+			answer = numericAnswer(product);
+			break;
+		}
+
+		case 'geteilt_durch_2':
+		case 'geteilt_durch_3':
+		case 'geteilt_durch_4':
+		case 'geteilt_durch_5':
+		case 'geteilt_durch_6':
+		case 'geteilt_durch_7':
+		case 'geteilt_durch_8':
+		case 'geteilt_durch_9':
+		case 'geteilt_durch_10': {
+			const divisor = Number(type.slice('geteilt_durch_'.length));
+			const quotient = randInt(1, 10);
+			const dividend = divisor * quotient;
+
+			textDisplay = `\\[ ${dividend} : ${divisor} = \\]`;
+			s = `\\[ ${dividend} : ${divisor} = ${quotient} \\]`;
+			answer = numericAnswer(quotient);
+			break;
+		}
+
+		case 'addition_bis_10':
+		case 'addition_bis_20':
+		case 'addition_bis_50':
+		case 'addition_bis_100':
+		case 'addition_bis_1000': {
+			const limit = Number(type.slice('addition_bis_'.length));
+			const firstAddend = randInt(0, limit);
+			const secondAddend = randInt(0, limit - firstAddend);
+			const sum = firstAddend + secondAddend;
+
+			textDisplay = `\\[ ${firstAddend} + ${secondAddend} = \\]`;
+			s = `\\[ ${firstAddend} + ${secondAddend} = ${sum} \\]`;
+			answer = numericAnswer(sum);
+			break;
+		}
+
+		case 'subtraktion_bis_10':
+		case 'subtraktion_bis_20':
+		case 'subtraktion_bis_50':
+		case 'subtraktion_bis_100':
+		case 'subtraktion_bis_1000': {
+			const limit = Number(type.slice('subtraktion_bis_'.length));
+			const minuend = randInt(0, limit);
+			const subtrahend = randInt(0, minuend);
+			const difference = minuend - subtrahend;
+
+			textDisplay = `\\[ ${minuend} - ${subtrahend} = \\]`;
+			s = `\\[ ${minuend} - ${subtrahend} = ${difference} \\]`;
+			answer = numericAnswer(difference);
+			break;
+		}
+
+		case 'kleines_1x1_multiplikation':
+		case 'kleines_1x1_division':
+		case 'kleines_1x1_komplett': {
+			const isMultiplication = type === 'kleines_1x1_multiplikation'
+				|| (type === 'kleines_1x1_komplett' && Math.random() < 0.5);
+			const firstFactor = randInt(1, 10);
+			const secondFactor = randInt(1, 10);
+			const product = firstFactor * secondFactor;
+
+			if (isMultiplication) {
+				textDisplay = `\\[ ${firstFactor} \\cdot ${secondFactor} = \\]`;
+				s = `\\[ ${firstFactor} \\cdot ${secondFactor} = ${product} \\]`;
+				answer = numericAnswer(product);
+			} else {
+				textDisplay = `\\[ ${product} : ${secondFactor} = \\]`;
+				s = `\\[ ${product} : ${secondFactor} = ${firstFactor} \\]`;
+				answer = numericAnswer(firstFactor);
+			}
+			break;
+		}
+
+		case 'addition_subtraktion_bis_20':
+		case 'addition_subtraktion_bis_100':
+		case 'addition_subtraktion_bis_1000': {
+			const limit = Number(type.slice('addition_subtraktion_bis_'.length));
+			const isAddition = Math.random() < 0.5;
+			const firstNumber = randInt(0, limit);
+			const secondNumber = isAddition
+				? randInt(0, limit - firstNumber)
+				: randInt(0, firstNumber);
+			const result = isAddition
+				? firstNumber + secondNumber
+				: firstNumber - secondNumber;
+			const operator = isAddition ? '+' : '-';
+
+			textDisplay = `\\[ ${firstNumber} ${operator} ${secondNumber} = \\]`;
+			s = `\\[ ${firstNumber} ${operator} ${secondNumber} = ${result} \\]`;
+			answer = numericAnswer(result);
 			break;
 		}
 
