@@ -32,6 +32,11 @@ window.MTGTaskGenerationModule = {
             loesung: task.solution
         }));
 
+        const getTaskExportDocument = () => ({
+            grade: selectedGrade?.value ?? null,
+            tasks: getTaskExportData()
+        });
+
         const parseTaskImportData = (data) => {
             const rawArray = Array.isArray(data)
                 ? data
@@ -487,6 +492,7 @@ window.MTGTaskGenerationModule = {
 
         return {
             getTaskExportData,
+            getTaskExportDocument,
             downloadJSONFile,
             loadTasksFromJSON,
             buildTasks,

@@ -132,6 +132,20 @@ const app = createApp({
 			worksheetImportInput.value?.click();
 		};
 
+		const getImportedGrade = data => {
+			if (!data || Array.isArray(data) || typeof data !== 'object') {
+				return null;
+			}
+
+			const rawGrade = data.grade ?? data.klasse ?? data.class;
+			if (rawGrade === 'GS' || rawGrade === 'grundschule') {
+				return 'GS';
+			}
+
+			const numericGrade = Number(rawGrade);
+			return [5, 6, 7, 8, 9, 10].includes(numericGrade) ? numericGrade : null;
+		};
+
 		const importWorksheetJSON = event => {
 			const file = event.target.files?.[0];
 			if (!file) return;
@@ -146,6 +160,10 @@ const app = createApp({
 					}
 
 					const data = parseResult.data;
+					const importedGrade = getImportedGrade(data);
+					if (importedGrade !== null) {
+						grade.value = importedGrade;
+					}
 					const rawTasks = Array.isArray(data)
 						? data
 						: Array.isArray(data?.tasks)
@@ -350,12 +368,35 @@ const app = createApp({
 			await nextTask();
 		};
 
+		const handleGlobalJsonDragOver = event => {
+			if (event.dataTransfer?.types?.includes('Files')) {
+				event.preventDefault();
+				event.dataTransfer.dropEffect = 'copy';
+			}
+		};
+
+		const handleGlobalJsonDrop = event => {
+			const file = event.dataTransfer?.files?.[0];
+			if (!file) return;
+
+			event.preventDefault();
+			if (!file.name.toLowerCase().endsWith('.json') && file.type !== 'application/json') {
+				return;
+			}
+
+			importWorksheetJSON({ target: { files: [file] } });
+		};
+
 		onMounted(() => {
 			window.addEventListener('keydown', handleGlobalKeydown);
+			window.addEventListener('dragover', handleGlobalJsonDragOver);
+			window.addEventListener('drop', handleGlobalJsonDrop);
 		});
 
 		onBeforeUnmount(() => {
 			window.removeEventListener('keydown', handleGlobalKeydown);
+			window.removeEventListener('dragover', handleGlobalJsonDragOver);
+			window.removeEventListener('drop', handleGlobalJsonDrop);
 		});
 
 		const resetCurrentStats = () => {

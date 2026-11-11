@@ -77,7 +77,9 @@
 
 		stripped = stripped
 			.replace(/\s*%\s*/gi, '%')
-			.replace(/\s*\/\s*/g, '/');
+			.replace(/\s*\/\s*/g, '/')
+			.replace(/\s*:\s*/g, '/')
+			.replace(/,/g, '.');
 
 		const singleValue = parseSingleNumber(stripped);
 		if (singleValue) {
@@ -110,10 +112,15 @@
 
 	const normalizeExpressionText = (value) => String(value ?? '')
 		.trim()
+		.replace(/,/g, '.')
 		.replace(/−/g, '-')
 		.replace(/–/g, '-')
 		.replace(/×/g, '*')
+		.replace(/·/g, '*')
 		.replace(/÷/g, '/')
+		.replace(/:/g, '/')
+		.replace(/π/g, 'Math.PI')
+		.replace(/√\(/g, 'Math.sqrt(')
 		.replace(/\s+/g, '')
 		.replace(/²/g, '^2')
 		.replace(/³/g, '^3')
@@ -239,8 +246,15 @@
 
 	const expressionEquivalent = (expectedExpr, userExpr) => {
 		const normalize = (expr) => normalizeExpressionText(expr).replace(/\*\*/g, '^');
-		const expectedVars = [...new Set((String(expectedExpr ?? '').match(/[A-Za-z]/g) || []))];
-		const userVars = [...new Set((String(userExpr ?? '').match(/[A-Za-z]/g) || []))];
+		const getVariables = (expr) => {
+			const identifiers = String(expr ?? '').match(/[A-Za-z]+/g) || [];
+			const variableLetters = identifiers
+				.filter(identifier => !['Math', 'PI', 'sqrt'].includes(identifier))
+				.join('');
+			return [...new Set(variableLetters)];
+		};
+		const expectedVars = getVariables(expectedExpr);
+		const userVars = getVariables(userExpr);
 		const vars = [...new Set([...expectedVars, ...userVars])].sort();
 		if (!vars.length) {
 			return normalize(expectedExpr) === normalize(userExpr);

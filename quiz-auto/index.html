@@ -209,6 +209,7 @@
                         ref="taskInputRef"
                         v-model="currentTask.userInput"
                         @confirm="checkCurrentTask"
+                        mode="advanced"
                         :disabled="currentTask.checked"
                     ></math-key-input>
 

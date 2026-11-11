@@ -9,7 +9,7 @@ const formatDecimal = formatUtils.formatDecimal;
 // Alle automatisch auswertbaren Aufgabentypen.
 const QUIZ_AUTO_TYPES = [
 	'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren',
-	'prozentrechnung', 'prozentuale_veraenderung', 'zinsen', 'terme', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig', 'vorrang', 'runden',
+	'prozentrechnung', 'prozentuale_veraenderung', 'zinsen', 'terme_zusammenfassen', 'terme_umformen', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig', 'vorrang', 'runden',
 	'potenzen', 'einheiten', 'statistik', 'zahlengerade',
 	'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_kuerzen', 'brueche_umwandeln', 'anteile', 'wahrscheinlichkeiten',
 	'geometrie', 'proportionalitaet', 'einheiten_umrechnen',
@@ -33,7 +33,7 @@ const taskCategories = {
 	arithmetic: ['natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'potenzen', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'runden', 'zahlengerade', 'vorrang'],
 	fractions: ['brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_kuerzen', 'brueche_umwandeln', 'brueche_ordnen'],
 	percent: ['anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen', 'einheiten'],
-	algebra: ['terme', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig', 'formel_umstellen'],
+	algebra: ['terme_zusammenfassen', 'terme_umformen', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig', 'formel_umstellen'],
 	geometry: ['geometrie', 'winkel', 'schraegbild'],
 	functions: ['funktionen'],
 	statistics: ['statistik', 'wahrscheinlichkeiten'],
@@ -66,28 +66,28 @@ const taskTypesByGrade = {
 		'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
 		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen',
 		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen',
-		'terme', 'lineare_gleichungen',
+		'terme_zusammenfassen', 'terme_umformen', 'lineare_gleichungen',
 		'runden', 'zahlengerade', 'geometrie', 'statistik', 'wahrscheinlichkeiten'
 	],
 	klasse8: [
 		'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
 		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen',
 		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen',
-		'terme', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig',
+		'terme_zusammenfassen', 'terme_umformen', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig',
 		'runden', 'zahlengerade', 'geometrie', 'statistik', 'wahrscheinlichkeiten'
 	],
 	klasse9: [
 		'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
 		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen',
 		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen',
-		'terme', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig',
+		'terme_zusammenfassen', 'terme_umformen', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig',
 		'runden', 'zahlengerade', 'geometrie', 'statistik', 'wahrscheinlichkeiten'
 	],
 	klasse10: [
 		'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
 		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen',
 		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen',
-		'terme', 'lineare_gleichungen',
+		'terme_zusammenfassen', 'terme_umformen', 'lineare_gleichungen',
 		'runden', 'zahlengerade', 'geometrie', 'statistik', 'wahrscheinlichkeiten'
 	]
 };
@@ -142,7 +142,8 @@ const typeDefinitions = [
 	['zinsen', 'Zinsrechnung', 'Zinsen, Kapital und Zinssatz berechnen'],
 
 	// Algebra / Terme / Gleichungen
-	['terme', 'Terme', 'Terme zusammenfassen und Klammern auflösen'],
+	['terme_zusammenfassen', 'Terme zusammenfassen', 'Gleichartige Terme zusammenfassen'],
+	['terme_umformen', 'Terme umformen', 'Terme durch Klammerregeln umformen und vereinfachen'],
 	['wortterme', 'Wortterme', 'Wortterme in mathematische Symbole übersetzen und berechnen'],
 	['lineare_gleichungen', 'lin. Gl. ax+b = c', 'Lineare Gleichung der Form ax + b = c lösen'],
 	['lineare_gleichungen_beidseitig', 'lin. Gl. ax+b = cx+d', 'Lineare Gleichung der Form ax + b = cx + d lösen'],
@@ -276,7 +277,9 @@ const shareLinkTypeRegistry = {
 	kleines_1x1_komplett: 70,
 	addition_subtraktion_bis_20: 71,
 	addition_subtraktion_bis_100: 72,
-	addition_subtraktion_bis_1000: 73
+	addition_subtraktion_bis_1000: 73,
+	terme_zusammenfassen: 74,
+	terme_umformen: 75
 };
 
 if (typeof window !== 'undefined') {
@@ -2165,12 +2168,20 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 		
+		case 'terme_zusammenfassen':
+		case 'terme_umformen':
 		case 'terme': {
 			const vars = ['x', 'y', 'z', 'a', 'b'];
 			let selectedVars = fisherYatesShuffle(vars).slice(0, 2);
 			if (Math.random() < 0.5) selectedVars[1] = '';
 			
-			let mode = grade >= 9 ? randInt(0, 3) : 0;
+			const isSummaryTask = type === 'terme_zusammenfassen';
+			const isLegacyTask = type === 'terme';
+			let mode = isSummaryTask
+				? 0
+				: isLegacyTask
+					? (grade >= 9 ? randInt(0, 3) : 0)
+					: randInt(1, 3);
 			let taskStr, resStr;
 			let expandedStep = '';
 			

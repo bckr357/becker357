@@ -11,7 +11,7 @@ const taskCategories = {
 	tables: ['additionstabellen', 'multiplikationstabellen', 'subtraktionstabellen', 'termtabellen'],
 	fractions: ['brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_kuerzen', 'brueche_umwandeln', 'brueche_ordnen'],
 	percent: ['anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen', 'einheiten'],
-	algebra: ['terme', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig', 'formel_umstellen'],
+	algebra: ['terme_zusammenfassen', 'terme_umformen', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig', 'formel_umstellen'],
 	geometry: ['geometrie', 'dreiecksberechnungen_zeichnung', 'winkel', 'schraegbild', 'kongruenz'],
 	functions: ['funktionen'],
 	statistics: ['statistik', 'wahrscheinlichkeiten'],
@@ -59,7 +59,7 @@ const taskTypesByGrade = {
 		'additionstabellen', 'subtraktionstabellen', 'multiplikationstabellen', 'termtabellen',
 		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen', 'runden', 'ueberschlag', 'zahlengerade',
 		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen',
-		'terme', 'wortterme',
+		'terme_zusammenfassen', 'terme_umformen', 'wortterme',
 		'geometrie', 'winkel', 'kongruenz'
 	],
 	klasse9: [
@@ -67,7 +67,7 @@ const taskTypesByGrade = {
 		'additionstabellen', 'subtraktionstabellen', 'multiplikationstabellen', 'termtabellen',
 		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen', 'runden', 'ueberschlag', 'zahlengerade',
 		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen',
-		'terme', 'wortterme', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig', 'lineare_gleichungen_umstellen', 'formel_umstellen',
+		'terme_zusammenfassen', 'terme_umformen', 'wortterme', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig', 'lineare_gleichungen_umstellen', 'formel_umstellen',
 		'geometrie', 'winkel', 'kongruenz',
 		'wahrscheinlichkeiten', 'lineare_funktionen_zeichnen', 'funktionen'
 	],
@@ -76,7 +76,7 @@ const taskTypesByGrade = {
 		'additionstabellen', 'subtraktionstabellen', 'multiplikationstabellen', 'termtabellen',
 		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen', 'runden', 'ueberschlag', 'zahlengerade',
 		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen',
-		'terme', 'wortterme', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig', 'lineare_gleichungen_umstellen', 'formel_umstellen',
+		'terme_zusammenfassen', 'terme_umformen', 'wortterme', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig', 'lineare_gleichungen_umstellen', 'formel_umstellen',
 		'geometrie', 'winkel', 'kongruenz',
 		'statistik', 'wahrscheinlichkeiten', 'lineare_funktionen_zeichnen', 'funktionen'
 	]
@@ -195,7 +195,8 @@ const typeDefinitions = [
 	['zinsen', 'Zinsrechnung', 'Zinsen, Kapital und Zinssatz berechnen'],
 
 	// Algebra / Terme / Gleichungen
-	['terme', 'Terme', 'Terme zusammenfassen und Klammern auflösen'],
+	['terme_zusammenfassen', 'Terme zusammenfassen', 'Gleichartige Terme zusammenfassen'],
+	['terme_umformen', 'Terme umformen', 'Terme durch Klammerregeln umformen und vereinfachen'],
 	['wortterme', 'Wortterme', 'Wortterme in mathematische Symbole übersetzen und berechnen'],
 	['lineare_gleichungen', 'lin. Gl. ax+b = c', 'Lineare Gleichung der Form ax + b = c lösen'],
 	['lineare_gleichungen_beidseitig', 'lin. Gl. ax+b = cx+d', 'Lineare Gleichung der Form ax + b = cx + d lösen'],
@@ -338,7 +339,9 @@ const shareLinkTypeRegistry = {
 	kleines_1x1_komplett: 77,
 	addition_subtraktion_bis_20: 78,
 	addition_subtraktion_bis_100: 79,
-	addition_subtraktion_bis_1000: 80
+	addition_subtraktion_bis_1000: 80,
+	terme_zusammenfassen: 81,
+	terme_umformen: 82
 };
 
 if (typeof window !== 'undefined') {
@@ -3527,12 +3530,20 @@ const fromUnit = displayUnits[unitIndex];
 			break;
 		}
 		
+		case 'terme_zusammenfassen':
+		case 'terme_umformen':
 		case 'terme': {
 			const vars = ['x', 'y', 'z', 'a', 'b'];
 			let selectedVars = fisherYatesShuffle(vars).slice(0, 2);
 			if (Math.random() < 0.5) selectedVars[1] = '';
 			
-			let mode = grade >= 9 ? randInt(0, 4) : 0;
+			const isSummaryTask = type === 'terme_zusammenfassen';
+			const isLegacyTask = type === 'terme';
+			let mode = isSummaryTask
+				? 0
+				: isLegacyTask
+					? (grade >= 9 ? randInt(0, 4) : 0)
+					: randInt(1, 4);
 			let taskStr, resStr;
 			
 			if (mode === 0) {

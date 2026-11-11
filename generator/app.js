@@ -151,6 +151,20 @@ createApp({
                 || worksheetToolbar.getBoundingClientRect().top >= -worksheetToolbar.offsetHeight + 12;
         };
 
+        const getImportedGrade = data => {
+            if (!data || Array.isArray(data) || typeof data !== 'object') {
+                return null;
+            }
+
+            const rawGrade = data.grade ?? data.klasse ?? data.class;
+            if (rawGrade === 'GS' || rawGrade === 'grundschule') {
+                return 'GS';
+            }
+
+            const numericGrade = Number(rawGrade);
+            return gradeOptions.includes(numericGrade) ? numericGrade : null;
+        };
+
         const createJsonImportHandler = ({ loadTasks, getVisibleKeys, setSelectedTypes, onAfterLoad }) => async event => {
             const file = event.target.files?.[0];
             if (!file) return;
@@ -165,6 +179,10 @@ createApp({
                     }
 
                     const data = parseResult.data;
+                    const importedGrade = getImportedGrade(data);
+                    if (importedGrade !== null) {
+                        selectedGrade.value = importedGrade;
+                    }
                     const loaded = loadTasks(data);
                     if (!loaded) {
                         window.alert('Die JSON-Datei enthält keine gültigen Aufgaben.');
@@ -679,11 +697,42 @@ createApp({
             }
         });
 
+        const globalJsonImportHandlers = {
+            worksheet: worksheetMode.importWorksheetJSON,
+            presentation: presentationMode.importPresentationJSON,
+            'worksheet-builder': importBuilderJSON,
+            quiz: quizMode.importQuizJSON,
+            training: importTrainingJSON
+        };
+
+        const handleGlobalJsonDragOver = event => {
+            if (event.dataTransfer?.types?.includes('Files')) {
+                event.preventDefault();
+                event.dataTransfer.dropEffect = 'copy';
+            }
+        };
+
+        const handleGlobalJsonDrop = event => {
+            const file = event.dataTransfer?.files?.[0];
+            if (!file) {
+                return;
+            }
+
+            event.preventDefault();
+            if (!file.name.toLowerCase().endsWith('.json') && file.type !== 'application/json') {
+                return;
+            }
+
+            const importHandler = globalJsonImportHandlers[state.currentView.value]
+                || worksheetMode.importWorksheetJSON;
+            importHandler({ target: { files: [file] } });
+        };
+
         const exportBuilderJSON = () => {
             const date = new Date().toISOString().slice(0, 10);
             taskGeneration.downloadJSONFile(
                 `becker357-arbeitsblatt-${date}.json`,
-                taskGeneration.getTaskExportData()
+                taskGeneration.getTaskExportDocument()
             );
         };
 
@@ -1213,12 +1262,16 @@ createApp({
             syncUrlWithView(state.currentView.value);
             updatePresentationHeaderVisibility();
             window.addEventListener('popstate', applyViewFromUrl);
+            window.addEventListener('dragover', handleGlobalJsonDragOver);
+            window.addEventListener('drop', handleGlobalJsonDrop);
             window.addEventListener('scroll', updatePresentationHeaderVisibility, { passive: true });
             window.addEventListener('resize', updatePresentationHeaderVisibility);
         });
 
         onBeforeUnmount(() => {
             window.removeEventListener('popstate', applyViewFromUrl);
+            window.removeEventListener('dragover', handleGlobalJsonDragOver);
+            window.removeEventListener('drop', handleGlobalJsonDrop);
             window.removeEventListener('scroll', updatePresentationHeaderVisibility);
             window.removeEventListener('resize', updatePresentationHeaderVisibility);
         });

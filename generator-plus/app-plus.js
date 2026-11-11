@@ -121,6 +121,20 @@ createApp({
             presentationHeaderVisible.value = rect.top >= -toolbar.offsetHeight + 12;
         };
 
+        const getImportedGrade = data => {
+            if (!data || Array.isArray(data) || typeof data !== 'object') {
+                return null;
+            }
+
+            const rawGrade = data.grade ?? data.klasse ?? data.class;
+            if (rawGrade === 'GS' || rawGrade === 'grundschule') {
+                return 'GS';
+            }
+
+            const numericGrade = Number(rawGrade);
+            return gradeOptions.includes(numericGrade) ? numericGrade : null;
+        };
+
         const createJsonImportHandler = ({ loadTasks, getVisibleKeys, setSelectedTypes, onAfterLoad }) => async event => {
             const file = event.target.files?.[0];
             if (!file) return;
@@ -135,6 +149,10 @@ createApp({
                     }
 
                     const data = parseResult.data;
+                    const importedGrade = getImportedGrade(data);
+                    if (importedGrade !== null) {
+                        selectedGrade.value = importedGrade;
+                    }
                     const loaded = loadTasks(data);
                     if (!loaded) {
                         window.alert('Die JSON-Datei enthält keine gültigen Aufgaben.');
@@ -665,7 +683,7 @@ createApp({
             const taskLength = state.tasks.value.length;
             taskGeneration.downloadJSONFile(
                 `arbeitsblatt_individuell_${Math.max(1, taskLength)}.json`,
-                taskGeneration.getTaskExportData()
+                taskGeneration.getTaskExportDocument()
             );
         };
 

@@ -48,7 +48,7 @@ window.MTGWorksheetModeModule = {
             const date = new Date().toISOString().slice(0, 10);
             taskGeneration.downloadJSONFile(
                 `becker357-arbeitsblatt-${date}.json`,
-                taskGeneration.getTaskExportData()
+                taskGeneration.getTaskExportDocument()
             );
         };
 

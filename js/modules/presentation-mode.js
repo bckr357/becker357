@@ -25,7 +25,7 @@ window.MTGPresentationModeModule = {
 
         const exportJSON = () => {
 			const date = new Date().toISOString().slice(0, 10);
-            taskGeneration.downloadJSONFile(`becker357-präsentation-${date}.json`, taskGeneration.getTaskExportData());
+            taskGeneration.downloadJSONFile(`becker357-präsentation-${date}.json`, taskGeneration.getTaskExportDocument());
         };
 
         const presentationImportInput = Vue.ref(null);
