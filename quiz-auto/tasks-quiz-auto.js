@@ -9,7 +9,7 @@ const formatDecimal = formatUtils.formatDecimal;
 // Alle automatisch auswertbaren Aufgabentypen.
 const QUIZ_AUTO_TYPES = [
 	'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren',
-	'prozentrechnung', 'prozentuale_veraenderung', 'zinsen', 'terme_zusammenfassen', 'terme_umformen', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig', 'vorrang', 'runden',
+	'prozentrechnung', 'prozentuale_veraenderung', 'zinsen', 'terme_zusammenfassen', 'terme_umformen', 'terme_einsetzen', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig', 'vorrang', 'runden',
 	'potenzen', 'einheiten', 'statistik', 'zahlengerade',
 	'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_kuerzen', 'brueche_umwandeln', 'anteile', 'wahrscheinlichkeiten',
 	'geometrie', 'proportionalitaet', 'einheiten_umrechnen',
@@ -33,7 +33,7 @@ const taskCategories = {
 	arithmetic: ['natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'potenzen', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'runden', 'zahlengerade', 'vorrang'],
 	fractions: ['brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_kuerzen', 'brueche_umwandeln', 'brueche_ordnen'],
 	percent: ['anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen', 'einheiten'],
-	algebra: ['terme_zusammenfassen', 'terme_umformen', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig', 'formel_umstellen'],
+	algebra: ['terme_zusammenfassen', 'terme_umformen', 'terme_einsetzen', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig', 'formel_umstellen'],
 	geometry: ['geometrie', 'winkel', 'schraegbild'],
 	functions: ['funktionen'],
 	statistics: ['statistik', 'wahrscheinlichkeiten'],
@@ -66,28 +66,28 @@ const taskTypesByGrade = {
 		'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
 		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen',
 		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen',
-		'terme_zusammenfassen', 'terme_umformen', 'lineare_gleichungen',
+		'terme_zusammenfassen', 'terme_umformen', 'terme_einsetzen', 'lineare_gleichungen',
 		'runden', 'zahlengerade', 'geometrie', 'statistik', 'wahrscheinlichkeiten'
 	],
 	klasse8: [
 		'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
 		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen',
 		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen',
-		'terme_zusammenfassen', 'terme_umformen', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig',
+		'terme_zusammenfassen', 'terme_umformen', 'terme_einsetzen', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig',
 		'runden', 'zahlengerade', 'geometrie', 'statistik', 'wahrscheinlichkeiten'
 	],
 	klasse9: [
 		'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
 		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen',
 		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen',
-		'terme_zusammenfassen', 'terme_umformen', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig',
+		'terme_zusammenfassen', 'terme_umformen', 'terme_einsetzen', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig',
 		'runden', 'zahlengerade', 'geometrie', 'statistik', 'wahrscheinlichkeiten'
 	],
 	klasse10: [
 		'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
 		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen',
 		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen',
-		'terme_zusammenfassen', 'terme_umformen', 'lineare_gleichungen',
+		'terme_zusammenfassen', 'terme_umformen', 'terme_einsetzen', 'lineare_gleichungen',
 		'runden', 'zahlengerade', 'geometrie', 'statistik', 'wahrscheinlichkeiten'
 	]
 };
@@ -144,6 +144,7 @@ const typeDefinitions = [
 	// Algebra / Terme / Gleichungen
 	['terme_zusammenfassen', 'Terme zusammenfassen', 'Gleichartige Terme zusammenfassen'],
 	['terme_umformen', 'Terme umformen', 'Terme durch Klammerregeln umformen und vereinfachen'],
+	['terme_einsetzen', 'Terme einsetzen', 'Terme mit einer Variablen und gegebenem Einsetzungswert berechnen'],
 	['wortterme', 'Wortterme', 'Wortterme in mathematische Symbole übersetzen und berechnen'],
 	['lineare_gleichungen', 'lin. Gl. ax+b = c', 'Lineare Gleichung der Form ax + b = c lösen'],
 	['lineare_gleichungen_beidseitig', 'lin. Gl. ax+b = cx+d', 'Lineare Gleichung der Form ax + b = cx + d lösen'],
@@ -279,7 +280,8 @@ const shareLinkTypeRegistry = {
 	addition_subtraktion_bis_100: 72,
 	addition_subtraktion_bis_1000: 73,
 	terme_zusammenfassen: 74,
-	terme_umformen: 75
+	terme_umformen: 75,
+	terme_einsetzen: 76
 };
 
 if (typeof window !== 'undefined') {
@@ -2168,6 +2170,8 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 		
+
+		
 		case 'terme_zusammenfassen':
 		case 'terme_umformen':
 		case 'terme': {
@@ -3137,6 +3141,61 @@ function createTask(type, grade = 5, options = {}) {
 			s = `\\[ ${taskStr} = ${step1} = ${res} \\]`;
 			answer = numericAnswer(res);
 
+			break;
+		}
+
+		case 'terme_einsetzen': {
+			// Ein Term aus den Vorrangregeln mit einer Variablen anstelle einer Zahl.
+			let nums = [];
+			while (nums.length < 4) {
+				const value = randInt(2, 13);
+				if (!nums.includes(value)) nums.push(value);
+			}
+			nums.sort((x, y) => x - y);
+
+			const n = nums;
+			const xValue = randInt(-5, 5);
+			const xSubstitution = xValue < 0 ? `(${xValue})` : `${xValue}`;
+			const f = fmt;
+			const coefficientTerm = (number) => grade >= 8 ? `${number}x` : `${number} \\cdot x`;
+			let termStr, substitutedTermStr, step1, result;
+
+			switch (randInt(0, 4)) {
+				case 0:
+					termStr = `${n[0]} - ${coefficientTerm(n[2])}`;
+					substitutedTermStr = `${n[0]} - ${xSubstitution} \\cdot ${n[2]}`;
+					step1 = `${n[0]} - ${xValue * n[2]}`;
+					result = n[0] - xValue * n[2];
+					break;
+				case 1:
+					termStr = `x^2 - ${n[0]} \\cdot ${n[2]}`;
+					substitutedTermStr = `${xSubstitution}^2 - ${n[0]} \\cdot ${n[2]}`;
+					step1 = `${xValue * xValue} - ${n[0] * n[2]}`;
+					result = xValue * xValue - n[0] * n[2];
+					break;
+				case 2:
+					termStr = `${n[0]} \\cdot (x^2 - ${n[2]})`;
+					substitutedTermStr = `${n[0]} \\cdot (${xSubstitution}^2 - ${n[2]})`;
+					step1 = `${n[0]} \\cdot ${f(xValue * xValue - n[2])}`;
+					result = n[0] * (xValue * xValue - n[2]);
+					break;
+				case 3:
+					termStr = `${coefficientTerm(n[1])} - ${n[2]} \\cdot ${n[3]}`;
+					substitutedTermStr = `${xSubstitution} \\cdot ${n[1]} - ${n[2]} \\cdot ${n[3]}`;
+					step1 = `${xValue * n[1]} - ${n[2] * n[3]}`;
+					result = xValue * n[1] - n[2] * n[3];
+					break;
+				default:
+					termStr = `${n[1]} \\cdot (${n[0]} + x) - ${n[2]}`;
+					substitutedTermStr = `${n[1]} \\cdot (${n[0]} + ${xSubstitution}) - ${n[2]}`;
+					step1 = `${n[1]} \\cdot ${n[0] + xValue} - ${n[2]}`;
+					result = (n[0] + xValue) * n[1] - n[2];
+					break;
+			}
+
+			textDisplay = `Berechne \\( ${termStr} \\; \\) mit \\( \\; x = ${xValue}\\).`;
+			s = `\\[ ${substitutedTermStr} = ${step1} = ${result} \\]`;
+			answer = numericAnswer(result);
 			break;
 		}
 				

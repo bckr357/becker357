@@ -4056,7 +4056,7 @@ const fromUnit = displayUnits[unitIndex];
 		const cleanFloat = (value) => Number(value.toFixed(6));
 		const tickBases = allowDecimals ? [1, 2, 3, 4, 5] : [2, 3, 5];
 		const tickFactors = allowDecimals
-			? [0.01, 0.05, 0.1, 0.5, 1, 5, 10, 50, 100]
+			? [0.01, 0.1, 0.5, 1, 5, 10, 50, 100]
 			: [1, 5, 10, 50, 100];
 		const tickDistance = cleanFloat(tickBases[randInt(0, tickBases.length - 1)] * tickFactors[randInt(0, tickFactors.length - 1)]);
 		const tickCount = randInt(5, 7);

@@ -24,7 +24,8 @@
 		emits: ['update:modelValue', 'confirm'],
 		data() {
 			return {
-				keyboardOpen: false
+				keyboardOpen: false,
+				inputKeyboardEnabled: false
 			};
 		},
 		methods: {
@@ -115,7 +116,22 @@
 			},
 			toggleKeyboard() {
 				if (this.disabled) return;
-				this.keyboardOpen = !this.keyboardOpen;
+				const shouldFocusInput = !this.keyboardOpen;
+				this.keyboardOpen = shouldFocusInput;
+				this.inputKeyboardEnabled = false;
+				if (shouldFocusInput) {
+					this.$nextTick(() => {
+						const input = this.$refs.input;
+						if (!input) return;
+						input.focus();
+						const position = this.toDisplayValue(this.modelValue).length;
+						input.setSelectionRange(position, position);
+					});
+				}
+			},
+			enableSystemKeyboard() {
+				if (this.disabled || !this.keyboardOpen) return;
+				this.inputKeyboardEnabled = true;
 			},
 			focusInput() {
 				this.$refs.input?.focus();
@@ -127,12 +143,14 @@
 					<input
 						ref="input"
 						type="text"
-						inputmode="text"
+						:inputmode="keyboardOpen && !inputKeyboardEnabled ? 'none' : 'text'"
 						class="math-key-input-field"
 						:value="toDisplayValue(modelValue)"
 						:disabled="disabled"
+						:readonly="keyboardOpen && !inputKeyboardEnabled"
 						@input="onInput"
 						@keydown="onKeydown"
+						@pointerdown="enableSystemKeyboard"
 						placeholder="Ergebnis"
 						autocomplete="off"
 					>
