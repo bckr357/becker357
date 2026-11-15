@@ -21,13 +21,6 @@
             desc: 'Aufgaben ohne TR & TW'
         },
         {
-            key: 'training',
-            label: 'Training',
-            icon: '🧠',
-            url: 'generator/?view=training',
-            desc: 'Einzelaufgaben üben'
-        },
-        {
             key: 'visualisierung',
             label: 'Animationen',
             icon: '📊',

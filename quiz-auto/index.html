@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="../img/favicon.ico">
     <title>Quiz-Auto (Einzelfragen) – Mathe-Werkzeuge</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -59,9 +60,15 @@
                         <option v-for="g in [5,6,7,8,9,10]" :key="g" :value="g">Klasse {{ g }}</option>
                     </select>
                 </label>
-                <button class="btn" type="button" @click="openWorksheetImportDialog">
-                    Aufgabentypen laden
-                </button>
+                <div class="quiz-single-setup-import-group">
+                    <label class="quiz-single-animation-toggle">
+                        <input type="checkbox" v-model="animationsEnabled">
+                        <span>Animationen</span>
+                    </label>
+                    <button class="btn" type="button" @click="openWorksheetImportDialog">
+                        Aufgabentypen laden
+                    </button>
+                </div>
                 <input
                     ref="worksheetImportInput"
                     type="file"
@@ -88,11 +95,6 @@
                 </label>
             </div>
 
-            <label class="quiz-single-animation-toggle">
-                <input type="checkbox" v-model="animationsEnabled">
-                <span>Animationen aktivieren (Konfetti bei richtiger Antwort)</span>
-            </label>
-
             <div class="quiz-single-setup-actions">
                 <button class="btn" type="button" @click="selectRandomTypes">Zufällige Auswahl</button>
                 <button class="btn" type="button" @click="selectAllTypes">Alle auswählen</button>
@@ -105,8 +107,9 @@
         <section v-else-if="showResultOverview" class="quiz-single-summary">
             <div class="quiz-single-summary-card">
                 <div class="quiz-single-summary-header">
-                    <h2>Ergebnisübersicht</h2>
-                    <button class="btn btn--primary" type="button" @click="saveResultOverview">Ergebnis speichern</button>
+                    <h2>Übersicht</h2>
+                    <button class="btn" type="button" @click="returnToSetup">Neues Quiz</button>
+                    <button class="btn btn--primary" type="button" @click="saveResultOverview">Speichern</button>
                 </div>
 
                 <div class="quiz-single-summary-grid">
@@ -162,7 +165,7 @@
                 </div>
 
                 <div class="quiz-single-summary-actions">
-                    <button class="btn" type="button" @click="returnToSetup">Neues Quiz starten</button>
+                    <button class="btn" type="button" @click="returnToSetup">Neues Quiz</button>
                 </div>
             </div>
         </section>
@@ -196,6 +199,7 @@
 
             <!-- AUFGABENKARTE -->
             <div
+                ref="taskCardRef"
                 class="quiz-single-card"
                 :class="{
                     'quiz-single-card--correct': currentTask.checked && currentTask.correct,

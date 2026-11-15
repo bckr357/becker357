@@ -29,6 +29,7 @@ const app = createApp({
 		const currentTaskIndex = ref(0);
 		const taskCounter = ref(0);
 		const taskInputRef = ref(null);
+		const taskCardRef = ref(null);
 		const worksheetImportInput = ref(null);
 
 		// Laufende Statistiken
@@ -267,25 +268,26 @@ const app = createApp({
 		};
 
 		const showConfetti = () => {
-			if (!animationsEnabled.value) return;
+			if (!animationsEnabled.value || !taskCardRef.value) return;
 
 			const container = document.createElement('div');
 			container.className = 'quiz-single-confetti';
 			container.setAttribute('aria-hidden', 'true');
 
-			for (let index = 0; index < 28; index++) {
+			for (let index = 0; index < 70; index++) {
 				const piece = document.createElement('span');
 				piece.className = 'quiz-single-confetti-piece';
-				piece.style.setProperty('--confetti-x', `${Math.random() * 100 - 50}px`);
-				piece.style.setProperty('--confetti-y', `${80 + Math.random() * 100}px`);
-				piece.style.setProperty('--confetti-rotate', `${Math.random() * 720 - 360}deg`);
-				piece.style.setProperty('--confetti-delay', `${Math.random() * 120}ms`);
-				piece.style.setProperty('--confetti-color', ['#0284c7', '#16a34a', '#f59e0b', '#e11d48', '#7c3aed'][index % 5]);
+				const size = Math.random() * 9 + 6;
+				piece.style.width = `${size}px`;
+				piece.style.height = `${size}px`;
+				piece.style.left = `${Math.random() * 100}%`;
+				piece.style.backgroundColor = `hsl(${Math.floor(Math.random() * 360)}, 85%, 60%)`;
+				piece.style.animationDuration = `${Math.random() * 1.2 + 0.8}s`;
 				container.appendChild(piece);
 			}
 
-			document.body.appendChild(container);
-			window.setTimeout(() => container.remove(), 1300);
+			taskCardRef.value.appendChild(container);
+			window.setTimeout(() => container.remove(), 2000);
 		};
 
 		const startQuiz = async () => {
@@ -785,6 +787,7 @@ ${safePlainJson}
 			currentTaskIndex,
 			taskCounter,
 			taskInputRef,
+			taskCardRef,
 			worksheetImportInput,
 			stats,
 			availableTypes,
