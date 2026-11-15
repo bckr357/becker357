@@ -18,6 +18,7 @@ const app = createApp({
 			grade.value = initialShareConfig.grade;
 		}
 		const quizStarted = ref(false);
+		const animationsEnabled = ref(true);
 		const showResultOverview = ref(false);
 		const resultOverview = ref(null);
 		const studentName = ref('');
@@ -265,6 +266,28 @@ const app = createApp({
 			taskInputRef.value?.focusInput?.();
 		};
 
+		const showConfetti = () => {
+			if (!animationsEnabled.value) return;
+
+			const container = document.createElement('div');
+			container.className = 'quiz-single-confetti';
+			container.setAttribute('aria-hidden', 'true');
+
+			for (let index = 0; index < 28; index++) {
+				const piece = document.createElement('span');
+				piece.className = 'quiz-single-confetti-piece';
+				piece.style.setProperty('--confetti-x', `${Math.random() * 100 - 50}px`);
+				piece.style.setProperty('--confetti-y', `${80 + Math.random() * 100}px`);
+				piece.style.setProperty('--confetti-rotate', `${Math.random() * 720 - 360}deg`);
+				piece.style.setProperty('--confetti-delay', `${Math.random() * 120}ms`);
+				piece.style.setProperty('--confetti-color', ['#0284c7', '#16a34a', '#f59e0b', '#e11d48', '#7c3aed'][index % 5]);
+				container.appendChild(piece);
+			}
+
+			document.body.appendChild(container);
+			window.setTimeout(() => container.remove(), 1300);
+		};
+
 		const startQuiz = async () => {
 			if (selectedTypes.value.length === 0) return;
 
@@ -300,6 +323,7 @@ const app = createApp({
 				if (stats.streak > stats.bestStreak) {
 					stats.bestStreak = stats.streak;
 				}
+				showConfetti();
 			} else {
 				stats.streak = 0;
 			}
@@ -755,6 +779,7 @@ ${safePlainJson}
 			grade,
 			selectedTypes,
 			quizStarted,
+			animationsEnabled,
 			currentTask,
 			taskHistory,
 			currentTaskIndex,

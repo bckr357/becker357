@@ -88,6 +88,11 @@
                 </label>
             </div>
 
+            <label class="quiz-single-animation-toggle">
+                <input type="checkbox" v-model="animationsEnabled">
+                <span>Animationen aktivieren (Konfetti bei richtiger Antwort)</span>
+            </label>
+
             <div class="quiz-single-setup-actions">
                 <button class="btn" type="button" @click="selectRandomTypes">Zufällige Auswahl</button>
                 <button class="btn" type="button" @click="selectAllTypes">Alle auswählen</button>
