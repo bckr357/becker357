@@ -646,6 +646,14 @@
 	width: 100%;
 	height: auto;
 	display: block;
+}
+
+.number-line-solution-display {
+	display: block;
+}
+
+.number-line-solution-print {
+	display: none;
 	margin: 0 auto;
 }
 

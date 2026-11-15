@@ -409,15 +409,25 @@ function createTask(type, grade = 5, options = {}) {
 
 		case 'zahlengerade': {
 			const allowDecimals = grade >= 6;
-			const isPositiveOnly = grade <= 7;
 			const cleanFloat = (value) => Number(value.toFixed(6));
-			const tickBases = [2, 3, 4, 5];
-			const tickFactors = allowDecimals
+			let lineVariant;
+			if (grade <= 6) {
+				lineVariant = 'zero';
+			} else if (grade === 7) {
+				lineVariant = Math.random() < 0.5 ? 'zero' : 'section';
+			} else {
+				lineVariant = ['zero', 'section', 'negative'][randInt(0, 2)];
+			}
+			const isZeroBasedLine = lineVariant === 'zero';
+			const isNegativeLine = lineVariant === 'negative';
+			const variantAllowsDecimals = allowDecimals && !(grade === 8 && isNegativeLine);
+			const tickBases = variantAllowsDecimals ? [2, 3, 4, 5] : [2, 3, 5];
+			const tickFactors = variantAllowsDecimals
 				? [0.01, 0.05, 0.1, 0.5, 1, 5, 10, 50, 100]
 				: [1, 5, 10, 50, 100];
 			const tickDistance = cleanFloat(tickBases[randInt(0, tickBases.length - 1)] * tickFactors[randInt(0, tickFactors.length - 1)]);
 			const tickCount = randInt(5, 7);
-			const startValue = cleanFloat(isPositiveOnly ? randInt(1, 4) * tickDistance : randInt(-3, -1) * tickDistance);
+			const startValue = cleanFloat(isZeroBasedLine ? 0 : (isNegativeLine ? randInt(-3, -1) * tickDistance : randInt(1, 4) * tickDistance));
 			const endValue = cleanFloat(startValue + tickDistance * (tickCount - 1));
 			const formatValue = (value) => formatDecimal(cleanFloat(value), 4);
 			const getValueAt = (position) => cleanFloat(startValue + position * tickDistance);
@@ -430,8 +440,9 @@ function createTask(type, grade = 5, options = {}) {
 			const arrowSize = 10;
 			const lineStart = margin;
 			const lineEnd = svgWidth - margin - arrowSize;
-			const unitPx = (lineEnd - lineStart) / tickCount;
-			const tickOffset = unitPx / 2;
+			const tickLineEnd = isZeroBasedLine ? lineEnd - 12 : lineEnd;
+			const unitPx = (tickLineEnd - lineStart) / (isZeroBasedLine ? tickCount - 1 : tickCount);
+			const tickOffset = isZeroBasedLine ? 0 : unitPx / 2;
 			const getX = (position) => lineStart + tickOffset + position * unitPx;
 			const renderNumberLine = ({ labels = {}, labelColors = {}, labelWeights = {}, arrowPos = null, scale = 1, widthCm } = {}) => {
 				const renderWidth = `${(widthCm ?? (svgRenderWidthCm * scale))}cm`;
@@ -458,11 +469,15 @@ function createTask(type, grade = 5, options = {}) {
 				return content;
 			};
 
-			const givenPosA = randInt(0, tickCount - 1);
+			const givenPosA = isZeroBasedLine ? 0 : randInt(0, tickCount - 1);
 			let givenPosB;
-			do {
-				givenPosB = randInt(0, tickCount - 1);
-			} while (Math.abs(givenPosA - givenPosB) <= 1);
+			if (isZeroBasedLine) {
+				givenPosB = randInt(2, tickCount - 1);
+			} else {
+				do {
+					givenPosB = randInt(0, tickCount - 1);
+				} while (Math.abs(givenPosA - givenPosB) <= 1);
+			}
 
 			// Aus den verbleibenden Positionen eine Zielposition für den Pfeil wählen
 			const availableTargetPositions = [];
@@ -483,10 +498,12 @@ function createTask(type, grade = 5, options = {}) {
 				solutionLabels[i] = formatValue(getValueAt(i));
 			}
 
+			const lineTitle = isZeroBasedLine ? 'dem Zahlenstrahl' : (isNegativeLine ? 'der Zahlengeraden' : 'dem Zahlenstrahl-Abschnitt');
+			const taskInstruction = `Welche Zahl ist durch den Pfeil auf ${lineTitle} markiert?`;
 			const taskSvgDisplay = renderNumberLine({ labels: taskLabels, arrowPos: targetPos, scale: 1.7 });
 			const taskSvgPrint = renderNumberLine({ labels: taskLabels, arrowPos: targetPos, scale: 1, widthCm: 11 });
 
-			const solutionSvg = renderNumberLine({
+			const solutionOptions = {
 				labels: solutionLabels,
 				labelColors: {
 					[targetPos]: '#2e7d32'
@@ -494,14 +511,14 @@ function createTask(type, grade = 5, options = {}) {
 				labelWeights: {
 					[targetPos]: '700'
 				},
-				arrowPos: targetPos,
-				scale: 1.7
-			});
+				arrowPos: targetPos
+			};
+			const solutionSvgDisplay = renderNumberLine({ ...solutionOptions, scale: 1.7 });
+			const solutionSvgPrint = renderNumberLine({ ...solutionOptions, scale: 1, widthCm: 11 });
 
-			const lineTitle = isPositiveOnly ? 'dem Zahlenstrahl' : 'der Zahlengeraden';
-			textDisplay = `Welche Zahl ist durch den Pfeil auf ${lineTitle} markiert?<br>${taskSvgDisplay}`;
-			textPrint = `Welche Zahl ist durch den Pfeil auf ${lineTitle} markiert? ${blank(2)}<br>${taskSvgPrint}`;
-			s = `Gesuchte Zahl: \\( \\mathbf{${formatValue(targetValue)}} \\)<br>${solutionSvg}`;
+			textDisplay = `${taskInstruction}<br>${taskSvgDisplay}`;
+			textPrint = `${taskInstruction} ${blank(2)}<br>${taskSvgPrint}`;
+			s = `<span class="number-line-solution-display">Gesuchte Zahl: \\( \\mathbf{${formatValue(targetValue)}} \\)<br>${solutionSvgDisplay}</span><span class="number-line-solution-print">Gesuchte Zahl: \\( \\mathbf{${formatValue(targetValue)}} \\)<br>${solutionSvgPrint}</span>`;
 			answer = numericAnswer(targetValue);
 			break;
 		}		
@@ -3104,7 +3121,7 @@ function createTask(type, grade = 5, options = {}) {
 			const n = nums;
 			
 			const f = fmt;
-			let vorrangType = randInt(0, 3);
+			let vorrangType = randInt(0, 4);
 			let taskStr, step1, res;
 			
 			switch (vorrangType) {
@@ -3134,6 +3151,13 @@ function createTask(type, grade = 5, options = {}) {
 					taskStr = `${n[0]} \\cdot ${n[1]} - ${n[2]} \\cdot ${n[3]}`;
 					step1 = `${n[0] * n[1]} - ${n[2] * n[3]}`;
 					res = (n[0] * n[1]) - (n[2] * n[3]);
+					break;
+
+				case 4:
+					// Typ: Mittel * (Klein + Groß) - Extra
+					taskStr = `${n[1]} \\cdot (${n[0]} + ${n[2]}) - ${n[3]}`;
+					step1 = `${n[1]} \\cdot ${n[0] + n[2]} - ${n[3]}`;
+					res = n[1] * (n[0] + n[2]) - n[3];
 					break;
 			}
 

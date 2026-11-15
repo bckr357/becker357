@@ -1928,6 +1928,28 @@ textarea {
     color: var(--primary);
 }
 
+.number-line-solution-display {
+    display: none;
+}
+
+.number-line-solution-print {
+    display: block;
+}
+
+.presentation-view .number-line-solution-display,
+.worksheet-sheet--solutions .number-line-solution-display,
+.builder-task-item--presentation .number-line-solution-display,
+.training-view .number-line-solution-display {
+    display: block;
+}
+
+.presentation-view .number-line-solution-print,
+.worksheet-sheet--solutions .number-line-solution-print,
+.builder-task-item--presentation .number-line-solution-print,
+.training-view .number-line-solution-print {
+    display: none;
+}
+
 .worksheet-content .math-q,
 .worksheet-content .math-a {
     font-size: inherit;

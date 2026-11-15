@@ -4052,15 +4052,25 @@ const fromUnit = displayUnits[unitIndex];
 
 	case 'zahlengerade': {
 		const allowDecimals = grade >= 6;
-		const isPositiveOnly = grade <= 7;
 		const cleanFloat = (value) => Number(value.toFixed(6));
-		const tickBases = allowDecimals ? [1, 2, 3, 4, 5] : [2, 3, 5];
-		const tickFactors = allowDecimals
+		let lineVariant;
+		if (grade <= 6) {
+			lineVariant = 'zero';
+		} else if (grade === 7) {
+			lineVariant = Math.random() < 0.5 ? 'zero' : 'section';
+		} else {
+			lineVariant = ['zero', 'section', 'negative'][randInt(0, 2)];
+		}
+		const isZeroBasedLine = lineVariant === 'zero';
+		const isNegativeLine = lineVariant === 'negative';
+		const variantAllowsDecimals = allowDecimals && !(grade === 8 && isNegativeLine);
+		const tickBases = variantAllowsDecimals ? [1, 2, 3, 4, 5] : [2, 3, 5];
+		const tickFactors = variantAllowsDecimals
 			? [0.01, 0.1, 0.5, 1, 5, 10, 50, 100]
 			: [1, 5, 10, 50, 100];
 		const tickDistance = cleanFloat(tickBases[randInt(0, tickBases.length - 1)] * tickFactors[randInt(0, tickFactors.length - 1)]);
 		const tickCount = randInt(5, 7);
-		const startValue = cleanFloat(isPositiveOnly ? randInt(1, 4) * tickDistance : randInt(-3, -1) * tickDistance);
+		const startValue = cleanFloat(isZeroBasedLine ? 0 : (isNegativeLine ? randInt(-3, -1) * tickDistance : randInt(1, 4) * tickDistance));
 		const endValue = cleanFloat(startValue + tickDistance * (tickCount - 1));
 		const getValueAt = (position) => cleanFloat(startValue + position * tickDistance);
 		const formatValue = (value) => formatDecimal(cleanFloat(value), 4);
@@ -4073,16 +4083,18 @@ const fromUnit = displayUnits[unitIndex];
 		const arrowSize = 10;
 		const lineStart = margin;
 		const lineEnd = svgWidth - margin - arrowSize;
-		const unitPx = (lineEnd - lineStart) / tickCount;
-		const tickOffset = unitPx / 2;
+		const tickLineEnd = isZeroBasedLine ? lineEnd - 12 : lineEnd;
+		const unitPx = (tickLineEnd - lineStart) / (isZeroBasedLine ? tickCount - 1 : tickCount);
+		const tickOffset = isZeroBasedLine ? 0 : unitPx / 2;
 		const getX = (position) => lineStart + tickOffset + position * unitPx;
-		const renderNumberLine = ({ labels = {}, labelColors = {}, labelWeights = {}, scale = 1, widthCm } = {}) => {
+		const renderNumberLine = ({ labels = {}, labelColors = {}, labelWeights = {}, markerRatio = null, markerLabel = null, showIntermediateTicks = true, scale = 1, widthCm } = {}) => {
 			const renderWidth = `${(widthCm ?? (svgRenderWidthCm * scale))}cm`;
 			const renderHeight = `${svgRenderHeightCm * scale}cm`;
 			let content = `<svg class="number-line-svg" width="${renderWidth}" height="${renderHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" style="display:block; color:#111827;">`;
 			content += `<line x1="${lineStart}" y1="${axisY}" x2="${lineEnd}" y2="${axisY}" stroke="currentColor" stroke-width="2"/>`;
 			content += `<polygon points="${svgWidth - margin},${axisY} ${lineEnd},${axisY - 6} ${lineEnd},${axisY + 6}" fill="currentColor"/>`;
 			for (let i = 0; i < tickCount; i++) {
+				if (!showIntermediateTicks && i !== 0 && i !== tickCount - 1) continue;
 				const x = getX(i);
 				content += `<line x1="${x}" y1="${axisY - 8}" x2="${x}" y2="${axisY + 8}" stroke="currentColor" stroke-width="1"/>`;
 				const label = labels[i];
@@ -4092,15 +4104,45 @@ const fromUnit = displayUnits[unitIndex];
 					content += `<text x="${x}" y="${axisY + 27}" text-anchor="middle" font-size="17" font-weight="${labelWeight}" fill="${labelColor}">${label}</text>`;
 				}
 			}
+			if (markerRatio !== null) {
+				const markerX = lineStart + markerRatio * (tickLineEnd - lineStart);
+				content += `<line x1="${markerX}" y1="${axisY - 30}" x2="${markerX}" y2="${axisY - 10}" stroke="#2e7d32" stroke-width="3"/>`;
+				content += `<polygon points="${markerX - 6},${axisY - 13} ${markerX},${axisY - 5} ${markerX + 6},${axisY - 13}" fill="#2e7d32"/>`;
+				if (markerLabel !== null) {
+					content += `<text x="${markerX}" y="${axisY - 36}" text-anchor="middle" font-size="15" font-weight="700" fill="#2e7d32">${markerLabel}</text>`;
+				}
+			}
 			content += `</svg>`;
 			return content;
 		};
 
-		const givenPosA = randInt(0, tickCount - 1);
+		const isEmptyZeroLine = isZeroBasedLine && Math.random() < 0.3;
+		let targetValue = null;
+		if (isEmptyZeroLine) {
+			const targetCanHaveDecimal = endValue < 10 && !Number.isInteger(tickDistance);
+			const targetDecimals = targetCanHaveDecimal ? 1 : 0;
+			let attempts = 0;
+			do {
+				targetValue = Number((endValue * (0.05 + Math.random() * 0.9)).toFixed(targetDecimals));
+				attempts++;
+			} while ((targetValue <= endValue * 0.05 || targetValue >= endValue * 0.95) && attempts < 100);
+			if (targetValue <= endValue * 0.05 || targetValue >= endValue * 0.95) {
+				targetValue = cleanFloat(endValue / 2);
+			}
+		}
+		const targetRatio = targetValue === null ? null : targetValue / endValue;
+		let givenPosA = isZeroBasedLine ? 0 : randInt(0, tickCount - 1);
 		let givenPosB;
-		do {
-			givenPosB = randInt(0, tickCount - 1);
-		} while (Math.abs(givenPosA - givenPosB) <= 1);
+		if (isEmptyZeroLine) {
+			givenPosA = 0;
+			givenPosB = tickCount - 1;
+		} else if (isZeroBasedLine) {
+			givenPosB = randInt(2, tickCount - 1);
+		} else {
+			do {
+				givenPosB = randInt(0, tickCount - 1);
+			} while (Math.abs(givenPosA - givenPosB) <= 1);
+		}
 
 		const taskLabels = {
 			[givenPosA]: formatValue(getValueAt(givenPosA)),
@@ -4115,10 +4157,14 @@ const fromUnit = displayUnits[unitIndex];
 			}
 		}
 
-		const taskSvgDisplay = renderNumberLine({ labels: taskLabels, scale: 1.7 });
-		const taskSvgPrint = renderNumberLine({ labels: taskLabels, scale: 1, widthCm: 11 });
+		const lineTitle = isZeroBasedLine ? 'den Zahlenstrahl' : (isNegativeLine ? 'die Zahlengerade' : 'den Zahlenstrahl-Abschnitt');
+		const taskInstruction = isEmptyZeroLine
+			? `Markiere die Zahl \\( ${formatValue(targetValue)} \\) auf dem Zahlenstrahl:`
+			: `Vervollständige ${lineTitle}:`;
+		const taskSvgDisplay = renderNumberLine({ labels: taskLabels, showIntermediateTicks: !isEmptyZeroLine, scale: 1.7 });
+		const taskSvgPrint = renderNumberLine({ labels: taskLabels, showIntermediateTicks: !isEmptyZeroLine, scale: 1, widthCm: 11 });
 
-		const solutionSvg = renderNumberLine({
+		const solutionOptions = {
 			labels: solutionLabels,
 			labelColors: missingPositions.reduce((acc, pos) => {
 				acc[pos] = '#2e7d32';
@@ -4128,13 +4174,15 @@ const fromUnit = displayUnits[unitIndex];
 				acc[pos] = '700';
 				return acc;
 			}, {}),
-			scale: 1.7
-		});
+			markerRatio: targetRatio,
+			markerLabel: targetValue === null ? null : formatValue(targetValue)
+		};
+		const solutionSvgDisplay = renderNumberLine({ ...solutionOptions, scale: 1.7 });
+		const solutionSvgPrint = renderNumberLine({ ...solutionOptions, scale: 1, widthCm: 11 });
 
-		const lineTitle = isPositiveOnly ? 'den Zahlenstrahl-Abschnitt' : 'die Zahlengerade';
-		textDisplay = `Vervollständige ${lineTitle}:<br>${taskSvgDisplay}`;
-		textPrint = `Vervollständige ${lineTitle}:<br>${taskSvgPrint}`;
-		s = `${solutionSvg}`;
+		textDisplay = `${taskInstruction}<br>${taskSvgDisplay}`;
+		textPrint = `${taskInstruction}<br>${taskSvgPrint}`;
+		s = `<span class="number-line-solution-display">${solutionSvgDisplay}</span><span class="number-line-solution-print">${solutionSvgPrint}</span>`;
 		break;
 	}
 
@@ -4885,7 +4933,7 @@ const fromUnit = displayUnits[unitIndex];
 			const n = nums;
 			
 			const f = fmt;
-			let vorrangType = randInt(0, 3);
+			let vorrangType = randInt(0, 4);
 			let taskStr, step1, res;
 			
 			switch (vorrangType) {
@@ -4915,6 +4963,13 @@ const fromUnit = displayUnits[unitIndex];
 					taskStr = `${n[0]} \\cdot ${n[1]} - ${n[2]} \\cdot ${n[3]}`;
 					step1 = `${n[0] * n[1]} - ${n[2] * n[3]}`;
 					res = (n[0] * n[1]) - (n[2] * n[3]);
+					break;
+
+				case 4:
+					// Typ: Mittel * (Klein + Groß) - Extra
+					taskStr = `${n[1]} \\cdot (${n[0]} + ${n[2]}) - ${n[3]}`;
+					step1 = `${n[1]} \\cdot ${n[0] + n[2]} - ${n[3]}`;
+					res = n[1] * (n[0] + n[2]) - n[3];
 					break;
 			}
 
