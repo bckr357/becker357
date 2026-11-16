@@ -677,18 +677,35 @@ function createTask(type, grade = 5, options = {}) {
 				let expr;
 				let solution;
 				let answer;
-				const isMultiplication = Math.random() > 0.5;
-
-				if (isMultiplication) {
-					const v1 = Math.random() < 0.5 ? randInt(0, 13) : randInt(2, 9); 
-					const v2 = Math.random() < 0.5 ? randInt(0, 13) : randInt(2, 9);
-					expr = `\\[ ${v1} \\cdot ${v2} = \\]`;
-					const product = v1 * v2;
-					solution = `\\[ ${v1} \\cdot ${v2} = ${product} \\]`;
-					answer = numericAnswer(product);
+				if (Math.random() < 0.6) {
+					if (Math.random() < 0.3) {
+						const factorCount = Math.random() < 0.5 ? 3 : 4;
+						let factors;
+						let product;
+						do {
+							factors = Array.from({ length: factorCount }, () => Math.random() < 0.05 ? 0 : randInt(0, 10));
+							product = factors.reduce((result, factor) => result * factor, 1);
+						} while (product > 400);
+						const factorText = factors.join(' \\cdot ');
+						expr = `\\[ ${factorText} = \\]`;
+						solution = `\\[ ${factorText} = ${product} \\]`;
+						answer = numericAnswer(product);
+					} else {
+						const v1 = Math.random() < 0.5 ? rnd(0, 13) : rnd(2, 9);
+						const v2 = Math.random() < 0.5 ? rnd(0, 13) : rnd(2, 9);
+						expr = `\\[ ${v1} \\cdot ${v2} = \\]`;
+						const product = v1 * v2;
+						solution = `\\[ ${v1} \\cdot ${v2} = ${product} \\]`;
+						answer = numericAnswer(product);
+					}
 				} else {
 					const divisor = Math.random() < 0.5 ? randInt(1, 13) : randInt(2, 9);
-					const quotient = Math.random() < 0.5 ? randInt(0, 13) : randInt(2, 9);
+					let quotient;
+					if (divisor >= 11) {
+						quotient = rnd(2, 5);
+					} else {
+						quotient = rnd(2, 12);
+					}
 					const dividend = divisor * quotient;
 					expr = `\\[ ${dividend} : ${divisor} = \\]`;
 					solution = `\\[ ${dividend} : ${divisor} = ${quotient} \\]`;
@@ -825,8 +842,8 @@ function createTask(type, grade = 5, options = {}) {
 				let answer;
 				if (Math.random() > 0.5) {
 					do {
-						v1 = randInt(-15, 15);
-						v2 = randInt(-9, 9);
+						v1 = rnd(-15, 15);
+						v2 = rnd(-9, 9);
 					} while (!(v1 < 0 || v2 < 0 || (v1 * v2) < 0));
 					expr = `\\[ ${v1} \\cdot ${fmt(v2)} = \\]`;
 					const product = v1 * v2;
@@ -835,8 +852,8 @@ function createTask(type, grade = 5, options = {}) {
 				} else {
 					let res;
 					do {
-						res = randInt(-9, 9);
-						v2 = randInt(1, 12);
+						res = rnd(-9, 9);
+						v2 = rnd(1, 12);
 						Math.random() < 0.5 ? v2 = -v2 : null;
 					} while (!(res < 0 || v2 < 0 || (res * v2) < 0));
 					v1 = res * v2;

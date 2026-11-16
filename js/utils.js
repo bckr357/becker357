@@ -269,39 +269,3 @@ if (typeof window !== 'undefined') {
     window.fisherYatesShuffle = fisherYatesShuffle;
 }
 
-// ============================================================
-// TRAINING VS. PAIR AUFGABEN PATTERN
-// ============================================================
-
-/**
- * Standardisiert das Pattern: Training = 1 Aufgabe, Quiz = 2 Aufgaben in Tabelle
- * @param {Function} createEntryFn - Funktion, die { expr, solution } zurückgibt
- * @param {boolean} isTraining - Training-Modus?
- * @param {Function} buildTableFn - Funktion, die buildTwoColumnTaskTable äquivalent ist
- * @returns {Object} { textDisplay, solution }
- */
-const buildTrainingOrPairTasks = (createEntryFn, isTraining, buildTableFn) => {
-    if (isTraining) {
-        const entry = createEntryFn();
-        return {
-            textDisplay: entry.expr,
-            solution: entry.solution
-        };
-    } else {
-        const firstEntry = createEntryFn();
-        let secondEntry;
-        let attempt = 0;
-        
-        do {
-            secondEntry = createEntryFn();
-            attempt += 1;
-        } while (attempt < 10 && secondEntry.expr === firstEntry.expr);
-        
-        const entries = [firstEntry, secondEntry];
-        return {
-            textDisplay: buildTableFn(entries.map(e => e.expr)),
-            solution: buildTableFn(entries.map(e => e.solution))
-        };
-    }
-};
-

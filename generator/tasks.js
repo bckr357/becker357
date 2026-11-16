@@ -1218,8 +1218,8 @@ function createTask(type, grade = 5, options = {}) {
 						expr = `\\[ ${factorText} = \\]`;
 						solution = `\\[ ${factorText} = ${product} \\]`;
 					} else {
-						const v1 = Math.random() < 0.5 ? randInt(0, 13) : randInt(2, 9);
-						const v2 = Math.random() < 0.5 ? randInt(0, 13) : randInt(2, 9);
+						const v1 = Math.random() < 0.5 ? rnd(0, 13) : rnd(2, 9);
+						const v2 = Math.random() < 0.5 ? rnd(0, 13) : rnd(2, 9);
 						expr = `\\[ ${v1} \\cdot ${v2} = \\]`;
 						solution = `\\[ ${v1} \\cdot ${v2} = ${v1 * v2} \\]`;
 					}
@@ -1227,9 +1227,9 @@ function createTask(type, grade = 5, options = {}) {
 					const divisor = Math.random() < 0.5 ? randInt(1, 13) : randInt(2, 9);
 					let quotient;
 					if (divisor >= 11) {
-						quotient = randInt(0, 5);
+						quotient = rnd(2, 5);
 					} else {
-						quotient = randInt(0, 12);
+						quotient = rnd(2, 12);
 					}
 					const dividend = divisor * quotient;
 					expr = `\\[ ${dividend} : ${divisor} = \\]`;
@@ -1381,8 +1381,8 @@ function createTask(type, grade = 5, options = {}) {
 						solution = `\\[ ${factorText} = ${product} \\]`;
 					} else {
 						do {
-							v1 = randInt(-15, 15);
-							v2 = randInt(-9, 9);
+							v1 = rnd(-15, 15);
+							v2 = rnd(-9, 9);
 						} while (!(v1 < 0 || v2 < 0 || (v1 * v2) < 0));
 						expr = `\\[ ${v1} \\cdot ${fmt(v2)} = \\]`;
 						solution = `\\[ ${v1} \\cdot ${fmt(v2)} = ${v1 * v2} \\]`;
@@ -1390,8 +1390,8 @@ function createTask(type, grade = 5, options = {}) {
 				} else {
 					let res;
 					do {
-						res = randInt(-9, 9);
-						v2 = randInt(1, 12);
+						res = rnd(-9, 9);
+						v2 = rnd(1, 12);
 						Math.random() < 0.5 ? v2 = -v2 : null;
 					} while (!(res < 0 || v2 < 0 || (res * v2) < 0));
 					v1 = res * v2;
@@ -1436,6 +1436,8 @@ function createTask(type, grade = 5, options = {}) {
 					return `${sign}${normalizeDecimalString(`${intPart}.${fracPart}`)}`;
 				};
 
+				// In dieser Aufgabenart werden nur Vorfaktoren von 1 oder 2 verwendet.
+				const coeff = [1, 2][randInt(0, 1)];
 				const integerOnly = grade <= 5;
 				if (integerOnly) {
 					const appendZeros = (value, count) => String(value) + '0'.repeat(count);
@@ -1473,7 +1475,6 @@ function createTask(type, grade = 5, options = {}) {
 					return { expr, solution };
 				}
 
-				// In dieser Aufgabenart werden nur Vorfaktoren von 1 oder 2 verwendet.
 				const exponentOptions = [-2, -1, 1, 2, 3];
 				const exponent = exponentOptions[randInt(0, exponentOptions.length - 1)];
 
