@@ -153,6 +153,10 @@ createApp({
                     if (importedGrade !== null) {
                         selectedGrade.value = importedGrade;
                     }
+                    if (data && !Array.isArray(data) && typeof data.weights === 'object' && data.weights !== null) {
+                        Object.assign(state.taskWeights.value, data.weights);
+                        state.weights.value = data.weightsEnabled !== false;
+                    }
                     const loaded = loadTasks(data);
                     if (!loaded) {
                         window.alert('Die JSON-Datei enthält keine gültigen Aufgaben.');

@@ -1205,11 +1205,24 @@ function createTask(type, grade = 5, options = {}) {
 			const createNatMdEntry = () => {
 				let expr;
 				let solution;
-				if (Math.random() > 0.5) {
-					const v1 = Math.random() < 0.5 ? randInt(0, 13) : randInt(2, 9); 
-					const v2 = Math.random() < 0.5 ? randInt(0, 13) : randInt(2, 9);
-					expr = `\\[ ${v1} \\cdot ${v2} = \\]`;
-					solution = `\\[ ${v1} \\cdot ${v2} = ${v1 * v2} \\]`;
+				if (Math.random() < 0.6) {
+					if (Math.random() < 0.3) {
+						const factorCount = Math.random() < 0.5 ? 3 : 4;
+						let factors;
+						let product;
+						do {
+							factors = Array.from({ length: factorCount }, () => Math.random() < 0.05 ? 0 : randInt(0, 10));
+							product = factors.reduce((result, factor) => result * factor, 1);
+						} while (product > 400);
+						const factorText = factors.join(' \\cdot ');
+						expr = `\\[ ${factorText} = \\]`;
+						solution = `\\[ ${factorText} = ${product} \\]`;
+					} else {
+						const v1 = Math.random() < 0.5 ? randInt(0, 13) : randInt(2, 9);
+						const v2 = Math.random() < 0.5 ? randInt(0, 13) : randInt(2, 9);
+						expr = `\\[ ${v1} \\cdot ${v2} = \\]`;
+						solution = `\\[ ${v1} \\cdot ${v2} = ${v1 * v2} \\]`;
+					}
 				} else {
 					const divisor = Math.random() < 0.5 ? randInt(1, 13) : randInt(2, 9);
 					let quotient;
@@ -1352,12 +1365,28 @@ function createTask(type, grade = 5, options = {}) {
 				let expr;
 				let solution;
 				if (Math.random() > 0.5) {
-					do {
-						v1 = randInt(-15, 15);
-						v2 = randInt(-9, 9);
-					} while (!(v1 < 0 || v2 < 0 || (v1 * v2) < 0));
-					expr = `\\[ ${v1} \\cdot ${fmt(v2)} = \\]`;
-					solution = `\\[ ${v1} \\cdot ${fmt(v2)} = ${v1 * v2} \\]`;
+					if (Math.random() < 0.3) {
+						const factorCount = Math.random() < 0.5 ? 3 : 4;
+						let factors;
+						let product;
+						do {
+							factors = Array.from({ length: factorCount }, () => {
+								const factor = Math.random() < 0.05 ? 0 : randInt(0, 10);
+								return Math.random() < 0.5 ? factor : -factor;
+							});
+							product = factors.reduce((result, factor) => result * factor, 1);
+						} while (product < -400 || product > 400 || !factors.some(factor => factor < 0));
+						const factorText = factors.map(factor => fmt(factor)).join(' \\cdot ');
+						expr = `\\[ ${factorText} = \\]`;
+						solution = `\\[ ${factorText} = ${product} \\]`;
+					} else {
+						do {
+							v1 = randInt(-15, 15);
+							v2 = randInt(-9, 9);
+						} while (!(v1 < 0 || v2 < 0 || (v1 * v2) < 0));
+						expr = `\\[ ${v1} \\cdot ${fmt(v2)} = \\]`;
+						solution = `\\[ ${v1} \\cdot ${fmt(v2)} = ${v1 * v2} \\]`;
+					}
 				} else {
 					let res;
 					do {
@@ -1407,27 +1436,63 @@ function createTask(type, grade = 5, options = {}) {
 					return `${sign}${normalizeDecimalString(`${intPart}.${fracPart}`)}`;
 				};
 
+				const integerOnly = grade <= 5;
+				if (integerOnly) {
+					const appendZeros = (value, count) => String(value) + '0'.repeat(count);
+					const isMult = Math.random() < 0.6;
+					const secondZeros = randInt(1, 2);
+					let firstZeros;
+					let operandStrRaw;
+					let stepStrRaw;
+					let resultStrRaw;
+
+					if (isMult) {
+						firstZeros = randInt(0, 2);
+						const firstBase = randInt(2, 12);
+						const secondBase = randInt(1, 12);
+						operandStrRaw = appendZeros(firstBase, firstZeros);
+						stepStrRaw = appendZeros(secondBase, secondZeros);
+						resultStrRaw = String(Number(operandStrRaw) * Number(stepStrRaw));
+					} else {
+						// Die erste Nullanzahl darf nicht kleiner als die zweite sein,
+						// damit die Division trotz angehängter Nullen ganzzahlig bleibt.
+						firstZeros = randInt(secondZeros, 2);
+						const quotientBase = randInt(2, 12);
+						const divisorBase = randInt(1, 12);
+						operandStrRaw = appendZeros(quotientBase * divisorBase, firstZeros);
+						stepStrRaw = appendZeros(divisorBase, secondZeros);
+						resultStrRaw = String(quotientBase * Math.pow(10, firstZeros - secondZeros));
+					}
+
+					const op = isMult ? '\\cdot' : ':';
+					const operandFormatted = comma(operandStrRaw);
+					const stepFormatted = comma(stepStrRaw);
+					const resultFormatted = comma(resultStrRaw);
+					const expr = `\\[ ${operandFormatted} ${op} ${stepFormatted} =\\]`;
+					const solution = `\\[ ${operandFormatted} ${op} ${stepFormatted} = ${resultFormatted} \\]`;
+					return { expr, solution };
+				}
+
 				// In dieser Aufgabenart werden nur Vorfaktoren von 1 oder 2 verwendet.
-				const coeff = [1, 2][randInt(0, 1)];
 				const exponentOptions = [-2, -1, 1, 2, 3];
 				const exponent = exponentOptions[randInt(0, exponentOptions.length - 1)];
 
 				const stepStrRaw = fromScaledInteger(coeff, -exponent);
-				const isMult = Math.random() > 0.5;
+				const isMult = Math.random() < 0.6;
 				let operandStrRaw;
 				let resultStrRaw;
 
 				if (isMult) {
 					// MULTIPLIKATION: operand * stepStrRaw = result
 					let mOperand, dOperand;
-					if (Math.random() > 0.4) {
+					if (!integerOnly && Math.random() < 0.6) {
 						// Dezimalbruch mit 1 oder 2 Nachkommastellen
 						dOperand = (coeff === 1 && (exponent === 1 || exponent === 2) && Math.random() > 0.5) ? 2 : 1;
 						mOperand = dOperand === 2 ? rnd(11, 250) : rnd(2, 95);
 					} else {
 						// Natürliche Zahl
 						dOperand = 0;
-						mOperand = rnd(2, 45);
+						mOperand = rnd(2, 12);
 					}
 
 					operandStrRaw = fromScaledInteger(mOperand, dOperand);
@@ -1438,7 +1503,7 @@ function createTask(type, grade = 5, options = {}) {
 					// DIVISION: operand : stepStrRaw = result
 					// Glatten Quotienten erzeugen, damit die Aufgabe exakt aufgeht
 					let mQuotient, dQuotient;
-					if (Math.random() > 0.4) {
+					if (!integerOnly && Math.random() > 0.4) {
 						dQuotient = 1;
 						mQuotient = rnd(2, 45);
 					} else {
@@ -4925,7 +4990,7 @@ const fromUnit = displayUnits[unitIndex];
 			// 1. Vier eindeutige Zahlen generieren und aufsteigend sortieren
 			let nums = [];
 			while (nums.length < 4) {
-				let r = randInt(2, 13); // Etwas größerer Bereich für schönere Differenzen
+				let r = randInt(0, 13); // Etwas größerer Bereich für schönere Differenzen
 				if (!nums.includes(r)) nums.push(r);
 			}
 			nums.sort((x, y) => x - y);

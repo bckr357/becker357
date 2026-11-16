@@ -880,6 +880,43 @@ function createTask(type, grade = 5, options = {}) {
 				// Stufenzahl / Zehnerpotenz mit oder ohne Vorfaktor (z. B. 0.01, 0.02, 0.5, 10, 200, 3000)
 				// Vorfaktoren: 1 (reine Zehnerpotenz), 2, 3, 4 oder 5
 				// In dieser Aufgabenart werden nur Vorfaktoren von 1 oder 2 verwendet.
+				const integerOnly = grade <= 5;
+				if (integerOnly) {
+					const appendZeros = (value, count) => String(value) + '0'.repeat(count);
+					const isMult = Math.random() > 0.5;
+					const secondZeros = randInt(1, 2);
+					let firstZeros;
+					let operandStrRaw;
+					let stepStrRaw;
+					let resultStrRaw;
+
+					if (isMult) {
+						firstZeros = randInt(0, 2);
+						const firstBase = randInt(1, 12);
+						const secondBase = randInt(1, 12);
+						operandStrRaw = appendZeros(firstBase, firstZeros);
+						stepStrRaw = appendZeros(secondBase, secondZeros);
+						resultStrRaw = String(Number(operandStrRaw) * Number(stepStrRaw));
+					} else {
+						// Die erste Nullanzahl darf nicht kleiner als die zweite sein,
+						// damit die Division trotz angehängter Nullen ganzzahlig bleibt.
+						firstZeros = randInt(secondZeros, 2);
+						const quotientBase = randInt(1, 12);
+						const divisorBase = randInt(1, 12);
+						operandStrRaw = appendZeros(quotientBase * divisorBase, firstZeros);
+						stepStrRaw = appendZeros(divisorBase, secondZeros);
+						resultStrRaw = String(quotientBase * Math.pow(10, firstZeros - secondZeros));
+					}
+
+					const op = isMult ? '\\cdot' : ':';
+					const operandFormatted = comma(operandStrRaw);
+					const stepFormatted = comma(stepStrRaw);
+					const resultFormatted = comma(resultStrRaw);
+					const expr = `\\[ ${operandFormatted} ${op} ${stepFormatted} =\\]`;
+					const solution = `\\[ ${operandFormatted} ${op} ${stepFormatted} = ${resultFormatted} \\]`;
+					return { expr, solution, answer: numericAnswer(Number(resultStrRaw)) };
+				}
+
 				const coeff = [1, 2][randInt(0, 1)]; // Vorfaktor: 1 oder 2
 				const exponentOptions = [-2, -1, 1, 2, 3];
 				const exponent = exponentOptions[randInt(0, exponentOptions.length - 1)];
@@ -892,7 +929,7 @@ function createTask(type, grade = 5, options = {}) {
 				if (isMult) {
 					// MULTIPLIKATION: operand * stepStrRaw = result
 					let mOperand, dOperand;
-					if (Math.random() > 0.4) {
+					if (!integerOnly && Math.random() > 0.4) {
 						// Dezimalbruch mit 1 oder 2 Nachkommastellen
 						dOperand = (coeff === 1 && (exponent === 1 || exponent === 2) && Math.random() > 0.5) ? 2 : 1;
 						mOperand = dOperand === 2 ? rnd(11, 250) : rnd(2, 95);
@@ -910,7 +947,7 @@ function createTask(type, grade = 5, options = {}) {
 					// DIVISION: operand : stepStrRaw = result
 					// Glatten Quotienten erzeugen, damit die Aufgabe exakt aufgeht
 					let mQuotient, dQuotient;
-					if (Math.random() > 0.4) {
+					if (!integerOnly && Math.random() > 0.4) {
 						dQuotient = 1;
 						mQuotient = rnd(2, 45);
 					} else {

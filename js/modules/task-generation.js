@@ -34,6 +34,8 @@ window.MTGTaskGenerationModule = {
 
         const getTaskExportDocument = () => ({
             grade: selectedGrade?.value ?? null,
+            weights: { ...state.taskWeights.value },
+            weightsEnabled: state.weights.value,
             tasks: getTaskExportData()
         });
 
