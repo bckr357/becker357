@@ -257,6 +257,19 @@
 	.quiz-single-setup-import-group {
 		justify-content: space-between;
 	}
+
+	.quiz-single-summary-header {
+		flex-wrap: wrap;
+	}
+
+	.quiz-single-summary-header h2 {
+		flex-basis: 100%;
+		margin-right: 0;
+	}
+
+	.quiz-single-summary-header > .btn {
+		flex: 1 1 0;
+	}
 }
 
 /* Stat-Bar / Streak-Bar oben im Quiz */
@@ -593,7 +606,7 @@
 
 .quiz-single-summary-header {
 	display: flex;
-	justify-content: space-between;
+	justify-content: flex-start;
 	align-items: center;
 	gap: 16px;
 	margin-bottom: 24px;
@@ -601,6 +614,7 @@
 
 .quiz-single-summary-header h2 {
 	margin: 0;
+	margin-right: auto;
 	font-size: clamp(1.8rem, 3vw, 2.4rem);
 	color: #0f172a;
 }
