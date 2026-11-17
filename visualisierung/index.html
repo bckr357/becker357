@@ -141,10 +141,18 @@
         }
 
         .viewer-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
             margin-bottom: 20px;
             text-align: left;
             border-bottom: 1px solid rgba(148, 163, 184, 0.15);
             padding-bottom: 12px;
+        }
+
+        .viewer-header-content {
+            min-width: 0;
         }
 
         .viewer-title {
@@ -165,7 +173,8 @@
             width: 100%;
             min-height: 400px;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            justify-content: flex-start;
             align-items: center;
             background: #fafafa;
             border-radius: 12px;
@@ -173,12 +182,67 @@
             border: 1px solid rgba(148, 163, 184, 0.15);
         }
 
-        #ggb-element {
+        .html-visualization-frame {
+            display: block;
+            width: min(100%, 1500px);
+            min-height: 650px;
+            margin: 0 auto;
+            border: 0;
+            background: #ffffff;
+        }
+
+        .html-visualization-fullscreen-button {
+            border: 1px solid rgba(148, 163, 184, 0.45);
+            border-radius: 8px;
+            padding: 7px 10px;
+            background: rgba(255, 255, 255, 0.95);
+            color: var(--slate-700);
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
+            flex-shrink: 0;
+        }
+
+        .html-visualization-fullscreen-button:hover {
+            background: #ffffff;
+            border-color: var(--primary-color, #4f46e5);
+        }
+
+        .viewer-section {
+            width: min(1500px, calc(100vw - 56px));
+            position: relative;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .ggb-outer-wrapper:fullscreen {
+            width: 100vw;
+            height: 100vh;
+            min-height: 100vh;
+            left: 0;
+            transform: none;
+            border-radius: 0;
+            background: #ffffff;
+        }
+
+        .ggb-outer-wrapper:fullscreen .html-visualization-frame {
             width: 100%;
+            max-width: none;
+            height: 100vh !important;
+            min-height: 100vh;
+        }
+
+        #ggb-element {
+            width: fit-content;
+            max-width: 100%;
+            margin: 0 auto;
             display: flex;
             justify-content: center;
             align-items: center;
             user-select: none;
+        }
+
+        #ggb-element[hidden] {
+            display: none !important;
         }
 
         .spinner {
@@ -269,39 +333,56 @@
     <!-- Visualisierungs-Bereich (GeoGebra) -->
     <section class="viewer-section" id="viewer-section">
         <div class="viewer-header">
-            <h3 class="viewer-title" id="active-title">Satz des Pythagoras</h3>
-            <p class="viewer-desc" id="active-desc">Beschreibung der Visualisierung.</p>
+            <div class="viewer-header-content">
+                <h3 class="viewer-title" id="active-title">Satz des Pythagoras</h3>
+                <p class="viewer-desc" id="active-desc">Beschreibung der Visualisierung.</p>
+            </div>
+            <button
+                id="html-visualization-fullscreen-button"
+                class="html-visualization-fullscreen-button"
+                type="button"
+                hidden
+                aria-label="Visualisierung im Vollbild öffnen">⛶ Vollbild</button>
         </div>
         <div class="ggb-outer-wrapper">
             <div class="spinner" id="ggb-spinner"></div>
             <div id="ggb-element"></div>
+            <iframe
+                id="html-visualization-frame"
+                class="html-visualization-frame"
+                title="Interaktive Visualisierung"
+                hidden
+                loading="lazy"></iframe>
         </div>
     </section>
 
 </main>
 
 <script>
-    // Datenstruktur für alle Kategorien und deren Animationen (GeoGebra)
+    // Datenstruktur für alle Kategorien und deren Visualisierungen
     const categoriesData = {
         geometrie: {
             title: "Geometrie & Konstruktionen",
             animations: [
-                { id: "w5ymws7e", title: "Satz des Pythagoras", desc: "Interaktiver, geometrischer Beweis des Satzes von Pythagoras am rechtwinkligen Dreieck.", width: 670, height: 870 },
-                { id: "qarryhzh", title: "Winkelsumme im Dreieck", desc: "Veranschaulichung, dass die Summe der Innenwinkel in jedem Dreieck exakt 180° beträgt.", width: 850, height: 850 }
+                { type: "geogebra", id: "w5ymws7e", title: "Bogenmaß", desc: "Bedeutung und Umrechnung des Bogenmaßes.", width: 670, height: 870 },
+                { type: "html", id: "geometrie-zeichner", title: "Geometrie-Zeichner", desc: "Zeichne und untersuche Dreiecke und Vierecke mit interaktiven Beschriftungen, Höhen und Winkeln.", src: "tools/Geometrie-Zeichner.html", height: 900 },
+                { type: "html", id: "schraegbild-zeichner", title: "Schrägbild-Zeichner", desc: "Zeichne und untersuche Schrägbilder, Körper, Strecken, Winkel und Flächen.", src: "tools/Schrägbild-Zeichner.html", height: 900 }
             ]
         },
         arithmetik: {
             title: "Arithmetik & Zahlendarstellung",
             animations: [
-                { id: "kyg7g7df", title: "Bruchteile am Kreis & Rechteck", desc: "Verstehe Brüche anschaulich anhand einstellbarer Kreissektoren und Rasterflächen.", width: 800, height: 600 },
-                { id: "vdytm6sn", title: "Primfaktorzerlegung", desc: "Zahlen spielerisch und interaktiv in ihre Primfaktoren zerlegen.", width: 800, height: 500 }
+                { type: "geogebra", id: "kyg7g7df", title: "Bruchteile am Kreis & Rechteck", desc: "Verstehe Brüche anschaulich anhand einstellbarer Kreissektoren und Rasterflächen.", width: 800, height: 600 },
+                { type: "geogebra", id: "vdytm6sn", title: "Primfaktorzerlegung", desc: "Zahlen spielerisch und interaktiv in ihre Primfaktoren zerlegen.", width: 800, height: 500 },
+                { type: "html", id: "baumdiagramm-zeichner", title: "Baumdiagramm-Zeichner", desc: "Erstelle Baumdiagramme für Zufallsexperimente mit und ohne Zurücklegen.", src: "tools/Baumdiagramm-Zeichner.html", height: 900 },
+                { type: "html", id: "rechteckfeld", title: "Rechteckfeld", desc: "Erkunde Zahlen und Strukturen in einem interaktiven Rechteckfeld.", src: "tools/Rechteckfeld.html", height: 800 }
             ]
         },
         funktionen: {
             title: "Funktionen & Graphen",
             animations: [
-                { id: "vscfup8f", title: "Lineare Funktionen", desc: "Untersuche direkt den Einfluss der Steigung (m) und des y-Achsenabschnitts (t).", width: 800, height: 600 },
-                { id: "cuxv3hqu", title: "Quadratische Funktionen", desc: "Erforsche die Parameter der Scheitelpunktform und beobachte die Parabel-Veränderung.", width: 800, height: 600 }
+                { type: "geogebra", id: "vscfup8f", title: "Lineare Funktionen", desc: "Untersuche direkt den Einfluss der Steigung (m) und des y-Achsenabschnitts (t).", width: 800, height: 600 },
+                { type: "geogebra", id: "cuxv3hqu", title: "Quadratische Funktionen", desc: "Erforsche die Parameter der Scheitelpunktform und beobachte die Parabel-Veränderung.", width: 800, height: 600 }
             ]
         }
     };
@@ -309,6 +390,13 @@
     let activeCategory = null;
     let activeAnimation = null;
     let currentApplet = null;
+
+    const viewerWrapper = document.querySelector('.ggb-outer-wrapper');
+    const viewerSection = document.getElementById('viewer-section');
+    const fullscreenButton = document.getElementById('html-visualization-fullscreen-button');
+
+    fullscreenButton.addEventListener('click', toggleHtmlFullscreen);
+    document.addEventListener('fullscreenchange', updateFullscreenButton);
 
     function selectCategory(categoryKey) {
         // Markiere Kategorie-Karte als aktiv
@@ -359,20 +447,43 @@
         }
 
         activeAnimation = anim;
+        history.replaceState(null, '', `#${anim.id}`);
 
         // Setze Titel und Beschreibung im Viewer
         document.getElementById('active-title').textContent = anim.title;
         document.getElementById('active-desc').textContent = anim.desc;
 
         // Zeige den Viewer-Bereich
-        const viewerSection = document.getElementById('viewer-section');
         viewerSection.style.display = 'block';
 
-        // Lade GeoGebra-Applet
-        loadGeoGebraApplet(anim);
+        if (anim.type === 'html') {
+            loadHtmlVisualization(anim);
+        } else {
+            loadGeoGebraApplet(anim);
+        }
+    }
+
+    function selectVisualizationFromUrl() {
+        const animationId = window.location.hash.slice(1);
+        if (!animationId) {
+            return;
+        }
+
+        for (const [categoryKey, category] of Object.entries(categoriesData)) {
+            const animation = category.animations.find(anim => anim.id === animationId);
+            if (animation) {
+                selectCategory(categoryKey);
+                selectAnimation(animation);
+                return;
+            }
+        }
     }
 
     function loadGeoGebraApplet(anim) {
+        if (document.fullscreenElement === viewerWrapper) {
+            void document.exitFullscreen();
+        }
+
         // Zeige Spinner
         const spinner = document.getElementById('ggb-spinner');
         spinner.style.display = 'block';
@@ -380,6 +491,12 @@
         // Container leeren für sauberen Neuaufbau
         const container = document.getElementById('ggb-element');
         container.innerHTML = '';
+        container.hidden = false;
+
+        const frame = document.getElementById('html-visualization-frame');
+        frame.hidden = true;
+        frame.removeAttribute('src');
+        fullscreenButton.hidden = true;
 
         const width = anim.width || 800;
         const height = anim.height || 600;
@@ -425,6 +542,49 @@
         currentApplet = new GGBApplet(params, true);
         currentApplet.inject('ggb-element');
     }
+
+    function loadHtmlVisualization(anim) {
+        const spinner = document.getElementById('ggb-spinner');
+        spinner.style.display = 'none';
+
+        const container = document.getElementById('ggb-element');
+        container.innerHTML = '';
+        container.hidden = true;
+
+        const frame = document.getElementById('html-visualization-frame');
+        frame.hidden = false;
+        frame.title = anim.title;
+        frame.style.height = `${anim.height || 650}px`;
+        frame.src = anim.src;
+        fullscreenButton.hidden = false;
+        updateFullscreenButton();
+    }
+
+    async function toggleHtmlFullscreen() {
+        try {
+            if (document.fullscreenElement) {
+                await document.exitFullscreen();
+            } else if (viewerWrapper.requestFullscreen) {
+                await viewerWrapper.requestFullscreen();
+            } else {
+                throw new Error('Der Browser unterstützt keinen Vollbildmodus.');
+            }
+        } catch (error) {
+            console.error('Vollbildmodus konnte nicht aktiviert werden.', error);
+        }
+    }
+
+    function updateFullscreenButton() {
+        const isFullscreen = document.fullscreenElement === viewerWrapper;
+        fullscreenButton.textContent = isFullscreen ? '⛶ Vollbild beenden' : '⛶ Vollbild';
+        fullscreenButton.setAttribute(
+            'aria-label',
+            isFullscreen ? 'Vollbildmodus beenden' : 'Visualisierung im Vollbild öffnen'
+        );
+    }
+
+    window.addEventListener('hashchange', selectVisualizationFromUrl);
+    selectVisualizationFromUrl();
 </script>
 
 <script src="../js/modules/site-shell.js"></script>

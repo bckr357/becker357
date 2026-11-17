@@ -53,7 +53,7 @@
 
     <div v-if="currentView !== 'home' && currentView !== 'worksheet-builder'" :class="['settings-drawer-overlay', { 'is-open': isSettingsSidebarOpen }]" @click="closeSettingsSidebar"></div>
 
-    <aside v-if="currentView !== 'home' && currentView !== 'worksheet-builder'" :class="['settings-drawer', { 'is-open': isSettingsSidebarOpen, 'mode-training': currentView === 'training' }]">
+    <aside v-if="currentView !== 'home' && currentView !== 'worksheet-builder'" :class="['settings-drawer', { 'is-open': isSettingsSidebarOpen }]">
         <div class="settings-drawer-header">
             <div class="settings-drawer-heading">
                 <h2 class="settings-drawer-title">Aufgabenauswahl</h2>
@@ -87,7 +87,7 @@
                 </div>
                 <button @click="selectAllTypes" class="btn btn--export settings-compact-btn">Alle</button>
                 <button @click="refreshCurrentView" class="btn btn--primary settings-quick-generate settings-compact-btn" :disabled="!hasSelectedTypes">
-                    {{ currentView === 'training' ? 'Starten' : 'Erzeugen' }}
+                    Erzeugen
                 </button>
             </div>
             <div class="type-grid settings-type-grid">
@@ -489,63 +489,6 @@
         </section>
     </div>
 
-    <div v-else-if="currentView === 'training'" class="training-view">
-        <div class="training-top-bar">
-            <div class="toolbar-main-controls">
-                <!--
-                <button class="site-hamburger toolbar-hamburger" aria-label="Module wechseln" title="Zu anderen Modulen wechseln">
-                    <span class="site-hamburger-line"></span>
-                    <span class="site-hamburger-line"></span>
-                    <span class="site-hamburger-line"></span>
-                </button>
-                -->
-                <button @click="toggleSettingsSidebar" class="btn btn--export">Aufgabenauswahl</button>
-                <select :value="currentView" @change="onModuleSelect" @mouseenter="openViewDropdown" class="view-switch-select">
-                    <option v-for="tab in viewTabs" :key="'training-select-'+tab.key" :value="tab.key">{{ tab.label }}</option>
-                </select>
-            </div>
-            <div class="training-progress">Aufgabe {{ currentTrainingIndex + 1 }} – {{ typeDescriptions[currentTrainingTask?.type] ?? typeLabels[currentTrainingTask?.type] ?? currentTrainingTask?.type ?? 'Noch kein Training gestartet' }}</div>
-            <div class="training-top-actions">
-                <button @click="openTrainingImportDialog" class="btn btn--export">Öffnen</button>
-                <button @click="startTraining" class="btn btn--primary">Neu starten</button>
-            </div>
-        </div>
-        <input type="file" ref="trainingImportInput" @change="importTrainingJSON" accept=".json" class="u-hidden-file-input">
-
-        <div v-if="!currentTrainingTask" class="empty-state empty-state--training">
-            <h2>Trainingsmodus</h2>
-            <p>Wähle zuerst Aufgaben in der Aufgabenauswahl und starte dann das Training.</p>
-            <div class="empty-state-actions">
-                <button @click="openSettingsSidebar" class="btn btn--export">Aufgabenauswahl</button>
-                <button @click="openTrainingImportDialog" class="btn btn--export">Datei öffnen</button>
-                <button @click="startTrainingFromTrainingView" class="btn btn--primary" :disabled="activeVisibleTypeKeys.length === 0">Training starten</button>
-            </div>
-        </div>
-
-        <div v-else class="training-main">
-            <div class="training-task-card">
-                <div v-if="!showTrainingSolution" class="training-task-content math-q" v-html="currentTrainingTask?.textDisplay ?? ''"></div>
-                <div v-else class="training-task-content math-a" v-html="currentTrainingTask?.solution ?? ''"></div>
-            </div>
-
-            <div class="training-buttons">
-                <button @click="goToPreviousTrainingTask" class="training-arrow" :disabled="currentTrainingIndex === 0" aria-label="Vorherige Aufgabe">
-                    <span class="training-arrow-icon" aria-hidden="true">&#x2190;</span>
-                    <span class="training-arrow-text">Letzte Aufgabe</span>
-                </button>
-                <button @click="toggleTrainingSolution" class="btn btn--toggle training-solution-btn" :disabled="!currentTrainingTask">
-                    {{ showTrainingSolution ? 'Aufgabe anzeigen' : 'Lösung anzeigen' }}
-                </button>
-                <button @click="goToNextTrainingTask" class="training-arrow" aria-label="Nächste Aufgabe">
-                    <span class="training-arrow-text">Nächste Aufgabe</span>
-                    <span class="training-arrow-icon" aria-hidden="true">&#x2192;</span>
-                </button>
-            </div>
-        </div>
-    </div>
-
-
-
     <div v-else :class="['presentation-view', { 'dark-mode': isDarkMode }]">
         <div class="worksheet-toolbar no-print top-bar">
             <div class="toolbar-main-controls">
@@ -646,7 +589,6 @@
     <script src="./tasks-plus.js"></script>
     <script src="../js/modules/state.js"></script>
     <script src="../js/modules/task-generation.js"></script>
-    <script src="../js/modules/training-mode.js"></script>
     <script src="../js/modules/presentation-mode.js"></script>
     <script src="../js/modules/worksheet-mode.js"></script>
     <script src="../js/modules/navigation.js"></script>

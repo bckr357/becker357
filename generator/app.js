@@ -38,7 +38,6 @@ const quizEnabledByPage = window.MTG_DISABLE_QUIZ !== true;
 const requiredModules = [
     'MTGStateModule',
     'MTGTaskGenerationModule',
-    'MTGTrainingModeModule',
     'MTGPresentationModeModule',
     'MTGWorksheetModeModule',
     ...(quizEnabledByPage ? ['MTGQuizModeModule'] : []),
@@ -263,16 +262,6 @@ createApp({
             selectedGrade
         });
 
-        const trainingMode = window.MTGTrainingModeModule.createTrainingMode({
-            state,
-            taskGeneration,
-            nextTick,
-            typesetMathJax,
-            onTasksGenerated: syncShareUrl,
-            onMounted,
-            onBeforeUnmount
-        });
-
         const presentationMode = window.MTGPresentationModeModule.createPresentationMode({
             state,
             taskGeneration,
@@ -462,7 +451,7 @@ createApp({
             state.taskCount.value = state.tasks.value.length;
         };
 
-        const builderTaskOptions = () => builderQuizMode.value ? { training: true } : {};
+        const builderTaskOptions = () => builderQuizMode.value ? { singleTask: true } : {};
 
         const builderGenerateTaskPreview = async type => {
             const task = taskGeneration.generateTaskByType(type, 'default', builderTaskOptions());
@@ -665,26 +654,6 @@ createApp({
             await typesetMathJax();
         };
 
-        const trainingImportInput = Vue.ref(null);
-
-        const openTrainingImportDialog = () => {
-            trainingImportInput.value?.click();
-        };
-
-        const importTrainingJSON = createJsonImportHandler({
-            loadTasks: taskGeneration.loadTasksFromJSON,
-            getVisibleKeys: () => visibleTypeKeys.value,
-            setSelectedTypes: types => {
-                state.selectedTypes.value = types;
-            },
-            onAfterLoad: async () => {
-                state.trainingHistory.value = [];
-                state.currentTrainingIndex.value = 0;
-                state.showTrainingSolution.value = false;
-                state.isSettingsSidebarOpen.value = false;
-            }
-        });
-
         const openBuilderImportDialog = () => {
             builderImportInput.value?.click();
         };
@@ -706,8 +675,7 @@ createApp({
             worksheet: worksheetMode.importWorksheetJSON,
             presentation: presentationMode.importPresentationJSON,
             'worksheet-builder': importBuilderJSON,
-            quiz: quizMode.importQuizJSON,
-            training: importTrainingJSON
+            quiz: quizMode.importQuizJSON
         };
 
         const handleGlobalJsonDragOver = event => {
@@ -885,8 +853,7 @@ createApp({
         const navigation = window.MTGNavigationModule.createNavigationModule({
             state,
             nextTick,
-            typesetMathJax,
-            startTraining: trainingMode.startTraining
+            typesetMathJax
         });
 
         const getActiveSelectedTypesRef = () => state.currentView.value === 'quiz'
@@ -907,13 +874,6 @@ createApp({
             } else {
                 selectedTypesRef.value = [...activeVisibleTypeKeys.value];
             }
-        };
-
-        const startTrainingFromTrainingView = async () => {
-            if (state.currentView.value === 'training' && !state.hasSelectedTypes.value) {
-                state.selectedTypes.value = [...visibleTypeKeys.value];
-            }
-            await trainingMode.startTraining();
         };
 
         const randomizeTypeSelection = () => {
@@ -1093,17 +1053,12 @@ createApp({
                 return;
             }
 
-            if (state.currentView.value === 'training') {
-                await trainingMode.startTraining();
-                return;
-            }
-
             if (state.currentView.value === 'quiz') {
                 await quizMode.generateQuiz();
             }
         };
 
-        const allowedViews = new Set([...viewTabs.map(tab => tab.key), 'training']);
+        const allowedViews = new Set(viewTabs.map(tab => tab.key));
         const getShareableView = view => ['quiz', 'worksheet-builder'].includes(view)
             ? 'worksheet'
             : view;
@@ -1126,14 +1081,6 @@ createApp({
             if (initialView !== 'worksheet' && initialView !== 'home') {
                 suppressHistorySync = true;
                 try {
-                    if (initialView === 'training') {
-                        state.currentView.value = 'training';
-                        await navigation.switchView('training');
-                        if (state.selectedTypes.value.length > 0) {
-                            await trainingMode.startTraining();
-                        }
-                        return;
-                    }
                     await navigation.switchView(initialView);
                     await generateFromSharedUrl(initialView);
                 } finally {
@@ -1295,7 +1242,6 @@ createApp({
             activeTaskWeights,
             activeSelectedTypesCount,
             selectAllTypes,
-            startTrainingFromTrainingView,
             randomizeTypeSelection,
             selectAllQuizTypes,
             generateRandomWorksheet,
@@ -1345,18 +1291,11 @@ createApp({
             importBuilderJSON,
             exportBuilderJSON,
             builderImportInput,
-            openTrainingImportDialog,
-            importTrainingJSON,
-            trainingImportInput,
             openSettingsSidebar: navigation.openSettingsSidebar,
             closeSettingsSidebar: navigation.closeSettingsSidebar,
             toggleSettingsSidebar: navigation.toggleSettingsSidebar,
             goHome: navigation.goHome,
             switchView: navigation.switchView,
-            startTraining: trainingMode.startTraining,
-            toggleTrainingSolution: trainingMode.toggleTrainingSolution,
-            goToPreviousTrainingTask: trainingMode.goToPreviousTrainingTask,
-            goToNextTrainingTask: trainingMode.goToNextTrainingTask,
             generateAll: presentationMode.generateAll,
             generateRandomPresentation,
             toggleSolutions: presentationMode.toggleSolutions,

@@ -373,7 +373,7 @@ function createTask(type, grade = 5, options = {}) {
 		grade = 5;
 	}
 
-	const isTraining = Boolean(options.training);
+	const isSingleTask = Boolean(options.singleTask);
 	let s = '';
 	let textDisplay = '', textPrint = '';
 
@@ -1113,7 +1113,7 @@ function createTask(type, grade = 5, options = {}) {
 				return { expr, solution };
 			};
 
-			if (isTraining) {
+			if (isSingleTask) {
 				const entry = createDbMdEntry();
 				textDisplay = entry.expr;
 				s = entry.solution;
@@ -1145,7 +1145,7 @@ function createTask(type, grade = 5, options = {}) {
 				return { expr, solution };
 			};
 
-			if (isTraining) {
+			if (isSingleTask) {
 				const entry = createNatAsEntry();
 				textDisplay = entry.expr;
 				s = entry.solution;
@@ -1189,7 +1189,7 @@ function createTask(type, grade = 5, options = {}) {
 				return { expr, solution };
 			};
 
-			if (isTraining) {
+			if (isSingleTask) {
 				const entry = createZAsEntry();
 				textDisplay = entry.expr;
 				s = entry.solution;
@@ -1238,7 +1238,7 @@ function createTask(type, grade = 5, options = {}) {
 				return { expr, solution };
 			};
 
-			if (isTraining) {
+			if (isSingleTask) {
 				const entry = createNatMdEntry();
 				textDisplay = entry.expr;
 				s = entry.solution;
@@ -1348,7 +1348,7 @@ function createTask(type, grade = 5, options = {}) {
 				return { expr, solution };
 			};
 
-			if (isTraining) {
+			if (isSingleTask) {
 				const entry = createGrundschuleEntry();
 				textDisplay = entry.expr;
 				s = entry.solution;
@@ -1401,7 +1401,7 @@ function createTask(type, grade = 5, options = {}) {
 				return { expr, solution };
 			};
 
-			if (isTraining) {
+			if (isSingleTask) {
 				const entry = createZMdEntry();
 				textDisplay = entry.expr;
 				s = entry.solution;
@@ -1539,7 +1539,7 @@ function createTask(type, grade = 5, options = {}) {
 				return { expr, solution };
 			};
 
-			if (isTraining) {
+			if (isSingleTask) {
 				const entry = createPow10Entry();
 				textDisplay = entry.expr;
 				s = entry.solution;
@@ -3052,7 +3052,7 @@ const fromUnit = displayUnits[unitIndex];
 				return { expr, solution };
 			};
 
-			if (isTraining) {
+			if (isSingleTask) {
 				const entry = createPotenzenEntry();
 				textDisplay = entry.expr;
 				s = entry.solution;

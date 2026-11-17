@@ -3,14 +3,11 @@ window.MTGStateModule = {
         const { ref, computed } = Vue;
 
         const tasks = ref([]);
-        const trainingHistory = ref([]);
         const showSolutions = ref(false);
         const currentView = ref('worksheet');
         const isSettingsSidebarOpen = ref(false);
         const showWorksheetSolutions = ref(false);
         const worksheetLayoutMode = ref('worksheet');
-        const showTrainingSolution = ref(false);
-        const currentTrainingIndex = ref(0);
         const isDarkMode = ref(false);
         const selectedTypes = ref([]);
         const taskWeights = ref(
@@ -58,7 +55,6 @@ window.MTGStateModule = {
                 right: []
             };
         });
-        const currentTrainingTask = computed(() => trainingHistory.value[currentTrainingIndex.value] ?? null);
         const hasGeneratedTasks = computed(() => tasks.value.length > 0);
         const hasSelectedTypes = computed(() => {
             if (currentView.value === 'quiz') {
@@ -76,14 +72,11 @@ window.MTGStateModule = {
 
         return {
             tasks,
-            trainingHistory,
             showSolutions,
             currentView,
             isSettingsSidebarOpen,
             showWorksheetSolutions,
             worksheetLayoutMode,
-            showTrainingSolution,
-            currentTrainingIndex,
             isDarkMode,
             selectedTypes,
             taskWeights,
@@ -101,7 +94,6 @@ window.MTGStateModule = {
             rowWiseSecondColumnTasks,
             presentationTaskColumns,
             worksheetTaskColumns,
-            currentTrainingTask,
             hasGeneratedTasks,
             hasSelectedTypes,
             viewTabs

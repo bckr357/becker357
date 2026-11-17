@@ -1,5 +1,5 @@
 window.MTGNavigationModule = {
-    createNavigationModule({ state, nextTick, typesetMathJax, startTraining }) {
+    createNavigationModule({ state, nextTick, typesetMathJax }) {
         const openSettingsSidebar = () => {
             state.isSettingsSidebarOpen.value = true;
         };
@@ -32,24 +32,6 @@ window.MTGNavigationModule = {
             if (view === 'home') {
                 await goHome();
                 return;
-            }
-
-            if (view === 'training') {
-                if (state.currentTrainingTask.value) {
-                    await setCurrentView('training');
-                    if (fromHome && autoOpenSettingsFromHome) {
-                        openSettingsSidebar();
-                    }
-                    return;
-                }
-
-                if (state.hasSelectedTypes.value) {
-                    await startTraining();
-                    if (fromHome && autoOpenSettingsFromHome) {
-                        openSettingsSidebar();
-                    }
-                    return;
-                }
             }
 
             await setCurrentView(view);

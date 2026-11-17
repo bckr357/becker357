@@ -38,7 +38,6 @@ const quizEnabledByPage = window.MTG_DISABLE_QUIZ !== true;
 const requiredModules = [
     'MTGStateModule',
     'MTGTaskGenerationModule',
-    'MTGTrainingModeModule',
     'MTGPresentationModeModule',
     'MTGWorksheetModeModule',
     ...(quizEnabledByPage ? ['MTGQuizModeModule'] : []),
@@ -223,15 +222,6 @@ createApp({
             state,
             createTask,
             selectedGrade
-        });
-
-        const trainingMode = window.MTGTrainingModeModule.createTrainingMode({
-            state,
-            taskGeneration,
-            nextTick,
-            typesetMathJax,
-            onMounted,
-            onBeforeUnmount
         });
 
         const presentationMode = window.MTGPresentationModeModule.createPresentationMode({
@@ -435,7 +425,7 @@ createApp({
             state.taskCount.value = state.tasks.value.length;
         };
 
-        const builderTaskOptions = () => builderQuizMode.value ? { training: true } : {};
+        const builderTaskOptions = () => builderQuizMode.value ? { singleTask: true } : {};
 
         const builderGenerateTaskPreview = async type => {
             const task = taskGeneration.generateTaskByType(type, 'default', builderTaskOptions());
@@ -638,30 +628,6 @@ createApp({
             await typesetMathJax();
         };
 
-        const trainingImportInput = Vue.ref(null);
-
-        const openTrainingImportDialog = () => {
-            trainingImportInput.value?.click();
-        };
-
-        const importTrainingJSON = createJsonImportHandler({
-            loadTasks: taskGeneration.loadTasksFromJSON,
-            getVisibleKeys: () => visibleTypeKeys.value,
-            setSelectedTypes: types => {
-                const selected = new Set(types);
-                visibleTypeKeys.value.forEach(type => {
-                    taskCounts.value[type] = selected.has(type) ? 1 : 0;
-                });
-                syncSelectedTypesFromCounts(visibleTypeKeys.value);
-            },
-            onAfterLoad: async () => {
-                state.trainingHistory.value = [];
-                state.currentTrainingIndex.value = 0;
-                state.showTrainingSolution.value = false;
-                state.isSettingsSidebarOpen.value = false;
-            }
-        });
-
         const openBuilderImportDialog = () => {
             builderImportInput.value?.click();
         };
@@ -835,8 +801,7 @@ createApp({
         const navigation = window.MTGNavigationModule.createNavigationModule({
             state,
             nextTick,
-            typesetMathJax,
-            startTraining: trainingMode.startTraining
+            typesetMathJax
         });
 
         const getActiveSelectedTypesRef = () => state.currentView.value === 'quiz'
@@ -879,18 +844,6 @@ createApp({
                 });
             }
             syncSelectedTypesFromCounts(activeVisibleTypeKeys.value);
-        };
-
-        const startTrainingFromTrainingView = async () => {
-            if (state.currentView.value === 'training' && !state.hasSelectedTypes.value) {
-                visibleTypeKeys.value.forEach(type => {
-                    if (Number(taskCounts.value[type]) <= 0) {
-                        taskCounts.value[type] = 1;
-                    }
-                });
-                syncSelectedTypesFromCounts(visibleTypeKeys.value);
-            }
-            await trainingMode.startTraining();
         };
 
         const randomizeTypeSelection = () => {
@@ -1047,11 +1000,6 @@ createApp({
                 return;
             }
 
-            if (state.currentView.value === 'training') {
-                await trainingMode.startTraining();
-                return;
-            }
-
             if (state.currentView.value === 'quiz') {
                 await quizMode.generateQuiz();
             }
@@ -1170,7 +1118,6 @@ createApp({
             activeSelectedTypesCount,
             incrementActiveTaskWeight,
             selectAllTypes,
-            startTrainingFromTrainingView,
             randomizeTypeSelection,
             selectAllQuizTypes,
             generateRandomWorksheet,
@@ -1220,18 +1167,11 @@ createApp({
             importBuilderJSON,
             exportBuilderJSON,
             builderImportInput,
-            openTrainingImportDialog,
-            importTrainingJSON,
-            trainingImportInput,
             openSettingsSidebar: navigation.openSettingsSidebar,
             closeSettingsSidebar: navigation.closeSettingsSidebar,
             toggleSettingsSidebar: navigation.toggleSettingsSidebar,
             goHome: navigation.goHome,
             switchView: navigation.switchView,
-            startTraining: trainingMode.startTraining,
-            toggleTrainingSolution: trainingMode.toggleTrainingSolution,
-            goToPreviousTrainingTask: trainingMode.goToPreviousTrainingTask,
-            goToNextTrainingTask: trainingMode.goToNextTrainingTask,
             generateAll: presentationMode.generateAll,
             generateRandomPresentation,
             toggleSolutions: presentationMode.toggleSolutions,

@@ -442,43 +442,12 @@ window.MTGTaskGenerationModule = {
             return true;
         };
 
-        const generateSingleTask = (scope = 'default', options = {}) => {
-            const config = getScopeConfig(scope);
-
-            if (config.selectedTypes.length === 0) return null;
-
-            const weightedTypes = config.selectedTypes.flatMap(type => {
-                const rawWeight = Number(config.taskWeights[type]);
-                const weight = config.weightsEnabled
-                    ? (Number.isFinite(rawWeight)
-                        ? Math.max(0, Math.floor(rawWeight))
-                        : 1)
-                    : 1;
-                // Für Training: Gewicht 0 soll den Typ nicht ausschließen.
-                return Array(Math.max(1, weight)).fill(type);
-            });
-
-            if (weightedTypes.length === 0) return null;
-
-            const randomIndex = Math.floor(Math.random() * weightedTypes.length);
-            const selectedType = weightedTypes[randomIndex];
-            const generated = createTask(selectedType, getNumericGrade(), options);
-
-            return {
-                type: selectedType,
-                textDisplay: generated.textDisplay ?? '',
-                textPrint: generated.textPrint ?? '',
-                solution: generated.solution
-            };
-        };
-
         const generateTaskByType = (type, scope = 'default', options = {}) => {
             if (typeof type !== 'string' || type.trim() === '') {
                 return null;
             }
 
             const normalizedType = type.trim();
-            const config = getScopeConfig(scope);
             const generated = createTask(normalizedType, getNumericGrade(), options);
 
             return {
@@ -489,9 +458,6 @@ window.MTGTaskGenerationModule = {
             };
         };
 
-        const generateSingleTrainingTask = () => generateSingleTask('default', { training: true });
-        const generateSingleQuizTask = () => generateSingleTask('quiz', { training: true, quiz: true });
-
         return {
             getTaskExportData,
             getTaskExportDocument,
@@ -499,8 +465,6 @@ window.MTGTaskGenerationModule = {
             loadTasksFromJSON,
             buildTasks,
             generateTaskByType,
-            generateSingleTrainingTask,
-            generateSingleQuizTask
         };
     }
 };

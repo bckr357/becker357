@@ -58,13 +58,8 @@
 
     function getCurrentKey() {
         const path = window.location.pathname;
-        const search = window.location.search.toLowerCase();
         const dir = path.substring(0, path.lastIndexOf('/'));
         const lastSegment = dir.split('/').filter(Boolean).pop() || '';
-
-        if (lastSegment === 'generator' && search.includes('view=training')) {
-            return 'training';
-        }
 
         const dirMap = {
             'generator': 'generator',
