@@ -22,4 +22,3 @@ htmlcov/
 !.vscode/settings.json
 *.code-workspace
 temp/
-visualisierung/tools/

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rechteckfeld</title>
+<style>
+:root{--bg:#fbfaf7;--dot:#e0ddd5;--ink:#2b2a27;--panel:#ffffffee;--line:#e2dfd6;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1e1d1b;--dot:#3a3834;--ink:#ecebe6;--panel:#2a2927ee;--line:#3d3b36}}
+:root[data-theme="dark"]{--bg:#1e1d1b;--dot:#3a3834;--ink:#ecebe6;--panel:#2a2927ee;--line:#3d3b36}
+html,body{height:100%;margin:0;touch-action:none}
+body{background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;overflow:hidden;position:relative}
+canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair}
+#ui{position:absolute;left:12px;top:12px;z-index:1000;display:flex;flex-direction:column;gap:8px;max-width:calc(100% - 24px)}
+#tb{touch-action:pan-x;display:flex;gap:8px;flex-wrap:nowrap;overflow-x:auto;align-items:stretch}
+#tb button,#hx{font:inherit;font-size:12.5px;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:5px 10px;cursor:pointer;white-space:nowrap}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--panel);flex:none}
+.seg button{border:0!important;border-radius:0!important;background:transparent!important}
+.seg button.on{background:var(--line)!important;font-weight:700}
+#zr,#fr{min-width:50px;display:flex;align-items:center;justify-content:center;font-size:12.5px;padding:0 6px;border-left:1px solid var(--line);border-right:1px solid var(--line)}
+#bHint.on,#bGrid.on,#bMulti.on{border-color:var(--ink);font-weight:700}
+#grp{display:flex;gap:14px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:5px 10px;font-size:12.5px;width:max-content}
+#grp button{font:inherit;color:var(--ink);background:transparent;border:0;padding:0;cursor:pointer}
+#grp button:hover{color:#c0392b}
+#hint{width:680px;max-width:100%;box-sizing:border-box;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:12.5px;line-height:1.45;max-height:calc(100vh - 150px);overflow:auto}
+#hint .hh{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+#hx{padding:0 7px;border:0;background:transparent}
+#hint dl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:0}
+#hint dt{font-weight:600;opacity:.75}#hint dd{margin:0}
+#hint .note{margin:8px 0 0;padding-top:8px;border-top:1px solid var(--line);opacity:.85}
+.f{position:absolute;pointer-events:none}
+.bar{position:absolute;left:0;bottom:100%;margin-bottom:6px;display:grid;grid-template-columns:repeat(3,auto);gap:8px 18px;justify-items:start;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 12px;pointer-events:auto;white-space:nowrap;font-size:12.5px}
+.f:not(.solo) .bar{display:none}
+.bar label{display:flex;align-items:center;gap:5px;cursor:pointer}
+.bar input{accent-color:var(--c);margin:0;width:15px;height:15px;cursor:pointer}
+.sw{position:relative;width:28px;height:16px;flex:none}
+.bar .sw input{position:absolute;inset:0;width:100%;height:100%;opacity:0;margin:0}
+.sw i{position:absolute;inset:0;background:#bbb;border-radius:16px;transition:.2s;pointer-events:none}
+.sw i:before{content:"";position:absolute;width:12px;height:12px;left:2px;top:2px;background:#fff;border-radius:50%;transition:.2s}
+.sw input:checked+i{background:var(--c)}
+.sw input:checked+i:before{transform:translateX(12px)}
+.cols{grid-column:1/-1;width:0;min-width:100%;box-sizing:border-box;display:none;flex-wrap:wrap;justify-content:space-between;gap:6px}
+.bar.pal .cols{display:flex}
+.bar .chip{border:1px solid var(--line);border-radius:6px;padding:2px 9px;background:transparent;display:flex;align-items:center;gap:6px}
+.bar .chip{transition:transform .08s}
+.bar .chip:active{transform:scale(.93)}
+.cdot{width:11px;height:11px;border-radius:50%;background:var(--c);display:inline-block}
+.act{grid-column:1/-1;justify-self:stretch;display:flex;gap:18px;border-top:1px solid var(--line);padding-top:8px}
+.bar .sw2{width:18px;height:18px;border-radius:50%;border:2px solid transparent;padding:0}
+.bar .sw2.cur{border-color:var(--ink)}
+.bar button{border:0;padding:0;background:transparent;color:var(--ink);cursor:pointer;font:inherit;text-align:left}
+.bar button:hover{color:#c0392b}
+.task{position:absolute;left:0;top:100%;margin-top:8px;font-size:calc(20px*var(--z,1)*var(--ft,1));font-weight:600;white-space:nowrap;line-height:1.4;width:max-content;padding:1px 6px;border-radius:6px;background:color-mix(in srgb,var(--bg) 72%,transparent);backdrop-filter:blur(2px)}
+.f.lab .task{margin-top:calc(var(--ft,1)*max(22px,calc(22px*var(--z,1))))}
+.task:empty{display:none}
+#tb #clr{background:#fbe4e1;border-color:#e6b1aa;color:#9c2a1d}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) #tb #clr{background:#4b2623;border-color:#7d3b36;color:#ffb8ae}}
+:root[data-theme="dark"] #tb #clr{background:#4b2623;border-color:#7d3b36;color:#ffb8ae}
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+<div id="ui">
+<div id="tb"><div class="seg" role="group" aria-label="Darstellung"><button id="bDot" class="on">● Punkte</button><button id="bSq">■ Quadrate</button></div><div class="seg" role="group" aria-label="Gliederung"><button id="mFr" title="Dezente Rahmen um volle Blöcke">Rahmen</button><button id="mSep" class="on" title="Einfache Trennlinien zwischen den Blöcken">Trenner</button></div><div class="seg" role="group" aria-label="Blockgröße"><button id="b10" class="on">10er</button><button id="b5">5er</button></div><div class="seg" role="group" aria-label="Zoom"><button id="zo" aria-label="Verkleinern">−</button><span id="zr">100 %</span><button id="zi" aria-label="Vergrößern">+</button></div><button id="z100" title="Zoom auf 100 % (Taste 0)">100 %</button><div class="seg" role="group" aria-label="Schriftgröße"><button id="fo" title="Schrift kleiner">A−</button><span id="fr">100 %</span><button id="fi" title="Schrift größer">A+</button></div><button id="bGrid" title="Punktraster ein/aus">Raster</button><button id="bMulti" title="Mehrfachauswahl (für Touch)">Mehrfachauswahl</button><button id="bHint">Bedienung</button><button id="clr">Alles löschen</button></div>
+<div id="grp" style="display:none"><span id="gn"></span><button id="gd">⧉ Duplizieren</button><button id="gx">✕ Löschen</button></div>
+<div id="hint" style="display:none"><div class="hh"><b>Bedienung</b><button id="hx" aria-label="Bedienung ausblenden">✕</button></div>
+<dl><dt>Neues Feld</dt><dd>Rahmen auf die Fläche ziehen (die Punkte rasten ein, auch wenn das Raster ausgeblendet ist)</dd>
+<dt>Verschieben</dt><dd>Feld ziehen, bei Mehrfachauswahl alle ausgewählten Felder zusammen. Überlappende Felder: im Menü „In den Vordergrund“.</dd>
+<dt>Größe ändern</dt><dd>Schwarzen Griff unten rechts ziehen</dd>
+<dt>Auswählen</dt><dd>Feld anklicken. Das Menü erscheint, wenn genau ein Feld ausgewählt ist, die Aufgaben bleiben bei allen sichtbar. Ein Klick ins Leere oder Esc hebt die Auswahl auf.</dd>
+<dt>Mehrfachauswahl</dt><dd>Shift oder Strg + Klick auf weitere Felder, Shift + Ziehen für einen Auswahlrahmen, Strg + A für alle. Auf Touch: Schalter „Mehrfachauswahl“ oben. Bei mehreren Feldern erscheint ein Gruppenmenü zum Duplizieren und Löschen.</dd>
+<dt>Menü am Feld</dt><dd>Aufgabe (ein/aus), ⇄ Tausch (zeigt 18 · 15 statt 15 · 18), Zerlegung, Lösung, Beschriftung der Seitenlängen, Farbe (klappt die Farbleiste auf) sowie ⧉ Duplizieren, ⤒ In den Vordergrund und ✕ Löschen. Ohne Lösung enden die Aufgaben auf „=“ und lassen den Rest frei zum Selbereintragen, mit Lösung erscheint alles hinter dem ersten „=“.</dd>
+<dt>Zerlegung</dt><dd>Zerlegt den zweiten Faktor in 10 + Rest, z. B. 15 · (10 + 8); mit Tausch 18 · (10 + 5). Farbmarkierung und Beschriftung folgen: spaltenweise bei der Aufgabe, zeilenweise beim Tausch. Ist der zweite Faktor höchstens 10, wird der erste zerlegt. Erscheint nur zusammen mit der Aufgabe.</dd>
+<dt>Duplizieren</dt><dd>Menü ⧉ oder Strg + D. Die Kopie erscheint rechts daneben, mit gleichen Einstellungen und neuer Farbe.</dd>
+<dt>Löschen</dt><dd>Entf-Taste oder Menü ✕ Löschen (alle ausgewählten Felder)</dd>
+<dt>Raster</dt><dd>Der Schalter „Raster“ oben blendet ein Hintergrundraster ein (standardmäßig aus). Im Punktemodus sind es Punkte, im Quadratemodus ein Karomuster wie auf kariertem Papier.</dd>
+<dt>Raster bewegen</dt><dd>Mausrad, rechte Maustaste oder Leertaste + Ziehen</dd>
+<dt>Zoom</dt><dd>Strg + Mausrad: jeder Mausradklick ändert den Zoom um 25 % (25, 50, 75, 100, … bis 500 %), so kommst du immer wieder auf 100 %. Die Schalter − / + und die Tasten + / − gehen ebenfalls in 25-%-Schritten, der Schalter „100 %“ oder die Taste 0 setzt direkt auf 100 %. Trackpad-Pinch zoomt stufenlos.</dd>
+<dt>Schrift</dt><dd>A− / A+ oben verkleinern oder vergrößern die Schrift der Aufgaben und Beschriftungen (50 bis 300 %).</dd>
+<dt>Touch</dt><dd>Ein Finger wie die Maus. Mit zwei Fingern verschieben und zoomen.</dd>
+<dt>Gliederung</dt><dd>„Trenner | Rahmen“ oben wählt, wie Felder in Blöcke gegliedert werden. Trenner: eine einfache Linie nach je 10 (oder 5) Spalten bzw. Zeilen, sobald das Feld in dieser Richtung größer ist; erst wenn beide Richtungen größer sind, entstehen senkrechte und waagerechte Linien. Rahmen: dezente Umrahmung voller Blöcke samt Resten. „10er | 5er“ stellt die Blockgröße ein.</dd></dl>
+<p class="note">Die Anzeige ist für Aufgaben bis höchstens 20 × 20 optimiert. Größere Felder werden zwar dargestellt, sind visuell aber nicht mehr richtig aufbereitet.</p></div>
+</div>
+<script>
+let S=30;const cv=document.getElementById('cv'),ctx=cv.getContext('2d'),pointers=new Map();
+let frameMode=false,ft=1,gridOn=false,multiMode=false,mq=null,multi=false,gest=null,shape='dot',blk=10,W,H,ox=40,oy=170,fields=[],sel=null,drag=null,pan=null,space=false,hue=15,uid=0;
+const dpr=window.devicePixelRatio||1;
+const isDark=()=>matchMedia('(prefers-color-scheme:dark)').matches&&document.documentElement.dataset.theme!=='light';
+function size(){W=innerWidth;H=innerHeight;cv.width=W*dpr;cv.height=H*dpr;draw()}
+addEventListener('resize',size);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const toG=(x,y)=>({i:Math.round((x-ox)/S),j:Math.round((y-oy)/S)});
+const spDim=f=>f.rev?(f.r>10?'r':f.c>10?'c':null):(f.c>10?'c':f.r>10?'r':null);
+const PAL=[5,35,60,90,125,160,195,230,265,300,335];
+const nextColor=()=>(hue=(hue+137.5)%360);
+const dc=(h,k,d,al=1)=>`hsla(${(h+k*150)%360},${d?50:62}%,${d?58:64}%,${al})`;
+const tc=(h,k,d)=>`hsl(${(h+k*150)%360},${d?65:70}%,${d?72:36}%)`;
+const rect=f=>({x:ox+f.i*S,y:oy+f.j*S,w:(f.c-1)*S,h:(f.r-1)*S});
+function hit(x,y){for(let k=fields.length-1;k>=0;k--){const f=fields[k],r=rect(f),p=S/2;if(x>=r.x-p&&x<=r.x+r.w+p&&y>=r.y-p&&y<=r.y+r.h+p)return f}return null}
+function handleHit(x,y){for(let k=fields.length-1;k>=0;k--){const f=fields[k],r=rect(f),cx=r.x+r.w+S/2,cy=r.y+r.h+S/2;if(x>=cx-18&&x<=cx+6&&y>=cy-18&&y<=cy+6)return f}return null}
+function selBox(){if(!sel||!sel.moved)return null;return{i0:Math.min(sel.a.i,sel.b.i),i1:Math.max(sel.a.i,sel.b.i),j0:Math.min(sel.a.j,sel.b.j),j1:Math.max(sel.a.j,sel.b.j)}}
+function cells(x,y,c,r,h,d,sp0){
+  const sq=shape==='sq',al=sq?.7:1,cols=[dc(h,0,d,al),dc(h,1,d,al)],sp=sp0===undefined?(c>10?'c':r>10?'r':null):sp0,t=[];
+  if(frameMode){for(let a=0;a<c;a+=blk)for(let b=0;b<r;b+=blk)t.push([a,Math.min(a+blk,c),b,Math.min(b+blk,r)])}else t.push([0,c,0,r]);
+  const fr=frameMode&&t.some(q=>q[1]-q[0]===blk&&q[3]-q[2]===blk),ins=fr?2:0;
+  const path=q=>{ctx.beginPath();ctx.roundRect(x+q[0]*S-S/2+ins,y+q[2]*S-S/2+ins,(q[1]-q[0])*S-2*ins,(q[3]-q[2])*S-2*ins,6)};
+  ctx.lineWidth=2;ctx.strokeStyle='#fff';
+  for(const q of t){
+    if(sq){ctx.save();path(q);ctx.clip()}
+    for(let a=q[0];a<q[1];a++)for(let b=q[2];b<q[3];b++){
+      ctx.fillStyle=cols[sp==='c'?(a/10|0)%2:sp==='r'?(b/10|0)%2:0];
+      if(sq){ctx.fillRect(x+a*S-S/2,y+b*S-S/2,S,S);ctx.strokeRect(x+a*S-S/2,y+b*S-S/2,S,S)}
+      else{ctx.beginPath();ctx.arc(x+a*S,y+b*S,S*0.3,0,7);ctx.fill()}
+    }
+    if(sq)ctx.restore();
+  }
+  if(fr){ctx.strokeStyle=d?'rgba(255,255,255,.75)':'rgba(0,0,0,.55)';ctx.lineWidth=1.5;for(const q of t){path(q);ctx.stroke()}}
+  if(!frameMode){ctx.strokeStyle=d?'rgba(255,255,255,.8)':'rgba(0,0,0,.6)';ctx.lineWidth=2;ctx.lineCap='butt';ctx.beginPath();
+    for(let k=blk;k<c;k+=blk){const X=x+(k-.5)*S;ctx.moveTo(X,y-S/2);ctx.lineTo(X,y+(r-.5)*S)}
+    for(let k=blk;k<r;k+=blk){const Y=y+(k-.5)*S;ctx.moveTo(x-S/2,Y);ctx.lineTo(x+(c-.5)*S,Y)}
+    ctx.stroke()}
+}
+function dim(x0,y0,x1,y1,txt,col){
+  const h=y0===y1;ctx.strokeStyle=col;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1,y1);
+  if(h){ctx.moveTo(x0,y0-4);ctx.lineTo(x0,y0+4);ctx.moveTo(x1,y1-4);ctx.lineTo(x1,y1+4)}else{ctx.moveTo(x0-4,y0);ctx.lineTo(x0+4,y0);ctx.moveTo(x1-4,y1);ctx.lineTo(x1+4,y1)}
+  ctx.stroke();const fs=Math.round(Math.max(10,Math.min(22,13*S/30))*ft);ctx.font=`600 ${fs}px system-ui`;const w=ctx.measureText(txt).width+8;
+  ctx.save();ctx.translate((x0+x1)/2,(y0+y1)/2);if(!h)ctx.rotate(-Math.PI/2);
+  ctx.fillStyle=css('--bg');ctx.fillRect(-w/2,-fs/2-2,w,fs+4);ctx.fillStyle=col;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(txt,0,0);ctx.restore();
+}
+function draw(){
+  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
+  document.documentElement.style.setProperty('--z',S/30);const zt=Math.round(S/30*100)+' %';if(zr.textContent!==zt)zr.textContent=zt;
+  const ftt=Math.round(ft*100)+' %';if(fr.textContent!==ftt)fr.textContent=ftt;document.documentElement.style.setProperty('--ft',ft);
+  const nSel=fields.filter(f=>f.sel).length;grp.style.display=nSel>=2?'flex':'none';gn.textContent=nSel+' Felder';
+  const d=isDark(),sx=((ox%S)+S)%S,sy=((oy%S)+S)%S,ink=css('--ink');
+  ctx.fillStyle=css('--dot');
+  if(gridOn&&shape==='sq'){const lx=(((ox-S/2)%S)+S)%S,ly=(((oy-S/2)%S)+S)%S;ctx.strokeStyle=d?'rgba(255,255,255,.14)':'rgba(0,0,0,.14)';ctx.lineWidth=1;ctx.beginPath();for(let x=lx;x<W;x+=S){ctx.moveTo(x,0);ctx.lineTo(x,H)}for(let y=ly;y<H;y+=S){ctx.moveTo(0,y);ctx.lineTo(W,y)}ctx.stroke()}
+  else if(gridOn)for(let x=sx;x<W;x+=S)for(let y=sy;y<H;y+=S){ctx.beginPath();ctx.arc(x,y,Math.max(1,S/15),0,7);ctx.fill()}
+  for(const f of fields){
+    const r=rect(f),p=S/2;
+    if(shape==='dot'){ctx.fillStyle=`hsl(${f.h},${d?30:70}%,${d?22:91}%)`;ctx.beginPath();ctx.roundRect(r.x-p,r.y-p,r.w+S,r.h+S,10);ctx.fill()}
+    cells(r.x,r.y,f.c,f.r,f.h,d,spDim(f));
+    f.el.classList.toggle('sel',!!f.sel);f.el.classList.toggle('solo',!!f.sel&&nSel===1);f.el.classList.toggle('lab',!!f.lab);
+    if(f.sel){ctx.strokeStyle=dc(f.h,0,d);ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(r.x-p-3,r.y-p-3,r.w+S+6,r.h+S+6,10);ctx.stroke()}
+    const cx=r.x+r.w+p,cy=r.y+r.h+p;
+    if(d){ctx.fillStyle='rgba(255,255,255,.85)';ctx.beginPath();ctx.roundRect(cx-17,cy-17,15,15,4);ctx.fill()}
+    ctx.strokeStyle='#000';ctx.lineWidth=2.2;ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(cx-5,cy-12);ctx.lineTo(cx-12,cy-5);ctx.moveTo(cx-5,cy-7);ctx.lineTo(cx-7,cy-5);ctx.stroke();
+    if(f.lab){const sp=spDim(f),dz=f.dec&&sp,off=Math.max(10,S/3)*Math.max(1,ft);
+      const cs=dz&&sp==='c'?[[0,10],[10,f.c]]:[[0,f.c]],rs=dz&&sp==='r'?[[0,10],[10,f.r]]:[[0,f.r]];
+      cs.forEach((C,ci)=>dim(r.x+C[0]*S-p+3,cy+off,r.x+C[1]*S-p-3,cy+off,String(C[1]-C[0]),dz?tc(f.h,ci,d):ink));
+      rs.forEach((R,ri)=>dim(r.x-p-off,r.y+R[0]*S-p+3,r.x-p-off,r.y+R[1]*S-p-3,String(R[1]-R[0]),dz?tc(f.h,ri,d):ink))}
+    f.el.style.zIndex=1+fields.indexOf(f);f.el.style.left=(r.x-p)+'px';f.el.style.top=(r.y-p)+'px';f.el.style.width=(r.w+S)+'px';f.el.style.height=(r.h+S)+'px';
+    upd(f);
+  }
+  if(mq&&mq.moved){const x=Math.min(mq.x0,mq.x1),y=Math.min(mq.y0,mq.y1),w=Math.abs(mq.x1-mq.x0),h=Math.abs(mq.y1-mq.y0);ctx.save();ctx.fillStyle=d?'rgba(255,255,255,.08)':'rgba(0,0,0,.05)';ctx.fillRect(x,y,w,h);ctx.setLineDash([5,4]);ctx.lineWidth=1.5;ctx.strokeStyle=ink;ctx.strokeRect(x,y,w,h);ctx.restore()}
+  const b=selBox();
+  if(b){
+    const x=ox+b.i0*S,y=oy+b.j0*S,w=(b.i1-b.i0)*S,h=(b.j1-b.j0)*S,p=S/2,ph=(hue+137.5)%360;
+    ctx.fillStyle=`hsla(${ph},70%,${d?60:70}%,.3)`;ctx.strokeStyle=dc(ph,0,d);ctx.lineWidth=2;
+    ctx.beginPath();ctx.roundRect(x-p,y-p,w+S,h+S,10);ctx.fill();ctx.stroke();
+    cells(x,y,b.i1-b.i0+1,b.j1-b.j0+1,ph,d);
+    ctx.fillStyle=ink;ctx.font='600 13px system-ui';ctx.fillText(`${b.j1-b.j0+1} × ${b.i1-b.i0+1}`,x-p,y-p-6);
+  }
+}
+function upd(f){
+  const d=isDark(),r=f.r,c=f.c,p=r*c,t=f.el.querySelector('.task'),k0=tc(f.h,0,d),k1=tc(f.h,1,d);
+  const sp=spDim(f),e=(sp==='c'?c:r)-10,a=f.rev?c:r,b=f.rev?r:c;
+  const A=x=>`<span style="color:${k0}">${x}</span>`,B=x=>`<span style="color:${k1}">${x}</span>`;
+  let h='';
+  if(f.show){
+    h+=`<div style="color:${k0}">${a} · ${b} =${f.sol?` ${p}`:''}</div>`;
+    if(f.dec&&sp){
+      const o=sp==='c'?r:c,first=sp===(f.rev?'c':'r'),sum=`(${A(10)} + ${B(e)})`;
+      const head=first?`${sum} · ${o}`:`${o} · ${sum}`,t1=first?`${A(10)} · ${o}`:`${o} · ${A(10)}`,t2=first?`${B(e)} · ${o}`:`${o} · ${B(e)}`;
+      h+=`<div>${head} =${f.sol?` ${t1} + ${t2} = ${10*o} + ${e*o} = ${p}`:''}</div>`;
+    }
+  }
+  if(f.key!==h){f.key=h;t.innerHTML=h}
+  f.zl.style.visibility=sp?'':'hidden';
+  f.el.querySelectorAll('.sw2').forEach(b=>b.classList.toggle('cur',Math.abs(f.h-b.dataset.h)<1));
+}
+function addField(b,src,keep){
+  const f={sel:true,id:++uid,i:b.i0,j:b.j0,c:b.i1-b.i0+1,r:b.j1-b.j0+1,h:nextColor(),show:false,rev:false,dec:false,sol:false,lab:false};
+  if(src)Object.assign(f,{show:src.show,rev:src.rev,dec:src.dec,sol:src.sol,lab:src.lab});
+  const el=document.createElement('div');el.className='f';
+  el.innerHTML=`<div class="bar"><label><input type="checkbox" data-k="show">Aufgabe</label><button class="chip" data-a="swap" title="Aufgabe und Umkehraufgabe tauschen">⇄ Tausch</button><label class="zl"><input type="checkbox" data-k="dec">Zerlegung</label><label><input type="checkbox" data-k="sol">Lösung</label><label><input type="checkbox" data-k="lab">Beschriftung</label><button class="chip" data-a="pal" title="Farbe wählen"><i class="cdot"></i>Farbe</button><div class="cols">${PAL.map(h=>`<button class="sw2" data-h="${h}" title="Farbe" style="background:hsl(${h},62%,64%)"></button>`).join('')}</div><div class="act"><button data-a="dup" title="Feld duplizieren (Strg+D)">⧉ Duplizieren</button><button data-a="front" title="Feld über alle anderen legen">⤒ In den Vordergrund</button><button data-a="d" title="Feld löschen (Entf)">✕ Löschen</button></div></div><div class="task"></div>`;
+  el.style.setProperty('--c',dc(f.h,0,isDark()));
+  el.querySelectorAll('input[data-k]').forEach(i=>i.checked=!!f[i.dataset.k]);
+  const bar=el.querySelector('.bar');
+  for(const ev of['pointerdown','wheel'])bar.addEventListener(ev,e=>e.stopPropagation());
+  bar.addEventListener('change',e=>{const k=e.target.dataset.k;f[k]=e.target.checked;draw()});
+  bar.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;const a=t.dataset.a;
+    if(a==='d')delSel();else if(a==='dup')dupSel();
+    else if(a==='front'){fields.push(fields.splice(fields.indexOf(f),1)[0]);draw()}
+    else if(a==='swap'){f.rev=!f.rev;draw()}
+    else if(a==='pal'){bar.classList.toggle('pal')}
+    else if(t.dataset.h){f.h=+t.dataset.h;el.style.setProperty('--c',dc(f.h,0,isDark()));bar.classList.remove('pal');draw()}});
+  f.el=el;f.zl=el.querySelector('.zl');if(!keep)fields.forEach(x=>x.sel=false);f.sel=true;document.body.appendChild(el);fields.push(f);draw();
+}
+function delSel(){fields.filter(f=>f.sel).forEach(f=>f.el.remove());fields=fields.filter(f=>!f.sel);draw()}
+function dupSel(){const a=fields.filter(f=>f.sel);if(!a.length)return;const l=Math.min(...a.map(f=>f.i)),rr=Math.max(...a.map(f=>f.i+f.c)),dx=rr-l+2;fields.forEach(x=>x.sel=false);for(const f of a)addField({i0:f.i+dx,j0:f.j,i1:f.i+dx+f.c-1,j1:f.j+f.r-1},f,true)}
+const FL=[.5,.75,1,1.25,1.5,2,2.5,3];
+function fontStep(dir){const t=dir>0?FL.find(v=>v>ft+.01):[...FL].reverse().find(v=>v<ft-.01);if(t){ft=t;draw()}}
+const LV=Array.from({length:20},(_,i)=>25*(i+1));
+function zoomStep(dir,cx,cy){const cur=S/30*100,t=dir>0?LV.find(v=>v>cur+.5):[...LV].reverse().find(v=>v<cur-.5);if(t)zoomTo(t*.3,cx,cy)}
+function zoomTo(ns,cx=W/2,cy=H/2){ns=Math.min(150,Math.max(7.5,ns));const wx=(cx-ox)/S,wy=(cy-oy)/S;S=ns;ox=cx-wx*S;oy=cy-wy*S;draw()}
+function pc(){const [a,b]=[...pointers.values()];return{x:(a.x+b.x)/2,y:(a.y+b.y)/2,d:Math.hypot(a.x-b.x,a.y-b.y)||1}}
+cv.addEventListener('contextmenu',e=>e.preventDefault());
+cv.addEventListener('pointerdown',e=>{
+  cv.setPointerCapture(e.pointerId);
+  pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pointers.size>=2){multi=true;sel=null;drag=null;pan=null;mq=null;gest=pc();draw();return}
+  if(multi)return;
+  if(e.button===2||e.button===1||space){pan={x:e.clientX,y:e.clientY};return}
+  const hf=handleHit(e.clientX,e.clientY);
+  if(hf){fields.forEach(x=>x.sel=x===hf);drag={f:hf,size:true};draw();return}
+  const add=e.shiftKey||e.ctrlKey||e.metaKey||multiMode,f=hit(e.clientX,e.clientY);
+  if(f){
+    if(add){f.sel=!f.sel;if(!f.sel){draw();return}}
+    else if(!f.sel)fields.forEach(x=>x.sel=x===f);
+    const g=toG(e.clientX,e.clientY),its=fields.filter(x=>x.sel).map(x=>({f:x,i:x.i,j:x.j}));
+    drag={g0:g,its,f,add};draw();return}
+  if(e.shiftKey||multiMode){mq={x0:e.clientX,y0:e.clientY,x1:e.clientX,y1:e.clientY,moved:false,add:multiMode||e.ctrlKey||e.metaKey};if(!mq.add)fields.forEach(x=>x.sel=false);draw();return}
+  fields.forEach(x=>x.sel=false);const g=toG(e.clientX,e.clientY);sel={a:g,b:g,x0:e.clientX,y0:e.clientY,moved:false};draw();
+});
+cv.addEventListener('pointermove',e=>{
+  if(pointers.has(e.pointerId))pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(multi){if(pointers.size>=2){const n=pc(),wx=(gest.x-ox)/S,wy=(gest.y-oy)/S;S=Math.min(150,Math.max(7.5,S*n.d/gest.d));ox=n.x-wx*S;oy=n.y-wy*S;gest=n;draw()}return}
+  if(pan){ox+=e.clientX-pan.x;oy+=e.clientY-pan.y;pan={x:e.clientX,y:e.clientY};draw()}
+  else if(drag&&drag.size){const g=toG(e.clientX-S/2,e.clientY-S/2),f=drag.f;f.c=Math.min(200,Math.max(1,g.i-f.i+1));f.r=Math.min(200,Math.max(1,g.j-f.j+1));draw()}
+  else if(drag){const g=toG(e.clientX,e.clientY),dx=g.i-drag.g0.i,dy=g.j-drag.g0.j;if(dx||dy)drag.moved=true;for(const t of drag.its){t.f.i=t.i+dx;t.f.j=t.j+dy}draw()}
+  else if(mq){mq.x1=e.clientX;mq.y1=e.clientY;if(Math.hypot(mq.x1-mq.x0,mq.y1-mq.y0)>5)mq.moved=true;draw()}
+  else if(sel){if(Math.hypot(e.clientX-sel.x0,e.clientY-sel.y0)>5)sel.moved=true;sel.b=toG(e.clientX,e.clientY);draw()}
+  else{cv.style.cursor=space?'grab':handleHit(e.clientX,e.clientY)?'nwse-resize':hit(e.clientX,e.clientY)?'move':'crosshair'}
+});
+cv.addEventListener('pointerup',e=>{
+  pointers.delete(e.pointerId);if(multi){if(!pointers.size)multi=false;draw();return}
+  if(sel){const b=selBox();sel=null;if(b)addField(b)}
+  if(mq){if(mq.moved){const x0=Math.min(mq.x0,mq.x1),x1=Math.max(mq.x0,mq.x1),y0=Math.min(mq.y0,mq.y1),y1=Math.max(mq.y0,mq.y1),p=S/2;for(const f of fields){const r=rect(f);if(r.x+r.w+p>=x0&&r.x-p<=x1&&r.y+r.h+p>=y0&&r.y-p<=y1)f.sel=true}}mq=null}
+  if(drag&&drag.its&&!drag.moved&&!drag.add&&drag.its.length>1)fields.forEach(x=>x.sel=x===drag.f);
+  pan=drag=null;draw();
+});
+cv.addEventListener('pointercancel',e=>{pointers.delete(e.pointerId);if(!pointers.size)multi=false;sel=drag=pan=mq=null;draw()});
+addEventListener('wheel',e=>{if(e.ctrlKey){e.preventDefault();if(Math.abs(e.deltaY)>=40||e.deltaMode!==0)zoomStep(e.deltaY<0?1:-1,e.clientX,e.clientY);else zoomTo(S*Math.exp(-e.deltaY*0.01),e.clientX,e.clientY)}else{ox-=e.deltaX;oy-=e.deltaY;draw()}},{passive:false});
+addEventListener('keydown',e=>{
+  const mod=e.ctrlKey||e.metaKey;
+  if(e.code==='Space'){space=true;cv.style.cursor='grab';e.preventDefault()}
+  else if(e.code==='Delete'||e.code==='Backspace'){e.preventDefault();delSel()}
+  else if(mod&&e.code==='KeyD'){e.preventDefault();dupSel()}
+  else if(mod&&e.code==='KeyA'){e.preventDefault();fields.forEach(f=>f.sel=true);draw()}
+  else if(e.code==='Escape'){fields.forEach(f=>f.sel=false);draw()}
+  else if(mod)return;
+  else if(e.key==='+'||e.key==='=')zoomStep(1);else if(e.key==='-')zoomStep(-1);else if(e.key==='0')zoomTo(30);
+});
+addEventListener('keyup',e=>{if(e.code==='Space'){space=false;cv.style.cursor='crosshair'}});
+document.getElementById('clr').onclick=()=>{fields.forEach(f=>f.el.remove());fields=[];draw()};
+matchMedia('(prefers-color-scheme:dark)').addEventListener('change',()=>{fields.forEach(f=>{f.key=null;f.el.style.setProperty('--c',dc(f.h,0,isDark()))});draw()});
+fo.onclick=()=>fontStep(-1);fi.onclick=()=>fontStep(1);
+zo.onclick=()=>zoomStep(-1);zi.onclick=()=>zoomStep(1);z100.onclick=()=>zoomTo(30);
+const setShape=v=>{shape=v;bDot.classList.toggle('on',v==='dot');bSq.classList.toggle('on',v==='sq');draw()};
+const setMode=v=>{frameMode=v;mFr.classList.toggle('on',v);mSep.classList.toggle('on',!v);draw()};
+mFr.onclick=()=>setMode(true);mSep.onclick=()=>setMode(false);
+const setBlk=v=>{blk=v;b10.classList.toggle('on',v===10);b5.classList.toggle('on',v===5);draw()};
+b10.onclick=()=>setBlk(10);b5.onclick=()=>setBlk(5);
+bDot.onclick=()=>setShape('dot');bSq.onclick=()=>setShape('sq');
+const hint=document.getElementById('hint'),showHint=v=>{hint.style.display=v?'':'none';bHint.classList.toggle('on',v)};
+bHint.onclick=()=>showHint(hint.style.display==='none');hx.onclick=()=>showHint(false);
+bGrid.onclick=()=>{gridOn=!gridOn;bGrid.classList.toggle('on',gridOn);draw()};
+bMulti.onclick=()=>{multiMode=!multiMode;bMulti.classList.toggle('on',multiMode)};
+gd.onclick=dupSel;gx.onclick=delSel;
+size();
+</script>
+</body>
+</html>

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Baumdiagramm</title>
+<style>
+:root{--bg:#fafaf7;--card:#fff;--fg:#1d1d1b;--mut:#6a6a64;--line:#b9b9b0;--bd:#dcdcd2;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17181a;--card:#222426;--fg:#ececea;--mut:#a0a09a;--line:#5b5d60;--bd:#3a3c3f}}
+:root[data-theme="dark"]{--bg:#17181a;--card:#222426;--fg:#ececea;--mut:#a0a09a;--line:#5b5d60;--bd:#3a3c3f}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:1100px;margin:0 auto;padding:18px}
+h1{font-size:1.4rem;margin:0 0 4px}
+p.sub{margin:0 0 16px;color:var(--mut)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:14px 16px;margin-bottom:16px}
+.row{display:flex;flex-wrap:wrap;gap:14px 24px;align-items:center;margin-bottom:10px}
+label{font-weight:600}
+select,input[type=text],input[type=number]{font:inherit;padding:5px 8px;border:1px solid var(--bd);border-radius:6px;background:var(--bg);color:var(--fg)}
+input[type=number]{width:4.2em}
+input[type=color]{width:38px;height:32px;border:1px solid var(--bd);border-radius:6px;padding:2px;background:var(--bg)}
+.col{display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--bd);border-radius:8px}
+.seg label{font-weight:400;margin-right:12px}
+.seg label.h{font-weight:600;margin-right:10px}
+.scroll{overflow-x:auto}
+.wrap{position:relative}
+.lf{position:absolute;transform:translateY(-50%);white-space:nowrap;font-size:15px}
+svg text{font-family:system-ui,sans-serif}
+.err{color:#c0392b;font-weight:600}
+.chk{color:var(--mut);margin-top:10px}
+</style>
+<script>
+window.MathJax={tex:{inlineMath:[["\\(","\\)"]]},svg:{fontCache:"none"},startup:{typeset:false,pageReady:function(){return MathJax.startup.defaultPageReady().then(function(){if(window.__ts)window.__ts()})}}};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js"></script>
+</head>
+<body>
+<main>
+<h1 id="ttl"></h1>
+<p class="sub" id="sub"></p>
+
+<div class="card">
+  <div class="row seg"><label class="h">Modus:</label><label><input type="radio" name="mode" value="urne" checked> Urne</label><label><input type="radio" name="mode" value="frei"> Freier Modus</label></div>
+  <div class="row" id="cols"></div>
+  <div class="row">
+    <div><label for="nd">Anzahl der Züge</label> <select id="nd"><option>2</option><option>3</option></select></div>
+    <div class="seg"><label><input type="radio" name="rep" value="1" checked> mit Zurücklegen</label><label><input type="radio" name="rep" value="0"> ohne Zurücklegen</label></div>
+  </div>
+  <div class="row">
+    <div><label for="sp">Abstand der Endknoten</label> <input type="range" id="sp" min="30" max="140" step="2" value="44" style="vertical-align:middle"></div>
+    <div class="seg"><label><input type="checkbox" id="red"> gekürzte Endergebnisse anzeigen</label></div>
+  </div>
+  <div id="msg" class="err"></div>
+</div>
+
+<div class="card">
+  <div id="info" style="margin-bottom:8px;color:var(--mut)"></div>
+  <div class="scroll" id="out"></div>
+  <div class="chk" id="chk"></div>
+</div>
+</main>
+
+<script>
+(function(){
+var DEF=[["#d62728"],["#1f77b4"],["#2ca02c"],["#111111"]],CNT=[3,2,1,0];
+var saved={urne:["rot","blau","grün","schwarz"],frei:["A","B","C","D"]},cur=null,cache={},keys=[],chain=Promise.resolve();
+var $=function(i){return document.getElementById(i)};
+function gcd(a,b){return b?gcd(b,a%b):Math.abs(a)}
+function red(n,d){var g=gcd(n,d)||1;return[n/g,d/g]}
+function fr(n,d){return d===1?String(n):n+"/"+d}
+function tf(n,d){return d===1?String(n):"\\frac{"+n+"}{"+d+"}"}
+function lum(h){var r=parseInt(h.substr(1,2),16),g=parseInt(h.substr(3,2),16),b=parseInt(h.substr(5,2),16);return(0.299*r+0.587*g+0.114*b)/255}
+function esc(s){return s.replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function tt(s){s=s.replace(/[\\{}$#%&_^~]/g,"").trim();return "\\text{"+(s||"?")+"}"}
+
+function buildCols(){
+  var h="";
+  DEF.forEach(function(d,i){
+    h+='<div class="col"><input type="color" id="c'+i+'" value="'+d[0]+'" aria-label="Farbe"><input type="text" id="n'+i+'" aria-label="Bezeichnung"><label id="l'+i+'" for="k'+i+'" style="font-weight:400"></label><input type="number" id="k'+i+'" min="0" max="9" value="'+CNT[i]+'"></div>';
+  });
+  $("cols").innerHTML=h;
+  $("cols").querySelectorAll("input").forEach(function(e){e.addEventListener("input",render)});
+}
+function applyMode(m){
+  var i,u=m==="urne";
+  if(cur)for(i=0;i<4;i++)saved[cur][i]=$("n"+i).value;
+  cur=m;
+  for(i=0;i<4;i++){
+    $("n"+i).value=saved[m][i];
+    $("c"+i).style.display=u?"":"none";
+    $("n"+i).style.width=u?"7em":"11em";
+    $("n"+i).maxLength=u?10:16;
+    $("l"+i).textContent=u?"Kugeln:":"Anzahl:";
+  }
+  $("ttl").textContent=u?"Baumdiagramm zum Urnenmodell":"Baumdiagramm – freier Modus";
+  $("sub").textContent=u?"Kugeln je Farbe festlegen (0 = Farbe nicht in der Urne), Anzahl der Züge wählen – das Baumdiagramm samt Lösungsweg entsteht automatisch."
+    :"Eigene Texte für die Ergebnisse eintragen; die Anzahl legt das Gewicht fest (0 = kommt nicht vor) – das Baumdiagramm samt Lösungsweg entsteht automatisch.";
+}
+
+function harvest(){
+  document.querySelectorAll("#out .lf[data-i]").forEach(function(el){
+    if(el.querySelector("mjx-container"))cache[keys[+el.getAttribute("data-i")]]=el.innerHTML;
+  });
+}
+function typeset(){
+  var M=window.MathJax;if(!(M&&M.typesetPromise))return;
+  chain=chain.then(function(){return M.typesetPromise([$("out")])}).then(harvest).catch(function(){});
+}
+window.__ts=typeset;
+
+function render(){
+  var n=+$("nd").value,rep=document.querySelector('input[name=rep]:checked').value==="1",free=cur==="frei",showRed=$("red").checked;
+  var C=[],tot=0,i,M=window.MathJax,DY=+$("sp").value;
+  for(i=0;i<4;i++){
+    var c=parseInt($("k"+i).value,10);if(isNaN(c)||c<0)c=0;if(c>9)c=9;
+    if(c===0)continue;
+    var nm=($("n"+i).value.trim()||("F"+(i+1)));
+    var lab=free?nm:nm.charAt(0).toUpperCase();
+    if(!free&&!/^[A-Z0-9ÄÖÜ]$/.test(lab))lab="?";
+    C.push({name:nm,col:$("c"+i).value,cnt:c,lab:lab});tot+=c;
+  }
+  if(M&&M.typesetClear)M.typesetClear([$("out")]);
+  $("msg").textContent="";$("chk").textContent="";$("info").textContent="";
+  if(!C.length){$("msg").textContent="Mindestens ein Eintrag braucht eine Anzahl größer als 0.";$("out").innerHTML="";return}
+  if(!rep&&tot<n){$("msg").textContent="Ohne Zurücklegen muss die Gesamtanzahl mindestens "+n+" betragen.";$("out").innerHTML="";return}
+  var k=C.length;
+  $("info").textContent=(free?"Freier Modus: ":"Urne: ")+C.map(function(c){return c.cnt+"× "+c.name}).join(", ")+" ("+tot+(free?" Möglichkeiten":" Kugeln")+") · "+n+" Züge "+(rep?"mit":"ohne")+" Zurücklegen";
+
+  var leaves=[];
+  function gen(depth,cnt,total,facs,path){
+    var node={kids:[]};
+    if(depth===n){node.leaf={facs:facs,path:path};leaves.push(node);return node}
+    for(var j=0;j<k;j++){
+      if(cnt[j]<=0)continue;
+      var nc=cnt.slice();if(!rep)nc[j]--;
+      var f={n:cnt[j],d:total};
+      var ch=gen(depth+1,nc,rep?total:total-1,facs.concat([f]),path.concat([j]));
+      ch.ci=j;node.kids.push({ci:j,f:f,node:ch});
+    }
+    return node;
+  }
+  var root=gen(0,C.map(function(c){return c.cnt}),tot,[],[]);
+
+  function nw(ci){return free?Math.max(30,C[ci].lab.length*7.4+18):22}
+  var maxW=22;C.forEach(function(c,ci){maxW=Math.max(maxW,nw(ci))});
+  var DX=free?Math.max(175,maxW+110):175,X0=46+(free?maxW/2-11:0),TOP=44,idx=0;
+  function lay(nd,depth){
+    nd.x=X0+depth*DX;
+    if(!nd.kids.length){nd.y=TOP+idx*DY;idx++;return}
+    nd.kids.forEach(function(e){lay(e.node,depth+1)});
+    nd.y=(nd.kids[0].node.y+nd.kids[nd.kids.length-1].node.y)/2;
+  }
+  lay(root,0);
+  var W=X0+n*DX+(n===2?340:480)+(showRed?110:0)+(free?maxW/2:0),H=TOP+(leaves.length-1)*DY+34;
+  var s='<svg xmlns="http://www.w3.org/2000/svg" width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Baumdiagramm">';
+  for(i=1;i<=n;i++)s+='<text x="'+(X0+i*DX)+'" y="20" text-anchor="middle" font-size="13" fill="var(--mut)">'+i+'. Zug</text>';
+  function draw(nd){
+    nd.kids.forEach(function(e){
+      var a=nd,b=e.node;
+      s+='<line x1="'+a.x+'" y1="'+a.y+'" x2="'+b.x+'" y2="'+b.y+'" stroke="var(--line)" stroke-width="1.5"/>';
+      s+='<text x="'+((a.x+b.x)/2)+'" y="'+((a.y+b.y)/2-5)+'" text-anchor="middle" font-size="13" fill="var(--fg)" stroke="var(--bg)" stroke-width="4" paint-order="stroke">'+fr(e.f.n,e.f.d)+'</text>';
+      draw(e.node);
+    });
+  }
+  draw(root);
+  function nodes(nd,ci){
+    if(ci<0){
+      s+='<circle cx="'+nd.x+'" cy="'+nd.y+'" r="11" fill="var(--card)" stroke="var(--fg)" stroke-width="1.5"/>';
+    }else if(free){
+      var w=nw(ci);
+      s+='<rect x="'+(nd.x-w/2)+'" y="'+(nd.y-13)+'" width="'+w+'" height="26" rx="8" fill="var(--card)" stroke="var(--fg)" stroke-width="1.5"/><text x="'+nd.x+'" y="'+(nd.y+5)+'" text-anchor="middle" font-size="13" fill="var(--fg)">'+esc(C[ci].lab)+'</text>';
+    }else{
+      var tc=lum(C[ci].col)>0.6?"#111":"#fff";
+      s+='<circle cx="'+nd.x+'" cy="'+nd.y+'" r="11" fill="'+C[ci].col+'" stroke="var(--line)" stroke-width="1.5"/><text x="'+nd.x+'" y="'+(nd.y+4)+'" text-anchor="middle" font-size="12" font-weight="700" fill="'+tc+'">'+esc(C[ci].lab)+'</text>';
+    }
+    nd.kids.forEach(function(e){nodes(e.node,e.ci)});
+  }
+  nodes(root,-1);
+  s+='</svg>';
+
+  var sumN=0,sumD=1,lh="",need=false;
+  keys=[];
+  leaves.forEach(function(L,li){
+    var f=L.leaf.facs,pn=1,pd=1;
+    f.forEach(function(x){pn*=x.n;pd*=x.d});
+    var r=red(pn,pd);
+    sumN=sumN*r[1]+r[0]*sumD;sumD=sumD*r[1];var g=gcd(sumN,sumD);sumN/=g;sumD/=g;
+    var tex="\\displaystyle \\mathrm{P}("+L.leaf.path.map(function(j){return tt(C[j].lab)}).join(",")+")="
+      +f.map(function(x){return tf(x.n,x.d)}).join("\\cdot ")+"="+tf(pn,pd);
+    if(showRed&&(r[0]!==pn||r[1]!==pd))tex+="="+tf(r[0],r[1]);
+    keys.push(tex);
+    var off=free?nw(L.ci)/2+12:22;
+    var inner=cache[tex];if(!inner){need=true;inner="\\("+esc(tex)+"\\)"}
+    lh+='<div class="lf" data-i="'+li+'" style="left:'+(L.x+off)+'px;top:'+L.y+'px">'+inner+'</div>';
+  });
+  $("out").innerHTML='<div class="wrap" style="width:'+W+'px;height:'+H+'px">'+s+lh+'</div>';
+  $("chk").textContent="Probe: Die Summe aller "+leaves.length+" Pfadwahrscheinlichkeiten ist "+fr(sumN,sumD)+" (= 1). Pfadregel: Wahrscheinlichkeiten entlang eines Pfades werden multipliziert.";
+  if(need)typeset();
+}
+
+var tmr=null;
+$("sp").addEventListener("input",function(){clearTimeout(tmr);tmr=setTimeout(render,40)});
+$("red").addEventListener("change",render);
+$("nd").addEventListener("change",render);
+document.querySelectorAll("input[name=rep]").forEach(function(e){e.addEventListener("change",render)});
+document.querySelectorAll("input[name=mode]").forEach(function(e){e.addEventListener("change",function(){applyMode(this.value);render()})});
+buildCols();applyMode("urne");render();
+})();
+</script>
+</body>
+</html>
