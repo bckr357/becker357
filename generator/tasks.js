@@ -6,6 +6,26 @@ const fmt = formatUtils.fmt;
 const comma = formatUtils.comma;
 const formatDecimal = formatUtils.formatDecimal;
 
+const QUIZ_AUTO_TYPES = [
+	'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren',
+	'prozentrechnung', 'prozentuale_veraenderung', 'zinsen', 'terme_zusammenfassen', 'terme_umformen', 'terme_einsetzen', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig', 'vorrang', 'runden',
+	'potenzen', 'einheiten', 'statistik', 'zahlengerade',
+	'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_kuerzen', 'brueche_umwandeln', 'anteile', 'wahrscheinlichkeiten',
+	'geometrie', 'proportionalitaet', 'einheiten_umrechnen',
+	'einmaleins_2', 'geteilt_durch_2', 'einmaleins_3', 'geteilt_durch_3',
+	'einmaleins_4', 'geteilt_durch_4', 'einmaleins_5', 'geteilt_durch_5',
+	'einmaleins_6', 'geteilt_durch_6', 'einmaleins_7', 'geteilt_durch_7',
+	'einmaleins_8', 'geteilt_durch_8', 'einmaleins_9', 'geteilt_durch_9',
+	'einmaleins_10', 'geteilt_durch_10',
+	'addition_bis_10', 'subtraktion_bis_10', 'addition_bis_20', 'subtraktion_bis_20',
+	'addition_bis_50', 'subtraktion_bis_50', 'addition_bis_100', 'subtraktion_bis_100',
+	'addition_bis_1000', 'subtraktion_bis_1000',
+	'kleines_1x1_multiplikation', 'kleines_1x1_division', 'kleines_1x1_komplett',
+	'addition_subtraktion_bis_20', 'addition_subtraktion_bis_100', 'addition_subtraktion_bis_1000'
+];
+
+const quizAutoTypeOrderIndex = Object.fromEntries(["teiler","primzahlen","einheiten","einheiten_umrechnen","potenzen","natuerliche_zahlen_addieren_subtrahieren","natuerliche_zahlen_multiplizieren_dividieren","ganze_zahlen_addieren_subtrahieren","ganze_zahlen_multiplizieren_dividieren","dezimalbrueche_addieren_subtrahieren","dezimalbrueche_multiplizieren_dividieren","zehnerpotenzen_multiplizieren_dividieren","vorrang","brueche_kuerzen","brueche_umwandeln","brueche_addieren_subtrahieren","brueche_multiplizieren_dividieren","brueche_ordnen","runden","zahlengerade","anteile","proportionalitaet","prozentrechnung","prozentuale_veraenderung","zinsen","terme_zusammenfassen","terme_umformen","terme_einsetzen","wortterme","lineare_gleichungen","lineare_gleichungen_beidseitig","lineare_gleichungen_umstellen","formel_umstellen","geometrie","winkel","schraegbild","wahrscheinlichkeiten","lineare_funktionen_zeichnen","funktionen","statistik","einmaleins_2","geteilt_durch_2","einmaleins_3","geteilt_durch_3","einmaleins_4","geteilt_durch_4","einmaleins_5","geteilt_durch_5","einmaleins_6","geteilt_durch_6","einmaleins_7","geteilt_durch_7","einmaleins_8","geteilt_durch_8","einmaleins_9","geteilt_durch_9","einmaleins_10","geteilt_durch_10","addition_bis_10","subtraktion_bis_10","addition_bis_20","subtraktion_bis_20","addition_bis_50","subtraktion_bis_50","addition_bis_100","subtraktion_bis_100","addition_bis_1000","subtraktion_bis_1000","kleines_1x1_multiplikation","kleines_1x1_division","kleines_1x1_komplett","addition_subtraktion_bis_20","addition_subtraktion_bis_100","addition_subtraktion_bis_1000"].map((key, index) => [key, index]));
+
 const taskCategories = {
 	arithmetic: ['natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'potenzen', 'schriftliche_addition_subtraktion', 'schriftliche_multiplikation_division', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'runden', 'ueberschlag', 'zahlengerade', 'vorrang'],
 	tables: ['additionstabellen', 'multiplikationstabellen', 'subtraktionstabellen', 'termtabellen'],
@@ -81,6 +101,73 @@ const taskTypesByGrade = {
 		'statistik', 'wahrscheinlichkeiten', 'lineare_funktionen_zeichnen', 'funktionen'
 	]
 };
+
+const quizAutoTaskTypesByGrade = {
+	grundschule: [
+		'einmaleins_2', 'einmaleins_3', 'einmaleins_4', 'einmaleins_5', 'einmaleins_6',
+		'einmaleins_7', 'einmaleins_8', 'einmaleins_9', 'einmaleins_10',
+		'geteilt_durch_2', 'geteilt_durch_3', 'geteilt_durch_4', 'geteilt_durch_5',
+		'geteilt_durch_6', 'geteilt_durch_7', 'geteilt_durch_8', 'geteilt_durch_9', 'geteilt_durch_10',
+		'addition_bis_10', 'addition_bis_20', 'addition_bis_50', 'addition_bis_100', 'addition_bis_1000',
+		'subtraktion_bis_10', 'subtraktion_bis_20', 'subtraktion_bis_50', 'subtraktion_bis_100', 'subtraktion_bis_1000',
+		'kleines_1x1_multiplikation', 'kleines_1x1_division', 'kleines_1x1_komplett',
+		'addition_subtraktion_bis_20', 'addition_subtraktion_bis_100', 'addition_subtraktion_bis_1000'
+	],
+	klasse5: [
+		'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
+		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen', 'runden', 'zahlengerade',
+		'geometrie', 'statistik'
+	],
+	klasse6: [
+		'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
+		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen', 'runden', 'zahlengerade',
+		'anteile', 'prozentrechnung', 'geometrie', 'statistik', 'wahrscheinlichkeiten'
+	],
+	klasse7: [
+		'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
+		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen',
+		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen',
+		'terme_zusammenfassen', 'terme_umformen', 'terme_einsetzen', 'lineare_gleichungen',
+		'runden', 'zahlengerade', 'geometrie', 'statistik', 'wahrscheinlichkeiten'
+	],
+	klasse8: [
+		'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
+		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen',
+		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen',
+		'terme_zusammenfassen', 'terme_umformen', 'terme_einsetzen', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig',
+		'runden', 'zahlengerade', 'geometrie', 'statistik', 'wahrscheinlichkeiten'
+	],
+	klasse9: [
+		'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
+		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen',
+		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen',
+		'terme_zusammenfassen', 'terme_umformen', 'terme_einsetzen', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig',
+		'runden', 'zahlengerade', 'geometrie', 'statistik', 'wahrscheinlichkeiten'
+	],
+	klasse10: [
+		'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
+		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen',
+		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen',
+		'terme_zusammenfassen', 'terme_umformen', 'terme_einsetzen', 'lineare_gleichungen',
+		'runden', 'zahlengerade', 'geometrie', 'statistik', 'wahrscheinlichkeiten'
+	]
+};
+
+/* TODO / Roadmap 
+ - Grafik-Modus 
+ - Bild für Geradenkreuzung oder IWS einbinden 
+ - Funktionen einbauen  
+ - Berechnungen an Körpern etc. auf einer Website (excel sheet ersetzen) 
+ - Aufgaben mit Hilfsmitteln einbauen (z. B. Berechnungen an Flächen und Körpern, Funktionen)
+ - Funktionen (Fktswert, Arguemnt, Punktprobe, fehlende Koordninaten berechnen, Wertetaeblle, Graoh zeichnen, Nullstellen usw.) 
+ - Kombinatorik 
+ - Punkte pro Aufgabe (auch in der Lösung oder beim interaktiven Modus) 
+ - Verschiedenes mit Bildern zum Einbinden (z. B. Geometrie, Funktionen, Statistik)
+ - Zahl zwischen Brüchen 
+ - Bruch zwischen zwei Brüchen 
+*/
+
+// Dreiteilige Typ-Definition: [key, Label fuer Einstellungen, Beschreibung fuer Training]
 
 const quizTaskTypesByGrade = {
 	grundschule: [
@@ -197,6 +284,7 @@ const typeDefinitions = [
 	// Algebra / Terme / Gleichungen
 	['terme_zusammenfassen', 'Terme zusammenfassen', 'Gleichartige Terme zusammenfassen'],
 	['terme_umformen', 'Terme umformen', 'Terme durch Klammerregeln umformen und vereinfachen'],
+	['terme_einsetzen', 'Terme einsetzen', 'Terme mit einer Variablen und gegebenem Einsetzungswert berechnen'],
 	['wortterme', 'Wortterme', 'Wortterme in mathematische Symbole übersetzen und berechnen'],
 	['lineare_gleichungen', 'lin. Gl. ax+b = c', 'Lineare Gleichung der Form ax + b = c lösen'],
 	['lineare_gleichungen_beidseitig', 'lin. Gl. ax+b = cx+d', 'Lineare Gleichung der Form ax + b = cx + d lösen'],
@@ -255,6 +343,21 @@ const typeDefinitions = [
 
 const typeLabels = Object.fromEntries(typeDefinitions.map(([key, label]) => [key, label]));
 const typeDescriptions = Object.fromEntries(typeDefinitions.map(([key, , description]) => [key, description]));
+const quizAutoTypeLabels = {
+	einheiten_umrechnen: 'Einheiten umrechnen',
+	geteilt_durch_2: 'geteilt durch 2',
+	geteilt_durch_3: 'geteilt durch 3',
+	geteilt_durch_4: 'geteilt durch 4',
+	geteilt_durch_5: 'geteilt durch 5',
+	geteilt_durch_6: 'geteilt durch 6',
+	geteilt_durch_7: 'geteilt durch 7',
+	geteilt_durch_8: 'geteilt durch 8',
+	geteilt_durch_9: 'geteilt durch 9',
+	geteilt_durch_10: 'geteilt durch 10',
+	addition_subtraktion_bis_20: '+ und - bis 20',
+	addition_subtraktion_bis_100: '+ und - bis 100',
+	addition_subtraktion_bis_1000: '+ und - bis 1000'
+};
 
 // Stabile Share-Link-IDs fuer den Generator. Neue Typen erhalten neue IDs;
 // bestehende IDs duerfen weder geaendert noch wiederverwendet werden.
@@ -346,7 +449,94 @@ const shareLinkTypeRegistry = {
 
 if (typeof window !== 'undefined') {
 	window.typeLabels = typeLabels;
+	window.QUIZ_AUTO_TYPE_LABELS = quizAutoTypeLabels;
 	window.MTGShareLinkTypeRegistry = shareLinkTypeRegistry;
+	window.QUIZ_AUTO_TYPES = QUIZ_AUTO_TYPES;
+	window.QUIZ_AUTO_TYPE_ORDER_INDEX = quizAutoTypeOrderIndex;
+}
+
+const quizShareLinkTypeRegistry = {
+	teiler: 0,
+	primzahlen: 1,
+	einheiten: 2,
+	einheiten_umrechnen: 3,
+	potenzen: 4,
+	natuerliche_zahlen_addieren_subtrahieren: 5,
+	natuerliche_zahlen_multiplizieren_dividieren: 6,
+	ganze_zahlen_addieren_subtrahieren: 7,
+	ganze_zahlen_multiplizieren_dividieren: 8,
+	dezimalbrueche_addieren_subtrahieren: 9,
+	dezimalbrueche_multiplizieren_dividieren: 10,
+	zehnerpotenzen_multiplizieren_dividieren: 11,
+	vorrang: 12,
+	ueberschlag: 13,
+	brueche_kuerzen: 14,
+	brueche_umwandeln: 15,
+	brueche_addieren_subtrahieren: 16,
+	brueche_multiplizieren_dividieren: 17,
+	brueche_ordnen: 18,
+	runden: 19,
+	zahlengerade: 20,
+	anteile: 21,
+	proportionalitaet: 22,
+	prozentrechnung: 23,
+	prozentuale_veraenderung: 24,
+	zinsen: 25,
+	terme: 26,
+	wortterme: 27,
+	lineare_gleichungen: 28,
+	lineare_gleichungen_beidseitig: 29,
+	lineare_gleichungen_umstellen: 30,
+	formel_umstellen: 31,
+	geometrie: 32,
+	winkel: 33,
+	schraegbild: 34,
+	wahrscheinlichkeiten: 35,
+	lineare_funktionen_zeichnen: 36,
+	funktionen: 37,
+	statistik: 38,
+	einmaleins_2: 39,
+	einmaleins_3: 40,
+	einmaleins_4: 41,
+	einmaleins_5: 42,
+	einmaleins_6: 43,
+	einmaleins_7: 44,
+	einmaleins_8: 45,
+	einmaleins_9: 46,
+	einmaleins_10: 47,
+	geteilt_durch_1: 48,
+	geteilt_durch_2: 49,
+	geteilt_durch_3: 50,
+	geteilt_durch_4: 51,
+	geteilt_durch_5: 52,
+	geteilt_durch_6: 53,
+	geteilt_durch_7: 54,
+	geteilt_durch_8: 55,
+	geteilt_durch_9: 56,
+	geteilt_durch_10: 57,
+	addition_bis_10: 58,
+	addition_bis_20: 59,
+	addition_bis_50: 60,
+	addition_bis_100: 61,
+	addition_bis_1000: 62,
+	subtraktion_bis_10: 63,
+	subtraktion_bis_20: 64,
+	subtraktion_bis_50: 65,
+	subtraktion_bis_100: 66,
+	subtraktion_bis_1000: 67,
+	kleines_1x1_multiplikation: 68,
+	kleines_1x1_division: 69,
+	kleines_1x1_komplett: 70,
+	addition_subtraktion_bis_20: 71,
+	addition_subtraktion_bis_100: 72,
+	addition_subtraktion_bis_1000: 73,
+	terme_zusammenfassen: 74,
+	terme_umformen: 75,
+	terme_einsetzen: 76
+};
+
+if (typeof window !== 'undefined') {
+	window.MTGQuizShareLinkTypeRegistry = quizShareLinkTypeRegistry;
 }
 
 const typeOrderIndex = Object.fromEntries(typeDefinitions.map(([key], index) => [key, index]));
@@ -365,7 +555,12 @@ function sortByTypeDefinitions(types) {
 // AUFGABEN-GENERATOR
 // ============================================================
 
+// ============================================================
+// AUFGABEN-GENERATOR
+// ============================================================
+
 function createTask(type, grade = 5, options = {}) {
+	const isQuizMode = options?.mode === 'quiz';
 	if (typeof grade === 'string') {
 		const parsed = parseInt(grade.replace(/\D/g, ''), 10);
 		grade = Number.isFinite(parsed) ? parsed : 5;
@@ -374,6 +569,26 @@ function createTask(type, grade = 5, options = {}) {
 	}
 
 	const isSingleTask = Boolean(options.singleTask);
+	let answer = null;
+	const numericAnswer = value => ({ kind: 'number', value });
+	const fractionAnswer = (num, den, requireReduced = false) => ({ kind: 'fraction', num, den, requireReduced });
+	const listAnswer = values => ({ kind: 'list', values: values.map(value => Number(value)) });
+	const expressionAnswer = (expr, options = {}) => ({ kind: 'expression', expr: String(expr), ...options });
+	const probabilityAnswer = (value) => {
+		const candidates = [value, value * 100];
+		const uniqueValues = [...new Set(candidates.map(v => Number(v.toFixed(12))))];
+		return { kind: 'either', options: uniqueValues };
+	};
+	const ensureFractionReduced = (num, den) => {
+		const gcd = mathUtils.getGcd(num, den);
+		return { num: num / gcd, den: den / gcd };
+	};
+	const maybeSimplifyFraction = (num, den) => {
+		if (den === 0) return { num: 0, den: 1 };
+		const normalized = ensureFractionReduced(num, den);
+		return normalized;
+	};
+
 	let s = '';
 	let textDisplay = '', textPrint = '';
 
@@ -1057,7 +1272,36 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 
-		case 'dezimalbrueche_addieren_subtrahieren': {
+	case 'dezimalbrueche_addieren_subtrahieren': {
+		if (isQuizMode) {
+			const allowNegativeDecimals = grade >= 8;
+
+			const createDbAsEntry = () => {
+				let expr;
+				let solution;
+				let answer;
+				let a = allowNegativeDecimals ? trueDec(-15, 15) : trueDec(0, 15);
+				let b = allowNegativeDecimals ? trueDec(-15, 15) : trueDec(0, 13);
+
+				if (Math.random() > 0.5) {
+					const result = a + b;
+					expr = `\\[ ${comma(a)} + ${comma(fmt(b))} = \\]`;
+					solution = `\\[ ${comma(a)} + ${comma(fmt(b))} = ${comma(result.toFixed(1))} \\]`;
+					answer = numericAnswer(Number(result.toFixed(1)));
+				} else {
+					const result = a - b;
+					expr = `\\[ ${comma(a)} - ${comma(fmt(b))} = \\]`;
+					solution = `\\[ ${comma(a)} - ${comma(fmt(b))} = ${comma(result.toFixed(1))} \\]`;
+					answer = numericAnswer(Number(result.toFixed(1)));
+				}
+				return { expr, solution, answer };
+			};
+
+			const entry = createDbAsEntry();
+			textDisplay = entry.expr;
+			s = entry.solution;
+			answer = entry.answer;
+		} else {
 			const allowNegativeDecimals = grade >= 8;
 
 			const createDbAsEntry = () => {
@@ -1079,10 +1323,52 @@ function createTask(type, grade = 5, options = {}) {
 			const entry = createDbAsEntry();
 			textDisplay = entry.expr;
 			s = entry.solution;
-			break;
 		}
+		break;
+	}
+	case 'dezimalbrueche_multiplizieren_dividieren': {
+		if (isQuizMode) {
+			const allowNegativeDecimals = grade >= 8;
 
-		case 'dezimalbrueche_multiplizieren_dividieren': {
+			const createDbMdEntry = () => {
+				let expr;
+				let solution;
+				let answer;
+				const rdLocal = Math.random();
+
+				if (rdLocal > 0.7) {
+					const a = allowNegativeDecimals ? trueDec(-9, 9) : trueDec(0, 9);
+					const b = allowNegativeDecimals ? rnd(-7, 7) : rnd(1, 7);
+					const result = a * b;
+					expr = `\\( ${comma(a)} \\cdot ${comma(fmt(b))} =\\)`;
+					solution = `\\( ${comma(a)} \\cdot ${comma(fmt(b))} = ${comma(result.toFixed(1))} \\)`;
+					answer = numericAnswer(Number(result.toFixed(1)));
+				} else if (rdLocal > 0.4) {
+					const a = allowNegativeDecimals ? trueDec(-1.5, 1.5) : trueDec(0, 1.5);
+					const b = allowNegativeDecimals ? trueDec(-1.5, 1.5) : trueDec(0, 1.5);
+					const result = a * b;
+					expr = `\\[ ${comma(a)} \\cdot ${comma(fmt(b))} = \\]`;
+					solution = `\\[ ${comma(a)} \\cdot ${comma(fmt(b))} = ${comma(result.toFixed(2))} \\]`;
+					answer = numericAnswer(Number(result.toFixed(2)));
+				} else {
+					const res = allowNegativeDecimals ? trueDec(-1.5, 1.5) : trueDec(0, 1.5);
+					let b = allowNegativeDecimals ? rnd(-9, 9) : rnd(2, 9);
+					while (b === 0) {
+						b = allowNegativeDecimals ? rnd(-9, 9) : rnd(2, 9);
+					}
+					const a = res * b;
+					expr = `\\[ ${comma(a.toFixed(1))} : ${comma(fmt(b))} = \\]`;
+					solution = `\\[ ${comma(a.toFixed(1))} : ${comma(fmt(b))} = ${comma(res.toFixed(1))} \\]`;
+					answer = numericAnswer(Number(res.toFixed(1)));
+				}
+				return { expr, solution, answer };
+			};
+
+			const entry = createDbMdEntry();
+			textDisplay = entry.expr;
+			s = entry.solution;
+			answer = entry.answer;
+		} else {
 			const allowNegativeDecimals = grade >= 8;
 
 			const createDbMdEntry = () => {
@@ -1122,10 +1408,40 @@ function createTask(type, grade = 5, options = {}) {
 				textDisplay = buildTwoColumnTaskTable(entries.map(item => item.expr));
 				s = buildTwoColumnTaskTable(entries.map(item => item.solution));
 			}
-			break;
 		}
+		break;
+	}
+	case 'natuerliche_zahlen_addieren_subtrahieren': {
+		if (isQuizMode) {
+			const createNatAsEntry = () => {
+				let expr;
+				let solution;
+				let answer;
+				const isAddition = Math.random() > 0.5;
 
-		case 'natuerliche_zahlen_addieren_subtrahieren': {
+				if (isAddition) {
+					const v1 = randInt(20, 300);
+					const v2 = randInt(20, 300);
+					expr = `\\[ ${v1} + ${v2} = \\]`;
+					const sum = v1 + v2;
+					solution = `\\[ ${v1} + ${v2} = ${sum} \\]`;
+					answer = numericAnswer(sum);
+				} else {
+					const v1 = randInt(70, 300);
+					const v2 = randInt(20, v1);
+					expr = `\\[ ${v1} - ${v2} = \\]`;
+					const diff = v1 - v2;
+					solution = `\\[ ${v1} - ${v2} = ${diff} \\]`;
+					answer = numericAnswer(diff);
+				}
+				return { expr, solution, answer };
+			};
+
+			const entry = createNatAsEntry();
+			textDisplay = entry.expr;
+			s = entry.solution;
+			answer = entry.answer;
+		} else {
 			const createNatAsEntry = () => {
 				let expr;
 				let solution;
@@ -1154,10 +1470,50 @@ function createTask(type, grade = 5, options = {}) {
 				textDisplay = buildTwoColumnTaskTable(entries.map(item => item.expr));
 				s = buildTwoColumnTaskTable(entries.map(item => item.solution));
 			}
-			break;
 		}
+		break;
+	}
+	case 'ganze_zahlen_addieren_subtrahieren': {
+		if (isQuizMode) {
+			const createZAsEntry = () => {
+				let expr;
+				let solution;
+				let answer;
+				if (Math.random() > 0.5) {
+					do {
+						v1 = rnd(-20, 20);
+						v2 = rnd(-20, 20);
+					} while (!(v1 < 0 || v2 < 0 || (v1 + v2) < 0));
+					expr = `\\[ ${v1} + ${fmt(v2)} = \\]`;
+					const sum = v1 + v2;
+					if (v2 < 0) {
+						solution = `\\[ ${v1} + ${fmt(v2)} = ${v1} - ${Math.abs(v2)} = ${sum} \\]`;
+					} else {
+						solution = `\\[ ${v1} + ${fmt(v2)} = ${sum} \\]`;
+					}
+					answer = numericAnswer(sum);
+				} else {
+					do {
+						v1 = rnd(-20, 20);
+						v2 = rnd(-20, 20);
+					} while (!(v1 < 0 || v2 < 0 || (v1 - v2) < 0));
+					expr = `\\[ ${v1} - ${fmt(v2)} = \\]`;
+					const diff = v1 - v2;
+					if (v2 < 0) {
+						solution = `\\[ ${v1} - ${fmt(v2)} = ${v1} + ${Math.abs(v2)} = ${diff} \\]`;
+					} else {
+						solution = `\\[ ${v1} - ${fmt(v2)} = ${diff} \\]`;
+					}
+					answer = numericAnswer(diff);
+				}
+				return { expr, solution, answer };
+			};
 
-		case 'ganze_zahlen_addieren_subtrahieren': {
+			const entry = createZAsEntry();
+			textDisplay = entry.expr;
+			s = entry.solution;
+			answer = entry.answer;
+		} else {
 			const createZAsEntry = () => {
 				let expr;
 				let solution;
@@ -1198,10 +1554,57 @@ function createTask(type, grade = 5, options = {}) {
 				textDisplay = buildTwoColumnTaskTable(entries.map(item => item.expr));
 				s = buildTwoColumnTaskTable(entries.map(item => item.solution));
 			}
-			break;
 		}
+		break;
+	}
+	case 'natuerliche_zahlen_multiplizieren_dividieren': {
+		if (isQuizMode) {
+			const createNatMdEntry = () => {
+				let expr;
+				let solution;
+				let answer;
+				if (Math.random() < 0.6) {
+					if (Math.random() < 0.3) {
+						const factorCount = Math.random() < 0.5 ? 3 : 4;
+						let factors;
+						let product;
+						do {
+							factors = Array.from({ length: factorCount }, () => Math.random() < 0.05 ? 0 : randInt(0, 10));
+							product = factors.reduce((result, factor) => result * factor, 1);
+						} while (product > 400);
+						const factorText = factors.join(' \\cdot ');
+						expr = `\\[ ${factorText} = \\]`;
+						solution = `\\[ ${factorText} = ${product} \\]`;
+						answer = numericAnswer(product);
+					} else {
+						const v1 = Math.random() < 0.5 ? rnd(0, 13) : rnd(2, 9);
+						const v2 = Math.random() < 0.5 ? rnd(0, 13) : rnd(2, 9);
+						expr = `\\[ ${v1} \\cdot ${v2} = \\]`;
+						const product = v1 * v2;
+						solution = `\\[ ${v1} \\cdot ${v2} = ${product} \\]`;
+						answer = numericAnswer(product);
+					}
+				} else {
+					const divisor = Math.random() < 0.5 ? randInt(1, 13) : randInt(2, 9);
+					let quotient;
+					if (divisor >= 11) {
+						quotient = rnd(2, 5);
+					} else {
+						quotient = rnd(2, 12);
+					}
+					const dividend = divisor * quotient;
+					expr = `\\[ ${dividend} : ${divisor} = \\]`;
+					solution = `\\[ ${dividend} : ${divisor} = ${quotient} \\]`;
+					answer = numericAnswer(quotient);
+				}
+				return { expr, solution, answer };
+			};
 
-		case 'natuerliche_zahlen_multiplizieren_dividieren': {
+			const entry = createNatMdEntry();
+			textDisplay = entry.expr;
+			s = entry.solution;
+			answer = entry.answer;
+		} else {
 			const createNatMdEntry = () => {
 				let expr;
 				let solution;
@@ -1247,50 +1650,108 @@ function createTask(type, grade = 5, options = {}) {
 				textDisplay = buildTwoColumnTaskTable(entries.map(item => item.expr));
 				s = buildTwoColumnTaskTable(entries.map(item => item.solution));
 			}
-			break;
 		}
-
-		case 'einmaleins_2':
-		case 'einmaleins_3':
-		case 'einmaleins_4':
-		case 'einmaleins_5':
-		case 'einmaleins_6':
-		case 'einmaleins_7':
-		case 'einmaleins_8':
-		case 'einmaleins_9':
-		case 'einmaleins_10':
-		case 'geteilt_durch_2':
-		case 'geteilt_durch_3':
-		case 'geteilt_durch_4':
-		case 'geteilt_durch_5':
-		case 'geteilt_durch_6':
-		case 'geteilt_durch_7':
-		case 'geteilt_durch_8':
-		case 'geteilt_durch_9':
-		case 'geteilt_durch_10':
-		case 'addition_bis_10':
-		case 'addition_bis_20':
-		case 'addition_bis_50':
-		case 'addition_bis_100':
-		case 'addition_bis_1000':
-		case 'subtraktion_bis_10':
-		case 'subtraktion_bis_20':
-		case 'subtraktion_bis_50':
-		case 'subtraktion_bis_100':
-		case 'subtraktion_bis_1000':
-		case 'kleines_1x1_multiplikation':
-		case 'kleines_1x1_division':
-		case 'kleines_1x1_komplett':
-		case 'addition_subtraktion_bis_20':
-		case 'addition_subtraktion_bis_100':
-		case 'addition_subtraktion_bis_1000': {
+		break;
+	}
+	case 'einmaleins_2':
+	case 'einmaleins_3':
+	case 'einmaleins_4':
+	case 'einmaleins_5':
+	case 'einmaleins_6':
+	case 'einmaleins_7':
+	case 'einmaleins_8':
+	case 'einmaleins_9':
+	case 'einmaleins_10':
+	case 'geteilt_durch_2':
+	case 'geteilt_durch_3':
+	case 'geteilt_durch_4':
+	case 'geteilt_durch_5':
+	case 'geteilt_durch_6':
+	case 'geteilt_durch_7':
+	case 'geteilt_durch_8':
+	case 'geteilt_durch_9':
+	case 'geteilt_durch_10':
+	case 'addition_bis_10':
+	case 'addition_bis_20':
+	case 'addition_bis_50':
+	case 'addition_bis_100':
+	case 'addition_bis_1000':
+	case 'subtraktion_bis_10':
+	case 'subtraktion_bis_20':
+	case 'subtraktion_bis_50':
+	case 'subtraktion_bis_100':
+	case 'subtraktion_bis_1000':
+	case 'kleines_1x1_multiplikation':
+	case 'kleines_1x1_division':
+	case 'kleines_1x1_komplett':
+	case 'addition_subtraktion_bis_20':
+	case 'addition_subtraktion_bis_100':
+	case 'addition_subtraktion_bis_1000': {
+		if (isQuizMode) {
+			if (type.startsWith('einmaleins_')) {
+				const row = Number(type.slice('einmaleins_'.length));
+				const otherFactor = randInt(1, 10);
+				const factorsReversed = Math.random() < 0.5;
+				const firstFactor = factorsReversed ? otherFactor : row;
+				const secondFactor = factorsReversed ? row : otherFactor;
+				const product = firstFactor * secondFactor;
+				textDisplay = `\\[ ${firstFactor} \\cdot ${secondFactor} = \\]`;
+				s = `\\[ ${firstFactor} \\cdot ${secondFactor} = ${product} \\]`;
+				answer = numericAnswer(product);
+			} else if (type.startsWith('geteilt_durch_')) {
+				const divisor = Number(type.slice('geteilt_durch_'.length));
+				const quotient = randInt(1, 10);
+				const dividend = divisor * quotient;
+				textDisplay = `\\[ ${dividend} : ${divisor} = \\]`;
+				s = `\\[ ${dividend} : ${divisor} = ${quotient} \\]`;
+				answer = numericAnswer(quotient);
+			} else if (type.startsWith('addition_bis_')) {
+				const limit = Number(type.slice('addition_bis_'.length));
+				const firstAddend = randInt(0, limit);
+				const secondAddend = randInt(0, limit-firstAddend);
+				const sum = firstAddend + secondAddend;
+				textDisplay = `\\[ ${firstAddend} + ${secondAddend} = \\]`;
+				s = `\\[ ${firstAddend} + ${secondAddend} = ${sum} \\]`;
+				answer = numericAnswer(sum);
+			} else if (type.startsWith('subtraktion_bis_')) {
+				const limit = Number(type.slice('subtraktion_bis_'.length));
+				const minuend = randInt(0, limit);
+				const subtrahend = randInt(0, minuend);
+				const difference = minuend-subtrahend;
+				textDisplay = `\\[ ${minuend} - ${subtrahend} = \\]`;
+				s = `\\[ ${minuend} - ${subtrahend} = ${difference} \\]`;
+				answer = numericAnswer(difference);
+			} else if (type.startsWith('kleines_1x1_')) {
+				const isMultiplication = type === 'kleines_1x1_multiplikation' || (type === 'kleines_1x1_komplett' && Math.random() < 0.5);
+				const firstFactor = randInt(1, 10);
+				const secondFactor = randInt(1, 10);
+				const product = firstFactor * secondFactor;
+				if (isMultiplication) {
+					textDisplay = `\\[ ${firstFactor} \\cdot ${secondFactor} = \\]`;
+					s = `\\[ ${firstFactor} \\cdot ${secondFactor} = ${product} \\]`;
+					answer = numericAnswer(product);
+				} else {
+					textDisplay = `\\[ ${product} : ${secondFactor} = \\]`;
+					s = `\\[ ${product} : ${secondFactor} = ${firstFactor} \\]`;
+					answer = numericAnswer(firstFactor);
+				}
+			} else {
+				const limit = Number(type.slice('addition_subtraktion_bis_'.length));
+				const isAddition = Math.random() < 0.5;
+				const firstNumber = randInt(0, limit);
+				const secondNumber = isAddition ? randInt(0, limit-firstNumber) : randInt(0, firstNumber);
+				const result = isAddition ? firstNumber + secondNumber : firstNumber - secondNumber;
+				const operator = isAddition ? '+' : '-';
+				textDisplay = `\\[ ${firstNumber} ${operator} ${secondNumber} = \\]`;
+				s = `\\[ ${firstNumber} ${operator} ${secondNumber} = ${result} \\]`;
+				answer = numericAnswer(result);
+			}
+		} else {
 			const createGrundschuleEntry = () => {
-				let expr;
-				let solution;
-
+				let expr, solution;
 				if (type.startsWith('einmaleins_')) {
 					const row = Number(type.slice('einmaleins_'.length));
-					const otherFactor = randInt(1, 10);
+					const otherFactor = randInt(1,10);
 					const factorsReversed = Math.random() < 0.5;
 					const firstFactor = factorsReversed ? otherFactor : row;
 					const secondFactor = factorsReversed ? row : otherFactor;
@@ -1299,68 +1760,95 @@ function createTask(type, grade = 5, options = {}) {
 					solution = `\\[ ${firstFactor} \\cdot ${secondFactor} = ${product} \\]`;
 				} else if (type.startsWith('geteilt_durch_')) {
 					const divisor = Number(type.slice('geteilt_durch_'.length));
-					const quotient = randInt(1, 10);
-					const dividend = divisor * quotient;
+					const quotient = randInt(1,10);
+					const dividend = divisor*quotient;
 					expr = `\\[ ${dividend} : ${divisor} = \\]`;
 					solution = `\\[ ${dividend} : ${divisor} = ${quotient} \\]`;
 				} else if (type.startsWith('addition_bis_')) {
 					const limit = Number(type.slice('addition_bis_'.length));
-					const firstAddend = randInt(0, limit);
-					const secondAddend = randInt(0, limit - firstAddend);
-					const sum = firstAddend + secondAddend;
+					const firstAddend = randInt(0,limit);
+					const secondAddend = randInt(0,limit-firstAddend);
+					const sum = firstAddend+secondAddend;
 					expr = `\\[ ${firstAddend} + ${secondAddend} = \\]`;
 					solution = `\\[ ${firstAddend} + ${secondAddend} = ${sum} \\]`;
 				} else if (type.startsWith('subtraktion_bis_')) {
 					const limit = Number(type.slice('subtraktion_bis_'.length));
-					const minuend = randInt(0, limit);
-					const subtrahend = randInt(0, minuend);
-					const difference = minuend - subtrahend;
+					const minuend = randInt(0,limit);
+					const subtrahend = randInt(0,minuend);
+					const difference = minuend-subtrahend;
 					expr = `\\[ ${minuend} - ${subtrahend} = \\]`;
 					solution = `\\[ ${minuend} - ${subtrahend} = ${difference} \\]`;
 				} else if (type.startsWith('kleines_1x1_')) {
-					const isMultiplication = type === 'kleines_1x1_multiplikation'
-						|| (type === 'kleines_1x1_komplett' && Math.random() < 0.5);
-					const firstFactor = randInt(1, 10);
-					const secondFactor = randInt(1, 10);
-					const product = firstFactor * secondFactor;
-					if (isMultiplication) {
+					const isMultiplication = type === 'kleines_1x1_multiplikation' || (type === 'kleines_1x1_komplett' && Math.random() < 0.5);
+					const firstFactor = randInt(1,10);
+					const secondFactor = randInt(1,10);
+					const product = firstFactor*secondFactor;
+					if(isMultiplication){
 						expr = `\\[ ${firstFactor} \\cdot ${secondFactor} = \\]`;
 						solution = `\\[ ${firstFactor} \\cdot ${secondFactor} = ${product} \\]`;
-					} else {
+					}else{
 						expr = `\\[ ${product} : ${secondFactor} = \\]`;
 						solution = `\\[ ${product} : ${secondFactor} = ${firstFactor} \\]`;
 					}
-				} else {
+				}else{
 					const limit = Number(type.slice('addition_subtraktion_bis_'.length));
-					const isAddition = Math.random() < 0.5;
-					const firstNumber = randInt(0, limit);
-					const secondNumber = isAddition
-						? randInt(0, limit - firstNumber)
-						: randInt(0, firstNumber);
-					const result = isAddition
-						? firstNumber + secondNumber
-						: firstNumber - secondNumber;
-					const operator = isAddition ? '+' : '-';
+					const isAddition = Math.random()<0.5;
+					const firstNumber = randInt(0,limit);
+					const secondNumber = isAddition?randInt(0,limit-firstNumber):randInt(0,firstNumber);
+					const result = isAddition?firstNumber+secondNumber:firstNumber-secondNumber;
+					const operator=isAddition?'+':'-';
 					expr = `\\[ ${firstNumber} ${operator} ${secondNumber} = \\]`;
 					solution = `\\[ ${firstNumber} ${operator} ${secondNumber} = ${result} \\]`;
 				}
-
-				return { expr, solution };
+				return {expr,solution};
+			};
+			if(isSingleTask){
+				const entry=createGrundschuleEntry();
+				textDisplay=entry.expr;
+				s=entry.solution;
+			}else{
+				const entries=[createGrundschuleEntry(),createGrundschuleEntry()];
+				textDisplay=buildTwoColumnTaskTable(entries.map(item=>item.expr));
+				s=buildTwoColumnTaskTable(entries.map(item=>item.solution));
+			}
+		}
+		break;
+	}
+	case 'ganze_zahlen_multiplizieren_dividieren': {
+		if (isQuizMode) {
+			const createZMdEntry = () => {
+				let expr;
+				let solution;
+				let answer;
+				if (Math.random() > 0.5) {
+					do {
+						v1 = rnd(-15, 15);
+						v2 = rnd(-9, 9);
+					} while (!(v1 < 0 || v2 < 0 || (v1 * v2) < 0));
+					expr = `\\[ ${v1} \\cdot ${fmt(v2)} = \\]`;
+					const product = v1 * v2;
+					solution = `\\[ ${v1} \\cdot ${fmt(v2)} = ${product} \\]`;
+					answer = numericAnswer(product);
+				} else {
+					let res;
+					do {
+						res = rnd(-9, 9);
+						v2 = rnd(1, 12);
+						Math.random() < 0.5 ? v2 = -v2 : null;
+					} while (!(res < 0 || v2 < 0 || (res * v2) < 0));
+					v1 = res * v2;
+					expr = `\\[ ${v1} : ${fmt(v2)} = \\]`;
+					solution = `\\[ ${v1} : ${fmt(v2)} = ${res} \\]`;
+					answer = numericAnswer(res);
+				}
+				return { expr, solution, answer };
 			};
 
-			if (isSingleTask) {
-				const entry = createGrundschuleEntry();
-				textDisplay = entry.expr;
-				s = entry.solution;
-			} else {
-				const entries = [createGrundschuleEntry(), createGrundschuleEntry()];
-				textDisplay = buildTwoColumnTaskTable(entries.map(item => item.expr));
-				s = buildTwoColumnTaskTable(entries.map(item => item.solution));
-			}
-			break;
-		}
-
-		case 'ganze_zahlen_multiplizieren_dividieren': {
+			const entry = createZMdEntry();
+			textDisplay = entry.expr;
+			s = entry.solution;
+			answer = entry.answer;
+		} else {
 			const createZMdEntry = () => {
 				let expr;
 				let solution;
@@ -1410,10 +1898,143 @@ function createTask(type, grade = 5, options = {}) {
 				textDisplay = buildTwoColumnTaskTable(entries.map(item => item.expr));
 				s = buildTwoColumnTaskTable(entries.map(item => item.solution));
 			}
-			break;
 		}
+		break;
+	}
+	case 'zehnerpotenzen_multiplizieren_dividieren': {
+		if (isQuizMode) {
+			const createPow10Entry = () => {
+				const normalizeDecimalString = (value) => {
+					let [intPart, fracPart = ''] = value.split('.');
+					intPart = intPart.replace(/^0+(?=\d)/, '');
+					if (intPart === '') {
+						intPart = '0';
+					}
+					fracPart = fracPart.replace(/0+$/, '');
+					return fracPart ? `${intPart}.${fracPart}` : intPart;
+				};
 
-		case 'zehnerpotenzen_multiplizieren_dividieren': {
+				const fromScaledInteger = (raw, decimals) => {
+					if (decimals <= 0) {
+						return String(raw) + (decimals < 0 ? '0'.repeat(-decimals) : '');
+					}
+					const sign = raw < 0 ? '-' : '';
+					const absStr = String(Math.abs(raw)).padStart(decimals + 1, '0');
+					const intPart = absStr.slice(0, -decimals);
+					const fracPart = absStr.slice(-decimals);
+					return `${sign}${normalizeDecimalString(`${intPart}.${fracPart}`)}`;
+				};
+
+				// Stufenzahl / Zehnerpotenz mit oder ohne Vorfaktor (z. B. 0.01, 0.02, 0.5, 10, 200, 3000)
+				// Vorfaktoren: 1 (reine Zehnerpotenz), 2, 3, 4 oder 5
+				// In dieser Aufgabenart werden nur Vorfaktoren von 1 oder 2 verwendet.
+				const integerOnly = grade <= 5;
+				if (integerOnly) {
+					const appendZeros = (value, count) => String(value) + '0'.repeat(count);
+					const isMult = Math.random() > 0.5;
+					const secondZeros = randInt(1, 2);
+					let firstZeros;
+					let operandStrRaw;
+					let stepStrRaw;
+					let resultStrRaw;
+
+					if (isMult) {
+						firstZeros = randInt(0, 2);
+						const firstBase = randInt(1, 12);
+						const secondBase = randInt(1, 12);
+						operandStrRaw = appendZeros(firstBase, firstZeros);
+						stepStrRaw = appendZeros(secondBase, secondZeros);
+						resultStrRaw = String(Number(operandStrRaw) * Number(stepStrRaw));
+					} else {
+						// Die erste Nullanzahl darf nicht kleiner als die zweite sein,
+						// damit die Division trotz angehängter Nullen ganzzahlig bleibt.
+						firstZeros = randInt(secondZeros, 2);
+						const quotientBase = randInt(1, 12);
+						const divisorBase = randInt(1, 12);
+						operandStrRaw = appendZeros(quotientBase * divisorBase, firstZeros);
+						stepStrRaw = appendZeros(divisorBase, secondZeros);
+						resultStrRaw = String(quotientBase * Math.pow(10, firstZeros - secondZeros));
+					}
+
+					const op = isMult ? '\\cdot' : ':';
+					const operandFormatted = comma(operandStrRaw);
+					const stepFormatted = comma(stepStrRaw);
+					const resultFormatted = comma(resultStrRaw);
+					const expr = `\\[ ${operandFormatted} ${op} ${stepFormatted} =\\]`;
+					const solution = `\\[ ${operandFormatted} ${op} ${stepFormatted} = ${resultFormatted} \\]`;
+					return { expr, solution, answer: numericAnswer(Number(resultStrRaw)) };
+				}
+
+				const coeff = [1, 2][randInt(0, 1)]; // Vorfaktor: 1 oder 2
+				const exponentOptions = [-2, -1, 1, 2, 3];
+				const exponent = exponentOptions[randInt(0, exponentOptions.length - 1)];
+
+				const stepStrRaw = fromScaledInteger(coeff, -exponent);
+				const isMult = Math.random() > 0.5;
+				let operandStrRaw;
+				let resultStrRaw;
+
+				if (isMult) {
+					// MULTIPLIKATION: operand * stepStrRaw = result
+					let mOperand, dOperand;
+					if (!integerOnly && Math.random() > 0.4) {
+						// Dezimalbruch mit 1 oder 2 Nachkommastellen
+						dOperand = (coeff === 1 && (exponent === 1 || exponent === 2) && Math.random() > 0.5) ? 2 : 1;
+						mOperand = dOperand === 2 ? rnd(11, 250) : rnd(2, 95);
+					} else {
+						// Natürliche Zahl
+						dOperand = 0;
+						mOperand = rnd(2, 45);
+					}
+
+					operandStrRaw = fromScaledInteger(mOperand, dOperand);
+					const rawResult = mOperand * coeff;
+					const resultDecimals = dOperand - exponent;
+					resultStrRaw = fromScaledInteger(rawResult, resultDecimals);
+				} else {
+					// DIVISION: operand : stepStrRaw = result
+					// Glatten Quotienten erzeugen, damit die Aufgabe exakt aufgeht
+					let mQuotient, dQuotient;
+					if (!integerOnly && Math.random() > 0.4) {
+						dQuotient = 1;
+						mQuotient = rnd(2, 45);
+					} else {
+						dQuotient = 0;
+						mQuotient = rnd(2, 35);
+					}
+
+					resultStrRaw = fromScaledInteger(mQuotient, dQuotient);
+					const rawDividend = mQuotient * coeff;
+					const dividendDecimals = dQuotient - exponent;
+					operandStrRaw = fromScaledInteger(rawDividend, dividendDecimals);
+				}
+
+				const op = isMult ? '\\cdot' : ':';
+				const operandFormatted = comma(operandStrRaw);
+				const stepFormatted = comma(stepStrRaw);
+				const resultFormatted = comma(resultStrRaw);
+
+				// Aufgabe
+				const expr = `\\[ ${operandFormatted} ${op} ${stepFormatted} =\\]`;
+
+				// Lösung mit Hilfestellung bei Multiplikation/Division mit Dezimalbrüchen
+				let solution;
+				if (coeff === 1 && exponent < 0 && isMult) {
+					solution = `\\[ ${operandFormatted} ${op} ${stepFormatted} = ${resultFormatted} \\quad ( : ${Math.pow(10, -exponent)} )\\]`;
+				} else if (coeff === 1 && exponent < 0 && !isMult) {
+					solution = `\\[ ${operandFormatted} ${op} ${stepFormatted} = ${resultFormatted} \\quad ( \\cdot ${Math.pow(10, -exponent)} )\\]`;
+				} else {
+					solution = `\\[ ${operandFormatted} ${op} ${stepFormatted} = ${resultFormatted} \\]`;
+				}
+
+				return { expr, solution, answer: numericAnswer(Number(resultStrRaw)) };
+			};
+
+			const entry = createPow10Entry();
+			textDisplay = entry.expr;
+			s = entry.solution;
+			answer = entry.answer;
+		} else {
 			const createPow10Entry = () => {
 				const normalizeDecimalString = (value) => {
 					let [intPart, fracPart = ''] = value.split('.');
@@ -1555,10 +2176,70 @@ function createTask(type, grade = 5, options = {}) {
 				textDisplay = buildTwoColumnTaskTable(entries.map(item => item.expr));
 				s = buildTwoColumnTaskTable(entries.map(item => item.solution));
 			}
-			break;
 		}
+		break;
+	}
+	case 'brueche_addieren_subtrahieren': {
+		if (isQuizMode) {
+			const getGcd = mathUtils.getGcd;
 
-		case 'brueche_addieren_subtrahieren': {
+			// Erzeugt einen vollständig gekürzten Bruch.
+			// Zähler darf 1 sein, Nenner liegt bewusst bei 2..9.
+			const makeCoprimeFraction = (minNum = 2, maxNum = 10, minDen = 2, maxDen = 9, forbiddenDen = null) => {
+				let num, den;
+				do {
+					num = rnd(minNum, maxNum) - 1;   // 1 ist explizit erlaubt
+					den = rnd(minDen, maxDen);
+				} while (getGcd(num, den) !== 1 || den === forbiddenDen);
+				return [num, den];
+			};
+
+			// Erster Bruch
+			let [z1, n1] = makeCoprimeFraction();
+
+			// Zweiter Bruch: ebenfalls teilerfremd, aber mit verschiedenem Nenner
+			let [z2, n2] = makeCoprimeFraction(1, 9, 2, 9, n1);
+
+			const isAdd = Math.random() > 0.5;
+
+			// Bei Subtraktion sicherstellen, dass das Ergebnis positiv bleibt
+			if (!isAdd && (z1 * n2 <= z2 * n1)) {
+				[z1, z2] = [z2, z1];
+				[n1, n2] = [n2, n1];
+			}
+
+			// Hauptnenner
+			const hn = (n1 * n2) / getGcd(n1, n2);
+
+			const f1 = hn / n1;
+			const f2 = hn / n2;
+
+			const ez1 = z1 * f1;
+			const ez2 = z2 * f2;
+
+			const op = isAdd ? '+' : '-';
+			const finalZ = isAdd ? ez1 + ez2 : ez1 - ez2;
+			const finalReduced = maybeSimplifyFraction(finalZ, hn);
+			const answerFraction = fractionAnswer(finalReduced.num, finalReduced.den, false);
+
+			textDisplay = `Berechne: \\( \\quad \\dfrac{${z1}}{${n1}} ${op} \\dfrac{${z2}}{${n2}} = \\)`;
+
+			// Dynamischer Lösungsweg
+			let step1 = "";
+			if (f1 > 1 && f2 > 1) {
+				step1 = `\\frac{${z1} \\cdot ${f1} ${op} ${z2} \\cdot ${f2}}{${n1} \\cdot ${f1}} = \\frac{${ez1} ${op} ${ez2}}{${hn}}`;
+			} else if (f1 > 1) {
+				step1 = `\\frac{${z1} \\cdot ${f1}}{${n1} \\cdot ${f1}} ${op} \\frac{${z2}}{${n2}} = \\frac{${ez1} ${op} ${ez2}}{${hn}}`;
+			} else if (f2 > 1) {
+				step1 = `\\frac{${z1}}{${n1}} ${op} \\frac{${z2} \\cdot ${f2}}{${n2} \\cdot ${f2}} = \\frac{${ez1} ${op} ${ez2}}{${hn}}`;
+			} 
+			let kuerzStep = "";
+			if (finalReduced.num !== finalZ || finalReduced.den !== hn) {
+				kuerzStep = finalReduced.den === 1 ? ` = ${finalReduced.num}` : ` = \\frac{${finalReduced.num}}{${finalReduced.den}}`;
+			}
+			s = `\\[ \\frac{${z1}}{${n1}} ${op} \\frac{${z2}}{${n2}} = ${step1} = \\frac{${finalZ}}{${hn}}${kuerzStep} \\]`;
+			answer = answerFraction;
+		} else {
 			const getGcd = mathUtils.getGcd;
 
 			// Erzeugt einen vollständig gekürzten Bruch.
@@ -1626,10 +2307,75 @@ function createTask(type, grade = 5, options = {}) {
 				step1 = `\\frac{${z1}}{${n1}} ${op} \\frac{${z2} \\cdot ${f2}}{${n2} \\cdot ${f2}} = \\frac{${ez1} ${op} ${ez2}}{${hn}}`;
 			} 
 			s = `\\[ \\frac{${z1}}{${n1}} ${op} \\frac{${z2}}{${n2}} = ${step1} = \\frac{${finalZ}}{${hn}} \\]`;
-			break;
 		}
+		break;
+	}
+	case 'brueche_multiplizieren_dividieren': {
+		if (isQuizMode) {
+			let Z1, N1, Z2, N2, isMult;
 
-		case 'brueche_multiplizieren_dividieren': {
+			const getGcd = mathUtils.getGcd;
+			const useNaturalNumberVariant = Math.random() < 0.30;
+
+			if (useNaturalNumberVariant) {
+				let n;
+				isMult = Math.random() > 0.5;
+				let resultZ;
+				let resultN;
+
+				do {
+					Z1 = rnd(2, 9);
+					N1 = rnd(2, 9);
+					n = rnd(2, 9);
+
+					resultZ = isMult ? Z1 * n : Z1;
+					resultN = isMult ? N1 : N1 * n;
+				} while (
+					getGcd(Z1, N1) > 1 ||
+					getGcd(N1, n) > 1 ||
+					getGcd(Z1, n) > 1 ||
+					getGcd(resultZ, resultN) > 1
+				);
+
+				const op = isMult ? '\\cdot' : ':';
+				const resZ = resultZ;
+				const resN = resultN;
+				const step1 = isMult
+					? `\\frac{${Z1}}{${N1}} \\cdot \\frac{${n}}{1}`
+					: `\\frac{${Z1}}{${N1}} \\cdot \\frac{1}{${n}}`;
+
+				textDisplay = `Berechne: \\( \\quad \\dfrac{${Z1}}{${N1}} ${op} ${n} = \\)`;
+				s = `\\[ \\frac{${Z1}}{${N1}} ${op} ${n} = ${step1} = \\frac{${resZ}}{${resN}} \\]`;
+				answer = fractionAnswer(resZ, resN, false);
+				break;
+			}
+
+			isMult = Math.random() > 0.5;
+			let finalZ;
+			let finalN;
+
+			do {
+				Z1 = rnd(2, 9);
+				N1 = rnd(2, 9);
+				Z2 = rnd(2, 9);
+				N2 = rnd(2, 9);
+
+				finalZ = isMult ? Z1 * Z2 : Z1 * N2;
+				finalN = isMult ? N1 * N2 : N1 * Z2;
+			} while (
+				new Set([Z1, N1, Z2, N2]).size < 4 ||
+				getGcd(Z1, N1) > 1 ||
+				getGcd(Z2, N2) > 1 ||
+				getGcd(finalZ, finalN) > 1
+			);
+
+			const op = isMult ? '\\cdot' : ':';
+			const step1 = isMult ? '' : `\\frac{${Z1}}{${N1}} \\cdot \\frac{${N2}}{${Z2}} = `;
+
+			textDisplay = `Berechne: \\( \\quad \\dfrac{${Z1}}{${N1}} ${op} \\dfrac{${Z2}}{${N2}} = \\)`;
+			s = `\\[ \\frac{${Z1}}{${N1}} ${op} \\frac{${Z2}}{${N2}} = ${step1} \\frac{${finalZ}}{${finalN}} \\]`;
+			answer = fractionAnswer(finalZ, finalN, false);
+		} else {
 			let Z1, N1, Z2, N2, z1_base, n1_base, z2_base, n2_base, isMult;
 
 			const getGcd = mathUtils.getGcd;
@@ -1715,10 +2461,46 @@ function createTask(type, grade = 5, options = {}) {
 				s = `\\[ \\frac{${Z1}}{${N1}} ${op} \\frac{${Z2}}{${N2}} = ${stepKehrwert}${midStep} = \\frac{${resZ}}{${resN}} \\]`;				
 			}
 			
-			break;
 		}
+		break;
+	}
+	case 'brueche_kuerzen': {
+		if (isQuizMode) {
+			const factors = [3, 4, 6, 8, 9, 12, 15, 20, 25];
 
-		case 'brueche_kuerzen': {
+			const getGcd = mathUtils.getGcd;
+			const getPrimeFactors = mathUtils.getPrimeFactors;
+
+			const k = factors[Math.floor(Math.random() * factors.length)];
+			const pFactors = getPrimeFactors(k);
+
+			let z_base, n_base, Z, N;
+
+			do {
+				z_base = rnd(2, 12);
+				n_base = rnd(2, 12);
+				Z = z_base * k;
+				N = n_base * k;
+			} while (Z === N || getGcd(z_base, n_base) > 1 || Z % N === 0 || N % Z === 0);
+
+			textDisplay = `Kürze vollständig: \\( \\quad\\dfrac{${Z}}{${N}} = \\)`;
+			answer = fractionAnswer(z_base, n_base, true);
+
+			// Lösungsweg mit \underset unter dem Gleichheitszeichen
+			let solutionSteps = `\\frac{${Z}}{${N}}`;
+			let currentZ = Z;
+			let currentN = N;
+
+			pFactors.forEach(p => {
+				currentZ /= p;
+				currentN /= p;
+				// Hier wird die Zahl p unter das Gleichheitszeichen gesetzt
+				solutionSteps += ` \\underset{${p}}{=} \\frac{${currentZ}}{${currentN}}`;
+			});
+
+			s = `\\[ ${solutionSteps} \\]`;
+
+		} else {
 			const factors = [3, 4, 5, 6, 8, 9, 12, 15, 18, 20, 25];
 
 			const getGcd = mathUtils.getGcd;
@@ -1752,10 +2534,114 @@ function createTask(type, grade = 5, options = {}) {
 
 			s = `\\[ ${solutionSteps} \\]`;
 
-			break;
 		}
+		break;
+	}
+	case 'brueche_ordnen': {
+		if (isQuizMode) {
+			const getGcd = mathUtils.getGcd;
 
-		case 'brueche_ordnen': {
+			const mainDenominators = [12, 15, 18, 20, 24, 30, 36];
+
+			const hn = mainDenominators[randInt(0, mainDenominators.length - 1)];
+
+			const buildCloseExtendedSet = () => {
+				const useImproper = Math.random() < 0.35;
+				const maxImproperDelta = Math.max(1, Math.floor(hn * 0.10));
+
+				let extNums;
+				if (useImproper) {
+					const improper = hn + randInt(1, maxImproperDelta);
+					const properHigh = hn - randInt(1, 3);
+					const properLow = properHigh - randInt(1, 2);
+					extNums = [properLow, properHigh, improper];
+				} else {
+					const high = hn - randInt(1, 3);
+					const mid = high - randInt(1, 2);
+					const low = mid - randInt(1, 2);
+					extNums = [low, mid, high];
+				}
+
+				extNums = extNums.map(value => Math.max(1, value));
+				if (new Set(extNums).size !== 3) return null;
+				if (Math.max(...extNums) - Math.min(...extNums) > 4) return null;
+
+				return extNums;
+			};
+
+			const toReducedFraction = extNum => {
+				const g = getGcd(extNum, hn);
+				return [extNum / g, hn / g];
+			};
+
+			let fracs = null;
+			let retries = 0;
+			do {
+				const extNums = buildCloseExtendedSet();
+				if (!extNums) {
+					retries += 1;
+					continue;
+				}
+
+				const candidateFracs = extNums.map(extNum => ({
+					orig: toReducedFraction(extNum),
+					ext: extNum
+				}));
+
+				const uniqueFracCount = new Set(candidateFracs.map(f => `${f.orig[0]}/${f.orig[1]}`)).size;
+				const denominatorVariety = new Set(candidateFracs.map(f => f.orig[1])).size;
+				const improperFractions = candidateFracs.filter(f => f.orig[0] > f.orig[1]);
+				const improperNearOne = improperFractions.every(f => (f.orig[0] / f.orig[1]) <= 1.15);
+
+				if (
+					uniqueFracCount === 3 &&
+					denominatorVariety >= 2 &&
+					improperFractions.length <= 1 &&
+					improperNearOne
+				) {
+					fracs = candidateFracs;
+				}
+
+				retries += 1;
+			} while (!fracs && retries < 120);
+
+			if (!fracs) {
+				const fallbackExt = [hn - 3, hn - 2, hn - 1];
+				fracs = fallbackExt.map(extNum => ({
+					orig: toReducedFraction(extNum),
+					ext: extNum
+				}));
+			}
+
+			// Zufällig mischen für die Aufgabenstellung
+			const displayOrder = fisherYatesShuffle(fracs);
+			// Aufsteigend sortiert für die Lösung
+			const sortedAsc = [...fracs].sort((a, b) => a.ext - b.ext);
+			const smallest = sortedAsc[0];
+
+			const fmtFrac = ([n, d]) => `\\dfrac{${n}}{${d}}`;
+
+			// Aufgabe: Brüche in zufälliger Reihenfolge, Lücken zum Eintragen
+			const displayStr = displayOrder.map(f => fmtFrac(f.orig)).join(' \\quad ');
+
+			// Nur der kleinste Bruch wird als Antwort bewertet.
+			const exactSmallest = smallest.orig;
+			const exactAnswer = { kind: 'fraction', num: exactSmallest[0], den: exactSmallest[1], exact: true };
+			answer = exactAnswer;
+
+			// Erweiterungsschritt in der Reihenfolge der Aufgabenstellung.
+			const extStep = displayOrder.map(f => {
+				const factor = hn / f.orig[1];
+				if (factor === 1) return fmtFrac(f.orig);
+				return `${fmtFrac(f.orig)} \\overset{${factor}}{=} \\dfrac{${f.ext}}{${hn}}`;
+			}).join(' \\quad ');
+
+			// Sortierte Lösung wie im allgemeinen Generator.
+			const sortedStr = sortedAsc.map(f => fmtFrac(f.orig)).join(' < ');
+
+			textDisplay = `Welcher Bruch ist am kleinsten? \\( \\quad ${displayStr} \\)`;
+			s = `\\[ ${sortedStr} \\quad \\left(${extStep}\\right) \\]`;
+		} else {
 			const getGcd = mathUtils.getGcd;
 
 			const mainDenominators = [12, 15, 18, 20, 24, 30, 36, 40, 60];
@@ -1852,10 +2738,284 @@ function createTask(type, grade = 5, options = {}) {
 
 			textDisplay = `Ordne von klein nach groß: \\( \\quad ${displayStr} \\)`;
 			s = `\\[ ${sortedStr} \\quad \\left(${extStep}\\right) \\]`;
-			break;
 		}
+		break;
+	}
+	case 'brueche_umwandeln': {
+		if (isQuizMode) {
+			// Hilfsfunktionen für diesen Case
+			const getGcd = mathUtils.getGcd;
 
-		case 'brueche_umwandeln': {
+			// Ermittelt den passenden Zehnerpotenz-Nenner (10 oder 100)
+			const getP10 = (n) => (10 % n === 0) ? 10 : 100;
+
+			// Erlaubte Nenner (garantieren saubere Zehnerpotenzen ohne Periode)
+
+			let allowedDenoms = [2, 4, 5, 20, 25, 50];
+
+			// Alle 9 expliziten Umwandlungspfade
+			const paths = [
+				'frac_to_dec', 'dec_to_frac',
+				'frac_to_perc', 'perc_to_frac',
+				'mixed_to_frac',
+				'dec_to_perc', 'perc_to_dec'
+			];
+
+			// Zufälligen Pfad auswählen
+			let path = paths[Math.floor(Math.random() * paths.length)];
+			switch (path) {
+				// ---------------------------------------------------------
+				// 1. Bruch <> Dezimalbruch
+				// ---------------------------------------------------------
+				case 'frac_to_dec': {
+					let n, z, maxZ;
+					let isTooEasy = true;
+
+					// Gesamte Wahl von n und z wiederholen, wenn es "zu oft" 1/2 ist
+					while (isTooEasy) {
+						n = allowedDenoms[Math.floor(Math.random() * allowedDenoms.length)];
+						maxZ = n * 2;
+
+						// Zähler teilerfremd zu n würfeln
+						do {
+							z = randInt(1, maxZ);
+						} while (getGcd(z, n) !== 1);
+
+						// Veto-Check: Wenn der Bruch 1/2 ist, würfle mit 75% Chance neu
+						if (z === 1 && n === 2) {
+							if (Math.random() > 0.25) continue; // 75% Wahrscheinlichkeit für Neustart
+						}
+
+						isTooEasy = false; // Wir haben einen akzeptablen Bruch gefunden
+					}
+
+					let p10 = getP10(n);
+					let mult = p10 / n;
+					let decStr = formatDecimal(z / n, 4);
+					const convertedValue = z / n;
+
+					textDisplay = `als Dezimalbruch: \\( \\quad \\dfrac{${z}}{${n}} = \\)`;
+
+					if (n === p10) {
+						s = `\\[ \\frac{${z}}{${n}} = ${decStr} \\]`;
+					} else {
+						s = `\\[ \\frac{${z}}{${n}} \\overset{${mult}}{=} \\frac{${z * mult}}{${p10}} = ${decStr} \\]`;
+					}
+					answer = numericAnswer(convertedValue);
+					break;
+				}
+
+				case 'dec_to_frac': {
+					let n, z;
+					let isTooEasy = true;
+
+					// 1. Exakt gleiche Generierungs-Logik wie bei frac_to_dec
+					while (isTooEasy) {
+						n = allowedDenoms[Math.floor(Math.random() * allowedDenoms.length)];
+						let maxZ = n * 2;
+
+						let attempts = 0;
+						do {
+							z = randInt(1, maxZ);
+							attempts++;
+							if (attempts > 50) { z = 1; break; }
+						} while (getGcd(z, n) !== 1);
+
+						// Veto-Check für 1/2
+						if (z === 1 && n === 2) {
+							if (Math.random() > 0.25) continue;
+						}
+
+						isTooEasy = false;
+					}
+
+					// 2. Werte für den Dezimalbruch und den Zwischenschritt berechnen
+					let p10 = getP10(n);
+					let mult = p10 / n; // Das ist jetzt unser Kürzungsfaktor
+					let decStr = formatDecimal(z / n, 4);
+
+					// Der Zähler des ungekürzten Zehnerbruchs (z. B. 35 bei 0,35)
+					let z_p10 = z * mult;
+
+					// 3. Aufgabenstellung
+					textDisplay = `als max. gekürzter gem. Bruch: \\( \\quad ${decStr} = \\)`;
+
+					// 4. Lösungsweg (Rückwärts: Dezimal -> Zehnerbruch -> Kürzen -> Ergebnis)
+					if (n === p10) {
+						// Fall: Nenner ist bereits 10 oder 100, es muss nicht gekürzt werden (z. B. 0,7 = 7/10)
+						s = `\\[ ${decStr} = \\frac{${z}}{${n}} \\]`;
+					} else {
+						// Fall: Bruch muss gekürzt werden. Wir zeigen den Kürzungsfaktor explizit (z. B. : 5)
+						s = `\\[ ${decStr} = \\frac{${z_p10}}{${p10}} \\underset{${mult}}{=} \\frac{${z}}{${n}} \\]`;
+					}
+					answer = fractionAnswer(z, n, true);
+					break;
+				}
+
+				// ---------------------------------------------------------
+				// 2. Bruch <> Prozent
+				// ---------------------------------------------------------
+				case 'frac_to_perc': {
+					let n, z;
+					let isTooEasy = true;
+
+					while (isTooEasy) {
+						n = allowedDenoms[Math.floor(Math.random() * allowedDenoms.length)];
+
+						let maxZ = 2 * n - 1;
+
+						let attempts = 0;
+						do {
+							z = randInt(1, maxZ);
+							attempts++;
+							// Sicherheitsnetz: Falls z.B. n=2, ist maxZ=1. Es gibt nur z=1.
+							if (attempts > 50) { z = 1; break; }
+						} while (getGcd(z, n) !== 1);
+
+						// Veto-Check für 1/2 (kommt sonst bei n=2 zu 100% vor)
+						if (z === 1 && n === 2) {
+							if (Math.random() > 0.25) continue; // 75% Chance für Neustart
+						}
+
+						// Optionaler didaktischer Veto-Check für 1/10 (oft etwas zu leicht)
+						if (z === 1 && n === 10) {
+							if (Math.random() > 0.5) continue; // 50% Chance für Neustart
+						}
+
+						isTooEasy = false;
+					}
+
+					// Bei Prozent ist das Ziel für das Erweitern immer 100
+					let p10 = 100;
+					let mult = p10 / n; // Erweiterungsfaktor
+					const percentageValue = z * mult;
+
+					// Da wir auf 100 erweitern, ist der neue Zähler direkt die Prozentzahl
+					let percStr = percentageValue.toString() + '\\,\\%';
+
+					textDisplay = `in Prozent: \\( \\quad \\dfrac{${z}}{${n}} = \\)`;
+					s = `\\[ \\frac{${z}}{${n}} \\overset{${mult}}{=} \\frac{${z * mult}}{100} = ${percStr} \\]`;
+					answer = numericAnswer(percentageValue);
+
+					break;
+				}
+				case 'perc_to_frac': {
+					// 1. Spezialfälle: 100% und 200% (Wahrscheinlichkeit hier auf 10% = 0.1 eingestellt)
+					const probSpecial = 0.3; // 30% Chance, in die Spezialfall-Logik zu gehen (kann angepasst werden)
+
+					if (Math.random() < probSpecial) {
+						// Mit 50/50 Chance entweder 100% oder 200% wählen
+						let is200 = Math.random() < 0.5;
+						let percVal = is200 ? 200 : 100;
+						let resultVal = is200 ? 2 : 1; // Das gekürzte Ergebnis als ganze Zahl
+
+						textDisplay = `als max. gekürzter gem. Bruch: \\( \\quad ${percVal}\\,\\% = \\)`;
+						s = `\\[ ${percVal}\\,\\% = \\frac{${percVal}}{100} = ${resultVal} \\]`;
+						answer = numericAnswer(resultVal);
+
+						// Hinweis: Wenn dein System zwingend eine Bruch-Schreibweise als Lösung erwartet, 
+						// müsstest du resultVal auf "2/1" bzw. "1/1" ändern.
+						break;
+					}
+
+					// 2. Normale Generierung
+					let n, z;
+					let isTooEasy = true;
+
+					while (isTooEasy) {
+						n = allowedDenoms[Math.floor(Math.random() * allowedDenoms.length)];
+
+						// Da bis zu 200% erlaubt sind, darf der Zähler doppelt so groß wie der Nenner werden
+						let maxZ = n * 2;
+
+						let attempts = 0;
+						do {
+							z = randInt(1, maxZ);
+							attempts++;
+							if (attempts > 50) { z = 1; break; }
+						} while (getGcd(z, n) !== 1);
+
+						// Veto-Checks für zu häufige/einfache Aufgaben
+						if (z === 1 && n === 2) { // 50 %
+							if (Math.random() > 0.25) continue; // 75% Chance für Neustart
+						}
+						if (z === 1 && n === 10) { // 10 %
+							if (Math.random() > 0.5) continue; // 50% Chance für Neustart
+						}
+						// Verhindert, dass regulär nochmal 100% oder 200% generiert werden (sind ja schon im Spezialfall)
+						if (z === n || z === n * 2) {
+							continue;
+						}
+
+						isTooEasy = false;
+					}
+
+					// 3. Werte berechnen
+					let p10 = 100;
+					let mult = p10 / n; // Das ist der Kürzungsfaktor für den Lösungsweg
+
+					// Die Prozentzahl berechnet sich aus Zähler mal Erweiterungsfaktor
+					let percVal = z * mult;
+					let percStr = percVal.toString() + '\\,\\%';
+
+					// 4. Strings für Aufgabe und Lösung bauen
+					textDisplay = `als max. gekürzter gem. Bruch: \\( \\quad ${percStr} = \\)`;
+
+					if (n === p10) {
+						s = `\\[ ${percStr} = \\frac{${z}}{100} \\]`;
+					} else {
+						// Didaktischer Lösungsweg: Start bei /100, dann explizit durch den Kürzungsfaktor teilen
+						s = `\\[ ${percStr} = \\frac{${percVal}}{100} \\underset{${mult}}{=} \\frac{${z}}{${n}} \\]`;
+					}
+					answer = fractionAnswer(z, n, true);
+					break;
+				}
+
+				// ---------------------------------------------------------
+				// 3. Bruch <> Gemischte Schreibweise
+				// ---------------------------------------------------------
+
+				case 'mixed_to_frac': {
+					let n = allowedDenoms[Math.floor(Math.random() * allowedDenoms.length)];
+					let w = Math.floor(Math.random() * 3) + 2;
+					let rem = Math.floor(Math.random() * (n - 1)) + 1;
+					let z = w * n + rem;
+					let g = getGcd(z, n); z /= g; n /= g;
+
+					let w_simp = Math.floor(z / n);
+					let rem_simp = z % n;
+
+					textDisplay = `als gemeiner Bruch: \\( ${w_simp} \\dfrac{${rem_simp}}{${n}} = \\)`;
+					s = `\\[ ${w_simp} \\frac{${rem_simp}}{${n}} = \\frac{${w_simp * n}}{${n}} + \\frac{${rem_simp}}{${n}} = \\frac{${z}}{${n}} \\]`;
+					answer = fractionAnswer(z, n, false);
+					break;
+				}
+
+				// ---------------------------------------------------------
+				// 4. Dezimalbruch <> Prozent (Spezialfall)
+				// ---------------------------------------------------------
+				case 'dec_to_perc': {
+					let p = (Math.floor(Math.random() * 400) + 1) / 2; // Schritte von 0,5%
+					let decStr = formatDecimal(p / 100, 4);
+					let percStr = p.toString().replace('.', ',') + '\\,\\%';
+
+					textDisplay = ` in Prozent: \\( \\quad ${decStr} = \\)`;
+					s = `\\( ${decStr} = ${percStr} \\)`;
+					answer = numericAnswer(p);
+					break;
+				}
+				case 'perc_to_dec': {
+					let p = (Math.floor(Math.random() * 400) + 1) / 2;
+					let decStr = formatDecimal(p / 100, 4);
+					let percStr = p.toString().replace('.', ',') + '\\,\\%';
+
+					textDisplay = `als Dezimalbruch: \\( \\quad ${percStr} = \\)`;
+					s = `\\( ${percStr} = ${decStr} \\)`;
+					answer = numericAnswer(p / 100);
+					break;
+				}
+			}
+		} else {
 			// Hilfsfunktionen für diesen Case
 			const getGcd = mathUtils.getGcd;
 
@@ -2131,10 +3291,65 @@ function createTask(type, grade = 5, options = {}) {
 					break;
 				}
 			}
-			break;
 		}
+		break;
+	}
+	case 'prozentrechnung': {
+		if (isQuizMode) {
+			let result;
+			let p, pVal;
+			let einheit = ['€', 'm', 'kg', 't', 'g', 'm²', 'm³', 'ha', 's', 'h', 'l', 'cm', 'mm', 'km', 'dm'][randInt(0, 14)];
+			rd = Math.random();
+			if (rd > 0.5) {
+				pVal = rnd(2, 11) * 100;
+				p = [3, 4, 5, 6, 7, 8, 9, 11, 12, 20, 25, 30, 35, 40, 60, 70, 80, 90][randInt(0, 17)];
+				result = (pVal / 100) * p;
+				textDisplay = `${p} % von ${pVal} ${einheit} sind ${blank(3)}`;
+				s = formatUtils.buildSolutionTable([
+					[`100 %`, `${comma(pVal)} ${einheit}`],
+					[`1 %`, `${comma(pVal / 100)} ${einheit}`],
+					[`${p} %`, `<b>${comma(result)} ${einheit}</b>`]
+				]);
+				answer = { kind: 'number', value: result, unit: einheit };
+			} else if (rd > 0.25) {
+				p = [20, 25, 30, 40, 50, 60, 70, 80, 90][randInt(0, 8)];
+				pVal = rnd(2, 9) * p;
+				result = (pVal / p) * 100;
+				if (Math.random() < 0.5) {textDisplay = `${p} % sind ${pVal} ${einheit} von ${blank(3)}`;} 
+				else { textDisplay = `${pVal} ${einheit} sind ${p} % von ${blank(3)}`;}
+				s = formatUtils.buildSolutionTable([
+					[`${p} %`, `${comma(pVal)} ${einheit}`],
+					[`1 %`, `${comma(pVal / p)} ${einheit}`],
+					[`100 %`, `<b>${comma(result)} ${einheit}</b>`]
+				]);
+				answer = { kind: 'number', value: result, unit: einheit };
+			} else {
+				// 1. Wähle einen "schönen" Prozentsatz p (z.B. 5, 10, 20, 25, 50...)
+				const p_list = [2, 3, 5, 10, 20, 25, 50, 75, 80, 90];
+				p = p_list[randInt(0, p_list.length - 1)];
 
-		case 'prozentrechnung':
+				// 2. Wähle einen Multiplikator für den Prozentwert W, 
+				// damit die Zahlen nicht zu krumm werden
+				const multiplier = rnd(2, 10);
+				const W = p * multiplier;
+
+				// 3. Berechne den Grundwert G
+				// Formel: G = W / (p / 100)  => G = W * 100 / p
+				const G = (W * 100) / p;
+				result = p;
+
+				// Aufgabe: W und G sind gegeben, p ist gesucht
+				textDisplay = ` ${comma(W)} ${einheit} von ${comma(G)} ${einheit} sind ${blank(2)} % `;
+
+				// Lösung: Zeigt den Rechenweg oder das Ergebnis
+				s = formatUtils.buildSolutionTable([
+					[`100 %`, `${comma(G)} ${einheit}`],
+					[`1 %`, `${comma(G / 100)} ${einheit}`],
+					[`<b>${p} %</b>`, `${comma(W)} ${einheit}`]
+				]);
+				answer = { kind: 'number', value: result, unit: '%' };
+			}
+		} else {
 			let p, pVal;
 			let einheit = ['€', 'm', 'kg', 't', 'g', 'm²', 'm³', 'ha', 's', 'h', 'l', 'cm', 'mm', 'km', 'dm'][randInt(0, 14)];
 			rd = Math.random();
@@ -2192,9 +3407,86 @@ function createTask(type, grade = 5, options = {}) {
 				];
 				s = formatUtils.buildSolutionTable(ratioRows);
 			}
-			break;
-
-		case 'prozentuale_veraenderung': {
+		}
+		break;
+	}
+	case 'prozentuale_veraenderung': {
+		if (isQuizMode) {
+			let result;
+			let einheit = ['€', 'm', 'kg', 't', 'g', 'm²', 'm³', 'ha', 's', 'h', 'l', 'cm', 'mm', 'km', 'dm'][randInt(0, 14)];
+			let p = [3, 4, 5, 6, 7, 10, 20, 25, 50][randInt(0, 8)];
+			let pVal = rnd(2, 11) * 100;
+			const pvType = randInt(0, 5); // 0: Erhöhung um p%, 1: Reduzierung um p%, 2: Erhöhung auf 100+p%, 3: Reduzierung auf 100-p%, 4: Rabatt-Fall 1, 5: Rabatt-Fall 2
+			switch (pvType) {
+				case 0: // Erhöhung um p%
+					result = pVal + (pVal / 100 * p);
+					textDisplay = `${pVal} ${einheit} um ${p} % erhöht sind ${blank(3)}`;
+					s = formatUtils.buildSolutionTable([
+						[`100 %`, `${comma(pVal)} ${einheit}`],
+						[`1 %`, `${comma(pVal / 100)} ${einheit}`],
+						[`${100 + p} %`, `<b>${comma(result)} ${einheit}</b>`]
+					]);
+					answer = { kind: 'number', value: result, unit: einheit };
+					break;
+				case 1: // Reduzierung um p%
+					result = pVal - (pVal / 100 * p);
+					textDisplay = `${pVal} ${einheit} um ${p} % reduziert sind ${blank(3)}`;
+					s = formatUtils.buildSolutionTable([
+						[`100 %`, `${comma(pVal)} ${einheit}`],
+						[`1 %`, `${comma(pVal / 100)} ${einheit}`],
+						[`${100 - p} %`, `<b>${comma(result)} ${einheit}</b>`]
+					]);
+					answer = { kind: 'number', value: result, unit: einheit };
+					break;
+				case 2: // Erhöhung auf 100+p%
+					result = pVal + (pVal / 100 * p);
+					textDisplay = `${pVal} ${einheit} auf ${100 + p} % erhöht sind ${blank(3)}`;
+					s = formatUtils.buildSolutionTable([
+						[`100 %`, `${comma(pVal)} ${einheit}`],
+						[`1 %`, `${comma(pVal / 100)} ${einheit}`],
+						[`${100 + p} %`, `<b>${comma(result)} ${einheit}</b>`]
+					]);
+					answer = { kind: 'number', value: result, unit: einheit };
+					break;
+				case 3: // Reduzierung auf 100-p%
+					result = pVal - (pVal / 100 * p);
+					textDisplay = `${pVal} ${einheit} auf ${100 - p} % reduziert sind ${blank(3)}`;
+					s = formatUtils.buildSolutionTable([
+						[`100 %`, `${comma(pVal)} ${einheit}`],
+						[`1 %`, `${comma(pVal / 100)} ${einheit}`],
+						[`${100 - p} %`, `<b>${comma(result)} ${einheit}</b>`]
+					]);
+					answer = { kind: 'number', value: result, unit: einheit };
+					break;
+				case 4: {// Rabatt-Fall 1
+					p = [3, 4, 5, 6, 7, 10, 20, 25][randInt(0, 7)];
+					const originalPrice = pVal;
+					result = originalPrice - (originalPrice / 100 * p);
+					textDisplay = `${p} % Rabatt auf ${originalPrice} €. Neuer Preis: ${blank(3)}`;
+					s = formatUtils.buildSolutionTable([
+						[`100 %`, `${comma(originalPrice)} €`],
+						[`1 %`, `${comma(originalPrice / 100)} €`],
+						[`${100 - p} %`, `<b>${comma(result)} €</b>`]
+					]);
+					answer = { kind: 'number', value: result, unit: '€' };
+					break;
+				}
+				case 5: {// Rabatt-Fall 2
+					p = [3, 4, 5, 6, 7, 10, 20, 25][randInt(0, 7)];
+					const originalPrice = pVal;
+					const discountedPrice = originalPrice - (originalPrice / 100 * p);
+					result = p;
+					textDisplay = `Preissenkung von ${originalPrice} € auf ${discountedPrice} €. Rabatt: ${blank(2)} %`;
+					s = formatUtils.buildSolutionTable([
+						[`100 %`, `${comma(originalPrice)} €`],
+						[`1 %`, `${comma(originalPrice / 100)} €`],
+						[`${p} %`, `<b>${comma(originalPrice - discountedPrice)} €</b>`]
+					]);
+					answer = { kind: 'number', value: result, unit: '%' };
+					break;
+				}
+			}
+		} else {
 			let einheit = ['€', 'm', 'kg', 't', 'g', 'm²', 'm³', 'ha', 's', 'h', 'l', 'cm', 'mm', 'km', 'dm'][randInt(0, 14)];
 			let p = [3, 4, 5, 6, 7, 10, 20, 25, 50][randInt(0, 8)];
 			let pVal = rnd(2, 11) * 100;
@@ -2259,10 +3551,105 @@ function createTask(type, grade = 5, options = {}) {
 					break;
 				}
 			}
-			break;
 		}
-
-		case 'zinsen': {
+		break;
+	}
+	case 'zinsen': {
+		if (isQuizMode) {
+			const subType = randInt(0, 4);
+			switch (subType) {
+				case 0: {
+					const kBase = [450, 650, 750, 850, 1200, 1400, 1500, 1750, 1800, 2400, 2500, 3200, 3500, 4200, 4500, 5400, 6500];
+					const pList = [2, 3, 4, 5, 6, 7, 8];
+					const K = kBase[randInt(0, kBase.length - 1)];
+					const p = pList[randInt(0, pList.length - 1)];
+					const Z = (K * p) / 100;
+					textDisplay = `${comma(K)} € mit ${p} % Zinsen. Jahreszinsen Z = ${blank(3)}`;
+					s = formatUtils.buildSolutionTable([
+						[`100 %`, `${comma(K)} €`],
+						[`1 %`, `${comma(K / 100)} €`],
+						[`${p} %`, `<b>${comma(Z)} €</b>`]
+					]);
+					answer = { kind: 'number', value: Z, unit: '€' };
+					break;
+				}
+				case 1: {
+					const kBase = [450, 650, 750, 850, 1200, 1400, 1500, 1600, 1800, 2400, 2500, 3200, 3500, 4200, 4500, 5400, 6500];
+					const pList = [2, 3, 4, 5, 6, 7, 8];
+					const K = kBase[randInt(0, kBase.length - 1)];
+					const p = pList[randInt(0, pList.length - 1)];
+					const Z = (K * p) / 100;
+					const K1 = K + Z;
+					textDisplay = `${comma(K)} € mit ${p} % Zinsen. Kapital am Jahresende: ${blank(3)}`;
+					s = formatUtils.buildSolutionTable([
+						[`100 %`, `${comma(K)} €`],
+						[`1 %`, `${comma(K / 100)} €`],
+						[`${100 + p} %`, `<b>${comma(K1)} €</b> (${comma(K)} € + ${comma(Z)} €)`]
+					]);
+					answer = { kind: 'number', value: K1, unit: '€' };
+					break;
+				}
+				case 2: {
+					const factors = [14, 15, 16, 18, 22, 24, 25, 28, 32, 35, 42, 45, 48, 55, 64];
+					const pList = [2, 3, 4, 5, 6, 7, 8];
+					const factor = factors[randInt(0, factors.length - 1)];
+					const p = pList[randInt(0, pList.length - 1)];
+					const K = factor * 100;
+					const Z = factor * p;
+					textDisplay = `Für ${comma(K)} € Kapital gibt es ${comma(Z)} € Jahreszinsen. <br>Zinssatz p % = ${blank(2)}`;
+					s = formatUtils.buildSolutionTable([
+						[`100 %`, `${comma(K)} €`],
+						[`1 %`, `${comma(factor)} €`],
+						[`<b>${p} %</b>`, `${comma(Z)} €`]
+					]);
+					answer = { kind: 'number', value: p, unit: '%' };
+					break;
+				}
+				case 3: {
+					const m = randInt(1, 11);
+					const pList = [2, 3, 4, 5, 6, 8];
+					const p = pList[randInt(0, pList.length - 1)];
+					let zMonat;
+					if (p === 5) {
+						zMonat = [5, 10, 15, 20][randInt(0, 3)];
+					} else if (p === 8) {
+						zMonat = [4, 6, 8, 10, 12][randInt(0, 4)];
+					} else {
+						zMonat = randInt(3, 12);
+					}
+					const zJahr = zMonat * 12;
+					const K = (zJahr * 100) / p;
+					const zTotal = zMonat * m;
+					const monateWord = m === 1 ? '1 Monat' : `${m} Monate`;
+					textDisplay = `${comma(K)} € werden zu ${p} % für ${monateWord} angelegt. <br>Zinsen Z = ${blank(3)}`;
+					s = formatUtils.buildSolutionTable([
+						[`100 % (12 Monate)`, `${comma(K)} €`],
+						[`1 %`, `${comma(K / 100)} €`],
+						[`${p} % (Jahreszinsen)`, `${comma(zJahr)} €`],
+						[`1 Monat (: 12)`, `${comma(zMonat)} €`],
+						[`<b>${monateWord}</b>`, `<b>${comma(zTotal)} €</b>`]
+					]);
+					answer = { kind: 'number', value: zTotal, unit: '€' };
+					break;
+				}
+				case 4: {
+					const factors = [18, 24, 25, 28, 32, 35, 42, 45, 48, 54, 65];
+					const pList = [2, 3, 4, 5, 6, 7, 8];
+					const factor = factors[randInt(0, factors.length - 1)];
+					const p = pList[randInt(0, pList.length - 1)];
+					const Z = factor * p;
+					const K = factor * 100;
+					textDisplay = `Bei ${p} % gibt es ${comma(Z)} € Jahreszinsen. Kapital K = ${blank(3)}`;
+					s = formatUtils.buildSolutionTable([
+						[`${p} %`, `${comma(Z)} €`],
+						[`1 %`, `${comma(factor)} €`],
+						[`100 %`, `<b>${comma(K)} €</b>`]
+					]);
+					answer = { kind: 'number', value: K, unit: '€' };
+					break;
+				}
+			}
+		} else {
 			const subType = randInt(0, 3);
 			switch (subType) {
 				case 0: { // 1. Zinsen berechnen (1 Jahr)
@@ -2328,9 +3715,9 @@ function createTask(type, grade = 5, options = {}) {
 					break;
 				}
 			}
-			break;
 		}
-
+		break;
+	}
 		case 'schriftliche_addition_subtraktion': {
 			const op = randInt(0, 1); // 0: +, 1: -, 2: *, 3: /
 			let v1, v2, res;
@@ -2463,7 +3850,97 @@ function createTask(type, grade = 5, options = {}) {
 			break;
 		}
 
-		case 'einheiten': {
+	case 'einheiten': {
+		if (isQuizMode) {
+			const toCleanString = formatUtils.toCleanString;
+			const createUnitsEntry = () => {
+
+				// 1. Definition der Einheiten-Ketten (geordnet von klein nach groß)
+				let unitGroups = [
+					{ units: ['mm', 'cm', 'dm', 'm', 'km'], factors: [10, 10, 10, 1000], type: 'Länge' },
+					{ units: ['mm²', 'cm²', 'dm²', 'm²', 'a', 'ha', 'km²'], factors: [100, 100, 100, 100, 100, 100], type: 'Fläche' },
+					{ units: ['mm³', 'cm³', 'dm³', 'm³'], factors: [1000, 1000, 1000], type: 'Volumen' },
+					{ units: ['mg', 'g', 'kg', 't'], factors: [1000, 1000, 1000], type: 'Masse' },
+					{ units: ['s', 'min', 'h'], factors: [60, 60], type: 'Zeit' }
+				];
+
+				if (grade <= 5) {
+					unitGroups = unitGroups.filter(g => g.type !== 'Fläche' && g.type !== 'Volumen');
+				}
+				unitGroups = unitGroups.filter(g => g.type !== 'Volumen');
+
+				// 2. Zufällige Gruppe wählen (z.B. Zeit oder Masse)
+				const group = unitGroups[randInt(0, unitGroups.length - 1)];
+				//const group = unitGroups[4];
+
+
+				// 3. Einen Index innerhalb der Gruppe wählen
+				// Wir wählen so, dass wir einen Nachbarn haben (nicht den letzten Index bei 'kleiner', nicht den ersten bei 'größer')
+				const unitIndex = randInt(0, group.units.length - 1);
+
+				// 4. Richtung bestimmen: 0 = in nächstkleinere, 1 = in nächstgrößere
+			let direction;
+			if (unitIndex === 0) direction = 1; // Muss größer werden
+			else if (unitIndex === group.units.length - 1) direction = 0; // Muss kleiner werden
+			else direction = Math.random() > 0.5 ? 1 : 0;
+
+			const fromUnit = group.units[unitIndex];
+			let toUnit, startValue, result, operation;
+
+			switch (group.type) {
+				case 'Zeit':
+					if (direction === 0) {
+						// In nächstkleinere Einheit (Zahl wird größer)
+						toUnit = group.units[unitIndex - 1];
+						const f = group.factors[unitIndex - 1];
+							operation = `· ${f}`;
+						startValue = [0.1, 0.25, 0.5, 1.5, 2.25, 2.5, 2.75, 3.5, 4][randInt(0, 8)];
+						result = (startValue * f);
+					} else {
+						toUnit = group.units[unitIndex + 1];
+						const f = group.factors[unitIndex];
+							operation = `: ${f}`;
+						startValue = [0.1, 0.25, 0.5, 1.5, 2.25, 2.5, 2.75, 3.5, 4][randInt(0, 8)] * f;
+						result = comma(startValue / f);
+					}
+					break;
+				default:
+					const factor = (direction === 0) ? group.factors[unitIndex - 1] : group.factors[unitIndex];
+					toUnit = (direction === 0) ? group.units[unitIndex - 1] : group.units[unitIndex + 1];
+						operation = (direction === 0) ? `· ${factor}` : `: ${factor}`;
+
+					if (direction === 0) {
+						// Zahl wird größer (Multiplikation)
+						// Wir erzeugen einen Startwert mit 0 bis 2 Nachkommastellen
+						const raw = rnd(1, 5000);
+						const shift = [1, 10, 100][rnd(0, 2)]; // Teiler für 0, 1 oder 2 Stellen
+						startValue = raw / shift;
+						result = toCleanString(startValue * factor);
+					} else {
+						// Zahl wird kleiner (Division)
+						// Wir bestimmen erst das Ergebnis (bis zu 3 Stellen), damit keine unendlichen Brüche entstehen
+						const resRaw = rnd(1, 2000);
+						const resShift = [10, 100, 1000][rnd(0, 2)];
+						const resNum = resRaw / resShift;
+						startValue = resNum * factor;
+						result = toCleanString(resNum);
+					}
+					break;
+				}
+
+				const numericResult = Number(String(result).replace(',', '.'));
+				return {
+					expr: `${toCleanString(startValue)} ${fromUnit} = ${blank(3)} ${toUnit}`,
+					solution: `${toCleanString(startValue)} ${fromUnit} = ${result} ${toUnit} &emsp; ( ${operation} )`,
+					value: numericResult
+				};
+			};
+
+			const entry = createUnitsEntry();
+			textDisplay = entry.expr;
+			s = entry.solution;
+			answer = { kind: 'number', value: entry.value };
+		} else {
 			const toCleanString = formatUtils.toCleanString;
 			const getDisplayVolumeUnits = (units) => {
 				if (Math.random() < 0.5) {
@@ -2557,10 +4034,11 @@ const fromUnit = displayUnits[unitIndex];
 			const entry = createUnitsEntry();
 			textDisplay = entry.expr;
 			s = entry.solution;
-			break;
 		}
-
-		case 'geometrie':
+		break;
+	}
+	case 'geometrie': {
+		if (isQuizMode) {
 			const shapeType = randInt(0, grade >= 7 ? 2 : 1);
 			const goal = Math.random() > 0.5 ? 'A' : 'u';
 			const lengthUnits = ['cm', 'dm', 'm'];
@@ -2593,8 +4071,46 @@ const fromUnit = displayUnits[unitIndex];
 				textDisplay = `Berechne den Flächeninhalt eines Dreiecks mit <br>Grundseite \\( g = ${sideA} \\) ${unit} und Höhe \\( h = ${sideB} \\) ${unit}.`;
 				s = `\\( A = \\frac{1}{2} \\cdot g \\cdot h = \\frac{1}{2} \\cdot ${sideA} \\cdot ${sideB} = ${(sideA * sideB) / 2} \\text{ ${unit}}^2 \\)`.replace('.', ',');
 			}
-			break;
+			const geometryResult = shapeType === 0 ? (goal === 'A' ? sideA * sideA : sideA * 4)
+				: shapeType === 1 ? (goal === 'A' ? sideA * sideB : 2 * (sideA + sideB))
+				: (sideA * sideB) / 2;
+			answer = { kind: 'number', value: geometryResult };
+		} else {
+			const shapeType = randInt(0, grade >= 7 ? 2 : 1);
+			const goal = Math.random() > 0.5 ? 'A' : 'u';
+			const lengthUnits = ['cm', 'dm', 'm'];
+			const unit = lengthUnits[randInt(0, lengthUnits.length - 1)];
+			let sideA, sideB;
 
+			if (shapeType === 0) { // QUADRAT
+				sideA = rnd(3, 12);
+				if (goal === 'A') {
+					textDisplay = `Berechne den Flächeninhalt eines Quadrats mit \\( a = ${sideA} \\) ${unit}.`;
+					s = `\\( A = a \\cdot a = ${sideA} \\cdot ${sideA} = ${sideA * sideA} \\text{ ${unit}}^2 \\)`;
+				} else {
+					textDisplay = `Berechne den Umfang eines Quadrats mit \\( a = ${sideA} \\) ${unit}.`;
+					s = `\\( u = 4 \\cdot a = 4 \\cdot ${sideA} = ${sideA * 4} \\text{ ${unit}} \\)`;
+				}
+			}
+			else if (shapeType === 1) { // RECHTECK
+				sideA = rnd(2, 12); sideB = rnd(3, 7);
+				if (sideA === sideB) { sideB++ }
+				if (goal === 'A') {
+					textDisplay = `Berechne den Flächeninhalt eines Rechtecks mit <br>\\( a = ${sideA} \\) ${unit} und \\( b = ${sideB} \\) ${unit}.`;
+					s = `\\( A = a \\cdot b = ${sideA} \\cdot ${sideB} = ${sideA * sideB} \\text{ ${unit}}^2 \\)`;
+				} else {
+					textDisplay = `Berechne den Umfang eines Rechtecks mit <br>\\( a = ${sideA} \\) ${unit} und \\( b = ${sideB} \\) ${unit}.`;
+					s = `\\( u = 2 \\cdot (a+b) = 2 \\cdot (${sideA} + ${sideB}) = ${2 * (sideA + sideB)} \\text{ ${unit}} \\)`;
+				}
+			}
+			else { // DREIECK
+				sideA = rnd(2, 12); sideB = rnd(3, 7);
+				textDisplay = `Berechne den Flächeninhalt eines Dreiecks mit <br>Grundseite \\( g = ${sideA} \\) ${unit} und Höhe \\( h = ${sideB} \\) ${unit}.`;
+				s = `\\( A = \\frac{1}{2} \\cdot g \\cdot h = \\frac{1}{2} \\cdot ${sideA} \\cdot ${sideB} = ${(sideA * sideB) / 2} \\text{ ${unit}}^2 \\)`.replace('.', ',');
+			}
+		}
+		break;
+	}
 		case 'dreiecksberechnungen_zeichnung': {
 			// Umfassender Aufgabentyp: Dreiecksberechnungen anhand maßstäblicher Zeichnungen
 			// Unterstützt: Flächeninhalt, Umfang, fehlende Seiten/Winkel mit Pythagoras, Trigonometrie, Sinussatz, Kosinussatz
@@ -3009,7 +4525,62 @@ const fromUnit = displayUnits[unitIndex];
 			break;
 		}
 		
-		case 'potenzen': {
+	case 'potenzen': {
+		if (isQuizMode) {
+			const createPotenzenEntry = () => {
+				let expr;
+				let solution;
+				let result;
+				const rdLocal = Math.random() + (grade <= 7 ? 0.21 : 0); // bei Klase 5 - 7 keine else Aufgaben 
+
+				if (rdLocal > 0.6) {
+					v1 = grade <= 7 ? randInt(0, 13) : randInt(-13, 13);
+					result = v1 * v1;
+					if (v1 < 0) {
+						expr = `\\[ (${v1})^2 = \\]`;
+						solution = `\\[ (${v1})^2 = ${result} \\]`;
+					} else {
+						expr = `\\[ ${v1}^2 = \\]`;
+						solution = `\\[ ${v1}^2 = ${result} \\]`;
+					}
+				} else if (rdLocal > 0.40) {
+					v1 = randInt(3, 13);
+					result = v1;
+					expr = `\\[ \\sqrt{${v1 * v1}} = \\]`;
+					solution = grade <= 7 ? `\\[ \\sqrt{${v1 * v1}} = ${v1} \\]` : `\\[ \\sqrt{${v1 * v1}} = \\pm ${v1} \\]`;
+					return { expr, solution, answer: { kind: 'either', options: [v1, -v1] } };
+				} else if (rdLocal > 0.2) {
+					v1 = randInt(0, 9);
+					result = Math.pow(2, v1);
+					expr = `\\[ 2^${v1} = \\]`;
+					solution = `\\[ 2^${v1} = ${result} \\]`;
+				} else {
+					const staticTasks = [
+						{ t: `\\[ 3^3 = \\]`, s: `\\[ 3^3 = ${Math.pow(3, 3)} \\]`, v: Math.pow(3, 3) },
+						{ t: `\\[ (-3)^3 = \\]`, s: `\\[ (-3)^3 = ${Math.pow(-3, 3)} \\]`, v: Math.pow(-3, 3) },
+						{ t: `\\[ 3^4 = \\]`, s: `\\[ 3^4 = ${Math.pow(3, 4)} \\]`, v: Math.pow(3, 4) },
+						{ t: `\\[ (-3)^4 = \\]`, s: `\\[ (-3)^4 = ${Math.pow(-3, 4)} \\]`, v: Math.pow(-3, 4) },
+						{ t: `\\[ 4^3 = \\]`, s: `\\[ 4^3 = ${Math.pow(4, 3)} \\]`, v: Math.pow(4, 3) },
+						{ t: `\\[ (-4)^3 = \\]`, s: `\\[ (-4)^3 = ${Math.pow(-4, 3)} \\]`, v: Math.pow(-4, 3) },
+						{ t: `\\[ 5^3 = \\]`, s: `\\[ 5^3 = ${Math.pow(5, 3)} \\]`, v: Math.pow(5, 3) },
+						{ t: `\\[ (-5)^3 = \\]`, s: `\\[ (-5)^3 = ${Math.pow(-5, 3)} \\]`, v: Math.pow(-5, 3) },
+						{ t: `\\[ 5^4 = \\]`, s: `\\[ 5^4 = ${Math.pow(5, 4)} \\]`, v: Math.pow(5, 4) }
+					];
+					const randomIndex = Math.floor(Math.random() * staticTasks.length);
+					expr = staticTasks[randomIndex].t;
+					solution = staticTasks[randomIndex].s;
+					result = staticTasks[randomIndex].v;
+				}
+
+				return { expr, solution, answer: numericAnswer(result) };
+			};
+
+			const entry = createPotenzenEntry();
+			textDisplay = entry.expr;
+			s = entry.solution;
+			answer = entry.answer;
+
+		} else {
 			const createPotenzenEntry = () => {
 				let expr;
 				let solution;
@@ -3070,10 +4641,26 @@ const fromUnit = displayUnits[unitIndex];
 				s = buildTwoColumnTaskTable(entries.map(item => item.solution));
 			}
 
-			break;
 		}
-
-		case 'teiler': {
+		break;
+	}
+	case 'teiler': {
+		if (isQuizMode) {
+			// 1. Pool an Zahlen mit interessanten Teilermengen 
+			const pool = [8, 10, 12, 13, 15, 16, 18, 19, 20, 25, 27, 28, 29, 30, 33, 35];
+			const n = pool[randInt(0, pool.length - 1)];
+			// 2. Alle Teiler berechnen
+			let teilerArray = [];
+			for (let i = 1; i <= n; i++) {
+				if (n % i === 0) {
+					teilerArray.push(i);
+				}
+			}
+			textDisplay = `Nenne alle Teiler der Zahl ${n}.`;
+			let teilerListe = teilerArray.join(', ');
+			s = `\\[ T_{${n}} = \\{ ${teilerListe} \\} \\]`;
+			answer = listAnswer(teilerArray);
+		} else {
 			// 1. Pool an Zahlen mit interessanten Teilermengen 
 			const pool = [12, 15, 16, 18, 20, 28, 30, 32, 33, 34, 35, 37, 40, 45, 50];
 			const n = pool[randInt(0, pool.length - 1)];
@@ -3087,10 +4674,92 @@ const fromUnit = displayUnits[unitIndex];
 			textDisplay = `Nenne alle Teiler der Zahl ${n}.`;
 			let teilerListe = teilerArray.join(', ');
 			s = `\\[ T_{${n}} = \\{ ${teilerListe} \\} \\]`;
-			break;
 		}
+		break;
+	}
+	case 'runden': {
+		if (isQuizMode) {
+			const useNaturalNumberRound = grade <= 5 || (grade >= 6 && Math.random() < 0.25);
+			if (useNaturalNumberRound) {
+				const unitNames = ['Zehner', 'Hunderter', 'Tausender'];
+				const unit = unitNames[randInt(0, unitNames.length - 1)];
+				const factor = unit === 'Zehner' ? 10 : unit === 'Hunderter' ? 100 : 1000;
+				const value = randInt(10, 9999);
+				const result = Math.round(value / factor) * factor;
+				const decisionDigit = factor === 10
+					? value % 10
+					: factor === 100
+						? Math.floor(value / 10) % 10
+						: Math.floor(value / 100) % 10;
+				const decisionPlace = factor === 10 ? 'Einer' : factor === 100 ? 'Zehner' : 'Hunderter';
+				const roundingAction = decisionDigit >= 5 ? 'aufrunden' : 'abrunden';
 
-		case 'runden': {
+				textDisplay = `Runde auf ${unit}: \\( \\quad ${comma(value)} \\approx \\) ${blank(2)}`;
+				s = `\\[
+					${comma(value)} \\approx ${comma(result)}
+					\\quad(\\text{${decisionDigit} ${decisionPlace}}
+					\\;\\rightarrow\\; \\text{${roundingAction}})
+				\\]`;
+				answer = { kind: 'number', value: result };
+				break;
+			}
+
+			const carryBias = 0.4; // Wahrscheinlichkeit für Übertrag (9 an der Rundungsstelle)
+			
+			rd = Math.random();
+			
+			let intPart = randInt(0, 9);
+			let d1, d2, d3;
+			
+			const useCarryCase = Math.random() < carryBias;
+			
+			if (rd > 0.8) {
+				d1 = randInt(2, 9); // Entscheidungsziffer (keine 0)
+				d2 = randInt(0, 9);
+				d3 = randInt(0, 9);
+				
+			} else if (rd > 0.4) {
+				// Rundung auf Zehntel → Rundungsstelle = d1
+				useCarryCase ? d1 = 9 : d1 = randInt(0, 9);
+				d2 = randInt(2, 9); // Entscheidungsziffer (keine 0)
+				d3 = randInt(1, 9);
+				
+			} else {
+				// Rundung auf Hundertstel → Rundungsstelle = d2
+				d1 = randInt(0, 9);
+				useCarryCase ? d2 = 9 : d2 = randInt(0, 9);
+				d3 = randInt(2, 9); // Entscheidungsziffer (keine 0)
+			}
+
+			let v1 = intPart + (d1 * 100 + d2 * 10 + d3) / 1000;
+			
+			let target, result, digits;
+			
+			if (rd > 0.8) {
+				target = "Ganze";
+				result = Math.round(v1);
+				digits = 0;
+			} else if (rd > 0.4) {
+				target = "Zehntel";
+				result = Math.round(v1 * 10) / 10;
+				digits = 1;
+			} else {
+				target = "Hundertstel";
+				result = Math.round(v1 * 100) / 100;
+				digits = 2;
+			}
+			const decisionDigit = rd > 0.8 ? d1 : rd > 0.4 ? d2 : d3;
+			const decisionPlace = rd > 0.8 ? 'Zehntel' : rd > 0.4 ? 'Hundertstel' : 'Tausendstel';
+			const roundingAction = decisionDigit >= 5 ? 'aufrunden' : 'abrunden';
+
+			textDisplay = `Runde auf ${target}: \\( \\quad ${comma(v1.toFixed(3))} \\approx \\) ${blank(2)}`;
+			s = `\\[
+				${comma(v1.toFixed(3))} \\approx ${comma(result.toFixed(digits))}
+				\\quad(\\text{${decisionDigit} ${decisionPlace}}
+				\\;\\rightarrow\\; \\text{${roundingAction}})
+			\\]`;
+			answer = { kind: 'number', value: result };
+		} else {
 			const useNaturalNumberRound = grade <= 5 || (grade >= 6 && Math.random() < 0.25);
 			if (useNaturalNumberRound) {
 				const unitNames = ['Zehner', 'Hunderter', 'Tausender'];
@@ -3169,9 +4838,9 @@ const fromUnit = displayUnits[unitIndex];
 				\\quad(\\text{${decisionDigit} ${decisionPlace}}
 				\\;\\rightarrow\\; \\text{${roundingAction}})
 			\\]`;
-			break;
 		}
-
+		break;
+	}
 		case 'ueberschlag': {
 			const trim2 = (value) => Number(value.toFixed(2));
 			const isOneDecimal = (value) => Math.abs(value * 10 - Math.round(value * 10)) < 1e-9;
@@ -3261,7 +4930,8 @@ const fromUnit = displayUnits[unitIndex];
 			break;
 		}
 		
-		case 'lineare_gleichungen': {
+	case 'lineare_gleichungen': {
+		if (isQuizMode) {
 			// 1. Bestimme die Lösung x (ein Vielfaches von 0,5)
 			// rnd(-20, 20) / 2 ergibt Werte wie -5, -4.5, -4, ..., 4.5, 5
 			const x = rnd(-12, 12);
@@ -3283,10 +4953,34 @@ const fromUnit = displayUnits[unitIndex];
 			${a}x &= ${c - b} &&| \\, : ${a >= 0 ? a : '(' + a + ')'} \\\\
 			x &= ${comma(x)} 
 			\\end{aligned} \\]`;
-			break;
+			answer = numericAnswer(x);
+		} else {
+			// 1. Bestimme die Lösung x (ein Vielfaches von 0,5)
+			// rnd(-20, 20) / 2 ergibt Werte wie -5, -4.5, -4, ..., 4.5, 5
+			const x = rnd(-12, 12);
+			
+			// 2. Bestimme Koeffizienten a und b (ganze Zahlen, a != 0)
+			let a = rnd(-12, 12);
+			const b = rnd(-20, 20);
+			
+			// 3. Berechne c (ax + b = c)
+			const c = a * x + b;
+			
+			// Formatierung für die Ausgabe (Vorzeichen von b beachten)
+			const bPart = b >= 0 ? `+ ${b}` : `- ${Math.abs(b)}`;
+			
+			textDisplay = `Löse die Gleichung schrittweise: <br> \\( ${a}x ${bPart} = ${c} \\)`;
+			textPrint = `Löse die Gleichung schrittweise: \\(\\quad ${a}x ${bPart} = ${c} \\qquad |\\)${space(1.5)}`;
+			s = `\\[ \\begin{aligned} 
+			${a}x ${bPart} &= ${c} &&| \\, ${b >= 0 ? '-' : '+'} ${Math.abs(b)} \\\\ 
+			${a}x &= ${c - b} &&| \\, : ${a >= 0 ? a : '(' + a + ')'} \\\\
+			x &= ${comma(x)} 
+			\\end{aligned} \\]`;
 		}
-
-		case 'lineare_gleichungen_beidseitig':
+		break;
+	}
+	case 'lineare_gleichungen_beidseitig': {
+		if (isQuizMode) {
 			// 1. Bestimme die Lösung x (als ganze Zahl)
 			const x = rnd(-13, 13);
 			
@@ -3325,9 +5019,143 @@ const fromUnit = displayUnits[unitIndex];
 			${aMinusC}x &= ${dMinusB} &&| \\, : ${divOp} \\\\
 			x &= ${comma(x)} 
 			\\end{aligned} \\]`;
-			break;
-		
-		case 'lineare_gleichungen_umstellen': {
+			answer = numericAnswer(x);
+		} else {
+			// 1. Bestimme die Lösung x (als ganze Zahl)
+			const x = rnd(-13, 13);
+			
+			// 2. Bestimme Koeffizient a
+			let a = rnd(-10, 10);
+			
+			// 3. Bestimme Koeffizient c so, dass |a - c| >= 2
+			let c;
+			do {
+				c = rnd(-10, 10);
+			} while (Math.abs(a - c) < 2 || c === 0);
+			// Die Schleife läuft, solange der Abstand zu klein ist oder c selbst 0 ist
+			
+			// 4. Bestimme Konstante b und berechne d
+			// Rechnung: ax + b = cx + d  => d = (a - c) * x + b
+			const b = rnd(-30, 30);
+			const d = (a - c) * x + b;
+			
+			// 5. Formatierung für die Ausgabe
+			const bPart = b >= 0 ? `+ ${b}` : `- ${Math.abs(b)}`;
+			const dPart = d >= 0 ? `+ ${d}` : `- ${Math.abs(d)}`;
+			
+			// 6. Bausteine für den Rechenweg
+			const op1 = c >= 0 ? `- ${c}x` : `+ ${Math.abs(c)}x`;
+			const aMinusC = a - c;
+			const op2 = b >= 0 ? `- ${b}` : `+ ${Math.abs(b)}`;
+			const dMinusB = d - b;
+			const divOp = fmt(aMinusC);
+			
+			textDisplay = `Löse die Gleichung schrittweise:<br>\\( ${a}x ${bPart} = ${c}x ${dPart} \\)`;
+			textPrint = `Löse die Gleichung schrittweise: \\(\\quad ${a}x ${bPart} = ${c}x ${dPart} \\qquad | \\)${space(2)}`;
+
+			s = `\\[ \\begin{aligned} 
+			${a}x ${bPart} &= ${c}x ${dPart} &&| \\, ${op1} \\\\ 
+			${aMinusC}x ${bPart} &= ${d} &&| \\, ${op2} \\\\ 
+			${aMinusC}x &= ${dMinusB} &&| \\, : ${divOp} \\\\
+			x &= ${comma(x)} 
+			\\end{aligned} \\]`;
+		}
+		break;
+	}
+	case 'lineare_gleichungen_umstellen': {
+		if (isQuizMode) {
+			const forms = ['ax+by=c', 'ax+c=by', 'ax=by+c', 'by=ax+c'];
+			const form = forms[randInt(0, forms.length - 1)];
+
+			const formatHalf = (val) => Number.isInteger(val) ? `${val}` : comma(val.toFixed(1));
+			const cleanHalf = (val) => Math.round(val * 2) / 2;
+			const varTerm = (coef, variable, withSign = false) => {
+				const abs = Math.abs(coef);
+				const base = abs === 1 ? variable : `${abs}${variable}`;
+				if (withSign) return `${coef >= 0 ? '+' : '-'} ${base}`;
+				return coef < 0 ? `-${base}` : base;
+			};
+			const invTermOp = (coef, variable) => coef >= 0 ? `- ${varTerm(coef, variable)}` : `+ ${varTerm(-coef, variable)}`;
+			const formatLinearExpr = (m, n) => {
+				const mm = cleanHalf(m);
+				const nn = cleanHalf(n);
+				const xPart = mm === 1 ? 'x' : (mm === -1 ? '-x' : `${formatHalf(mm)}x`);
+				if (nn === 0) return xPart;
+				return `${xPart} ${nn > 0 ? '+' : '-'} ${formatHalf(Math.abs(nn))}`;
+			};
+
+			const pickValidForB = (b) => {
+				const absB = Math.abs(b);
+				const vals = [];
+				for (let n = -40; n <= 40; n++) {
+					if (n === 0) continue;
+					if ((n) % absB === 0) vals.push(n);
+				}
+				return vals;
+			};
+
+			let b_lin, a_lin, c_lin;
+			do {
+				b_lin = rnd(-12, 12);
+				const valid = pickValidForB(b_lin);
+				a_lin = valid[randInt(0, valid.length - 1)];
+				c_lin = valid[randInt(0, valid.length - 1)];
+			} while (!a_lin || !b_lin || !c_lin);
+
+			const aTerm = varTerm(a_lin, 'x');
+			const bTerm = varTerm(b_lin, 'y');
+			const absATerm = varTerm(Math.abs(a_lin), 'x');
+			const cSigned = c_lin >= 0 ? `+ ${Math.abs(c_lin)}` : `- ${Math.abs(c_lin)}`;
+			const cOppSigned = c_lin >= 0 ? `- ${Math.abs(c_lin)}` : `+ ${Math.abs(c_lin)}`;
+
+			let textEquation = '';
+			let step1 = '';
+			let step2 = '';
+			let finalStep = '';
+			let finalAnswerExpression = '';
+
+			switch (form) {
+				case 'ax+by=c': {
+					textEquation = `${aTerm} ${varTerm(b_lin, 'y', true)} = ${c_lin}`;
+					step1 = `${aTerm} ${varTerm(b_lin, 'y', true)} &= ${c_lin} &&| \\, ${invTermOp(a_lin, 'x')}`;
+					step2 = `${bTerm} &= ${c_lin} ${a_lin >= 0 ? '-' : '+'} ${absATerm} &&| \\, : ${fmt(b_lin)}`;
+					finalStep = `y &= ${formatLinearExpr(-a_lin / b_lin, c_lin / b_lin)}`;
+					finalAnswerExpression = `y = ${formatLinearExpr(-a_lin / b_lin, c_lin / b_lin)}`;
+					break;
+				}
+				case 'ax+c=by': {
+					textEquation = `${aTerm} ${cSigned} = ${bTerm}`;
+					step1 = `${aTerm} ${cSigned} &= ${bTerm} &&| \\, : ${fmt(b_lin)}`;
+					finalStep = `y &= ${formatLinearExpr(a_lin / b_lin, c_lin / b_lin)}`;
+					finalAnswerExpression = `y = ${formatLinearExpr(a_lin / b_lin, c_lin / b_lin)}`;
+					break;
+				}
+				case 'ax=by+c': {
+					textEquation = `${aTerm} = ${bTerm} ${cSigned}`;
+					step1 = `${aTerm} &= ${bTerm} ${cSigned} &&| \\, ${cOppSigned}`;
+					step2 = `${aTerm} ${cOppSigned} &= ${bTerm} &&| \\, : ${fmt(b_lin)}`;
+					finalStep = `y &= ${formatLinearExpr(a_lin / b_lin, -c_lin / b_lin)}`;
+					finalAnswerExpression = `y = ${formatLinearExpr(a_lin / b_lin, -c_lin / b_lin)}`;
+					break;
+				}
+				default: {
+					textEquation = `${bTerm} = ${aTerm} ${cSigned}`;
+					step1 = `${bTerm} &= ${aTerm} ${cSigned} &&| \\, : ${fmt(b_lin)}`;
+					finalStep = `y &= ${formatLinearExpr(a_lin / b_lin, c_lin / b_lin)}`;
+					finalAnswerExpression = `y = ${formatLinearExpr(a_lin / b_lin, c_lin / b_lin)}`;
+					break;
+				}
+			}
+
+			textDisplay = `Stelle die Gleichung nach \\( y \\) um: <br>\\( ${textEquation} \\)`;
+			textPrint = `Stelle nach \\( y \\) um: \\(\\quad ${textEquation} \\qquad |\\)${space(2)}`;
+			s = `\\[ \\begin{aligned}
+			${step1} \\\\
+			${step2 ? `${step2} \\\\` : ''}
+			${finalStep}
+			\\end{aligned} \\]`;
+			answer = expressionAnswer(finalAnswerExpression);
+		} else {
 			const forms = ['ax+by=c', 'ax+c=by', 'ax=by+c', 'by=ax+c'];
 			const form = forms[randInt(0, forms.length - 1)];
 
@@ -3413,9 +5241,9 @@ const fromUnit = displayUnits[unitIndex];
 			${step2 ? `${step2} \\\\` : ''}
 			${finalStep}
 			\\end{aligned} \\]`;
-			break;
 		}
-			
+		break;
+	}
 			case 'formel_umstellen': {
 				const formeln = [
 				// --- FLÄCHENINHALT DREIECK ---
@@ -3596,9 +5424,216 @@ const fromUnit = displayUnits[unitIndex];
 			break;
 		}
 		
-		case 'terme_zusammenfassen':
-		case 'terme_umformen':
-		case 'terme': {
+	case 'terme_zusammenfassen':
+	case 'terme_umformen':
+	case 'terme': {
+		if (isQuizMode) {
+			const vars = ['x', 'y', 'z', 'a', 'b'];
+			let selectedVars = fisherYatesShuffle(vars).slice(0, 2);
+			if (Math.random() < 0.5) selectedVars[1] = '';
+			
+			const isSummaryTask = type === 'terme_zusammenfassen';
+			const isLegacyTask = type === 'terme';
+			let mode = isSummaryTask
+				? 0
+				: isLegacyTask
+					? (grade >= 9 ? randInt(0, 3) : 0)
+					: randInt(1, 3);
+			let taskStr, resStr;
+			let expandedStep = '';
+			
+			if (mode === 0) {
+				// --- TYP: ZUSAMMENFASSEN ---
+				const useThreeTermTypes = Math.random() < 0.35;
+				const termTypes = useThreeTermTypes
+					? [selectedVars[0], selectedVars[1] || fisherYatesShuffle(vars.filter(v => v !== selectedVars[0]))[0], '']
+					: [selectedVars[0], selectedVars[1]];
+				const numGlieder = useThreeTermTypes ? 5 : randInt(4, 5);
+				const typeSequence = useThreeTermTypes
+					? [0, 0, 1, 1, 2]
+					: numGlieder === 4 ? [0, 0, 1, 1] : [0, 0, 1, 1, 0];
+				let glieder = [];
+				let usedCombinations = new Set();
+				let counts = Object.fromEntries(termTypes.map(v => [v, 0]));
+
+				for (let i = 0; i < numGlieder; i++) {
+					const v = termTypes[typeSequence[i]];
+					
+					let val, combo;
+					do {
+						let coef = randInt(1, 12);
+						let sign = Math.random() < 0.5 ? 1 : -1;
+						val = coef * sign;
+						combo = `${val}${v}`;
+					} while (usedCombinations.has(combo));
+
+					usedCombinations.add(combo);
+					counts[v] += val;
+					let absCoef = Math.abs(val);
+					let coefStr = (absCoef === 1 && v !== '') ? '' : absCoef;
+					glieder.push({ val: val, v: v, text: `${coefStr}${v}` });
+				}
+
+				for (let i = glieder.length - 1; i > 0; i--) {
+					const j = Math.floor(Math.random() * (i + 1));
+					[glieder[i], glieder[j]] = [glieder[j], glieder[i]];
+				}
+
+				taskStr = glieder.map((g, idx) => {
+					let sStr = g.val > 0 ? '+ ' : '- ';
+					if (idx === 0) sStr = g.val > 0 ? '' : '-';
+					return `${sStr}${g.text}`;
+				}).join(' ').trim();
+
+				let resParts = [];
+				termTypes.forEach(v => {
+					let total = counts[v];
+					if (total !== 0) {
+						let sStr = total > 0 ? (resParts.length === 0 ? '' : '+ ') : '- ';
+						if (resParts.length === 0 && total < 0) sStr = '-';
+						let absT = Math.abs(total);
+						let cStr = (absT === 1 && v !== '') ? '' : absT;
+						resParts.push(`${sStr}${cStr}${v}`);
+					}
+				});
+				resStr = resParts.length === 0 ? '0' : resParts.join(' ').trim();
+				answer = expressionAnswer(resStr, { termMode: 'collect' });
+				textDisplay = `Fasse zusammen: <br>\\( ${taskStr} \\)`;
+				textPrint = `Fasse zusammen: \\(\\quad ${taskStr} = \\) ${space(0.5)}`;
+
+			} else if (mode === 1) {
+				// --- TYP: KLAMMER AUFLÖSEN ---
+				let v = selectedVars[0] || 'x';
+				let cVarCoef = rnd(-9, 9);
+				let cNum = rnd(-12, 12);
+
+				const useVarFactor = v !== '' && Math.random() < 0.5;
+				const fmtFactorVar = (coef, variable) => {
+					if (coef === 1) return variable;
+					if (coef === -1) return fmt(`-${variable}`);
+					return fmt(`${coef}${variable}`);
+				};
+				const fmtProductFactor = (factorText, termText) => `${fmt(factorText)} \\cdot ${fmt(termText)}`;
+
+				let factorCoef, fDisplay;
+				if (useVarFactor) {
+					factorCoef = rnd(-5, 5);
+					while (factorCoef === 0) factorCoef = rnd(-5, 5);
+					fDisplay = fmtFactorVar(factorCoef, v);
+				} else {
+					factorCoef = rnd(-7, 7);
+					while (factorCoef === 0) factorCoef = rnd(-7, 7);
+					fDisplay = fmt(factorCoef);
+				}
+
+				taskStr = `${fDisplay} (${cVarCoef}${v} ${cNum > 0 ? '+' : '-'} ${Math.abs(cNum)})`;
+
+				if (useVarFactor) {
+					const resVV = factorCoef * cVarCoef;
+					const resV  = factorCoef * cNum;
+					const term1 = fmtProductFactor(fDisplay, `${cVarCoef}${v}`);
+					const term2 = fmtProductFactor(fDisplay, Math.abs(cNum));
+
+					let p1 = resVV === 1  ? `${v}^2`
+					       : resVV === -1 ? `-${v}^2`
+					       :               `${resVV}${v}^2`;
+					let p2 = resV === 0   ? ''
+					       : resV > 0     ? ` + ${resV}${v}`
+					       :               ` - ${Math.abs(resV)}${v}`;
+					const step = cNum > 0 ? `${term1} + ${term2}` : `${term1} - ${term2}`;
+					const finalRes = `${p1}${p2}`.trim();
+					resStr = `${step} = ${finalRes}`;
+					answer = expressionAnswer(finalRes, { termMode: 'expand' });
+				} else {
+					const resV = factorCoef * cVarCoef;
+					const resN = factorCoef * cNum;
+					const term1 = fmtProductFactor(fDisplay, `${cVarCoef}${v}`);
+					const term2 = fmtProductFactor(fDisplay, Math.abs(cNum));
+					let p1 = resV === 1  ? v
+					       : resV === -1 ? `-${v}`
+					       :              `${resV}${v}`;
+					let p2 = resN > 0 ? `+ ${resN}` : `- ${Math.abs(resN)}`;
+					const step = cNum > 0 ? `${term1} + ${term2}` : `${term1} - ${term2}`;
+					const finalRes = `${p1} ${p2}`.trim();
+					resStr = `${step} = ${finalRes}`;
+					answer = expressionAnswer(finalRes, { termMode: 'expand' });
+				}
+
+				textDisplay = `Löse die Klammer auf: <br>\\( ${taskStr} \\)`;
+				textPrint = `Löse die Klammer auf: \\(\\quad ${taskStr} = \\)`;
+			} else if (mode === 2) {
+				// --- TYP: AUSKLAMMERN ---
+				let v = selectedVars[0] || 'x';
+				let w = selectedVars[1] || '';
+				const getGcd = mathUtils.getGcd;
+				const commonCoef = rnd(2, 6);
+				let a, b;
+				do {
+					a = rnd(2, 9);
+					b = rnd(2, 9);
+				} while (getGcd(a, b) !== 1);
+				const sign = Math.random() < 0.5 ? 1 : -1;
+				const commonFactorHasVar = w !== '' && Math.random() < 0.5;
+				const extraInFirst = w !== '' && Math.random() < 0.5;
+				let term1Vars, term2Vars;
+
+				if (w === '') {
+					term1Vars = v;
+					term2Vars = '';
+				} else if (commonFactorHasVar) {
+					term1Vars = v + (extraInFirst ? w : '');
+					term2Vars = v + (!extraInFirst ? w : '');
+				} else {
+					term1Vars = extraInFirst ? w : v;
+					term2Vars = !extraInFirst ? w : v;
+				}
+				const term1Coef = commonCoef * a;
+				const term2Coef = commonCoef * b;
+
+				const fmtInner = (coef, variable) => {
+					if (variable === '') return `${coef}`;
+					if (coef === 1) return variable;
+					return `${coef}${variable}`;
+				};
+
+				const term1Text = `${fmt(term1Coef)}${term1Vars}`;
+				const term2Text = `${fmt(term2Coef)}${term2Vars}`;
+				taskStr = `${term1Text} ${sign === 1 ? '+' : '-'} ${term2Text}`;
+
+				const commonFactorText = commonFactorHasVar ? `${fmt(commonCoef)}${v}` : fmt(commonCoef);
+				const inner1 = fmtInner(a, commonFactorHasVar ? (extraInFirst ? w : '') : term1Vars);
+				const inner2 = fmtInner(b, commonFactorHasVar ? (!extraInFirst ? w : '') : term2Vars);
+				const innerSign = sign === 1 ? '+' : '-';
+				resStr = `${commonFactorText}(${inner1} ${innerSign} ${inner2})`;
+				answer = expressionAnswer(resStr, { termMode: 'factor' });
+
+				textDisplay = `Klammere vollständig aus: <br>\\( ${taskStr} \\)`;
+				textPrint = `Klammere vollständig aus: \\(\\quad ${taskStr} = \\)`;
+			} else if (mode === 3) {
+				// --- TYP: MINUSKLAMMER AUFLÖSEN ---
+				let v = selectedVars[0] || 'x';
+				const termText = (coef, variable) => {
+					if (variable === '') return `${coef}`;
+					if (coef === 1) return variable;
+					if (coef === -1) return `-${variable}`;
+					return `${coef}${variable}`;
+				};
+
+				const plusInside = Math.random() < 0.5;
+				const a = rnd(2, 9);
+				const b = rnd(2, 9);
+
+				const rightTerm = termText(b, v);
+				taskStr = `-(${a} ${plusInside ? '+' : '-'} ${rightTerm})`;
+				resStr = `-${a} ${plusInside ? '-' : '+'} ${rightTerm}`;
+				answer = expressionAnswer(resStr, { termMode: 'expand' });
+
+				textDisplay = `Löse die Minusklammer auf: <br>\\( ${taskStr} \\)`;
+				textPrint = `Löse die Minusklammer auf: \\(\\quad ${taskStr} = \\)`;
+			}
+			s = `\\[ ${taskStr} = ${resStr} \\]`;
+
+		} else {
 			const vars = ['x', 'y', 'z', 'a', 'b'];
 			let selectedVars = fisherYatesShuffle(vars).slice(0, 2);
 			if (Math.random() < 0.5) selectedVars[1] = '';
@@ -3916,10 +5951,11 @@ const fromUnit = displayUnits[unitIndex];
 			}
 
 			s = `\\[ ${mode === 1 || mode === 3 ? resStr : `${taskStr} = ${resStr}`} \\]`;
-			break;
 		}
-
-		case 'wortterme': {
+		break;
+	}
+	case 'wortterme': {
+		if (isQuizMode) {
 			const templates = [
 				{ text: (a, b) => `Addiere ${a} und ${b}.`, symbol: '+' },
 				{ text: (a, b) => `Subtrahiere ${b} von ${a}.`, symbol: '-' },
@@ -3956,10 +5992,63 @@ const fromUnit = displayUnits[unitIndex];
 			textDisplay = template.text(a, b);
 			textPrint = template.text(a, b);
 			s = `\\[ ${fmt(a)} ${template.symbol} ${fmt(b)} = ${result} \\]`;
-			break;
-		}
+			answer = numericAnswer(result);
+		} else {
+			const templates = [
+				{ text: (a, b) => `Addiere ${a} und ${b}.`, symbol: '+' },
+				{ text: (a, b) => `Subtrahiere ${b} von ${a}.`, symbol: '-' },
+				{ text: (a, b) => `Multipliziere ${a} und ${b}.`, symbol: '\\cdot' },
+				{ text: (a, b) => `Dividiere ${a} durch ${b}.`, symbol: ':' },
+				{ text: (a, b) => `Berechne die Summe von ${a} und ${b}.`, symbol: '+' },
+				{ text: (a, b) => `Berechne die Differenz von ${a} und ${b}.`, symbol: '-' },
+				{ text: (a, b) => `Berechne das Produkt von ${a} und ${b}.`, symbol: '\\cdot' },
+				{ text: (a, b) => `Berechne den Quotienten von ${a} und ${b}.`, symbol: ':' }
+			];
 
-		case 'primzahlen': {
+			const template = templates[randInt(0, templates.length - 1)];
+			const allowNegative = grade >= 8;
+
+			let a = allowNegative ? rnd(-15, 15) : rnd(1, 15);
+			let b = allowNegative ? rnd(-15, 15) : rnd(1, 15);
+			if (template.symbol === ':') {
+				b = 0;
+				while (b === 0) {
+					b = allowNegative ? rnd(-12, 12) : rnd(1, 12);
+				}
+				const q = allowNegative ? rnd(-12, 12) : rnd(1, 12);
+				a = b * q;
+			}
+
+			const result = template.symbol === '+'
+				? a + b
+				: template.symbol === '-'
+					? a - b
+					: template.symbol === '\\cdot'
+						? a * b
+						: a / b;
+
+			textDisplay = template.text(a, b);
+			textPrint = template.text(a, b);
+			s = `\\[ ${fmt(a)} ${template.symbol} ${fmt(b)} = ${result} \\]`;
+		}
+		break;
+	}
+	case 'primzahlen': {
+		if (isQuizMode) {
+			const isPrim = mathUtils.isPrime;
+
+			// --- TYP: BEREICH ABSUCHEN ---
+			let start = randInt(0, 8) * 5; // Start bei 0, 5, 10, ..., 40
+			
+			let prims = [];
+			for (let i = start; i <= start + 10; i++) {
+				if (isPrim(i)) prims.push(i);
+			}
+
+			textDisplay = `Nenne alle Primzahlen von ${start} bis ${start + 10}.`;
+			s = `Primzahlen ${start} - ${start + 10}: \\( \\quad ${prims.join(', ')}\\)`;
+			answer = listAnswer(prims);
+		} else {
 			const isPrim = mathUtils.isPrime;
 
 			// --- TYP: BEREICH ABSUCHEN ---
@@ -3973,10 +6062,11 @@ const fromUnit = displayUnits[unitIndex];
 			textDisplay = `Nenne alle Primzahlen von ${start} bis ${start + 10}.`;
 			s = `Primzahlen ${start} - ${start + 10}: \\( \\quad ${prims.join(', ')}\\)`;
 			
-			break;
 		}
-
-		case 'lineare_funktionen_zeichnen': {
+		break;
+	}
+	case 'lineare_funktionen_zeichnen': {
+		if (isQuizMode) {
 			// Generiere eine zufällige lineare Funktion
 			let m;
 			let b = randInt(-8, 8) / 2; 
@@ -4113,10 +6203,261 @@ const fromUnit = displayUnits[unitIndex];
 				</div>
 				<div>${svgContent}</div>
 			</div>`;
-			break;
-		}
+		} else {
+			// Generiere eine zufällige lineare Funktion
+			let m;
+			let b = randInt(-8, 8) / 2; 
+			if (b >= 2) m = randInt(-6, -2) / 2;
+			else if (b <= -2) m = randInt(2, 6) / 2;
+			else m = randInt(-6, 6) / 2; 
 
+			// Funktion
+			const f = (x) => m * x + b;
+			
+			// Markante Punkte
+			const yIntercept = b;
+			const xIntercept = b !== 0 ? -b / m : 0; // Nullstelle
+			
+			// SVG-Grafik für Koordinatensystem
+			const svgWidth = 345;
+			const svgHeight = 285;
+			const centerX = 360 / 2 - 15; 
+			const centerY = 300 / 2;
+			const scale = 30; // Pixel pro Einheit
+			
+			// Konvertiere Koordinaten von mathematisch zu SVG
+			const toSVG = (x, y) => ({
+				x: centerX + x * scale,
+				y: centerY - y * scale  // SVG y ist invertiert
+			});
+			
+			// Erstelle SVG
+			let svgContent = `<svg width="${svgWidth}" height="${svgHeight}" xmlns="http://www.w3.org/2000/svg" style="border: 1px solid #ccc; background: white;">`;
+			
+			// Gitter: kariertes Papier mit 2 Kästchen pro Einheit
+			for (let i = -11; i <= 12; i++) {
+				const posX = toSVG(i / 2, 0);
+				svgContent += `<line x1="${posX.x}" y1="${centerY - 150}" x2="${posX.x}" y2="${centerY + 150}" stroke="${i % 2 === 0 ? '#bbb' : '#bbb'}" stroke-width="0.5"/>`;
+			}
+			for (let i = -9; i <= 10; i++) {
+				const posY = toSVG(0, i / 2);
+				svgContent += `<line x1="0" y1="${posY.y}" x2="${svgWidth}" y2="${posY.y}" stroke="${i % 2 === 0 ? '#bbb' : '#bbb'}" stroke-width="0.5"/>`;
+			}
+			
+			// Achsen
+			// Zeichne die x-Achse als horizontale Linie
+			svgContent += `<line x1="0" y1="${centerY}" x2="${svgWidth}" y2="${centerY}" stroke="black" stroke-width="2"/>`;
+			// Zeichne die y-Achse als vertikale Linie
+			svgContent += `<line x1="${centerX}" y1="0" x2="${centerX}" y2="${svgHeight}" stroke="black" stroke-width="2"/>`;
+			// Pfeilspitze für die x-Achse nach rechts
+			svgContent += `<polygon points="${svgWidth - 10},${centerY - 6} ${svgWidth},${centerY} ${svgWidth - 10},${centerY + 6}" fill="black"/>`;
+			// Pfeilspitze für die y-Achse nach oben
+			svgContent += `<polygon points="${centerX - 6},10 ${centerX},0 ${centerX + 6},10" fill="black"/>`;
+			// Beschriftung für die x-Achse im Quadranten IV
+			svgContent += `<text x="${svgWidth - 5}" y="${centerY + 16}" text-anchor="end" font-size="14" fill="black">x</text>`;
+			// Beschriftung für die y-Achse im Quadranten II
+			svgContent += `<text x="${centerX - 10}" y="10" text-anchor="end" font-size="14" fill="black">y</text>`;
+			
+			// Achsenticks für ganze Zahlen auf x- und y-Achse
+			for (let i = -5; i <= 5; i++) {
+				if (i !== 0) {
+					const xPos = toSVG(i, 0);
+					svgContent += `<line x1="${xPos.x}" y1="${centerY - 4}" x2="${xPos.x}" y2="${centerY + 4}" stroke="black" stroke-width="1"/>`;
+				}
+			}
+			for (let i = -4; i <= 4; i++) {
+				if (i !== 0) {
+					const yPos = toSVG(0, i);
+					svgContent += `<line x1="${centerX - 4}" y1="${yPos.y}" x2="${centerX + 4}" y2="${yPos.y}" stroke="black" stroke-width="1"/>`;
+				}
+			}
+			
+			// Achsen-Beschriftungen (ganze Zahlen)
+			for (let i = -5; i <= 5; i++) {
+				if (i !== 0) {
+					const xPos = toSVG(i, 0);
+					svgContent += `<text x="${xPos.x}" y="${centerY + 15}" text-anchor="middle" font-size="11" fill="black">${i}</text>`;
+				}
+			}
+			for (let i = -4; i <= 4; i++) {
+				if (i !== 0) {
+					const yPos = toSVG(0, i);
+					svgContent += `<text x="${centerX - 15}" y="${yPos.y + 4}" text-anchor="end" font-size="11" fill="black">${i}</text>`;
+				}
+			}
+			
+			// Gerade zeichnen
+			const leftPoint = toSVG(-6, f(-6));
+			const rightPoint = toSVG(6, f(6));
+			svgContent += `<line x1="${leftPoint.x}" y1="${leftPoint.y}" x2="${rightPoint.x}" y2="${rightPoint.y}" stroke="#e74c3c" stroke-width="2.5"/>`;
+			
+			// y-Achsenabschnitt markieren
+			const yIntPos = toSVG(0, yIntercept);
+			svgContent += `<circle cx="${yIntPos.x}" cy="${yIntPos.y}" r="3" fill="#3498db" stroke="#2980b9" stroke-width="2"/>`;
+			
+			// Horizontale Strecke von (0,b) nach (1,b)
+			const rightFromYAxis = toSVG(1, yIntercept);
+			svgContent += `<line x1="${yIntPos.x}" y1="${yIntPos.y}" x2="${rightFromYAxis.x}" y2="${rightFromYAxis.y}" stroke="#2980b9" stroke-width="2"/>`;
+			svgContent += `<polygon points="${rightFromYAxis.x - 6},${rightFromYAxis.y - 4} ${rightFromYAxis.x},${rightFromYAxis.y} ${rightFromYAxis.x - 6},${rightFromYAxis.y + 4}" fill="#2980b9"/>`;
+			svgContent += `<text x="${(yIntPos.x + rightFromYAxis.x) / 2}" y="${yIntPos.y - 6}" text-anchor="middle" font-size="16" fill="#2980b9">1</text>`;
+			
+			// Vertikale Strecke von (1,b) nach (1,b+m)
+			const upFromPoint = toSVG(1, yIntercept + m);
+			svgContent += `<line x1="${rightFromYAxis.x}" y1="${rightFromYAxis.y}" x2="${upFromPoint.x}" y2="${upFromPoint.y}" stroke="#2980b9" stroke-width="2"/>`;
+			if (m >= 0) {
+				svgContent += `<polygon points="${upFromPoint.x - 4},${upFromPoint.y + 6} ${upFromPoint.x},${upFromPoint.y} ${upFromPoint.x + 4},${upFromPoint.y + 6}" fill="#2980b9"/>`;
+				svgContent += `<text x="${upFromPoint.x + 12}" y="${(rightFromYAxis.y + upFromPoint.y) / 2 + 6}" text-anchor="start" font-size="16" fill="#2980b9">${m}</text>`;
+			} else {
+				svgContent += `<polygon points="${upFromPoint.x - 4},${upFromPoint.y - 6} ${upFromPoint.x},${upFromPoint.y} ${upFromPoint.x + 4},${upFromPoint.y - 6}" fill="#2980b9"/>`;
+				svgContent += `<text x="${upFromPoint.x + 12}" y="${(rightFromYAxis.y + upFromPoint.y) / 2 + 6}" text-anchor="start" font-size="16" fill="#2980b9">${m}</text>`;
+			}
+			
+			// Punkt bei x = 1 markieren (1, b + m)
+			const highlightPos = toSVG(1, f(1));
+			svgContent += `<circle cx="${highlightPos.x}" cy="${highlightPos.y}" r="3" fill="#27ae60" stroke="#229954" stroke-width="2"/>`;
+			
+			// Ursprung
+			svgContent += `<circle cx="${centerX}" cy="${centerY}" r="3" fill="black"/>`;
+			
+			svgContent += `</svg>`;
+			
+			// Funktionsgleichung
+			const mStr = m === 1 ? 'x' : (m === -1 ? '-x' : `${m}x`);
+			const funcStr = b === 0
+				? `f(x) = ${comma(mStr)}`
+				: b > 0
+					? `f(x) = ${comma(mStr)} + ${comma(b)}`
+					: `f(x) = ${comma(mStr)} - ${comma(Math.abs(b))}`;
+
+			textDisplay = `Zeichne den Graphen und gib die Nullstelle an: \\( ${funcStr} \\)`;
+			textPrint = `Zeichne und gib die Nullstelle an: \\( \\; ${funcStr} \\) ${karo(11, 20)}` ;
+
+			const x0 = comma(formatDecimal(xIntercept, 2));
+			s = `<div style="display:flex; justify-content: center; align-items:center; gap:20px;">
+				<div style="min-width:180px;">
+					<span>\\( ${funcStr} \\)</span><br><br>
+					<span>Nst. \\( \\; x_0 = ${x0} \\)</span>
+				</div>
+				<div>${svgContent}</div>
+			</div>`;
+		}
+		break;
+	}
 	case 'zahlengerade': {
+		if (isQuizMode) {
+			const allowDecimals = grade >= 6;
+			const cleanFloat = (value) => Number(value.toFixed(6));
+			let lineVariant;
+			if (grade <= 6) {
+				lineVariant = 'zero';
+			} else if (grade === 7) {
+				lineVariant = Math.random() < 0.5 ? 'zero' : 'section';
+			} else {
+				lineVariant = ['zero', 'section', 'negative'][randInt(0, 2)];
+			}
+			const isZeroBasedLine = lineVariant === 'zero';
+			const isNegativeLine = lineVariant === 'negative';
+			const variantAllowsDecimals = allowDecimals && !(grade === 8 && isNegativeLine);
+			const tickBases = variantAllowsDecimals ? [2, 3, 4, 5] : [2, 3, 5];
+			const tickFactors = variantAllowsDecimals
+				? [0.01, 0.05, 0.1, 0.5, 1, 5, 10, 50, 100]
+				: [1, 5, 10, 50, 100];
+			const tickDistance = cleanFloat(tickBases[randInt(0, tickBases.length - 1)] * tickFactors[randInt(0, tickFactors.length - 1)]);
+			const tickCount = randInt(5, 7);
+			const startValue = cleanFloat(isZeroBasedLine ? 0 : (isNegativeLine ? randInt(-3, -1) * tickDistance : randInt(1, 4) * tickDistance));
+			const endValue = cleanFloat(startValue + tickDistance * (tickCount - 1));
+			const formatValue = (value) => formatDecimal(cleanFloat(value), 4);
+			const getValueAt = (position) => cleanFloat(startValue + position * tickDistance);
+			const svgWidth = 520;
+			const svgHeight = 100;
+			const svgRenderWidthCm = 10;
+			const svgRenderHeightCm = 2.2;
+			const margin = 10;
+			const axisY = 56;
+			const arrowSize = 10;
+			const lineStart = margin;
+			const lineEnd = svgWidth - margin - arrowSize;
+			const tickLineEnd = isZeroBasedLine ? lineEnd - 12 : lineEnd;
+			const unitPx = (tickLineEnd - lineStart) / (isZeroBasedLine ? tickCount - 1 : tickCount);
+			const tickOffset = isZeroBasedLine ? 0 : unitPx / 2;
+			const getX = (position) => lineStart + tickOffset + position * unitPx;
+			const renderNumberLine = ({ labels = {}, labelColors = {}, labelWeights = {}, arrowPos = null, scale = 1, widthCm } = {}) => {
+				const renderWidth = `${(widthCm ?? (svgRenderWidthCm * scale))}cm`;
+				const renderHeight = `${svgRenderHeightCm * scale}cm`;
+				let content = `<svg class="number-line-svg" width="${renderWidth}" height="${renderHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" style="display:block; color:#111827;">`;
+				content += `<line x1="${lineStart}" y1="${axisY}" x2="${lineEnd}" y2="${axisY}" stroke="currentColor" stroke-width="2"/>`;
+				content += `<polygon points="${svgWidth - margin},${axisY} ${lineEnd},${axisY - 6} ${lineEnd},${axisY + 6}" fill="currentColor"/>`;
+				for (let i = 0; i < tickCount; i++) {
+					const x = getX(i);
+					content += `<line x1="${x}" y1="${axisY - 8}" x2="${x}" y2="${axisY + 8}" stroke="currentColor" stroke-width="1"/>`;
+					const label = labels[i];
+					if (label !== undefined) {
+						const labelColor = labelColors[i] || 'currentColor';
+						const labelWeight = labelWeights[i] || '400';
+						content += `<text x="${x}" y="${axisY + 27}" text-anchor="middle" font-size="17" font-weight="${labelWeight}" fill="${labelColor}">${label}</text>`;
+					}
+				}
+				if (arrowPos !== null && arrowPos !== undefined) {
+					const arrowX = getX(arrowPos);
+					content += `<line x1="${arrowX}" y1="${axisY - 36}" x2="${arrowX}" y2="${axisY - 14}" stroke="#d32f2f" stroke-width="3"/>`;
+					content += `<polygon points="${arrowX - 6},${axisY - 17} ${arrowX},${axisY - 9} ${arrowX + 6},${axisY - 17}" fill="#d32f2f"/>`;
+				}
+				content += `</svg>`;
+				return content;
+			};
+
+			const givenPosA = isZeroBasedLine ? 0 : randInt(0, tickCount - 1);
+			let givenPosB;
+			if (isZeroBasedLine) {
+				givenPosB = randInt(2, tickCount - 1);
+			} else {
+				do {
+					givenPosB = randInt(0, tickCount - 1);
+				} while (Math.abs(givenPosA - givenPosB) <= 1);
+			}
+
+			// Aus den verbleibenden Positionen eine Zielposition für den Pfeil wählen
+			const availableTargetPositions = [];
+			for (let i = 0; i < tickCount; i++) {
+				if (i !== givenPosA && i !== givenPosB) {
+					availableTargetPositions.push(i);
+				}
+			}
+			const targetPos = availableTargetPositions[randInt(0, availableTargetPositions.length - 1)];
+			const targetValue = getValueAt(targetPos);
+
+			const taskLabels = {
+				[givenPosA]: formatValue(getValueAt(givenPosA)),
+				[givenPosB]: formatValue(getValueAt(givenPosB))
+			};
+			const solutionLabels = {};
+			for (let i = 0; i < tickCount; i++) {
+				solutionLabels[i] = formatValue(getValueAt(i));
+			}
+
+			const lineTitle = isZeroBasedLine ? 'dem Zahlenstrahl' : (isNegativeLine ? 'der Zahlengeraden' : 'dem Zahlenstrahl-Abschnitt');
+			const taskInstruction = `Welche Zahl ist durch den Pfeil auf ${lineTitle} markiert?`;
+			const taskSvgDisplay = renderNumberLine({ labels: taskLabels, arrowPos: targetPos, scale: 1.7 });
+			const taskSvgPrint = renderNumberLine({ labels: taskLabels, arrowPos: targetPos, scale: 1, widthCm: 11 });
+
+			const solutionOptions = {
+				labels: solutionLabels,
+				labelColors: {
+					[targetPos]: '#2e7d32'
+				},
+				labelWeights: {
+					[targetPos]: '700'
+				},
+				arrowPos: targetPos
+			};
+			const solutionSvgDisplay = renderNumberLine({ ...solutionOptions, scale: 1.7 });
+			const solutionSvgPrint = renderNumberLine({ ...solutionOptions, scale: 1, widthCm: 11 });
+
+			textDisplay = `${taskInstruction}<br>${taskSvgDisplay}`;
+			textPrint = `${taskInstruction} ${blank(2)}<br>${taskSvgPrint}`;
+			s = `<span class="number-line-solution-display">Gesuchte Zahl: \\( \\mathbf{${formatValue(targetValue)}} \\)<br>${solutionSvgDisplay}</span><span class="number-line-solution-print">Gesuchte Zahl: \\( \\mathbf{${formatValue(targetValue)}} \\)<br>${solutionSvgPrint}</span>`;
+			answer = numericAnswer(targetValue);
+		} else {
 		const allowDecimals = grade >= 6;
 		const cleanFloat = (value) => Number(value.toFixed(6));
 		let lineVariant;
@@ -4249,10 +6590,132 @@ const fromUnit = displayUnits[unitIndex];
 		textDisplay = `${taskInstruction}<br>${taskSvgDisplay}`;
 		textPrint = `${taskInstruction}<br>${taskSvgPrint}`;
 		s = `<span class="number-line-solution-display">${solutionSvgDisplay}</span><span class="number-line-solution-print">${solutionSvgPrint}</span>`;
+		}
 		break;
 	}
-
 	case 'wahrscheinlichkeiten': {
+		if (isQuizMode) {
+			let mode = randInt(0, 4); // 0: Urne (3 Farben), 1: Rel. Häufigkeit, 2: 12-seitiger Würfel, 3: Glücksrad, 4: Würfel 
+			let taskStr, resStr, answerValue;
+			
+			if (mode === 0) {
+				// --- TYP: LAPLACE URNE (3 FARBEN) ---
+				const farben = ['rote', 'blaue', 'grüne', 'gelbe'];
+				let w = fisherYatesShuffle(farben);
+				let n1 = randInt(3, 9);
+				let n2 = randInt(3, 9);
+				let n3 = randInt(3, 9);
+				let gesamt = n1 + n2 + n3;
+				answerValue = n1 / gesamt;
+				
+				// Grammatik-Fix: "rote" -> "Rot", "grüne" -> "Grün"
+				let farbeSubst = w[0].charAt(0).toUpperCase() + w[0].slice(1, -1);
+				
+				taskStr = `Eine Urne enthält ${n1} ${w[0]}, ${n2} ${w[1]} und ${n3} ${w[2]} Kugeln. Nenne die Wahrscheinlichkeit, eine ${w[0]} Kugel zu ziehen?`;
+				
+				// In der Lösung nutzen wir jetzt die substantivierte Form
+				resStr = `P(${farbeSubst}) = \\( \\dfrac{${n1}}{${gesamt}} \\)`;
+			} else if (mode === 1) {
+				// --- TYP: RELATIVE HÄUFIGKEIT (KONTEXT-SPEZIFISCH) ---
+				const szenarien = [
+					{ txt: 'Basketball: Von', einheit: 'Würfen wurden', e: 'getroffen' },
+					{ txt: 'Qualitätskontrolle: Von', einheit: 'Bauteilen sind', e: 'defekt' },
+					{ txt: 'Umfrage: Von', einheit: 'Personen antworten', e: 'mit "Ja"' },
+					{ txt: 'Torwart: Von', einheit: 'Schüssen wurden', e: 'gehalten' }
+				];
+				const sz = szenarien[randInt(0, szenarien.length - 1)];
+				let gesamt = [10, 20, 25, 40, 50][randInt(0, 4)];
+				let treffer = Math.floor(gesamt * (randInt(2, 9) / 10));
+				answerValue = treffer / gesamt;
+				
+				taskStr = `${sz.txt} ${gesamt} ${sz.einheit} ${treffer} ${sz.e}.<br>Nenne die relative Häufigkeit in %.`;
+				let prozent = (treffer / gesamt) * 100;
+				resStr = `h = \\( \\dfrac{${treffer}}{${gesamt}} \\) = ${prozent.toFixed(0).replace('.', ',')} %`;
+				
+			} else if (mode === 2) {
+				// --- TYP: 12-SEITIGER WÜRFEL (D12) ---
+				let subMode = randInt(0, 2);
+				let ereignis, guenstige;
+				
+				if (subMode === 0) {
+					ereignis = "eine Primzahl";
+					taskStr = `Nenne die Wahrscheinlichkeit für ${ereignis} bei einem 12-seitigen Spielwürfel?`;
+					answerValue = 5 / 12;
+					resStr = `P(Primzahl) = \\( \\dfrac{5}{12} \\)`;
+				} else if (subMode === 1) {
+					let limit = randInt(7, 10);
+					ereignis = `eine Zahl größer als ${limit}`;
+					let count = 12 - limit;
+					taskStr = `Nenne die Wahrscheinlichkeit für ${ereignis} bei einem 12-seitigen Spielwürfel?`;
+					answerValue = count / 12;
+					resStr = `P(x > ${limit}) = \\( \\dfrac{${count}}{12} \\)`;
+				} else {
+					// Würfeln: Teilbarkeit durch 3, 4 oder 5
+					let auswahl = [3, 4, 5][randInt(0, 2)];
+					let treffer, gekuerzt;
+					
+					if (auswahl === 3) {
+						treffer = 4; // {3, 6, 9, 12}
+						gekuerzt = "\\dfrac{1}{3}";
+					} else if (auswahl === 4) {
+						treffer = 3; // {4, 8, 12}
+						gekuerzt = "\\dfrac{1}{4}";
+					} else {
+						treffer = 2; // {5, 10}
+						gekuerzt = "\\dfrac{1}{6}";
+					}
+
+					let ereignis = `eine durch ${auswahl} teilbare Zahl`;
+					taskStr = `Nenne die Wahrscheinlichkeit für ${ereignis} bei einem 12-seitigen Spielwürfel?`;
+					answerValue = treffer / 12;
+					resStr = `P(durch ${auswahl} teilbar) = \\( \\dfrac{${treffer}}{12} = ${gekuerzt}\\) `;
+				}
+
+			} else if (mode === 3) {
+				// --- TYP: GLÜCKSRAD (2 Farben, zweimal drehen) ---
+				const farben = ['rote', 'blaue', 'grüne', 'gelbe'];
+				let w = fisherYatesShuffle(farben);
+				let f1 = w[0]; // Die gesuchte Farbe (z.B. "rote")
+				let f2 = w[1]; // Die andere Farbe
+				
+				let n1 = randInt(2, 5); // Felder Farbe 1
+				let n2 = randInt(2, 5); // Felder Farbe 2
+				let gesamt = n1 + n2;
+				answerValue = (n1 / gesamt) * (n1 / gesamt);
+				
+				// Grammatik-Anpassung für die Farbe im Satz (Substantiviert)
+				let f1Subst = f1.charAt(0).toUpperCase() + f1.slice(1, -1); // "rote" -> "Rot"
+				
+				taskStr = `Ein Glücksrad hat ${n1} ${f1} und ${n2} ${f2} gleich große Felder. Nenne die Wahrscheinlichkeit, dass 2-mal in Folge ${f1Subst} gedreht wird.`;
+				
+				// Berechnung: (n1/gesamt) * (n1/gesamt)
+				let zaehler = n1 * n1;
+				let nenner = gesamt * gesamt;
+				
+				// Lösungsweg mit Pfadregel
+				resStr = `P(${f1Subst}, ${f1Subst}) = \\( \\dfrac{${n1}}{${gesamt}} \\cdot \\dfrac{${n1}}{${gesamt}} = \\dfrac{${zaehler}}{${nenner}} \\)`;
+				
+			} else if (mode === 4) {
+				// --- TYP: 2 WÜRFEL - AUGENSUMME ---
+				const target = randInt(2, 12);
+				let count = 0;
+				for (let a = 1; a <= 6; a++) {
+					for (let b = 1; b <= 6; b++) {
+						if (a + b === target) count++;
+					}
+				}
+
+				const num = count;
+				const den = 36;
+				answerValue = num / den;
+				const frac = den === 1 ? `${num}` : `\\dfrac{${num}}{${den}}`;
+				taskStr = `Zwei Würfel werden geworfen.<br>Nenne die Wahrscheinlichkeit für die Augensumme ${target}.`;
+				resStr = `P(Summe = ${target}) = \\( ${frac} \\)`;
+			} 
+			textDisplay = taskStr;
+			s = `${resStr}`;
+			answer = probabilityAnswer(answerValue);
+		} else {
 			let mode = randInt(0, 4); // 0: Urne (3 Farben), 1: Rel. Häufigkeit, 2: 12-seitiger Würfel, 3: Glücksrad, 4: Würfel 
 			let taskStr, resStr;
 			
@@ -4365,10 +6828,11 @@ const fromUnit = displayUnits[unitIndex];
 			} 
 			textDisplay = taskStr;
 			s = `${resStr}`;
-			break;
 		}
-
-		case 'funktionen': {
+		break;
+	}
+	case 'funktionen': {
+		if (isQuizMode) {
 			let subType = randInt(0,2);
 		
 			// Hilfsvariablen für die Funktionserstellung
@@ -4452,10 +6916,202 @@ const fromUnit = displayUnits[unitIndex];
 					}
 					break;
 			}
-			break;
-		}
+		} else {
+			let subType = randInt(0,2);
+		
+			// Hilfsvariablen für die Funktionserstellung
+			let isLinear = randInt(0, 1) === 0;
+			let m = rnd(-8, 8) / 2;
+			let b = rnd(-5, 5);
+			const fmtFunctionNumber = (value) => comma(value);
+			
+			let funcStr = "";
+			let calcF = (x) => 0;
+			
+			// Funktion generieren (Linear oder Quadratisch)
+			if (isLinear) {
+				calcF = (x) => m * x + b;
+				let mStr = m === 1 ? "" : (m === -1 ? "-" : fmtFunctionNumber(m));
+				let bStr = b > 0 ? ` + ${fmtFunctionNumber(b)}` : (b < 0 ? ` - ${fmtFunctionNumber(Math.abs(b))}` : "");
+				funcStr = `f(x) = ${mStr}x${bStr}`;
+			} else {
+				let quadType = randInt(0, 1);
+				if (quadType === 0) {
+					// Normalparabel verschoben: x^2 + c
+					calcF = (x) => x * x + b;
+					let bStr = b > 0 ? ` + ${fmtFunctionNumber(b)}` : (b < 0 ? ` - ${fmtFunctionNumber(Math.abs(b))}` : "");
+					funcStr = `f(x) = x^2${bStr}`;
+				} else {
+					// Gestreckte/Gestauchte Parabel: a*x^2
+					let a = randInt(2, 4) * (randInt(0, 1) === 0 ? 1 : -1);
+					calcF = (x) => a * x * x;
+					funcStr = `f(x) = ${fmtFunctionNumber(a)}x^2`;
+				}
+			}
+			
+			// Verfügbare Teilaufgabentypen: 0, 3, 4, 5
+			switch (subType) {
+				case 0: // Funktionswert berechnen
+					let xVal = randInt(-4, 4);
+					const rhsCase0 = funcStr.replace('f(x) = ', '');
+					textDisplay = `Berechne bei der Funktion \\( ${funcStr} \\) den Funktionswert zum Argument \\( ${fmtFunctionNumber(xVal)} \\).`;
+					s = `\\( f(${fmtFunctionNumber(xVal)}) = ${rhsCase0.replace(/x/g, `(${fmtFunctionNumber(xVal)})`)} = ${fmtFunctionNumber(calcF(xVal))} \\)`;
+					break;
+					
+				case 1: // Fehlende Koordinate
+					let px = randInt(-4, 4);
+					let py = calcF(px);
+					const rhsCase3 = funcStr.replace('f(x) = ', '');
+					textDisplay = `\\( P(\\;${fmtFunctionNumber(px)} \\;|\\; y\\;) \\) liegt auf \\( ${funcStr} \\).<br>Bestimme \\( y \\).`;
+					s = `\\( y = f(${fmtFunctionNumber(px)}) = ${rhsCase3.replace(/x/g, `(${fmtFunctionNumber(px)})`)} = ${fmtFunctionNumber(py)} \\)`;
+					break;
 
-		case 'statistik': {
+				case 2: // Wertetabelle 
+					const xValues = [-2, -1, 0, 1, 2];
+					const buildValueTable = (isFilled, isCentered = true) => {
+							const xRow = xValues.map((x, idx) => `<td style="padding:6px 10px; text-align:center; min-width:40px; border-bottom:1px solid #333; ${idx < xValues.length - 1 ? 'border-right:1px solid #333;' : ''}">${fmtFunctionNumber(x)}</td>`).join('');
+						const yRow = xValues.map(x => {
+								const value = isFilled ? `${fmtFunctionNumber(calcF(x))}` : '&nbsp;';
+							return `<td style="padding:6px 10px; text-align:center; min-width:34px; ${x < xValues[xValues.length - 1] ? 'border-right:1px solid #333;' : ''}">${value}</td>`;
+						}).join('');
+
+						return `<table style="border-collapse:separate; border-spacing:0; margin:${isCentered ? '8px auto 0 auto' : '8px 0 0 0'};">` +
+							`<tr><th style="padding:6px 10px; min-width:30px; font-weight:400; border-right:1px solid #333; border-bottom:1px solid #333;">x</th>${xRow}</tr>` +
+							`<tr><th style="padding:6px 10px; min-width:30px; font-weight:400; border-right:1px solid #333;">y</th>${yRow}</tr>` +
+						`</table>`;
+					};
+
+					textDisplay = `Fülle die Wertetabelle für \\( ${funcStr} \\) aus.<br>${buildValueTable(false)}`;
+					textPrint = `Fülle die Wertetabelle für \\( ${funcStr} \\) aus.<br>${buildValueTable(false, false)}`;
+					s = `${buildValueTable(true)}<br>Kontrolle: Trage z. B. die Punkte \\( P(-1|${fmtFunctionNumber(calcF(-1))}) \\), \\( Q(0|${fmtFunctionNumber(calcF(0))}) \\) und \\( R(1|${fmtFunctionNumber(calcF(1))}) \\) in das Koordinatensystem ein.`;
+					break;
+					
+					case 5: // Punktprobe
+					let testX = randInt(-3, 3);
+					let isTrue = randInt(0, 1) === 0;
+					// Wenn isTrue false ist, addiere einen kleinen Störwert auf das echte y
+					let testY = isTrue ? calcF(testX) : calcF(testX) + randInt(1, 3) * (Math.random() < 0.5 ? 1 : -1);
+					
+						textDisplay = `Punktprobe: Prüfe, ob der Punkt \\( P(\\,${fmtFunctionNumber(testX)} \\, | ${fmtFunctionNumber(testY)}\\,) \\) auf dem Graphen von \\( ${funcStr} \\) liegt.`;
+					if (isTrue) {
+								s = `\\( f(${fmtFunctionNumber(testX)}) = ${fmtFunctionNumber(calcF(testX))} \\rightarrow\\) Ja, P liegt auf dem Graphen.`;
+					} else {
+								s = `\\( f(${fmtFunctionNumber(testX)}) = ${fmtFunctionNumber(calcF(testX))} \\neq ${fmtFunctionNumber(testY)} \\rightarrow\\) Nein, P liegt nicht auf dem Graphen.`;
+					}
+					break;
+			}
+		}
+		break;
+	}
+	case 'statistik': {
+		if (isQuizMode) {
+			let n = randInt(5, 6); // Anzahl der Datenpunkte
+			let data, sum, mean, modeVal;
+			
+			// Hocheffiziente Generierung ohne langes Würfeln
+			do {
+				data = [];
+				let used = new Set();
+				
+				// 1. Modalwert festlegen (kommt genau 2x vor)
+				modeVal = randInt(1, 9);
+				data.push(modeVal, modeVal);
+				used.add(modeVal);
+				
+				// 2. n-3 eindeutige Zufallszahlen hinzufügen
+				while (data.length < n - 1) {
+					let num = randInt(1, 12);
+					if (!used.has(num)) {
+						data.push(num);
+						used.add(num);
+					}
+				}
+
+				// 3. Den letzten Wert berechnen (Ziel: Rest 0 oder bei n=6 auch Rest 3)
+				let currentSum = data.reduce((a, b) => a + b, 0);
+				let targetRemainder = (n === 6 && Math.random() < 0.5) ? 3 : 0;
+				
+				// Diff berechnen, um auf den targetRemainder zu kommen
+				let diff = (targetRemainder - (currentSum % n) + n) % n;
+				let lastVal = diff;
+				
+				// lastVal erhöhen, bis er nicht mehr in 'used' ist und > 0
+				while (used.has(lastVal) || lastVal === 0) {
+					lastVal += n;
+				}
+				
+				// Wichtig: Erst hier wird das Array auf die volle Länge n gebracht!
+				data.push(lastVal);
+				sum = currentSum + lastVal;
+				mean = (sum / n).toString().replace('.', ',');
+				
+				if (lastVal <= 13) {
+					sum = currentSum + lastVal;
+					// Prüfe: Entweder glatt teilbar ODER (bei n=6) Rest ist 3
+					if (sum % n === 0 || (n === 6 && sum % n === 3)) {
+						mean = (sum / n).toString().replace('.', ',');
+						break;
+					}
+				}
+			} while (true);
+
+			// 4. Liste zufällig durchmischen (Fisher-Yates Shuffle)
+			for (let i = data.length - 1; i > 0; i--) {
+				let j = Math.floor(Math.random() * (i + 1));
+				[data[i], data[j]] = [data[j], data[i]];
+			}
+
+			let sortedData = [...data].sort((a, b) => a - b);
+			if (data.every((value, index) => value === sortedData[index])) {
+				const swapIndex = sortedData.findIndex((value, index) => index > 0 && value !== sortedData[index - 1]);
+				[data[swapIndex - 1], data[swapIndex]] = [data[swapIndex], data[swapIndex - 1]];
+			}
+			let displayData = data;
+
+			// Bestimmung der einen gesuchten Kenngröße
+			let taskType = randInt(0, 3);
+			let taskName, loesung, resultValue;
+			
+			switch (taskType) {
+				case 0:
+					taskName = "das arithmetische Mittel";
+					resultValue = sum / n;
+					loesung = `Summe = ${sum}<br>arithmetisches Mittel = ${sum} : ${n} = ${mean}`;
+					break;
+				case 1:
+					taskName = "den Zentralwert (Median)";
+					if (n === 5) {
+						resultValue = sortedData[2];
+						let median = sortedData[2];
+						loesung = `geordnete Liste: ${sortedData.join(', ')}<br>Zentralwert (Median) = ${median}`;
+					} else {
+						resultValue = (sortedData[2] + sortedData[3]) / 2;
+						let m1 = sortedData[2];
+						let m2 = sortedData[3];
+						let median = (m1 + m2) / 2;
+						let medianStr = median.toString().replace('.', ',');
+						
+						loesung = `geordnete Liste: ${sortedData.join(', ')}<br>Zentralwert = (${m1} + ${m2}) : 2 = ${medianStr}`;
+					}
+					break;
+				case 2:
+					taskName = "den Modalwert";
+					resultValue = modeVal;
+					loesung = `Modalwert = ${modeVal}`;
+					break;
+				case 3:
+					taskName = "die Spannweite";
+					resultValue = sortedData[n - 1] - sortedData[0];
+					let spannweite = sortedData[n - 1] - sortedData[0];
+					loesung = `Spannweite = ${sortedData[n - 1]} - ${sortedData[0]} = ${spannweite}`;
+					break;
+			}
+
+			textPrint = `Bestimme ${taskName}: \\( \\quad ${displayData.join(', ')} \\)`;
+			textDisplay = `Bestimme ${taskName}: <br>${displayData.join(', ')}`;
+			s = loesung;
+			answer = { kind: 'number', value: resultValue };
+		} else {
 			let n = randInt(5, 6); // Anzahl der Datenpunkte
 			let data, sum, mean, modeVal;
 			
@@ -4555,10 +7211,44 @@ const fromUnit = displayUnits[unitIndex];
 			textPrint = `Bestimme ${taskName}: \\( \\quad ${displayData.join(', ')} \\)`;
 			textDisplay = `Bestimme ${taskName}: <br>${displayData.join(', ')}`;
 			s = loesung;
-			break;
 		}
+		break;
+	}
+	case 'winkel': {
+		if (isQuizMode) {
+			let mode = randInt(0, 2); // 0: Uhrzeit, 1: Kreisdiagramm, 2: Winkel zeichnen (versch. Typen), 3: Winkel zeichnen (10°-350°), 4: Dreieckswinkel berechnen, 5: Dreieckstyp zeichnen
+			
+			if (mode === 0) {
+				// --- Uhrzeit ---
+				let displayHour = randInt(0, 23);
+				let hourOnClock = displayHour % 12;
+				let stepCount = Math.min(hourOnClock, 12 - hourOnClock);
+				let smallerAngle = stepCount * 30;
+				let largerAngle = 360 - smallerAngle;
+				
+				textDisplay = `Welche Winkel bilden die Uhr-Zeiger um ${String(displayHour)}:00 Uhr?`;
+				s = `${String(displayHour)}:00 Uhr ➝ ${smallerAngle}° und ${largerAngle}°`;
+				answer = { kind: 'either', options: [smallerAngle, largerAngle] };
+				
+			} else if (mode === 1) {
+				// --- Kreisdiagramm ---
+				const prozentListe = [5, 10, 20, 25, 30, 40, 50, 60, 75, 80];
+				let p = prozentListe[randInt(0, prozentListe.length - 1)];
+				let result = (p / 100) * 360;
+				
+				textDisplay = `Welchen Winkel haben ${p} % in einem Kreisdiagramm?`;
+				s = `10 % ≙ 36° &#x2192; ${p} % ≙ ${result}°`;
+				answer = numericAnswer(result);
+				
+			}  else  {
+				let a = rnd(25, 45), b = rnd(61, 129);
+				textPrint = `Dreieck mit Winkeln \\( \\alpha = ${a}° \\) und \\( \\beta = ${b}°. \\quad \\gamma = \\) ${blank(1.5)} `;
+				textDisplay = `Dreieck mit Winkeln \\( \\alpha = ${a}° \\) und \\( \\beta = ${b}°\\). Winkel \\(\\gamma \\)?`;
+				s = `\\( \\gamma = 180° - ${a}° - ${b}° = ${180 - a - b}° \\)`;
+				answer = numericAnswer(180 - a - b);
 
-		case 'winkel': {
+			} 
+		} else {
 			let mode = randInt(0, 5); // 0: Uhrzeit, 1: Kreisdiagramm, 2: Winkel zeichnen (versch. Typen), 3: Winkel zeichnen (10°-350°), 4: Dreieckswinkel berechnen, 5: Dreieckstyp zeichnen
 			
 			if (mode === 0) {
@@ -4631,9 +7321,9 @@ const fromUnit = displayUnits[unitIndex];
 				}
 				s = `Kontrolle: ${definition}`;
 			}
-			break;
 		}
-		
+		break;
+	}
 		case 'kongruenz': {
 			// Permutation bleibt: Zuordnung von Seiten-/Winkelnamen wird zufaellig gemischt.
 			let p = [0, 1, 2];
@@ -4834,7 +7524,62 @@ const fromUnit = displayUnits[unitIndex];
 			break;
 		}
 
-		case 'anteile': {
+	case 'anteile': {
+		if (isQuizMode) {
+			let einheit = ['€', 'm', 'kg', 't', 'g', 'm²', 'm³', 'ha', 's', 'h', 'l', 'cm', 'mm', 'km', 'dm'][randInt(0, 14)];
+			let rd = Math.random();
+
+			// 1. Definition "schöner" Brüche (Zähler z, Nenner n)
+			const fractions = [
+				{ z: 2, n: 3 }, { z: 3, n: 4 }, { z: 2, n: 5 }, { z: 3, n: 5 }, { z: 4, n: 5 },
+				{ z: 5, n: 6 }, { z: 3, n: 8 }, { z: 3, n: 10 }, { z: 7, n: 10 }, { z: 9, n: 10 }
+			];
+			
+			// Wähle einen zufälligen Bruch aus dem Pool
+			let frac = fractions[randInt(0, fractions.length - 1)];
+			let z = frac.z;
+			let n = frac.n;
+			
+			if (rd > 0.6) {
+				// TYP 1: Anteil berechnen (Bruch von Ganzem)
+				// Damit es glatt aufgeht, muss das Ganze ein Vielfaches des Nenners sein.
+				let scale = Math.random() > 0.5 ? 10 : 1; // Sorgt manchmal für Hunderter/Zehner-Werte
+				let multiplier = rnd(2, 9);
+				let G = n * multiplier * scale; // Das Ganze (Grundwert)
+				let W = (G / n) * z;            // Der Anteil (Prozentwert)
+				answer = { kind: 'number', value: W, unit: einheit };
+
+				textDisplay = `\\( \\dfrac{${z}}{${n}} \\) von ${comma(G)} ${einheit} sind ${blank(3)}`;
+				s = `\\( \\dfrac{${z}}{${n}} \\) von ${comma(G)}  ${einheit} sind <b>${comma(W)} ${einheit}</b><br>
+				\\((${comma(G)} : ${n} \\cdot ${z} = ${comma(W)})\\)`;
+
+			} else if (rd > 0.25) {
+				// TYP 2: Ganzes berechnen (Bruch sind Anteil von...)
+				// Damit es glatt aufgeht, muss der Anteil ein Vielfaches des Zählers sein.
+				let scale = Math.random() > 0.5 ? 10 : 1;
+				let multiplier = rnd(2, 9);
+				let W = z * multiplier * scale; // Der Anteil
+				let G = (W / z) * n;            // Das Ganze
+				answer = { kind: 'number', value: G, unit: einheit };
+				
+				if (Math.random() < 0.5) {textDisplay = `\\( \\frac{${z}}{${n}} \\)  sind ${comma(W)} ${einheit} von ${blank(3)}`;} 
+				else {textDisplay = `${comma(W)} ${einheit} sind \\( \\frac{${z}}{${n}} \\) von ${blank(3)}`;}
+				s = `\\( \\dfrac{${z}}{${n}} \\) sind ${comma(W)} ${einheit} von <b>${comma(G)} ${einheit}</b><br>
+				\\((${comma(W)} : ${z} \\cdot ${n} = ${comma(G)})\\)`;
+
+			} else {
+				// TYP 3: Bruch berechnen (Anteil von Ganzem sind...)
+				// Wir nehmen den generierten Bruch und erzeugen dazu passende glatte Werte.
+				let multiplier = rnd(2, 9);
+				
+				let W = z * multiplier;
+				let G = n * multiplier;
+				answer = { kind: 'fraction', num: z, den: n, requireReduced: true };
+				
+				textDisplay = `${comma(W)} ${einheit} von ${comma(G)}  ${einheit} sind ${blank(3)} (als gekürzter Bruch)`;
+				s = `${comma(W)}  ${einheit} von  ${comma(G)}  ${einheit} sind  \\(\\dfrac{${comma(W)}}{${comma(G)}} \\underset{${multiplier}}{=} \\mathbf{\\dfrac{${z}}{${n}}} \\)`;
+			}
+		} else {
 			let einheit = ['€', 'm', 'kg', 't', 'g', 'm²', 'm³', 'ha', 's', 'h', 'l', 'cm', 'mm', 'km', 'dm'][randInt(0, 14)];
 			let rd = Math.random();
 
@@ -4886,10 +7631,106 @@ const fromUnit = displayUnits[unitIndex];
 				s = `${comma(W)}  ${einheit} von  ${comma(G)}  ${einheit} sind  \\(\\dfrac{${comma(W)}}{${comma(G)}} \\underset{${multiplier}}{=} \\mathbf{\\dfrac{${z}}{${n}}}\\)`;
 				
 			}
-			break;
 		}
-		
-		case 'proportionalitaet': {
+		break;
+	}
+	case 'proportionalitaet': {
+		if (isQuizMode) {
+			const szenarien = [
+				{ einheit1: 'kg Äpfel', einheit2: '€', objekt: 'Äpfel', type: 'food' },
+				{ einheit1: 'Brötchen', einheit2: '€', objekt: 'Brötchen', type: 'food' },
+				{ einheit1: 'Liter Saft', einheit2: '€', objekt: 'Saft', type: 'food' },
+				{ einheit1: 'Stunden', einheit2: '€', objekt: 'ein Azubi', type: 'job' },
+				{ einheit1: 'Minuten', einheit2: 'Seiten', objekt: 'ein Drucker', type: 'print' }
+			];
+
+			const sz = szenarien[randInt(0, szenarien.length - 1)];
+			
+			// Hilfsfunktion für deutsches Zahlenformat
+			const de = (num) => {
+				if (sz.type === 'food' || sz.type === 'job') return comma(num.toFixed(2));
+				return Math.round(num).toString();
+			};
+
+			let menge1 = randInt(3, 6);
+			let menge2
+			do {
+				menge2 = menge1 + randInt(1, 6);
+			} while (menge2 % menge1 === 0);
+			let einzelwert;
+			
+			// Realistische Werte je nach Typ festlegen
+			if (sz.type === 'print') {
+				einzelwert = randInt(5, 15); // 5 bis 15 Seiten pro Minute
+			} else if (sz.type === 'job') {
+				einzelwert = randInt(5, 9); // 5 € bis 9 € Stundenlohn
+			} else {
+				einzelwert = randInt(1, 6) * 0.5; // 0,50€ bis 3,00€ für Lebensmittel
+			}
+
+			let wert1 = menge1 * einzelwert;
+			let wert2 = menge2 * einzelwert;
+
+			// 50% Chance, dass die Aufgabe umgedreht wird (Geld/Seiten -> Menge/Zeit)
+			let reverseQuestion = Math.random() < 0.3;
+			
+			let s1, s2, sFrage, sStep, sRes;
+			let einheitSingular = sz.einheit1 === 'Brötchen' ? 'Brötchen' : sz.einheit1.replace('en', 'e'); // Aus "Stunden" wird "Stunde"
+			
+			if (!reverseQuestion) {
+				// --- STANDARD-FRAGE: Nach dem Ziel-Wert (z.B. Preis) fragen ---
+				if (sz.type === 'job') {
+					s1 = `${de(wert1)} ${sz.einheit2} verdient ${sz.objekt} in ${menge1} ${sz.einheit1}`;
+					s2 = `${de(wert1)} ${sz.einheit2} ≙ ${menge1} ${sz.einheit1}`;
+					sFrage = `Wie viel verdient er in ${menge2} ${sz.einheit1}?`;
+					sStep = `${de(einzelwert)} ${sz.einheit2}  ≙ 1 ${einheitSingular}`;
+					sRes = `<b>${de(wert2)} ${sz.einheit2}</b> ≙ ${menge2} ${sz.einheit1}`;
+				} else if (sz.type === 'print') {
+					s1 = `${de(wert1)} ${sz.einheit2} schafft ${sz.objekt} in ${menge1} ${sz.einheit1}`;
+					s2 = `${de(wert1)} ${sz.einheit2} ≙ ${menge1} ${sz.einheit1}`;
+					sFrage = `Wie viele ${sz.einheit2} schafft er in ${menge2} ${sz.einheit1}?`;
+					sStep = `${de(einzelwert)} ${sz.einheit2} ≙ 1 ${einheitSingular}`;
+					sRes = `<b>${de(wert2)} ${sz.einheit2}</b> ≙ ${menge2} ${sz.einheit1}`;
+				} else {
+					// Lebensmittel
+					s1 = `${menge1} ${sz.einheit1} kosten ${de(wert1)} ${sz.einheit2}`;
+					s2 = `${menge1} ${sz.einheit1} ≙ ${de(wert1)} ${sz.einheit2}`;
+					sFrage = `Wie viel kosten ${menge2} ${sz.einheit1}?`;
+					sStep = `1 ${sz.einheit1.includes('Brötchen') ? 'Brötchen' : sz.einheit1} ≙ ${de(einzelwert)} ${sz.einheit2}`;
+					sRes = `${menge2} ${sz.einheit1} ≙ <b>${de(wert2)} ${sz.einheit2}</b>`;
+				}
+			} else {
+				// --- UMGEKEHRTE FRAGE: Nach der Start-Einheit (z.B. kg oder Stunden) fragen ---
+				if (sz.type === 'job') {
+					s1 = `${de(wert1)} ${sz.einheit2} verdient ${sz.objekt} in ${menge1} ${sz.einheit1}`;
+					s2 = `${de(wert1)} ${sz.einheit2} ≙ ${menge1} ${sz.einheit1}`;
+					sFrage = `Wie viele ${sz.einheit1} muss er für ${de(wert2)} ${sz.einheit2} arbeiten?`;
+					sStep = `${de(einzelwert)} ${sz.einheit2} ≙ 1 ${einheitSingular}`;
+					sRes = `${de(wert2)} ${sz.einheit2} ≙ <b>${menge2} ${sz.einheit1}</b>`;
+				} else if (sz.type === 'print') {
+					s1 = `${de(wert1)} ${sz.einheit2} schafft ${sz.objekt} in ${menge1} ${sz.einheit1}`;
+					s2 = `${de(wert1)} ${sz.einheit2} ≙ ${menge1} ${sz.einheit1}`;
+					sFrage = `Wie viele ${sz.einheit1} braucht er für ${de(wert2)} ${sz.einheit2}?`;
+					sStep = `${de(einzelwert)} ${sz.einheit2} ≙ 1 ${einheitSingular}`;
+					sRes = `${de(wert2)} ${sz.einheit2} ≙ <b>${menge2} ${sz.einheit1}</b>`;
+				} else {
+					// Lebensmittel
+					s1 = `${menge1} ${sz.einheit1} kosten ${de(wert1)} ${sz.einheit2}`;
+					s2 = `${menge1} ${sz.einheit1} ≙ ${de(wert1)} ${sz.einheit2}`;
+					sFrage = `Wie viele ${sz.einheit1} bekommt man für ${de(wert2)} ${sz.einheit2}?`;
+					sStep = `1 ${sz.einheit1.includes('Brötchen') ? 'Brötchen' : sz.einheit1} ≙ ${de(einzelwert)} ${sz.einheit2} `;
+					sRes = `<b>${menge2} ${sz.einheit1}</b> ≙ ${de(wert2)} ${sz.einheit2}`;
+				}
+			}
+
+			textDisplay = `${s1}.<br> ${sFrage}`;
+			s = formatUtils.buildSolutionTable([
+				[`${menge1} ${sz.einheit1}`, `${de(wert1)} ${sz.einheit2}`],
+				[`1 ${einheitSingular}`, `${de(einzelwert)} ${sz.einheit2}`],
+				[`${menge2} ${sz.einheit1}`, `${de(wert2)} ${sz.einheit2}`]
+			]);
+			answer = { kind: 'number', value: reverseQuestion ? menge2 : wert2 };
+		} else {
 			const szenarien = [
 				{ einheit1: 'kg Äpfel', einheit2: '€', objekt: 'Äpfel', type: 'food' },
 				{ einheit1: 'Brötchen', einheit2: '€', objekt: 'Brötchen', type: 'food' },
@@ -4984,10 +7825,67 @@ const fromUnit = displayUnits[unitIndex];
 				[`1 ${einheitSingular}`, `${de(einzelwert)} ${sz.einheit2}`],
 				[`${menge2} ${sz.einheit1}`, `${de(wert2)} ${sz.einheit2}`]
 			]);
-			break;
 		}
+		break;
+	}
+	case 'vorrang': {
+		if (isQuizMode) {
+			// 1. Vier eindeutige Zahlen generieren und aufsteigend sortieren
+			let nums = [];
+			while (nums.length < 4) {
+				let r = randInt(2, 13); // Etwas größerer Bereich für schönere Differenzen
+				if (!nums.includes(r)) nums.push(r);
+			}
+			nums.sort((x, y) => x - y);
+			// Jetzt gilt: n[0] < n[1] < n[2] < n[3]
+			const n = nums;
+			
+			const f = fmt;
+			let vorrangType = randInt(0, 4);
+			let taskStr, step1, res;
+			
+			switch (vorrangType) {
+				case 0:
+					// Typ: Klein - (Mittel * Groß) 
+					taskStr = `${n[0]} - ${n[1]} \\cdot ${n[2]}`;
+					step1 = `${n[0]} - ${n[1] * n[2]}`;
+					res = n[0] - (n[1] * n[2]);
+					break;
+					
+				case 1:
+					// Typ: Mittel^2 - (Klein * Groß)
+					taskStr = `${n[1]}^2 - ${n[0]} \\cdot ${n[2]}`;
+					step1 = `${n[1] * n[1]} - ${n[0] * n[2]}`;
+					res = (n[1] * n[1]) - (n[0] * n[2]);
+					break;
 
-		case 'vorrang': {
+				case 2:
+					// Typ: Klein * (Mittel^2 - Groß)
+					taskStr = `${n[0]} \\cdot (${n[1]}^2 - ${n[2]})`;
+					step1 = `${n[0]} \\cdot ${f(n[1] * n[1] - n[2])}`;
+					res = n[0] * (n[1] * n[1] - n[2]);
+					break;
+
+				case 3:
+					// Typ: (Klein * Mittel) - (Groß * Extra)
+					taskStr = `${n[0]} \\cdot ${n[1]} - ${n[2]} \\cdot ${n[3]}`;
+					step1 = `${n[0] * n[1]} - ${n[2] * n[3]}`;
+					res = (n[0] * n[1]) - (n[2] * n[3]);
+					break;
+
+				case 4:
+					// Typ: Mittel * (Klein + Groß) - Extra
+					taskStr = `${n[1]} \\cdot (${n[0]} + ${n[2]}) - ${n[3]}`;
+					step1 = `${n[1]} \\cdot ${n[0] + n[2]} - ${n[3]}`;
+					res = n[1] * (n[0] + n[2]) - n[3];
+					break;
+			}
+
+			textDisplay = `\\( ${taskStr} = \\)`;
+			s = `\\[ ${taskStr} = ${step1} = ${res} \\]`;
+			answer = numericAnswer(res);
+
+		} else {
 			// 1. Vier eindeutige Zahlen generieren und aufsteigend sortieren
 			let nums = [];
 			while (nums.length < 4) {
@@ -5042,22 +7940,11 @@ const fromUnit = displayUnits[unitIndex];
 			textDisplay = `\\( ${taskStr} = \\)`;
 			s = `\\[ ${taskStr} = ${step1} = ${res} \\]`;
 
-			break;
 		}
-
-		
-		/*		
-		case 'einheiten_umrechnen': {
-			const getDisplayVolumeUnits = (units) => {
-				if (Math.random() < 0.5) {
-					return units;
-				}
-				return units.map((unit) => {
-					if (unit === 'cm³') return 'ml';
-					if (unit === 'dm³') return 'l';
-					return unit;
-				});
-			};
+		break;
+	}
+	case 'einheiten_umrechnen': {
+		if (isQuizMode) {
 			const groups = [
 				{ units: ['mm', 'cm', 'dm', 'm', 'km'], factors: [10, 10, 10, 1000] },
 				{ units: ['mm²', 'cm²', 'dm²', 'm²', 'a', 'ha', 'km²'], factors: [100, 100, 100, 100, 100, 100] },
@@ -5067,7 +7954,6 @@ const fromUnit = displayUnits[unitIndex];
 			];
 		
 			const g = groups[randInt(0, groups.length - 1)];
-			const displayUnits = g.units[0] === 'mm³' ? getDisplayVolumeUnits(g.units) : g.units;
 			const isTimeGroup = g.units[0] === 's';
 			const is1000Group = g.units[0] === 'mm³' || g.units[0] === 'mg';
 			const termCount = is1000Group ? 2 : 3; // Bei 1000er-Faktoren nur 2 Summanden
@@ -5091,7 +7977,7 @@ const fromUnit = displayUnits[unitIndex];
 			} else {
 				targetIdx = Math.min(...termUnitIdx);
 			}
-			const targetUnit = displayUnits[targetIdx];
+			const targetUnit = g.units[targetIdx];
 		
 			// Skalenfaktoren auf kleinste Einheit der Gruppe
 			const scales = [1];
@@ -5111,7 +7997,12 @@ const fromUnit = displayUnits[unitIndex];
 				return comma(rounded);
 			};
 		
-			const pickSimpleValue = () => randInt(5, 250) / 10; // max. eine Nachkommastelle
+			const pickSimpleValue = () => {
+				if (Math.random() < 0.8) {
+					return randInt(1, 12); // bevorzugt ganze Zahlen
+				}
+				return randInt(2, 20) / 2; // sonst 0,5-Schritte
+			};
 		
 			const pickTimeValue = (idx) => {
 				const unit = g.units[idx];
@@ -5179,9 +8070,9 @@ const fromUnit = displayUnits[unitIndex];
 				}
 			}
 		
-			const displayExprParts = [`${fmtNum(terms[0].value)} ${displayUnits[terms[0].idx]}`];
+			const displayExprParts = [`${fmtNum(terms[0].value)} ${terms[0].unit}`];
 			for (let i = 1; i < terms.length; i++) {
-				displayExprParts.push(`${ops[i - 1]} ${fmtNum(terms[i].value)} ${displayUnits[terms[i].idx]}`);
+				displayExprParts.push(`${ops[i - 1]} ${fmtNum(terms[i].value)} ${terms[i].unit}`);
 			}
 		
 			const targetExprParts = [`${fmtNum(converted[0])} ${targetUnit}`];
@@ -5194,10 +8085,72 @@ const fromUnit = displayUnits[unitIndex];
 		
 			textDisplay = `${displayExpr} = ${blank(3)} ${targetUnit}`;
 			s = `${displayExpr} <br>= ${targetExpr} = ${fmtNum(resultInTarget)} ${targetUnit}`;
-			break;
+			answer = { kind: 'number', value: resultInTarget };
+		} else {
+			textDisplay = '';
+			textPrint = '';
+			s = '';
 		}
-		*/
+		break;
+	}
+	case 'terme_einsetzen': {
+		if (isQuizMode) {
+			// Ein Term aus den Vorrangregeln mit einer Variablen anstelle einer Zahl.
+			let nums = [];
+			while (nums.length < 4) {
+				const value = randInt(2, 13);
+				if (!nums.includes(value)) nums.push(value);
+			}
+			nums.sort((x, y) => x - y);
 
+			const n = nums;
+			const xValue = randInt(-5, 5);
+			const xSubstitution = xValue < 0 ? `(${xValue})` : `${xValue}`;
+			const f = fmt;
+			const coefficientTerm = (number) => grade >= 8 ? `${number}x` : `${number} \\cdot x`;
+			let termStr, substitutedTermStr, step1, result;
+
+			switch (randInt(0, 4)) {
+				case 0:
+					termStr = `${n[0]} - ${coefficientTerm(n[2])}`;
+					substitutedTermStr = `${n[0]} - ${xSubstitution} \\cdot ${n[2]}`;
+					step1 = `${n[0]} - ${xValue * n[2]}`;
+					result = n[0] - xValue * n[2];
+					break;
+				case 1:
+					termStr = `x^2 - ${n[0]} \\cdot ${n[2]}`;
+					substitutedTermStr = `${xSubstitution}^2 - ${n[0]} \\cdot ${n[2]}`;
+					step1 = `${xValue * xValue} - ${n[0] * n[2]}`;
+					result = xValue * xValue - n[0] * n[2];
+					break;
+				case 2:
+					termStr = `${n[0]} \\cdot (x^2 - ${n[2]})`;
+					substitutedTermStr = `${n[0]} \\cdot (${xSubstitution}^2 - ${n[2]})`;
+					step1 = `${n[0]} \\cdot ${f(xValue * xValue - n[2])}`;
+					result = n[0] * (xValue * xValue - n[2]);
+					break;
+				case 3:
+					termStr = `${coefficientTerm(n[1])} - ${n[2]} \\cdot ${n[3]}`;
+					substitutedTermStr = `${xSubstitution} \\cdot ${n[1]} - ${n[2]} \\cdot ${n[3]}`;
+					step1 = `${xValue * n[1]} - ${n[2] * n[3]}`;
+					result = xValue * n[1] - n[2] * n[3];
+					break;
+				default:
+					termStr = `${n[1]} \\cdot (${n[0]} + x) - ${n[2]}`;
+					substitutedTermStr = `${n[1]} \\cdot (${n[0]} + ${xSubstitution}) - ${n[2]}`;
+					step1 = `${n[1]} \\cdot ${n[0] + xValue} - ${n[2]}`;
+					result = (n[0] + xValue) * n[1] - n[2];
+					break;
+			}
+
+			textDisplay = `Berechne \\( ${termStr} \\; \\) mit \\( \\; x = ${xValue}\\).`;
+			s = `\\[ ${substitutedTermStr} = ${step1} = ${result} \\]`;
+			answer = numericAnswer(result);
+		} else {
+			console.warn(`MTG: Aufgabentyp "terme_einsetzen" ist im Arbeitsblatt-Modus nicht implementiert.`);
+		}
+		break;
+	}
 		default:
 			console.warn(`MTG: Unbekannter Aufgabentyp "${type}" – keine Aufgabe generiert.`);
 	}
@@ -5209,9 +8162,7 @@ const fromUnit = displayUnits[unitIndex];
 		textDisplay = textPrint;
 	}
 
-	return {
-		textDisplay,
-		textPrint,
-		solution: s
-	};
+	const taskResult = { textDisplay, textPrint, solution: s };
+	if (isQuizMode) taskResult.answer = answer;
+	return taskResult;
 };

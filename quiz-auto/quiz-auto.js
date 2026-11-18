@@ -12,7 +12,8 @@ const app = createApp({
 	setup() {
 		const grade = ref(10);
 		const selectedTypes = ref([]);
-		const shareLink = window.MTGShareLinkModule.createCodec(window.MTGShareLinkTypeRegistry);
+		const shareLink = window.MTGShareLinkModule.createCodec(window.MTGQuizShareLinkTypeRegistry);
+		const quizTypeLabels = { ...window.typeLabels, ...window.QUIZ_AUTO_TYPE_LABELS };
 		const initialShareConfig = shareLink.read(window.location.href);
 		if (initialShareConfig.grade !== null) {
 			grade.value = initialShareConfig.grade;
@@ -43,11 +44,11 @@ const app = createApp({
 		// Verfügbare Typen je nach Stufe: alle für die Klasse definierten Aufgabentypen anzeigen
 		const availableTypes = computed(() => {
 			const gradeKey = grade.value === 'GS' ? 'grundschule' : `klasse${grade.value}`;
-			const configured = taskTypesByGrade[gradeKey] || [];
+			const configured = quizAutoTaskTypesByGrade[gradeKey] || [];
 			const quizTypes = new Set(window.QUIZ_AUTO_TYPES || []);
 			return [...new Set(configured)].filter(type => quizTypes.has(type)).sort((a, b) => {
-				const orderA = typeOrderIndex[a] ?? Number.MAX_SAFE_INTEGER;
-				const orderB = typeOrderIndex[b] ?? Number.MAX_SAFE_INTEGER;
+				const orderA = window.QUIZ_AUTO_TYPE_ORDER_INDEX?.[a] ?? Number.MAX_SAFE_INTEGER;
+				const orderB = window.QUIZ_AUTO_TYPE_ORDER_INDEX?.[b] ?? Number.MAX_SAFE_INTEGER;
 				if (orderA !== orderB) return orderA - orderB;
 				return a.localeCompare(b);
 			});
@@ -75,7 +76,7 @@ const app = createApp({
 			const tasks = checkedTasks.map((task, index) => ({
 				taskNumber: index + 1,
 				type: task.type,
-				typeLabel: window.typeLabels?.[task.type] || task.type,
+				typeLabel: quizTypeLabels?.[task.type] || task.type,
 				prompt: stripHtml(task.textDisplay),
 				promptHtml: task.textDisplay || '',
 				userInput: task.userInput || '',
@@ -249,7 +250,7 @@ const app = createApp({
 			if (selectedTypes.value.length === 0) return null;
 
 			const type = selectedTypes.value[randInt(0, selectedTypes.value.length - 1)];
-			const generated = createTask(type, grade.value);
+			const generated = createTask(type, grade.value, { mode: 'quiz', singleTask: true });
 
 			return reactive({
 				type,
@@ -791,7 +792,7 @@ ${safePlainJson}
 			worksheetImportInput,
 			stats,
 			availableTypes,
-			typeLabels: window.typeLabels,
+			typeLabels: quizTypeLabels,
 			successRate,
 			selectRandomTypes,
 			selectAllTypes,

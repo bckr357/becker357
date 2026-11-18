@@ -268,6 +268,9 @@ window.MTGTaskGenerationModule = {
 
         const buildTasks = (scope = 'default', taskOptions = {}) => {
             const config = getScopeConfig(scope);
+            const effectiveTaskOptions = scope === 'quiz'
+                ? { ...taskOptions, mode: 'quiz' }
+                : taskOptions;
 
             if (config.selectedTypes.length === 0) return false;
 
@@ -297,7 +300,7 @@ window.MTGTaskGenerationModule = {
                 }
 
                 state.tasks.value = typePool.map(type => {
-                    const generated = createTask(type, getNumericGrade(), taskOptions);
+                    const generated = createTask(type, getNumericGrade(), effectiveTaskOptions);
                     return {
                         type,
                         textDisplay: generated.textDisplay ?? '',
@@ -428,7 +431,7 @@ window.MTGTaskGenerationModule = {
             }
 
             state.tasks.value = typePool.map(type => {
-                const generated = createTask(type, getNumericGrade(), taskOptions);
+                const generated = createTask(type, getNumericGrade(), effectiveTaskOptions);
                 return {
                     type,
                     textDisplay: generated.textDisplay ?? '',

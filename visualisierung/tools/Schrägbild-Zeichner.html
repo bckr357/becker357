@@ -43,7 +43,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   <div class="grp"><b>Raster</b><div class="g" id="grids"></div><label>Größe <input type="range" id="sz" min="12" max="100" value="30"></label></div>
   <div class="grp"><b>Zeichnen</b>
    <label><input type="checkbox" id="ras" checked> am Raster fangen</label>
-   <label><input type="checkbox" id="fix" checked> Feste Längen</label>
+   <label><input type="checkbox" id="fix" > freie Längen</label>
    <label><input type="checkbox" id="auto" checked> Punkte benennen</label>
    <label><input type="checkbox" id="autol" checked> Strecken benennen</label></div>
   <div class="grp"><b>Anzeige</b>
@@ -56,10 +56,11 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
    <label><input type="checkbox" id="d3"> Winkel und Längen in 3D</label>
    <label><input type="checkbox" id="siz"> Größen anzeigen</label>
    <label><input type="checkbox" id="onlyn"> ... an allen Strecken</label>
-   <label><input type="checkbox" id="leg"> Legende</label>
-   <label><input type="checkbox" id="vol"> Volumen der Körper</label>
+   <label><input type="checkbox" id="leg" checked> Legende</label>
+   <!-- <label><input type="checkbox" id="vol"> Volumen der Körper</label>
    <label><input type="checkbox" id="sol"> Lösungswege</label>
-   <label>Körper-Typ <select id="btype"><option value="pyr">Pyramide / Kegel</option><option value="pri">Prisma / Zylinder</option></select></label></div>
+   <label>Körper-Typ <select id="btype"><option value="pyr">Pyramide / Kegel</option><option value="pri">Prisma / Zylinder</option></select></label> -->
+   <label><input type="checkbox" id="sol"> Lösungswege</label></div>
   <div class="grp"><b>Rekorder</b>
    <div class="g"><button id="brec">● Aufnahme starten</button><button id="bplay">▶ Abspielen</button></div>
    <div class="g"><button id="bsave">💾 Speichern</button><button id="bload">📂 Laden</button><input type="file" id="bfile" accept=".json,application/json" style="display:none"></div>
@@ -74,9 +75,10 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 const $=id=>document.getElementById(id),cv=$('c'),ctx=cv.getContext('2d'),inp=$('inp');
 let P=[],L=[],K=[],A=[],F=[],BD=[],Q=[],nid=1,hist=[],start=null,sel=[],bsel=null,mode='line',grid='dots',showGrid=true,hover=null,hl=-1,hk=-1,W=0,H=0,k=30,ox=0,oy=0,fs=16,mouse={x:0,y:0},drag=null,space=false,M=new Map(),crossKey='',crossCache=[],legPos=null,legR=null,legRows=[],rec=false,snaps=[],manualStep=-1,playing=false,live=null,pi=0,pt=null;
 const GR='αβγδεζηθικλμνξπρστφχψω',LC='abcdefghijklmnopqrstuvwxyz',PAL=['#4da3ff','#ffb347','#6fd08c','#ff7b9c','#b48cff','#ffd84d','#4dd0c8','#ff8c66'];
-const MODES=[['line','Strecke (S)'],['point','Punkt (P)'],['arc','Kreis (K)'],['style','Stil (G)'],['label','Beschriften (B)'],['text','Text (T)'],['move','Verschieben (V)'],['angle','Winkel (W)'],['face','Fläche (F)'],['body','Körper (O)'],['hand','Hand (H)'],['del','Löschen (L)']];
-const KEYS={s:'line',p:'point',k:'arc',g:'style',b:'label',t:'text',v:'move',w:'angle',f:'face',o:'body',h:'hand',l:'del'};
-const HINTS={line:'Punkt oder Schnittpunkt anklicken, Maus bewegen, zweiter Klick setzt das Ende. Klick auf einen vorhandenen Punkt verbindet frei. Esc bricht ab.',point:'Klick setzt einen Punkt (rastet an Schnittpunkten von Strecken ein und bleibt daran verankert).',arc:'Zwei Endpunkte eines waagerechten Durchmessers anklicken, dann Maus nach oben oder unten bewegen (oberer/unterer Halbbogen) und klicken.',label:'Punkt, Strecke, Winkelbogen oder Fläche anklicken, Namen eingeben (tiefgestellt: F_1 oder F_{12}), Enter.',text:'Klick an die gewünschte Stelle, Text eingeben und Enter drücken. Esc bricht ab.',style:'Strecke oder Kreisbogen anklicken: normal → gestrichelt → Hilfslinie.',move:'Punkt, Strecke oder Text ziehen, angrenzende Strecken wandern mit.',angle:'Nacheinander anklicken: Punkt auf Schenkel 1, Scheitelpunkt, Punkt auf Schenkel 2.',face:'Punkte der Reihe nach anklicken; ersten Punkt erneut anklicken oder Enter schließt die Fläche.',body:'Grundfläche anklicken (in die Fläche, oder eine waagerechte Strecke als Kreisdurchmesser), dann Spitze bzw. einen Punkt der Deckfläche. Typ unter Berechnungen. Löschen: in der Legende anklicken.',hand:'Zeichenfläche ziehen. Alternativ: rechte/mittlere Maustaste oder Leertaste. Mausrad zoomt.',del:'Punkt, Strecke, Kreisbogen, Winkelbogen, Fläche oder Text anklicken zum Löschen.'};
+const MODES=[['line','Strecke (S)'],['point','Punkt (P)'],['arc','Kreis (K)'],['style','Stil (G)'],['label','Beschriften (B)'],['text','Text (T)'],['move','Verschieben (V)'],['angle','Winkel (W)'],['face','Fläche (F)'],/* ['body','Körper (O)'], */['hand','Hand (H)'],['del','Löschen (L)']];
+const KEYS={s:'line',p:'point',k:'arc',g:'style',b:'label',t:'text',v:'move',w:'angle',f:'face',/* o:'body', */h:'hand',l:'del'};
+const HINTS={line:'Punkt oder Schnittpunkt anklicken, Maus bewegen, zweiter Klick setzt das Ende. Klick auf einen vorhandenen Punkt verbindet frei. Esc bricht ab.',point:'Klick setzt einen Punkt (rastet an Schnittpunkten von Strecken ein und bleibt daran verankert).',arc:'Zwei Endpunkte oder eine Strecke als Durchmesser anklicken, Maus auf eine Seite für oberen oder unteren Halbbogen bewegen; weiter vom Mittelpunkt entfernt ergibt einen normalen Kreis.',label:'Punkt, Strecke, Winkelbogen oder Fläche anklicken, Namen eingeben (tiefgestellt: F_1 oder F_{12}), Enter.',text:'Klick an die gewünschte Stelle, Text eingeben und Enter drücken. Esc bricht ab.',style:'Strecke oder Kreisbogen anklicken: normal → gestrichelt → Hilfslinie.',move:'Punkt, Strecke oder Text ziehen, angrenzende Strecken wandern mit.',angle:'Nacheinander anklicken: Punkt auf Schenkel 1, Scheitelpunkt, Punkt auf Schenkel 2.',face:'Punkte der Reihe nach anklicken; ersten Punkt erneut anklicken oder Enter schließt die Fläche.',/* body:'Grundfläche anklicken (in die Fläche, oder eine waagerechte Strecke als Kreisdurchmesser), dann Spitze bzw. einen Punkt der Deckfläche. Typ unter Berechnungen. Löschen: in der Legende anklicken.', */hand:'Zeichenfläche ziehen. Alternativ: rechte/mittlere Maustaste oder Leertaste. Mausrad zoomt.',del:'Punkt, Strecke, Kreisbogen, Winkelbogen, Fläche oder Text anklicken zum Löschen.'};
+const sp=()=>start===null?null:start.id!==undefined?M.get(start.id):start;
 const fmt=(n,d=2)=>(+n.toFixed(d)).toString().replace('.',',');
 const X=x=>ox+x*k,Y=y=>oy+y*k,wx=x=>(x-ox)/k,wy=y=>(y-oy)/k;
 const S=()=>[P,L,K,A,F,BD,Q,nid],snap=()=>JSON.stringify(S()),load=a=>{[P,L,K,A,F,BD,Q,nid]=a.length==8?a:[...a.slice(0,6),[],a[6]]};
@@ -110,7 +112,7 @@ $('bload').onclick=e=>{e.target.blur();$('bfile').click()};
 $('bfile').onchange=e=>{const f=e.target.files[0];e.target.value='';if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.steps||d.steps.length<2||!d.steps.every(s=>Array.isArray(s)&&(s.length==7||s.length==8)))throw 0;if(playing)stop();rec=false;snaps=d.steps.map(s=>JSON.stringify(s));recUI();play()}catch(x){$('rinfo').textContent='Datei konnte nicht gelesen werden'}};r.readAsText(f)};
 function sync(){$('fix').disabled=!$('ras').checked}
 document.querySelectorAll('input[type=checkbox]').forEach(c=>c.onchange=()=>{c.blur();sync();draw()});
-$('opts').addEventListener('input',()=>draw());$('btype').addEventListener('change',e=>e.target.blur());
+$('opts').addEventListener('input',()=>draw());
 $('sz').oninput=e=>{zoom(+e.target.value,W/2,H/2)};
 function zoom(k2,mx,my){k2=Math.max(12,Math.min(100,k2));ox=mx-(mx-ox)*k2/k;oy=my-(my-oy)*k2/k;k=k2;$('sz').value=k;draw()}
 cv.addEventListener('wheel',e=>{e.preventDefault();const p=pos(e);zoom(k*(e.deltaY<0?1.1:1/1.1),p.x,p.y)},{passive:false});
@@ -146,9 +148,18 @@ function nearCross(x,y){let b=null,bd=11;crossings().forEach(c=>{const d=Math.hy
 function hit(x,y,ex){let b=null,bd=11;P.forEach(p=>{const d=Math.hypot(X(p.x)-x,Y(p.y)-y);if(p.id!==ex&&d<bd){bd=d;b=p}});return b}
 function lineHit(x,y){for(let i=L.length-1;i>=0;i--){const p=M.get(L[i].a),q=M.get(L[i].b),px=X(p.x),py=Y(p.y),dx=X(q.x)-px,dy=Y(q.y)-py,
  t=Math.max(0,Math.min(1,((x-px)*dx+(y-py)*dy)/(dx*dx+dy*dy)));if(Math.hypot(px+t*dx-x,py+t*dy-y)<7)return i}return -1}
-function arcPath(a,b,s){const rx=Math.abs(b.x-a.x)/2*k;ctx.ellipse(X((a.x+b.x)/2),Y((a.y+b.y)/2),rx,rx*.5,0,s=='u'?Math.PI:0,s=='u'?2*Math.PI:Math.PI)}
-function arcHit(x,y){for(let i=K.length-1;i>=0;i--){const a=M.get(K[i].a),b=M.get(K[i].b),cx=X((a.x+b.x)/2),cy=Y((a.y+b.y)/2),rx=Math.abs(b.x-a.x)/2*k,ry=rx*.5,u=K[i].s=='u';
- for(let n=0;n<=40;n++){const t=(u?Math.PI:0)+Math.PI*n/40;if(Math.hypot(cx+rx*Math.cos(t)-x,cy+ry*Math.sin(t)-y)<7)return i}}return -1}
+function arcData(a,b,x,y){const ax=X(a.x),ay=Y(a.y),bx=X(b.x),by=Y(b.y),dx=bx-ax,dy=by-ay,d=Math.hypot(dx,dy)||1,cx=(ax+bx)/2,cy=(ay+by)/2,r=d/2;
+ const mx=x===undefined?cx:x,my=y===undefined?cy:y,ang=Math.atan2(dy,dx),upNormal={x:Math.sin(ang),y:-Math.cos(ang)},side=(mx-cx)*upNormal.x+(my-cy)*upNormal.y;
+ const full=Math.hypot(mx-cx,my-cy)>r*1.15;
+ return{cx,cy,r,ang,side,kind:full?'c':side>0?'u':'l'}}
+function arcPath(a,b,s,x,y){if(s=='c'){const q=arcData(a,b,x,y);ctx.arc(q.cx,q.cy,q.r,0,Math.PI*2);return}
+ const q=arcData(a,b,x,y),ry=q.r*.5;ctx.ellipse(q.cx,q.cy,q.r,ry,q.ang,s=='u'?Math.PI:0,s=='u'?2*Math.PI:Math.PI)}
+function arcHit(x,y){for(let i=K.length-1;i>=0;i--){const a=M.get(K[i].a),b=M.get(K[i].b),o=K[i];
+ if(o.s=='c'){const q=arcData(a,b);if(Math.abs(Math.hypot(x-q.cx,y-q.cy)-q.r)<7)return i}
+ else{const q=arcData(a,b);
+  let found=false;
+  for(let n=0;n<=40;n++){const p=(u?Math.PI:0)+Math.PI*n/40,px=q.cx+q.r*Math.cos(p)*cos-q.r*.5*Math.sin(p)*sin,py=q.cy+q.r*Math.cos(p)*sin+q.r*.5*Math.sin(p)*cos;if(Math.hypot(px-x,py-y)<7){found=true;break}}
+  if(found)return i}}return -1}
 function textHit(x,y){for(let i=Q.length-1;i>=0;i--){const q=Q[i],w=halo(q.t,0,0,'','','left','','',fs,true);if(x>=X(q.x)-5&&x<=X(q.x)+w+5&&y>=Y(q.y)-fs&&y<=Y(q.y)+5)return i}return -1}
 const angHit=(x,y)=>A.findIndex(a=>{const B=M.get(a.b);return Math.abs(Math.hypot(X(B.x)-x,Y(B.y)-y)-26)<8});
 function inFace(f,x,y){let c=false;const q=f.p.map(i=>M.get(i));for(let i=0,j=q.length-1;i<q.length;j=i++){const a=q[i],b=q[j],ay=Y(a.y),by=Y(b.y);
@@ -201,11 +212,13 @@ function areaInfo(ids,T){const t=T&&ids.map(i=>T.get(i));let q,d2=false;
   if(right>=0){const legs=right==0?[len[2],len[0]]:right==1?[len[0],len[1]]:[len[1],len[2]];s='½·'+fmt(legs[0])+'·'+fmt(legs[1])}
   else{const angle=Math.acos(Math.max(-1,Math.min(1,dot(0,1)/(len[0]*len[1]))))*180/Math.PI;s='½·'+fmt(len[0])+'·'+fmt(len[1])+'·sin('+fmt(angle,1)+'°)'}}
  return{v:Math.hypot(cx,cy,cz)/2,s,d2}}
+/*
 function bodyInfo(b,T){if(!T)return null;let G,gs,gt,pt;
  if(b.base.k=='c'){const ta=T.get(b.base.a),tb=T.get(b.base.b);if(!ta||!tb||ta.c!=tb.c)return null;const r=Math.hypot(tb.x-ta.x,tb.y-ta.y,tb.z-ta.z)/2;G=Math.PI*r*r;gt='π·'+fmt(r)+'²';gs='G = '+gt+' = '+fmt(G);pt=ta}
  else{const r=areaInfo(b.base.p,T);if(r.d2||r.v===null)return null;G=r.v;gt=fmt(G);gs='G = '+(r.s?r.s+' = ':'')+fmt(G);pt=T.get(b.base.p[0])}
  const tt=T.get(b.top);if(!pt||!tt||pt.c!=tt.c)return null;const h=Math.abs(tt.z-pt.z),pyr=b.t=='pyr',v=G*h/(pyr?3:1);
  return{v,s:(pyr?'⅓·':'')+gt+'·'+fmt(h),g:gs}}
+*/
 function angleInfo(a,T,a1,a2){const tb=T&&T.get(a.b),tp=T&&T.get(a.a),tc=T&&T.get(a.c);
  if(T&&(!tb||!tp||!tc||tb.c!=tp.c||tb.c!=tc.c))return{v:null,s:'3D nicht eindeutig'};
  const pa=T?tp:M.get(a.a),pb=T?tb:M.get(a.b),pc=T?tc:M.get(a.c),u=[pa.x-pb.x,pa.y-pb.y,T?pa.z-pb.z:0],v=[pc.x-pb.x,pc.y-pb.y,T?pc.z-pb.z:0],lu=Math.hypot(...u),lv=Math.hypot(...v),dot=u[0]*v[0]+u[1]*v[1]+u[2]*v[2];
@@ -215,12 +228,11 @@ function angleInfo(a,T,a1,a2){const tb=T&&T.get(a.b),tp=T&&T.get(a.a),tc=T&&T.ge
  if(rightB)return{v:90,s:'90°'};
  if(rightA||rightC){const opposite=Math.hypot(...pcross),adjacent=rightA?lu:lv;return{v:deg,s:'tan⁻¹('+fmt(opposite)+'/'+fmt(adjacent)+')'}}
  return{v:deg,s:'cos⁻¹(('+fmt(lu)+'²+'+fmt(lv)+'²-'+fmt(Math.hypot(...pcross))+'²)/(2·'+fmt(lu)+'·'+fmt(lv)+'))'}}
-const sp=()=>start===null?null:start.id!==undefined?M.get(start.id):start;
 function target(){const s=sp();if(!s)return null;const h=hit(mouse.x,mouse.y,start.id);if(h)return{x:h.x,y:h.y,id:h.id};
  const c=nearCross(mouse.x,mouse.y);if(c)return{x:c.x,y:c.y,cx:[c.l1,c.l2]};
  const mx=wx(mouse.x),my=wy(mouse.y);if(!$('ras').checked)return{x:mx,y:my};
  const dx=mx-s.x,dy=my-s.y,n=Math.round(Math.atan2(dy,dx)/(Math.PI/4)),a=n*Math.PI/4,ux=Math.cos(a),uy=Math.sin(a),p=dx*ux+dy*uy;
- const unit=.1,stepSize=Math.abs(n)%2?unit*Math.SQRT2:unit,len=$('fix').checked?Math.round(p/stepSize)*stepSize:p;if(len<=0)return null;
+ const unit=.1,stepSize=Math.abs(n)%2?unit*Math.SQRT2:unit,len=!$('fix').checked?Math.round(p/stepSize)*stepSize:p;if(len<=0)return null;
  return{x:Math.round((s.x+ux*len)*1e6)/1e6,y:Math.round((s.y+uy*len)*1e6)/1e6}}
 function pos(e){const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
 function closeFace(){push();F.push({p:sel.slice(),c:$('fc').value});sel=[];$('fc').value=PAL[F.length%PAL.length];draw()}
@@ -240,13 +252,14 @@ cv.addEventListener('pointerdown',e=>{mouse=pos(e);
   if(mode=='del'&&!playing){const m=legRows[Math.round((mouse.y-legR.y)/(fs+4)-1.65)];if(m&&m.b!==undefined){push();BD.splice(m.b,1);rebuild();draw();return}}
   drag={t:'leg',dx:mouse.x-legR.x,dy:mouse.y-legR.y};cv.setPointerCapture(e.pointerId);return}
  if(e.button>0||playing)return;$('hint').textContent=HINTS[mode];
- const h=hit(mouse.x,mouse.y),ras=$('ras').checked,fix=$('fix').checked,mx=wx(mouse.x),my=wy(mouse.y),gx=ras&&fix?Math.round(mx*10)/10:mx,gy=ras&&fix?Math.round(my*10)/10:my,pgx=ras&&fix?Math.round(mx*2)/2:mx,pgy=ras&&fix?Math.round(my*2)/2:my,li=lineHit(mouse.x,mouse.y),ki=arcHit(mouse.x,mouse.y),ti=textHit(mouse.x,mouse.y),cr=nearCross(mouse.x,mouse.y);
+ const h=hit(mouse.x,mouse.y),ras=$('ras').checked,fix=$('fix').checked,mx=wx(mouse.x),my=wy(mouse.y),gx=ras&&!fix?Math.round(mx*10)/10:mx,gy=ras&&!fix?Math.round(my*10)/10:my,pgx=ras&&!fix?Math.round(mx*2)/2:mx,pgy=ras&&!fix?Math.round(my*2)/2:my,li=lineHit(mouse.x,mouse.y),ki=arcHit(mouse.x,mouse.y),ti=textHit(mouse.x,mouse.y),cr=nearCross(mouse.x,mouse.y);
  if(mode=='line'){if(!start)start=h?{id:h.id}:cr?{x:cr.x,y:cr.y,cx:[cr.l1,cr.l2]}:{x:pgx,y:pgy};else{const t=target();if(t){const a=start.id!==undefined?start.id:add(start.x,start.y,start.cx),b=t.id!==undefined?t.id:add(t.x,t.y,t.cx),ax=start.id!==undefined?M.get(a).x:start.x,ay=start.id!==undefined?M.get(a).y:start.y,bx=t.id!==undefined?M.get(b).x:t.x,by=t.id!==undefined?M.get(b).y:t.y;
    if(a!==b&&Math.hypot(ax-bx,ay-by)>1e-9&&!L.some(l=>(l.a==a&&l.b==b)||(l.a==b&&l.b==a))){push();L.push({id:nid++,a,b,d:0,l:$('autol').checked?nextL():''})}rebuild();start=null}}}
  else if(mode=='point'){push();if(!h)add(cr?cr.x:pgx,cr?cr.y:pgy,cr?[cr.l1,cr.l2]:null);rebuild()}
- else if(mode=='arc'){if(sel.length==2){const a=M.get(sel[0]),b=M.get(sel[1]),s=mouse.y<Y((a.y+b.y)/2)?'u':'l';
-   if(Math.abs(a.x-b.x)>1e-9&&!K.some(o=>o.s==s&&((o.a==a.id&&o.b==b.id)||(o.a==b.id&&o.b==a.id)))){push();K.push({id:nid++,a:a.id,b:b.id,s,d:0})}sel=[]}
-  else if(h&&!sel.includes(h.id)){sel.push(h.id);if(sel.length==2){const a=M.get(sel[0]),b=M.get(sel[1]);if(Math.abs(a.y-b.y)>.02){sel=[];$('hint').textContent='Der Durchmesser muss waagerecht liegen.'}}}}
+ else if(mode=='arc'){if(sel.length==2){const a=M.get(sel[0]),b=M.get(sel[1]),s=arcData(a,b,mouse.x,mouse.y).kind;
+   if(!K.some(o=>o.s==s&&((o.a==a.id&&o.b==b.id)||(o.a==b.id&&o.b==a.id)))){push();K.push({id:nid++,a:a.id,b:b.id,s,d:0})}sel=[]}
+  else if(h&&!sel.includes(h.id)){sel.push(h.id)}
+  else if(sel.length==0&&li>=0){const l=L[li];sel=[l.a,l.b]}}
  else if(mode=='text')openText(mouse.x,mouse.y);
  else if(mode=='label'){const ai=angHit(mouse.x,mouse.y);if(h)openInp('p',h.id,X(h.x),Y(h.y));else if(ai>=0){const B=M.get(A[ai].b);openInp('a',ai,X(B.x)+26,Y(B.y))}
   else if(li>=0){const p=M.get(L[li].a),q=M.get(L[li].b);openInp('l',li,X((p.x+q.x)/2),Y((p.y+q.y)/2))}
@@ -255,18 +268,20 @@ cv.addEventListener('pointerdown',e=>{mouse=pos(e);
  else if(mode=='move'){const pts=h?[h]:li>=0?[M.get(L[li].a),M.get(L[li].b)]:ti>=0?[Q[ti]]:null;if(pts){drag={t:'move',pts,o:pts.map(p=>({x:p.x,y:p.y})),mx,my};cv.setPointerCapture(e.pointerId)}}
  else if(mode=='angle'){if(h&&!sel.includes(h.id)){sel.push(h.id);if(sel.length==3){push();A.push({a:sel[0],b:sel[1],c:sel[2],l:[...GR].find(g=>!A.some(x=>x.l==g))});sel=[]}}}
  else if(mode=='face'){if(h){if(sel.length>2&&h.id==sel[0])closeFace();else if(!sel.includes(h.id))sel.push(h.id)}}
+  /*
  else if(mode=='body'){if(!bsel){if(li>=0){const p=M.get(L[li].a),q=M.get(L[li].b);if(Math.abs(p.y-q.y)>.02)$('hint').textContent='Als Kreisdurchmesser muss die Strecke waagerecht sein.';else{bsel={k:'c',a:p.id,b:q.id};sel=[p.id,q.id]}}
    else{const fi=faceAt(mouse.x,mouse.y);if(fi>=0){bsel={k:'f',p:F[fi].p.slice()};sel=bsel.p.slice()}}}
   else if(h){push();BD.push({id:nid++,t:$('btype').value,base:bsel,top:h.id});bsel=null;sel=[]}}
+  */
  else if(mode=='del'){if(h){push();P=P.filter(p=>p!==h);rebuild()}else if(ki>=0){push();K.splice(ki,1);rebuild()}else if(li>=0){push();L.splice(li,1);rebuild()}else if(ti>=0){push();Q.splice(ti,1)}else{const ai=angHit(mouse.x,mouse.y);if(ai>=0){push();A.splice(ai,1)}else{const fi=faceAt(mouse.x,mouse.y);if(fi>=0){push();F.splice(fi,1)}}}}
  draw()});
 cv.addEventListener('pointermove',e=>{mouse=pos(e);
  if(drag){if(drag.t=='pan'){ox=drag.ox+e.clientX-drag.x;oy=drag.oy+e.clientY-drag.y}
   else if(drag.t=='leg'){legPos={x:mouse.x-drag.dx,y:mouse.y-drag.dy}}
-  else{let dx=wx(mouse.x)-drag.mx,dy=wy(mouse.y)-drag.my;if($('ras').checked&&$('fix').checked){const step=drag.pts.length>1?.1:.5;dx=Math.round(dx/step)*step;dy=Math.round(dy/step)*step}
+  else{let dx=wx(mouse.x)-drag.mx,dy=wy(mouse.y)-drag.my;if($('ras').checked&&!$('fix').checked){const step=drag.pts.length>1?.1:.5;dx=Math.round(dx/step)*step;dy=Math.round(dy/step)*step}
    if(!drag.moved&&(dx||dy)){push();drag.moved=1;drag.pts.forEach(p=>{p.cx=null})}
    drag.pts.forEach((p,i)=>{p.x=drag.o[i].x+dx;p.y=drag.o[i].y+dy});rebuild()}}
- hover=hit(mouse.x,mouse.y);const lm=['style','label','move','del'].includes(mode)&&!hover;hk=lm?arcHit(mouse.x,mouse.y):-1;hl=lm&&hk<0?lineHit(mouse.x,mouse.y):-1;draw()});
+ hover=hit(mouse.x,mouse.y);const lm=['style','label','move','del','arc'].includes(mode)&&(!hover||mode=='arc');hk=lm?arcHit(mouse.x,mouse.y):-1;hl=lm&&hk<0?lineHit(mouse.x,mouse.y):-1;draw()});
 const up=()=>{if(drag&&drag.moved&&rec)capture();drag=null};cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
 addEventListener('keydown',e=>{if(e.target===inp||e.target.type=='number'||e.target.tagName=='SELECT')return;
  if(e.key=='Escape'){start=null;sel=[];bsel=null;draw();return}
@@ -296,7 +311,7 @@ function draw(){const cs=getComputedStyle(document.documentElement),fg=cs.getPro
   const r=lenInfo(l,T),t=txt(l.l,r.v===null?r.s:fmt(r.v),sl,ss&&($('onlyn').checked||!!l.l));
   if(t){const dx=x2-x1,dy=y2-y1,n=Math.hypot(dx,dy)||1;let nx=-dy/n,ny=dx/n;if(ny>0){nx=-nx;ny=-ny}halo(t,(x1+x2)/2+nx*(fs*.8),(y1+y2)/2+ny*(fs*.8)+fs*.3,fg,bg,'center')}});
  K.forEach((o,i)=>{const a=M.get(o.a),b=M.get(o.b),hlp=o.d==2;ctx.strokeStyle=i==hk?ac:hlp?hp:fg;ctx.lineWidth=i==hk?3.5:hlp?1.5:2;ctx.setLineDash(o.d==1?[8,6]:[]);ctx.beginPath();arcPath(a,b,o.s);ctx.stroke();ctx.setLineDash([])});
- if(mode=='arc'&&sel.length==2){const a=M.get(sel[0]),b=M.get(sel[1]);ctx.strokeStyle=ac;ctx.lineWidth=2;ctx.beginPath();arcPath(a,b,mouse.y<Y((a.y+b.y)/2)?'u':'l');ctx.stroke()}
+ if(mode=='arc'&&sel.length==2){const a=M.get(sel[0]),b=M.get(sel[1]),s=arcData(a,b,mouse.x,mouse.y).kind;ctx.strokeStyle=ac;ctx.lineWidth=2;ctx.beginPath();arcPath(a,b,s,mouse.x,mouse.y);ctx.stroke()}
  F.forEach(f=>{if(sl&&f.l){let cx=0,cy=0;f.p.forEach(i=>{const p=M.get(i);cx+=X(p.x);cy+=Y(p.y)});halo(f.l,cx/f.p.length,cy/f.p.length+fs*.3,fg,bg,'center')}});
  A.forEach(a=>{const B=M.get(a.b),p=M.get(a.a),c=M.get(a.c),a1=Math.atan2(p.y-B.y,p.x-B.x),a2=Math.atan2(c.y-B.y,c.x-B.x),ai=angleInfo(a,T,a1,a2),deg=ai.v;let d=a2-a1;
   while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;const bx=X(B.x),by=Y(B.y),r=26;ctx.strokeStyle=ac;ctx.lineWidth=1.8;ctx.beginPath();
@@ -317,7 +332,7 @@ function draw(){const cs=getComputedStyle(document.documentElement),fg=cs.getPro
   else{ctx.beginPath();ctx.arc(x,y,on?5:3.5,0,7);ctx.fill()}
   if(sl&&p.l)halo(p.l,x+7,y-7,fg,bg,'left')});
  /* Legende */
- legR=null;legRows=[];const lg=$('leg').checked||sol,vo=$('vol').checked;
+ legR=null;legRows=[];const lg=$('leg').checked||sol,vo=false/* $('vol').checked */;
  if(lg||vo){const rows=[];
   if(lg){L.forEach(l=>{if(l.l){const r=lenInfo(l,T);if(sol&&!$('leg').checked&&!r.s)return;const v=r.v===null?r.s:sol&&r.s?r.s+(ss||$('leg').checked?' = '+fmt(r.v):''):fmt(r.v);rows.push(l.l+' = '+v);legRows.push({})}});
    F.forEach(f=>{if(f.l){const r=areaInfo(f.p,T);if(sol&&!$('leg').checked&&!r.s)return;const v=r.v===null?r.s:sol&&r.s?r.s+(ss||$('leg').checked?' = '+fmt(r.v):''):fmt(r.v);rows.push(f.l+' = '+v);legRows.push({})}})}

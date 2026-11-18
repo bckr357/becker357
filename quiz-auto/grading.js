@@ -1,6 +1,6 @@
 // ============================================================
 // QUIZ-AUTO-SINGLE: Auswertung von Nutzereingaben gegen ein `answer`-Objekt
-// aus tasks-quiz-auto.js ({kind:'number'|'fraction'|'either'|'expression', ...})
+// aus generator/tasks.js ({kind:'number'|'fraction'|'either'|'expression', ...})
 // ============================================================
 
 (function (global) {

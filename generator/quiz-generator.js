@@ -35,7 +35,7 @@ window.MTGQuizModeModule = {
         });
 
         const generateQuiz = async () => {
-            if (!taskGeneration.buildTasks('quiz', { singleTask: true, quiz: true })) {
+            if (!taskGeneration.buildTasks('quiz', { singleTask: true })) {
                 return;
             }
 

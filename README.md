@@ -6,7 +6,7 @@ Ein leichtgewichtiges, client-seitiges Tool zum Erzeugen von Mathematik-Aufgaben
 - Generiert Aufgaben aus vielen Themenbereichen: Arithmetik, Brüche, Geometrie, Wahrscheinlichkeiten, Funktionen, Statistik u.v.m.
 - Ausgabe im Browser mit LaTeX-Formeln und einfachen SVG-Grafiken.
 - Druckfreundliche Darstellung für Arbeitsblätter.
-- Konfigurierbare Aufgabentypen und Klassenstufen (siehe `js/tasks.js`).
+- Konfigurierbare Aufgabentypen und Klassenstufen (siehe `generator/tasks.js`).
 
 ## Schnellstart
 1. Repository klonen oder als ZIP herunterladen.
@@ -17,7 +17,9 @@ Ein leichtgewichtiges, client-seitiges Tool zum Erzeugen von Mathematik-Aufgaben
 - `index.html` — Hauptseite / UI
 - `generator/random-selection-config.js` — Regeln für die Schaltfläche „Zufall“ im Aufgabengenerator
 - `js/` — JavaScript-Quellcode
-	- `js/tasks.js` — Aufgaben-Generator (Kernlogik)
+	- `generator/tasks.js` — gemeinsamer Aufgaben-Generator für Generator und Quiz-Auto
+		- Jeder Aufgabentyp hat genau einen implementierenden `case` in `createTask`.
+		- Quiz- und Arbeitsblattunterschiede werden innerhalb dieses Cases über `mode: 'quiz'` beziehungsweise den normalen Modus verzweigt.
 	- `js/app.js` — App-Initialisierung und UI-Integration
 	- `js/utils.js` — Hilfsfunktionen
 - `css/` — Stile
