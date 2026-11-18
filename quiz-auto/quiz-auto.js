@@ -12,7 +12,7 @@ const app = createApp({
 	setup() {
 		const grade = ref(10);
 		const selectedTypes = ref([]);
-		const shareLink = window.MTGShareLinkModule.createCodec(window.MTGQuizShareLinkTypeRegistry);
+		const shareLink = window.MTGShareLinkModule.createCodec(window.MTGShareLinkTypeRegistry);
 		const quizTypeLabels = { ...window.typeLabels, ...window.QUIZ_AUTO_TYPE_LABELS };
 		const initialShareConfig = shareLink.read(window.location.href);
 		if (initialShareConfig.grade !== null) {
