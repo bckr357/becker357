@@ -23,3 +23,6 @@ htmlcov/
 *.code-workspace
 !MTG.code-workspace
 temp/
+
+# Archived files
+/Archiv/
