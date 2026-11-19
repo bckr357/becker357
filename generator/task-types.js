@@ -204,7 +204,6 @@ const taskTypeDefinitions = {
 	addition_subtraktion_bis_20: { shareLinkId: 78, label: 'Addition und Subtraktion bis 20', quizLabel: '+ und - bis 20' },
 	addition_subtraktion_bis_100: { shareLinkId: 79, label: 'Addition und Subtraktion bis 100', quizLabel: '+ und - bis 100' },
 	addition_subtraktion_bis_1000: { shareLinkId: 80, label: 'Addition und Subtraktion bis 1000', quizLabel: '+ und - bis 1000' },
-	einheiten_umrechnen: { shareLinkId: 83, label: 'Einheiten umrechnen' },
 	terme: { shareLinkId: 31, label: 'Terme' },
 };
 

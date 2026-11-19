@@ -13,8 +13,6 @@ const formatDecimal = formatUtils.formatDecimal;
  - Berechnungen an Körpern etc. auf einer Website (excel sheet ersetzen)
  - Aufgaben mit Hilfsmitteln einbauen (z. B. Berechnungen an Flächen und Körpern, Funktionen)
  - Funktionen (Fktswert, Arguemnt, Punktprobe, fehlende Koordninaten berechnen, Wertetaeblle, Graoh zeichnen, Nullstellen usw.)
- - Kombinatorik
- - Punkte pro Aufgabe (auch in der Lösung oder beim interaktiven Modus)
  - Verschiedenes mit Bildern zum Einbinden (z. B. Geometrie, Funktionen, Statistik)
  - Zahl zwischen Brüchen
  - Bruch zwischen zwei Brüchen
