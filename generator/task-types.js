@@ -66,6 +66,45 @@ const taskTypesByGrade = {
 	]
 };
 
+// Separate registrations for work with calculator and formula collection.
+// These task types are only available in calculator mode.
+const calculatorTaskTypesByGrade = {
+	grundschule: [],
+	klasse5: [
+		'einheiten', 'runden', 'ueberschlag', 'geometrie',
+		'dreiecksberechnungen_zeichnung', 'statistik', 'wahrscheinlichkeiten'
+	],
+	klasse6: [
+		'einheiten', 'runden', 'ueberschlag', 'anteile', 'prozentrechnung',
+		'geometrie', 'dreiecksberechnungen_zeichnung', 'statistik', 'wahrscheinlichkeiten'
+	],
+	klasse7: [
+		'einheiten', 'runden', 'anteile', 'proportionalitaet', 'prozentrechnung',
+		'prozentuale_veraenderung', 'zinsen', 'geometrie',
+		'dreiecksberechnungen_zeichnung', 'kongruenz', 'statistik', 'wahrscheinlichkeiten'
+	],
+	klasse8: [
+		'einheiten', 'runden', 'anteile', 'proportionalitaet', 'prozentrechnung',
+		'prozentuale_veraenderung', 'zinsen', 'lineare_gleichungen',
+		'lineare_gleichungen_beidseitig', 'geometrie',
+		'dreiecksberechnungen_zeichnung', 'kongruenz', 'statistik', 'wahrscheinlichkeiten'
+	],
+	klasse9: [
+		'einheiten', 'runden', 'prozentrechnung', 'prozentuale_veraenderung',
+		'zinsen', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig',
+		'lineare_gleichungen_umstellen', 'formel_umstellen',
+		'dreiecksberechnungen_zeichnung', 'geometrie', 'kongruenz',
+		'statistik', 'wahrscheinlichkeiten', 'lineare_funktionen_zeichnen', 'funktionen'
+	],
+	klasse10: [
+		'einheiten', 'runden', 'prozentrechnung', 'prozentuale_veraenderung',
+		'zinsen', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig',
+		'lineare_gleichungen_umstellen', 'formel_umstellen',
+		'dreiecksberechnungen_zeichnung', 'geometrie', 'kongruenz',
+		'statistik', 'wahrscheinlichkeiten', 'lineare_funktionen_zeichnen', 'funktionen'
+	]
+};
+
 const quizAutoTaskTypesByGrade = {
 	grundschule: [
 		'einmaleins_2', 'einmaleins_3', 'einmaleins_4', 'einmaleins_5', 'einmaleins_6',
@@ -219,6 +258,7 @@ const shareLinkTypeRegistry = Object.fromEntries(
 if (typeof window !== 'undefined') {
 	window.taskTypeDefinitions = taskTypeDefinitions;
 	window.typeLabels = typeLabels;
+	window.calculatorTaskTypesByGrade = calculatorTaskTypesByGrade;
 	window.MTGShareLinkTypeRegistry = shareLinkTypeRegistry;
 	window.QUIZ_AUTO_TYPES = QUIZ_AUTO_TYPES;
 }

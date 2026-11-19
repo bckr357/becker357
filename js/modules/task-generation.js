@@ -30,20 +30,26 @@ window.MTGTaskGenerationModule = {
         };
 
         const generateRenderedTask = (type, options = {}) => {
-            const isQuizMode = options?.mode === 'quiz';
+            const taskMode = options?.mode === 'quiz'
+                ? 'quiz'
+                : (options?.mode === 'calculator' || state.taskMode.value === 'calculator')
+                    ? 'calculator'
+                    : 'standard';
+            const effectiveOptions = { ...options, mode: taskMode };
+            const isQuizMode = taskMode === 'quiz';
             const usesCentralTwoColumns = shouldRenderTwoColumns(type);
-            const generated = createTask(type, getNumericGrade(), options);
+            const generated = createTask(type, getNumericGrade(), effectiveOptions);
 
             if (isQuizMode || !usesCentralTwoColumns) {
                 return generated;
             }
 
-            let second = createTask(type, getNumericGrade(), options);
+            let second = createTask(type, getNumericGrade(), effectiveOptions);
 
             if (type === 'potenzen') {
                 let attempts = 0;
                 while (second.textDisplay === generated.textDisplay && attempts < 10) {
-                    second = createTask(type, getNumericGrade(), options);
+                    second = createTask(type, getNumericGrade(), effectiveOptions);
                     attempts += 1;
                 }
             }
@@ -51,7 +57,7 @@ window.MTGTaskGenerationModule = {
             if (type === 'zehnerpotenzen_multiplizieren_dividieren') {
                 let attempts = 0;
                 while (second.textDisplay === generated.textDisplay && attempts < 5) {
-                    second = createTask(type, getNumericGrade(), options);
+                    second = createTask(type, getNumericGrade(), effectiveOptions);
                     attempts += 1;
                 }
             }

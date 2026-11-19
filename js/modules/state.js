@@ -25,6 +25,7 @@ window.MTGStateModule = {
             Object.fromEntries(Object.keys(typeLabels).map(type => [type, 1]))
         );
         const quizNumber = ref('1');
+        const taskMode = ref('standard');
 
         const rowWiseFirstColumnTasks = computed(() => tasks.value.filter((_, index) => index % 2 === 0));
         const rowWiseSecondColumnTasks = computed(() => tasks.value.filter((_, index) => index % 2 === 1));
@@ -90,6 +91,7 @@ window.MTGStateModule = {
             quizSelectedTypes,
             quizTaskWeights,
             quizNumber,
+            taskMode,
             rowWiseFirstColumnTasks,
             rowWiseSecondColumnTasks,
             presentationTaskColumns,

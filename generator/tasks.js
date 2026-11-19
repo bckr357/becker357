@@ -20,6 +20,7 @@ const formatDecimal = formatUtils.formatDecimal;
 
 function createTask(type, grade = 5, options = {}) {
 	const isQuizMode = options?.mode === 'quiz';
+	const isCalculatorMode = options?.mode === 'calculator';
 	if (typeof grade === 'string') {
 		const parsed = parseInt(grade.replace(/\D/g, ''), 10);
 		grade = Number.isFinite(parsed) ? parsed : 5;
@@ -2464,425 +2465,333 @@ function createTask(type, grade = 5, options = {}) {
 		break;
 	}
 	case 'prozentrechnung': {
-		if (isQuizMode) {
-			let result;
-			let p, pVal;
-			let einheit = ['€', 'm', 'kg', 't', 'g', 'm²', 'm³', 'ha', 's', 'h', 'l', 'cm', 'mm', 'km', 'dm'][randInt(0, 14)];
-			rd = Math.random();
-			if (rd > 0.5) {
-				pVal = rnd(2, 11) * 100;
-				p = [3, 4, 5, 6, 7, 8, 9, 11, 12, 20, 25, 30, 35, 40, 60, 70, 80, 90][randInt(0, 17)];
-				result = (pVal / 100) * p;
-				textDisplay = `${p} % von ${pVal} ${einheit} sind ${blank(3)}`;
-				s = formatUtils.buildSolutionTable([
-					[`100 %`, `${comma(pVal)} ${einheit}`],
-					[`1 %`, `${comma(pVal / 100)} ${einheit}`],
-					[`${p} %`, `<b>${comma(result)} ${einheit}</b>`]
-				]);
-				answer = { kind: 'number', value: result, unit: einheit };
-			} else if (rd > 0.25) {
-				p = [20, 25, 30, 40, 50, 60, 70, 80, 90][randInt(0, 8)];
-				pVal = rnd(2, 9) * p;
-				result = (pVal / p) * 100;
-				if (Math.random() < 0.5) {textDisplay = `${p} % sind ${pVal} ${einheit} von ${blank(3)}`;} 
-				else { textDisplay = `${pVal} ${einheit} sind ${p} % von ${blank(3)}`;}
-				s = formatUtils.buildSolutionTable([
+		let p;
+		let pVal;
+		let result;
+		let answerUnit;
+		let answerValue;
+		let percentageConfig;
+		switch (options?.mode) {
+			case 'quiz':
+				percentageConfig = {
+					percentageOfBase: [3, 4, 5, 6, 7, 8, 9, 11, 12, 20, 25, 30, 35, 40, 60, 70, 80, 90],
+					baseFromPercentage: [20, 25, 30, 40, 50, 60, 70, 80, 90],
+					percentageFromValues: [2, 3, 5, 10, 20, 25, 50, 75, 80, 90],
+					multiplierMin: 2,
+					multiplierMax: 10
+				};
+				break;
+			case 'calculator':
+				percentageConfig = {
+					percentageOfBase: [3, 4, 5, 6, 7, 8, 9, 11, 12, 15, 20, 25, 30, 35, 40, 60, 70, 80, 90, 95],
+					baseFromPercentage: [20, 25, 30, 40, 50, 60, 70, 80, 90, 95],
+					percentageFromValues: [2, 3, 4, 5, 7, 10, 12, 15, 20, 25, 40, 50, 75, 80, 90, 95],
+					multiplierMin: 2,
+					multiplierMax: 20
+				};
+				break;
+			default:
+				percentageConfig = {
+					percentageOfBase: [3, 4, 5, 6, 7, 8, 9, 11, 12, 20, 25, 30, 35, 40, 60, 70, 80, 90],
+					baseFromPercentage: [20, 25, 30, 40, 50, 60, 70, 80, 90],
+					percentageFromValues: [2, 3, 5, 10, 15, 20, 25, 40, 50, 75, 80, 90, 95],
+					multiplierMin: 2,
+					multiplierMax: 12
+				};
+				break;
+		}
+		const einheit = ['€', 'm', 'kg', 't', 'g', 'm²', 'm³', 'ha', 's', 'h', 'l', 'cm', 'mm', 'km', 'dm'][randInt(0, 14)];
+		rd = Math.random();
+
+		if (rd > 0.5) {
+			pVal = rnd(2, 11) * 100;
+			p = percentageConfig.percentageOfBase[randInt(0, percentageConfig.percentageOfBase.length - 1)];
+			result = (pVal / 100) * p;
+			textDisplay = `${p} % von ${pVal} ${einheit} sind ${blank(3)}`;
+			if (!isQuizMode) {
+				textPrint = `Berechne mit dem Dreisatz: ${p} % von ${pVal} ${einheit} sind . . .<br>${buildEmptyRatioTable()}`;
+			}
+			s = formatUtils.buildSolutionTable([
+				[`100 %`, `${comma(pVal)} ${einheit}`],
+				[`1 %`, `${comma(pVal / 100)} ${einheit}`],
+				[`${p} %`, `<b>${comma(result)} ${einheit}</b>`]
+			]);
+			answerValue = result;
+			answerUnit = einheit;
+		} else if (rd > 0.25) {
+			p = percentageConfig.baseFromPercentage[randInt(0, percentageConfig.baseFromPercentage.length - 1)];
+			pVal = rnd(2, 9) * p;
+			result = (pVal / p) * 100;
+			if (Math.random() < (isQuizMode ? 0.5 : 0.4)) {
+				textDisplay = `${p} % sind ${pVal} ${einheit} von ${blank(3)}`;
+				if (!isQuizMode) {
+					textPrint = `Berechne mit dem Dreisatz: ${p} % sind ${pVal} ${einheit} von . . .<br>${buildEmptyRatioTable()}`;
+				}
+			} else {
+				textDisplay = `${pVal} ${einheit} sind ${p} % von ${blank(3)}`;
+				if (!isQuizMode) {
+					textPrint = `Berechne mit dem Dreisatz: ${pVal} ${einheit} sind ${p} % von . . .<br>${buildEmptyRatioTable()}`;
+				}
+			}
+			s = formatUtils.buildSolutionTable(isQuizMode
+				? [
 					[`${p} %`, `${comma(pVal)} ${einheit}`],
 					[`1 %`, `${comma(pVal / p)} ${einheit}`],
 					[`100 %`, `<b>${comma(result)} ${einheit}</b>`]
-				]);
-				answer = { kind: 'number', value: result, unit: einheit };
-			} else {
-				// 1. Wähle einen "schönen" Prozentsatz p (z.B. 5, 10, 20, 25, 50...)
-				const p_list = [2, 3, 5, 10, 20, 25, 50, 75, 80, 90];
-				p = p_list[randInt(0, p_list.length - 1)];
-
-				// 2. Wähle einen Multiplikator für den Prozentwert W, 
-				// damit die Zahlen nicht zu krumm werden
-				const multiplier = rnd(2, 10);
-				const W = p * multiplier;
-
-				// 3. Berechne den Grundwert G
-				// Formel: G = W / (p / 100)  => G = W * 100 / p
-				const G = (W * 100) / p;
-				result = p;
-
-				// Aufgabe: W und G sind gegeben, p ist gesucht
-				textDisplay = ` ${comma(W)} ${einheit} von ${comma(G)} ${einheit} sind ${blank(2)} % `;
-
-				// Lösung: Zeigt den Rechenweg oder das Ergebnis
-				s = formatUtils.buildSolutionTable([
-					[`100 %`, `${comma(G)} ${einheit}`],
-					[`1 %`, `${comma(G / 100)} ${einheit}`],
-					[`<b>${p} %</b>`, `${comma(W)} ${einheit}`]
-				]);
-				answer = { kind: 'number', value: result, unit: '%' };
-			}
-		} else {
-			let p, pVal;
-			let einheit = ['€', 'm', 'kg', 't', 'g', 'm²', 'm³', 'ha', 's', 'h', 'l', 'cm', 'mm', 'km', 'dm'][randInt(0, 14)];
-			rd = Math.random();
-			if (rd > 0.5) {
-				pVal = rnd(2, 11) * 100;
-				p = [3, 4, 5, 6, 7, 8, 9, 11, 12, 20, 25, 30, 35, 40, 60, 70, 80, 90][randInt(0, 17)];
-				textDisplay = `${p} % von ${pVal} ${einheit} sind ${blank(3)}`;
-				textPrint = `Berechne mit dem Dreisatz: ${p} % von ${pVal} ${einheit} sind . . .<br>${buildEmptyRatioTable()}`;
-				const ratioRows = [
-					[`100 %`, `${comma(pVal)} ${einheit}`],
-					[`1 %`, `${comma(pVal / 100)} ${einheit}`],
-					[`${p} %`, `<b>${comma((pVal / 100) * p)} ${einheit}</b>`]
-				];
-				s = formatUtils.buildSolutionTable(ratioRows);
-			} else if (rd > 0.25) {
-				p = [20, 25, 30, 40, 50, 60, 70, 80, 90][randInt(0, 8)];
-				pVal = rnd(2, 9) * p;
-				if (Math.random() < 0.4) {
-					textDisplay = `${p} % sind ${pVal} ${einheit} von ${blank(3)}`;
-					textPrint = `Berechne mit dem Dreisatz: ${p} % sind ${pVal} ${einheit} von . . .<br>${buildEmptyRatioTable()}`;
-				} 
-				else { 
-					textDisplay = `${pVal} ${einheit} sind ${p} % von ${blank(3)}`;
-					textPrint = `Berechne mit dem Dreisatz: ${pVal} ${einheit} sind ${p} % von . . .<br>${buildEmptyRatioTable()}`;
-				}
-				const ratioRows = [
-					[`100 %`, `<b>${comma((pVal / p) * 100)} ${einheit}</b>`],
+				]
+				: [
+					[`100 %`, `<b>${comma(result)} ${einheit}</b>`],
 					[`1 %`, `${comma(pVal / p)} ${einheit}`],
 					[`${p} %`, `${comma(pVal)} ${einheit}`]
-				];
-				s = formatUtils.buildSolutionTable(ratioRows);
-			} else {
-				// 1. Wähle einen "schönen" Prozentsatz p (z.B. 5, 10, 20, 25, 50...)
-				const p_list = [2, 3, 5, 10, 15, 20, 25, 40, 50, 75, 80, 90, 95];
-				const p = p_list[randInt(0, p_list.length - 1)];
+				]);
+			answerValue = result;
+			answerUnit = einheit;
+		} else {
+			p = percentageConfig.percentageFromValues[randInt(0, percentageConfig.percentageFromValues.length - 1)];
+			const multiplier = rnd(percentageConfig.multiplierMin, percentageConfig.multiplierMax);
+			const percentageValue = p * multiplier;
+			const baseValue = (percentageValue * 100) / p;
+			result = p;
 
-				// 2. Wähle einen Multiplikator für den Prozentwert W, 
-				// damit die Zahlen nicht zu krumm werden
-				const multiplier = rnd(2, 12);
-				const W = p * multiplier;
-
-				// 3. Berechne den Grundwert G
-				// Formel: G = W / (p / 100)  => G = W * 100 / p
-				const G = (W * 100) / p;
-
-				// Aufgabe: W und G sind gegeben, p ist gesucht
-				textDisplay = `${comma(W)} ${einheit} von ${comma(G)} ${einheit} sind ${blank(2)} % `;
-				textPrint = `Berechne mit dem Dreisatz: ${comma(W)} ${einheit} von ${comma(G)} ${einheit} sind . . . %<br>${buildEmptyRatioTable()}`;
-
-				// Lösung: Zeigt den Rechenweg oder das Ergebnis
-				const ratioRows = [
-					[`100 %`, `${comma(G)} ${einheit}`],
-					[`1 %`, `${comma(G / 100)} ${einheit}`],
-					[`<b>${p} %</b>`, `${comma(W)} ${einheit}`]
-				];
-				s = formatUtils.buildSolutionTable(ratioRows);
+			textDisplay = `${comma(percentageValue)} ${einheit} von ${comma(baseValue)} ${einheit} sind ${blank(2)} % `;
+			if (!isQuizMode) {
+				textPrint = `Berechne mit dem Dreisatz: ${comma(percentageValue)} ${einheit} von ${comma(baseValue)} ${einheit} sind . . . %<br>${buildEmptyRatioTable()}`;
 			}
+			s = formatUtils.buildSolutionTable([
+				[`100 %`, `${comma(baseValue)} ${einheit}`],
+				[`1 %`, `${comma(baseValue / 100)} ${einheit}`],
+				[`<b>${p} %</b>`, `${comma(percentageValue)} ${einheit}`]
+			]);
+			answerValue = result;
+			answerUnit = '%';
+		}
+
+		if (isQuizMode) {
+			answer = { kind: 'number', value: answerValue, unit: answerUnit };
 		}
 		break;
 	}
 	case 'prozentuale_veraenderung': {
-		if (isQuizMode) {
-			let result;
-			let einheit = ['€', 'm', 'kg', 't', 'g', 'm²', 'm³', 'ha', 's', 'h', 'l', 'cm', 'mm', 'km', 'dm'][randInt(0, 14)];
-			let p = [3, 4, 5, 6, 7, 10, 20, 25, 50][randInt(0, 8)];
-			let pVal = rnd(2, 11) * 100;
-			const pvType = randInt(0, 5); // 0: Erhöhung um p%, 1: Reduzierung um p%, 2: Erhöhung auf 100+p%, 3: Reduzierung auf 100-p%, 4: Rabatt-Fall 1, 5: Rabatt-Fall 2
-			switch (pvType) {
-				case 0: // Erhöhung um p%
-					result = pVal + (pVal / 100 * p);
-					textDisplay = `${pVal} ${einheit} um ${p} % erhöht sind ${blank(3)}`;
-					s = formatUtils.buildSolutionTable([
-						[`100 %`, `${comma(pVal)} ${einheit}`],
-						[`1 %`, `${comma(pVal / 100)} ${einheit}`],
-						[`${100 + p} %`, `<b>${comma(result)} ${einheit}</b>`]
-					]);
-					answer = { kind: 'number', value: result, unit: einheit };
-					break;
-				case 1: // Reduzierung um p%
-					result = pVal - (pVal / 100 * p);
-					textDisplay = `${pVal} ${einheit} um ${p} % reduziert sind ${blank(3)}`;
-					s = formatUtils.buildSolutionTable([
-						[`100 %`, `${comma(pVal)} ${einheit}`],
-						[`1 %`, `${comma(pVal / 100)} ${einheit}`],
-						[`${100 - p} %`, `<b>${comma(result)} ${einheit}</b>`]
-					]);
-					answer = { kind: 'number', value: result, unit: einheit };
-					break;
-				case 2: // Erhöhung auf 100+p%
-					result = pVal + (pVal / 100 * p);
-					textDisplay = `${pVal} ${einheit} auf ${100 + p} % erhöht sind ${blank(3)}`;
-					s = formatUtils.buildSolutionTable([
-						[`100 %`, `${comma(pVal)} ${einheit}`],
-						[`1 %`, `${comma(pVal / 100)} ${einheit}`],
-						[`${100 + p} %`, `<b>${comma(result)} ${einheit}</b>`]
-					]);
-					answer = { kind: 'number', value: result, unit: einheit };
-					break;
-				case 3: // Reduzierung auf 100-p%
-					result = pVal - (pVal / 100 * p);
-					textDisplay = `${pVal} ${einheit} auf ${100 - p} % reduziert sind ${blank(3)}`;
-					s = formatUtils.buildSolutionTable([
-						[`100 %`, `${comma(pVal)} ${einheit}`],
-						[`1 %`, `${comma(pVal / 100)} ${einheit}`],
-						[`${100 - p} %`, `<b>${comma(result)} ${einheit}</b>`]
-					]);
-					answer = { kind: 'number', value: result, unit: einheit };
-					break;
-				case 4: {// Rabatt-Fall 1
-					p = [3, 4, 5, 6, 7, 10, 20, 25][randInt(0, 7)];
-					const originalPrice = pVal;
-					result = originalPrice - (originalPrice / 100 * p);
-					textDisplay = `${p} % Rabatt auf ${originalPrice} €. Neuer Preis: ${blank(3)}`;
-					s = formatUtils.buildSolutionTable([
-						[`100 %`, `${comma(originalPrice)} €`],
-						[`1 %`, `${comma(originalPrice / 100)} €`],
-						[`${100 - p} %`, `<b>${comma(result)} €</b>`]
-					]);
-					answer = { kind: 'number', value: result, unit: '€' };
-					break;
-				}
-				case 5: {// Rabatt-Fall 2
-					p = [3, 4, 5, 6, 7, 10, 20, 25][randInt(0, 7)];
-					const originalPrice = pVal;
-					const discountedPrice = originalPrice - (originalPrice / 100 * p);
-					result = p;
-					textDisplay = `Preissenkung von ${originalPrice} € auf ${discountedPrice} €. Rabatt: ${blank(2)} %`;
-					s = formatUtils.buildSolutionTable([
-						[`100 %`, `${comma(originalPrice)} €`],
-						[`1 %`, `${comma(originalPrice / 100)} €`],
-						[`${p} %`, `<b>${comma(originalPrice - discountedPrice)} €</b>`]
-					]);
-					answer = { kind: 'number', value: result, unit: '%' };
-					break;
-				}
+		const einheit = ['€', 'm', 'kg', 't', 'g', 'm²', 'm³', 'ha', 's', 'h', 'l', 'cm', 'mm', 'km', 'dm'][randInt(0, 14)];
+		let pConfig;
+		switch (options?.mode) {
+			case 'quiz':
+				pConfig = [3, 4, 5, 6, 7, 10, 20, 25, 50];
+				break;
+			case 'calculator':
+				pConfig = [3, 4, 5, 6, 7, 10, 15, 20, 25, 50];
+				break;
+			default:
+				pConfig = [3, 4, 5, 6, 7, 10, 20, 25, 50];
+				break;
+		}
+		const p = pConfig[randInt(0, pConfig.length - 1)];
+		const pVal = rnd(2, 11) * 100;
+		const pvType = randInt(0, 5);
+
+		switch (pvType) {
+			case 0: {
+				const result = pVal + (pVal / 100 * p);
+				textDisplay = `${pVal} ${einheit} um ${p} % erhöht sind ${blank(3)}`;
+				s = formatUtils.buildSolutionTable([
+					[`100 %`, `${comma(pVal)} ${einheit}`],
+					[`1 %`, `${comma(pVal / 100)} ${einheit}`],
+					[isQuizMode ? `${100 + p} %` : `100 % + ${p} % = ${100 + p} %`, `<b>${comma(result)} ${einheit}</b>`]
+				]);
+				if (isQuizMode) answer = { kind: 'number', value: result, unit: einheit };
+				break;
 			}
-		} else {
-			let einheit = ['€', 'm', 'kg', 't', 'g', 'm²', 'm³', 'ha', 's', 'h', 'l', 'cm', 'mm', 'km', 'dm'][randInt(0, 14)];
-			let p = [3, 4, 5, 6, 7, 10, 20, 25, 50][randInt(0, 8)];
-			let pVal = rnd(2, 11) * 100;
-			type = randInt(0, 5); // 0: Erhöhung um p%, 1: Reduzierung um p%, 2: Erhöhung auf 100+p%, 3: Reduzierung auf 100-p%, 4: Rabatt-Fall 1, 5: Rabatt-Fall 2
-			switch (type) {
-				case 0: // Erhöhung um p%
-					textDisplay = `${pVal} ${einheit} um ${p} % erhöht sind ${blank(3)}`;
-					s = formatUtils.buildSolutionTable([
-						[`100 %`, `${comma(pVal)} ${einheit}`],
-						[`1 %`, `${comma(pVal / 100)} ${einheit}`],
-						[`100 % + ${p} % = ${100 + p} %`, `<b>${comma(pVal + (pVal / 100 * p))} ${einheit}</b>`]
-					]);
-					break;
-				case 1: // Reduzierung um p%
-					textDisplay = `${pVal} ${einheit} um ${p} % reduziert sind ${blank(3)}`;
-					s = formatUtils.buildSolutionTable([
-						[`100 %`, `${comma(pVal)} ${einheit}`],
-						[`1 %`, `${comma(pVal / 100)} ${einheit}`],
-						[`100 % - ${p} % = ${100 - p} %`, `<b>${comma(pVal - (pVal / 100 * p))} ${einheit}</b>`]
-					]);
-					break;
-				case 2: // Erhöhung auf 100+p%
-					textDisplay = `${pVal} ${einheit} auf ${100 + p} % erhöht sind ${blank(3)}`;
-					s = formatUtils.buildSolutionTable([
-						[`100 %`, `${comma(pVal)} ${einheit}`],
-						[`1 %`, `${comma(pVal / 100)} ${einheit}`],
-						[`${100 + p} %`, `<b>${comma(pVal + (pVal / 100 * p))} ${einheit}</b>`]
-					]);
-					break;
-				case 3: // Reduzierung auf 100-p%
-					textDisplay = `${pVal} ${einheit} auf ${100 - p} % reduziert sind ${blank(3)}`;
-					s = formatUtils.buildSolutionTable([
-						[`100 %`, `${comma(pVal)} ${einheit}`],
-						[`1 %`, `${comma(pVal / 100)} ${einheit}`],
-						[`${100 - p} %`, `<b>${comma(pVal - (pVal / 100 * p))} ${einheit}</b>`]
-					]);
-					break;
-				case 4: {// Rabatt-Fall 1
-					p = [3, 4, 5, 6, 7, 10, 20, 25][randInt(0, 7)];
-					const originalPrice = pVal;
-					const discountedPrice = originalPrice - (originalPrice / 100 * p);
-					textPrint = `${p} % Rabatt auf ${originalPrice} €. Neuer Preis: ${blank(3)}`;
-					textDisplay = `${p} % Rabatt auf ${originalPrice} €. <br>Berechne den neuen Preis.`;
-					s = formatUtils.buildSolutionTable([
-						[`100 %`, `${comma(originalPrice)} €`],
-						[`1 %`, `${comma(originalPrice / 100)} €`],
-						[`100 % - ${p} % = ${100 - p} %`, `<b>${comma(discountedPrice)} €</b>`]
-					]);
-					break;
-				}
-				case 5: {// Rabatt-Fall 2
-				    p = [3, 4, 5, 6, 7, 10, 20, 25][randInt(0, 7)];
-					const originalPrice = pVal;
-					const discountedPrice = originalPrice - (originalPrice / 100 * p);
-					textPrint = `Preissenkung von ${originalPrice} € auf ${discountedPrice} €. Rabatt: ${blank(1)} %`;
-					textDisplay = `Preissenkung von ${originalPrice} € auf ${discountedPrice} €. <br>Berechne den Rabatt.`;
-					s = formatUtils.buildSolutionTable([
-						[`100 %`, `${comma(originalPrice)} €`],
-						[`1 %`, `${comma(originalPrice / 100)} €`],
-						[`<b>${p} %</b>`, `${comma(originalPrice)} € - ${comma(discountedPrice)} € = ${comma(originalPrice - discountedPrice)} €`]
-					]);
-					break;
-				}
+			case 1: {
+				const result = pVal - (pVal / 100 * p);
+				textDisplay = `${pVal} ${einheit} um ${p} % reduziert sind ${blank(3)}`;
+				s = formatUtils.buildSolutionTable([
+					[`100 %`, `${comma(pVal)} ${einheit}`],
+					[`1 %`, `${comma(pVal / 100)} ${einheit}`],
+					[isQuizMode ? `${100 - p} %` : `100 % - ${p} % = ${100 - p} %`, `<b>${comma(result)} ${einheit}</b>`]
+				]);
+				if (isQuizMode) answer = { kind: 'number', value: result, unit: einheit };
+				break;
+			}
+			case 2: {
+				const result = pVal + (pVal / 100 * p);
+				textDisplay = `${pVal} ${einheit} auf ${100 + p} % erhöht sind ${blank(3)}`;
+				s = formatUtils.buildSolutionTable([
+					[`100 %`, `${comma(pVal)} ${einheit}`],
+					[`1 %`, `${comma(pVal / 100)} ${einheit}`],
+					[`${100 + p} %`, `<b>${comma(result)} ${einheit}</b>`]
+				]);
+				if (isQuizMode) answer = { kind: 'number', value: result, unit: einheit };
+				break;
+			}
+			case 3: {
+				const result = pVal - (pVal / 100 * p);
+				textDisplay = `${pVal} ${einheit} auf ${100 - p} % reduziert sind ${blank(3)}`;
+				s = formatUtils.buildSolutionTable([
+					[`100 %`, `${comma(pVal)} ${einheit}`],
+					[`1 %`, `${comma(pVal / 100)} ${einheit}`],
+					[`${100 - p} %`, `<b>${comma(result)} ${einheit}</b>`]
+				]);
+				if (isQuizMode) answer = { kind: 'number', value: result, unit: einheit };
+				break;
+			}
+			case 4: {
+				const rabattConfig = [3, 4, 5, 6, 7, 10, 20, 25];
+				const rabatt = rabattConfig[randInt(0, rabattConfig.length - 1)];
+				const originalPrice = pVal;
+				const discountedPrice = originalPrice - (originalPrice / 100 * rabatt);
+				textDisplay = isQuizMode
+					? `${rabatt} % Rabatt auf ${originalPrice} €. Neuer Preis: ${blank(3)}`
+					: `${rabatt} % Rabatt auf ${originalPrice} €. <br>Berechne den neuen Preis.`;
+				textPrint = isQuizMode ? undefined : `${rabatt} % Rabatt auf ${originalPrice} €. Neuer Preis: ${blank(3)}`;
+				s = formatUtils.buildSolutionTable([
+					[`100 %`, `${comma(originalPrice)} €`],
+					[`1 %`, `${comma(originalPrice / 100)} €`],
+					[isQuizMode ? `${100 - rabatt} %` : `100 % - ${rabatt} % = ${100 - rabatt} %`, `<b>${comma(discountedPrice)} €</b>`]
+				]);
+				if (isQuizMode) answer = { kind: 'number', value: discountedPrice, unit: '€' };
+				break;
+			}
+			case 5: {
+				const rabattConfig = [3, 4, 5, 6, 7, 10, 20, 25];
+				const rabatt = rabattConfig[randInt(0, rabattConfig.length - 1)];
+				const originalPrice = pVal;
+				const discountedPrice = originalPrice - (originalPrice / 100 * rabatt);
+				textDisplay = isQuizMode
+					? `Preissenkung von ${originalPrice} € auf ${discountedPrice} €. Rabatt: ${blank(2)} %`
+					: `Preissenkung von ${originalPrice} € auf ${discountedPrice} €. <br>Berechne den Rabatt.`;
+				textPrint = isQuizMode ? undefined : `Preissenkung von ${originalPrice} € auf ${discountedPrice} €. Rabatt: ${blank(1)} %`;
+				s = formatUtils.buildSolutionTable([
+					[`100 %`, `${comma(originalPrice)} €`],
+					[`1 %`, `${comma(originalPrice / 100)} €`],
+					isQuizMode
+						? [`${rabatt} %`, `<b>${comma(originalPrice - discountedPrice)} €</b>`]
+						: [`<b>${rabatt} %</b>`, `${comma(originalPrice)} € - ${comma(discountedPrice)} € = ${comma(originalPrice - discountedPrice)} €`]
+				]);
+				if (isQuizMode) answer = { kind: 'number', value: rabatt, unit: '%' };
+				break;
 			}
 		}
 		break;
 	}
 	case 'zinsen': {
-		if (isQuizMode) {
-			const subType = randInt(0, 4);
-			switch (subType) {
-				case 0: {
-					const kBase = [450, 650, 750, 850, 1200, 1400, 1500, 1750, 1800, 2400, 2500, 3200, 3500, 4200, 4500, 5400, 6500];
-					const pList = [2, 3, 4, 5, 6, 7, 8];
-					const K = kBase[randInt(0, kBase.length - 1)];
-					const p = pList[randInt(0, pList.length - 1)];
-					const Z = (K * p) / 100;
-					textDisplay = `${comma(K)} € mit ${p} % Zinsen. Jahreszinsen Z = ${blank(3)}`;
-					s = formatUtils.buildSolutionTable([
-						[`100 %`, `${comma(K)} €`],
-						[`1 %`, `${comma(K / 100)} €`],
-						[`${p} %`, `<b>${comma(Z)} €</b>`]
-					]);
-					answer = { kind: 'number', value: Z, unit: '€' };
-					break;
-				}
-				case 1: {
-					const kBase = [450, 650, 750, 850, 1200, 1400, 1500, 1600, 1800, 2400, 2500, 3200, 3500, 4200, 4500, 5400, 6500];
-					const pList = [2, 3, 4, 5, 6, 7, 8];
-					const K = kBase[randInt(0, kBase.length - 1)];
-					const p = pList[randInt(0, pList.length - 1)];
-					const Z = (K * p) / 100;
-					const K1 = K + Z;
-					textDisplay = `${comma(K)} € mit ${p} % Zinsen. Kapital am Jahresende: ${blank(3)}`;
-					s = formatUtils.buildSolutionTable([
-						[`100 %`, `${comma(K)} €`],
-						[`1 %`, `${comma(K / 100)} €`],
-						[`${100 + p} %`, `<b>${comma(K1)} €</b> (${comma(K)} € + ${comma(Z)} €)`]
-					]);
-					answer = { kind: 'number', value: K1, unit: '€' };
-					break;
-				}
-				case 2: {
-					const factors = [14, 15, 16, 18, 22, 24, 25, 28, 32, 35, 42, 45, 48, 55, 64];
-					const pList = [2, 3, 4, 5, 6, 7, 8];
-					const factor = factors[randInt(0, factors.length - 1)];
-					const p = pList[randInt(0, pList.length - 1)];
-					const K = factor * 100;
-					const Z = factor * p;
+		const subTypeConfig = isQuizMode ? [0, 1, 2, 3, 4] : [0, 1, 2, 3];
+		const subType = subTypeConfig[randInt(0, subTypeConfig.length - 1)];
+		const pList = [2, 3, 4, 5, 6, 7, 8];
+
+		switch (subType) {
+			case 0: {
+				const kBase = [450, 650, 750, 850, 1200, 1400, 1500, 1750, 1800, 2400, 2500, 3200, 3500, 4200, 4500, 5400, 6500];
+				const K = kBase[randInt(0, kBase.length - 1)];
+				const p = pList[randInt(0, pList.length - 1)];
+				const Z = (K * p) / 100;
+				textDisplay = isQuizMode
+					? `${comma(K)} € mit ${p} % Zinsen. Jahreszinsen Z = ${blank(3)}`
+					: `Ein Kapital von ${comma(K)} € wird zu einem Zinssatz von ${p} % angelegt. <br>Berechne die Jahreszinsen.`;
+				textPrint = isQuizMode ? undefined : `${comma(K)} € mit ${p} % Zinsen. Jahreszinsen Z = ${blank(3)}`;
+				s = formatUtils.buildSolutionTable([
+					[`100 %`, `${comma(K)} €`],
+					[`1 %`, `${comma(K / 100)} €`],
+					[`${p} %`, `<b>${comma(Z)} €</b>`]
+				]);
+				if (isQuizMode) answer = { kind: 'number', value: Z, unit: '€' };
+				break;
+			}
+			case 1: {
+				const kBase = [450, 650, 750, 850, 1200, 1400, 1500, 1600, 1800, 2400, 2500, 3200, 3500, 4200, 4500, 5400, 6500];
+				const K = kBase[randInt(0, kBase.length - 1)];
+				const p = pList[randInt(0, pList.length - 1)];
+				const Z = (K * p) / 100;
+				const K1 = K + Z;
+				textDisplay = isQuizMode
+					? `${comma(K)} € mit ${p} % Zinsen. Kapital am Jahresende: ${blank(3)}`
+					: `Ein Kapital von ${comma(K)} € wird für 1 Jahr zu einem Zinssatz von ${p} % angelegt. <br>Berechne das Kapital nach einem Jahr.`;
+				textPrint = isQuizMode ? undefined : `${comma(K)} € mit ${p} % Zinsen. Kapital am Jahresende: ${blank(3)}`;
+				s = formatUtils.buildSolutionTable([
+					[`100 %`, `${comma(K)} €`],
+					[`1 %`, `${comma(K / 100)} €`],
+					[`${100 + p} %`, `<b>${comma(K1)} €</b>${isQuizMode ? ` (${comma(K)} € + ${comma(Z)} €)` : ''}`]
+				]);
+				if (isQuizMode) answer = { kind: 'number', value: K1, unit: '€' };
+				break;
+			}
+			case 2: {
+				const factors = isQuizMode
+					? [14, 15, 16, 18, 22, 24, 25, 28, 32, 35, 42, 45, 48, 55, 64]
+					: [18, 24, 25, 28, 32, 35, 42, 45, 48, 54, 65];
+				const factor = factors[randInt(0, factors.length - 1)];
+				const p = pList[randInt(0, pList.length - 1)];
+				const K = factor * 100;
+				const Z = factor * p;
+				if (isQuizMode) {
 					textDisplay = `Für ${comma(K)} € Kapital gibt es ${comma(Z)} € Jahreszinsen. <br>Zinssatz p % = ${blank(2)}`;
-					s = formatUtils.buildSolutionTable([
+				} else {
+					textPrint = `Bei ${p} % gibt es ${comma(Z)} € Jahreszinsen. Kapital K = ${blank(3)}`;
+					textDisplay = `Ein Sparguthaben bringt bei einem Zinssatz von ${p} % nach einem Jahr genau ${comma(Z)} € Zinsen. <br>Berechne das Anfangskapital.`;
+				}
+				s = isQuizMode
+					? formatUtils.buildSolutionTable([
 						[`100 %`, `${comma(K)} €`],
 						[`1 %`, `${comma(factor)} €`],
 						[`<b>${p} %</b>`, `${comma(Z)} €`]
-					]);
-					answer = { kind: 'number', value: p, unit: '%' };
-					break;
-				}
-				case 3: {
-					const m = randInt(1, 11);
-					const pList = [2, 3, 4, 5, 6, 8];
-					const p = pList[randInt(0, pList.length - 1)];
-					let zMonat;
-					if (p === 5) {
-						zMonat = [5, 10, 15, 20][randInt(0, 3)];
-					} else if (p === 8) {
-						zMonat = [4, 6, 8, 10, 12][randInt(0, 4)];
-					} else {
-						zMonat = randInt(3, 12);
-					}
-					const zJahr = zMonat * 12;
-					const K = (zJahr * 100) / p;
-					const zTotal = zMonat * m;
-					const monateWord = m === 1 ? '1 Monat' : `${m} Monate`;
-					textDisplay = `${comma(K)} € werden zu ${p} % für ${monateWord} angelegt. <br>Zinsen Z = ${blank(3)}`;
-					s = formatUtils.buildSolutionTable([
-						[`100 % (12 Monate)`, `${comma(K)} €`],
-						[`1 %`, `${comma(K / 100)} €`],
-						[`${p} % (Jahreszinsen)`, `${comma(zJahr)} €`],
-						[`1 Monat (: 12)`, `${comma(zMonat)} €`],
-						[`<b>${monateWord}</b>`, `<b>${comma(zTotal)} €</b>`]
-					]);
-					answer = { kind: 'number', value: zTotal, unit: '€' };
-					break;
-				}
-				case 4: {
-					const factors = [18, 24, 25, 28, 32, 35, 42, 45, 48, 54, 65];
-					const pList = [2, 3, 4, 5, 6, 7, 8];
-					const factor = factors[randInt(0, factors.length - 1)];
-					const p = pList[randInt(0, pList.length - 1)];
-					const Z = factor * p;
-					const K = factor * 100;
-					textDisplay = `Bei ${p} % gibt es ${comma(Z)} € Jahreszinsen. Kapital K = ${blank(3)}`;
-					s = formatUtils.buildSolutionTable([
-						[`${p} %`, `${comma(Z)} €`],
-						[`1 %`, `${comma(factor)} €`],
-						[`100 %`, `<b>${comma(K)} €</b>`]
-					]);
-					answer = { kind: 'number', value: K, unit: '€' };
-					break;
-				}
-			}
-		} else {
-			const subType = randInt(0, 3);
-			switch (subType) {
-				case 0: { // 1. Zinsen berechnen (1 Jahr)
-					const kBase = [450, 650, 750, 850, 1200, 1400, 1500, 1750, 1800, 2400, 2500, 3200, 3500, 4200, 4500, 5400, 6500];
-					const pList = [2, 3, 4, 5, 6, 7, 8];
-					const K = kBase[randInt(0, kBase.length - 1)];
-					const p = pList[randInt(0, pList.length - 1)];
-					const Z = (K * p) / 100;
-					textPrint = `${comma(K)} € mit ${p} % Zinsen. Jahreszinsen Z = ${blank(3)}`;
-					textDisplay = `Ein Kapital von ${comma(K)} € wird zu einem Zinssatz von ${p} % angelegt. <br>Berechne die Jahreszinsen.`;
-					s = formatUtils.buildSolutionTable([
-						[`100 %`, `${comma(K)} €`],
-						[`1 %`, `${comma(K / 100)} €`],
-						[`${p} %`, `<b>${comma(Z)} €</b>`]
-					]);
-					break;
-				}
-				case 1: { // 2. Kapital nach einem Jahr berechnen
-					const kBase = [450, 650, 750, 850, 1200, 1400, 1500, 1600, 1800, 2400, 2500, 3200, 3500, 4200, 4500, 5400, 6500];
-					const pList = [2, 3, 4, 5, 6, 7, 8];
-					const K = kBase[randInt(0, kBase.length - 1)];
-					const p = pList[randInt(0, pList.length - 1)];
-					const Z = (K * p) / 100;
-					const K1 = K + Z;
-					textPrint = `${comma(K)} € mit ${p} % Zinsen. Kapital am Jahresende: ${blank(3)}`;
-					textDisplay = `Ein Kapital von ${comma(K)} € wird für 1 Jahr zu einem Zinssatz von ${p} % angelegt. <br>Berechne das Kapital nach einem Jahr.`;
-					s = formatUtils.buildSolutionTable([
-						[`100 %`, `${comma(K)} €`],
-						[`1 %`, `${comma(K / 100)} €`],
-						[`${100 + p} %`, `<b>${comma(K1)} €</b>`]
-					]);
-					break;
-				}
-				case 2: { // 5. Anfangs-Kapital berechnen bei gegebenen Zinsen
-					const factors = [18, 24, 25, 28, 32, 35, 42, 45, 48, 54, 65];
-					const pList = [2, 3, 4, 5, 6, 7, 8];
-					const factor = factors[randInt(0, factors.length - 1)];
-					const p = pList[randInt(0, pList.length - 1)];
-					const Z = factor * p;
-					const K = factor * 100;
-					textPrint = `Bei ${p} % gibt es ${comma(Z)} € Jahreszinsen. Kapital K = ${blank(3)}`;
-					textDisplay = `Ein Sparguthaben bringt bei einem Zinssatz von ${p} % nach einem Jahr genau ${comma(Z)} € Zinsen. <br>Berechne das Anfangskapital.`;
-					s = formatUtils.buildSolutionTable([
+					])
+					: formatUtils.buildSolutionTable([
 						[`100 %`, `<b>${comma(K)} €</b>`],
 						[`1 %`, `${comma(factor)} €`],
 						[`${p} %`, `${comma(Z)} €`]
 					]);
-					break;
-				}
-				case 3: { // 6. Zinssatz berechnen bei gegebenem Kapital und Zinsen
-					const factors = [14, 15, 16, 18, 22, 24, 25, 28, 32, 35, 42, 45, 48, 55, 64];
-					const pList = [2, 3, 4, 5, 6, 7, 8];
-					const factor = factors[randInt(0, factors.length - 1)];
-					const p = pList[randInt(0, pList.length - 1)];
-					const K = factor * 100;
-					const Z = factor * p;
+				if (isQuizMode) answer = { kind: 'number', value: p, unit: '%' };
+				break;
+			}
+			case 3: {
+				const factors = [14, 15, 16, 18, 22, 24, 25, 28, 32, 35, 42, 45, 48, 55, 64];
+				const factor = factors[randInt(0, factors.length - 1)];
+				const p = pList[randInt(0, pList.length - 1)];
+				const K = factor * 100;
+				const Z = factor * p;
+				if (isQuizMode) {
+					const m = randInt(1, 11);
+					const pMonat = [2, 3, 4, 5, 6, 8][randInt(0, 5)];
+					let zMonat;
+					if (pMonat === 5) zMonat = [5, 10, 15, 20][randInt(0, 3)];
+					else if (pMonat === 8) zMonat = [4, 6, 8, 10, 12][randInt(0, 4)];
+					else zMonat = randInt(3, 12);
+					const zJahr = zMonat * 12;
+					const KMonat = (zJahr * 100) / pMonat;
+					const zTotal = zMonat * m;
+					const monateWord = m === 1 ? '1 Monat' : `${m} Monate`;
+					textDisplay = `${comma(KMonat)} € werden zu ${pMonat} % für ${monateWord} angelegt. <br>Zinsen Z = ${blank(3)}`;
+					s = formatUtils.buildSolutionTable([
+						[`100 % (12 Monate)`, `${comma(KMonat)} €`],
+						[`1 %`, `${comma(KMonat / 100)} €`],
+						[`${pMonat} % (Jahreszinsen)`, `${comma(zJahr)} €`],
+						[`1 Monat (: 12)`, `${comma(zMonat)} €`],
+						[`<b>${monateWord}</b>`, `<b>${comma(zTotal)} €</b>`]
+					]);
+					answer = { kind: 'number', value: zTotal, unit: '€' };
+				} else {
 					textDisplay = `Auf ${comma(K)} € gibt es ${comma(Z)} € Jahreszinsen. Zinssatz p % = ${blank(1)}`;
 					s = formatUtils.buildSolutionTable([
 						[`100 %`, `${comma(K)} €`],
 						[`1 %`, `${comma(factor)} €`],
 						[`<b>${p} %</b>`, `${comma(Z)} €`]
 					]);
-					break;
 				}
+				break;
+			}
+			case 4: {
+				const factors = [18, 24, 25, 28, 32, 35, 42, 45, 48, 54, 65];
+				const factor = factors[randInt(0, factors.length - 1)];
+				const p = pList[randInt(0, pList.length - 1)];
+				const Z = factor * p;
+				const K = factor * 100;
+				textDisplay = `Bei ${p} % gibt es ${comma(Z)} € Jahreszinsen. Kapital K = ${blank(3)}`;
+				s = formatUtils.buildSolutionTable([
+					[`${p} %`, `${comma(Z)} €`],
+					[`1 %`, `${comma(factor)} €`],
+					[`100 %`, `<b>${comma(K)} €</b>`]
+				]);
+				answer = { kind: 'number', value: K, unit: '€' };
+				break;
 			}
 		}
 		break;
@@ -6320,196 +6229,76 @@ const fromUnit = displayUnits[unitIndex];
 		break;
 	}
 	case 'proportionalitaet': {
-		if (isQuizMode) {
-			const szenarien = [
-				{ einheit1: 'kg Äpfel', einheit2: '€', objekt: 'Äpfel', type: 'food' },
-				{ einheit1: 'Brötchen', einheit2: '€', objekt: 'Brötchen', type: 'food' },
-				{ einheit1: 'Liter Saft', einheit2: '€', objekt: 'Saft', type: 'food' },
-				{ einheit1: 'Stunden', einheit2: '€', objekt: 'ein Azubi', type: 'job' },
-				{ einheit1: 'Minuten', einheit2: 'Seiten', objekt: 'ein Drucker', type: 'print' }
-			];
+		const szenarien = [
+			{ einheit1: 'kg Äpfel', einheit2: '€', objekt: 'Äpfel', type: 'food' },
+			{ einheit1: 'Brötchen', einheit2: '€', objekt: 'Brötchen', type: 'food' },
+			{ einheit1: 'Liter Saft', einheit2: '€', objekt: 'Saft', type: 'food' },
+			{ einheit1: 'Stunden', einheit2: '€', objekt: 'ein Azubi', type: 'job' },
+			{ einheit1: 'Minuten', einheit2: 'Seiten', objekt: 'ein Drucker', type: 'print' }
+		];
+		const sz = szenarien[randInt(0, szenarien.length - 1)];
+		const de = num => {
+			if (sz.type === 'food' || sz.type === 'job') return comma(num.toFixed(2));
+			return Math.round(num).toString();
+		};
 
-			const sz = szenarien[randInt(0, szenarien.length - 1)];
-			
-			// Hilfsfunktion für deutsches Zahlenformat
-			const de = (num) => {
-				if (sz.type === 'food' || sz.type === 'job') return comma(num.toFixed(2));
-				return Math.round(num).toString();
-			};
+		const menge1 = randInt(3, 6);
+		let menge2;
+		do {
+			menge2 = menge1 + randInt(1, 6);
+		} while (menge2 % menge1 === 0);
 
-			let menge1 = randInt(3, 6);
-			let menge2
-			do {
-				menge2 = menge1 + randInt(1, 6);
-			} while (menge2 % menge1 === 0);
-			let einzelwert;
-			
-			// Realistische Werte je nach Typ festlegen
-			if (sz.type === 'print') {
-				einzelwert = randInt(5, 15); // 5 bis 15 Seiten pro Minute
-			} else if (sz.type === 'job') {
-				einzelwert = randInt(5, 9); // 5 € bis 9 € Stundenlohn
-			} else {
-				einzelwert = randInt(1, 6) * 0.5; // 0,50€ bis 3,00€ für Lebensmittel
-			}
-
-			let wert1 = menge1 * einzelwert;
-			let wert2 = menge2 * einzelwert;
-
-			// 50% Chance, dass die Aufgabe umgedreht wird (Geld/Seiten -> Menge/Zeit)
-			let reverseQuestion = Math.random() < 0.3;
-			
-			let s1, s2, sFrage, sStep, sRes;
-			let einheitSingular = sz.einheit1 === 'Brötchen' ? 'Brötchen' : sz.einheit1.replace('en', 'e'); // Aus "Stunden" wird "Stunde"
-			
-			if (!reverseQuestion) {
-				// --- STANDARD-FRAGE: Nach dem Ziel-Wert (z.B. Preis) fragen ---
-				if (sz.type === 'job') {
-					s1 = `${de(wert1)} ${sz.einheit2} verdient ${sz.objekt} in ${menge1} ${sz.einheit1}`;
-					s2 = `${de(wert1)} ${sz.einheit2} ≙ ${menge1} ${sz.einheit1}`;
-					sFrage = `Wie viel verdient er in ${menge2} ${sz.einheit1}?`;
-					sStep = `${de(einzelwert)} ${sz.einheit2}  ≙ 1 ${einheitSingular}`;
-					sRes = `<b>${de(wert2)} ${sz.einheit2}</b> ≙ ${menge2} ${sz.einheit1}`;
-				} else if (sz.type === 'print') {
-					s1 = `${de(wert1)} ${sz.einheit2} schafft ${sz.objekt} in ${menge1} ${sz.einheit1}`;
-					s2 = `${de(wert1)} ${sz.einheit2} ≙ ${menge1} ${sz.einheit1}`;
-					sFrage = `Wie viele ${sz.einheit2} schafft er in ${menge2} ${sz.einheit1}?`;
-					sStep = `${de(einzelwert)} ${sz.einheit2} ≙ 1 ${einheitSingular}`;
-					sRes = `<b>${de(wert2)} ${sz.einheit2}</b> ≙ ${menge2} ${sz.einheit1}`;
-				} else {
-					// Lebensmittel
-					s1 = `${menge1} ${sz.einheit1} kosten ${de(wert1)} ${sz.einheit2}`;
-					s2 = `${menge1} ${sz.einheit1} ≙ ${de(wert1)} ${sz.einheit2}`;
-					sFrage = `Wie viel kosten ${menge2} ${sz.einheit1}?`;
-					sStep = `1 ${sz.einheit1.includes('Brötchen') ? 'Brötchen' : sz.einheit1} ≙ ${de(einzelwert)} ${sz.einheit2}`;
-					sRes = `${menge2} ${sz.einheit1} ≙ <b>${de(wert2)} ${sz.einheit2}</b>`;
-				}
-			} else {
-				// --- UMGEKEHRTE FRAGE: Nach der Start-Einheit (z.B. kg oder Stunden) fragen ---
-				if (sz.type === 'job') {
-					s1 = `${de(wert1)} ${sz.einheit2} verdient ${sz.objekt} in ${menge1} ${sz.einheit1}`;
-					s2 = `${de(wert1)} ${sz.einheit2} ≙ ${menge1} ${sz.einheit1}`;
-					sFrage = `Wie viele ${sz.einheit1} muss er für ${de(wert2)} ${sz.einheit2} arbeiten?`;
-					sStep = `${de(einzelwert)} ${sz.einheit2} ≙ 1 ${einheitSingular}`;
-					sRes = `${de(wert2)} ${sz.einheit2} ≙ <b>${menge2} ${sz.einheit1}</b>`;
-				} else if (sz.type === 'print') {
-					s1 = `${de(wert1)} ${sz.einheit2} schafft ${sz.objekt} in ${menge1} ${sz.einheit1}`;
-					s2 = `${de(wert1)} ${sz.einheit2} ≙ ${menge1} ${sz.einheit1}`;
-					sFrage = `Wie viele ${sz.einheit1} braucht er für ${de(wert2)} ${sz.einheit2}?`;
-					sStep = `${de(einzelwert)} ${sz.einheit2} ≙ 1 ${einheitSingular}`;
-					sRes = `${de(wert2)} ${sz.einheit2} ≙ <b>${menge2} ${sz.einheit1}</b>`;
-				} else {
-					// Lebensmittel
-					s1 = `${menge1} ${sz.einheit1} kosten ${de(wert1)} ${sz.einheit2}`;
-					s2 = `${menge1} ${sz.einheit1} ≙ ${de(wert1)} ${sz.einheit2}`;
-					sFrage = `Wie viele ${sz.einheit1} bekommt man für ${de(wert2)} ${sz.einheit2}?`;
-					sStep = `1 ${sz.einheit1.includes('Brötchen') ? 'Brötchen' : sz.einheit1} ≙ ${de(einzelwert)} ${sz.einheit2} `;
-					sRes = `<b>${menge2} ${sz.einheit1}</b> ≙ ${de(wert2)} ${sz.einheit2}`;
-				}
-			}
-
-			textDisplay = `${s1}.<br> ${sFrage}`;
-			s = formatUtils.buildSolutionTable([
-				[`${menge1} ${sz.einheit1}`, `${de(wert1)} ${sz.einheit2}`],
-				[`1 ${einheitSingular}`, `${de(einzelwert)} ${sz.einheit2}`],
-				[`${menge2} ${sz.einheit1}`, `${de(wert2)} ${sz.einheit2}`]
-			]);
-			answer = { kind: 'number', value: reverseQuestion ? menge2 : wert2 };
+		let einzelwert;
+		if (sz.type === 'print') {
+			einzelwert = isQuizMode ? randInt(5, 15) : randInt(5, 20);
+		} else if (sz.type === 'job') {
+			einzelwert = isQuizMode
+				? randInt(5, 9)
+				: randInt(5, 9) + (Math.random() < 0.5 ? 0.5 : 0);
 		} else {
-			const szenarien = [
-				{ einheit1: 'kg Äpfel', einheit2: '€', objekt: 'Äpfel', type: 'food' },
-				{ einheit1: 'Brötchen', einheit2: '€', objekt: 'Brötchen', type: 'food' },
-				{ einheit1: 'Liter Saft', einheit2: '€', objekt: 'Saft', type: 'food' },
-				{ einheit1: 'Stunden', einheit2: '€', objekt: 'ein Azubi', type: 'job' },
-				{ einheit1: 'Minuten', einheit2: 'Seiten', objekt: 'ein Drucker', type: 'print' }
-			];
+			einzelwert = isQuizMode
+				? randInt(1, 6) * 0.5
+				: randInt(1, 7) * 0.2;
+		}
 
-			const sz = szenarien[randInt(0, szenarien.length - 1)];
-			
-			// Hilfsfunktion für deutsches Zahlenformat
-			const de = (num) => {
-				if (sz.type === 'food' || sz.type === 'job') return comma(num.toFixed(2));
-				return Math.round(num).toString();
-			};
+		const wert1 = menge1 * einzelwert;
+		const wert2 = menge2 * einzelwert;
+		const reverseQuestion = Math.random() < 0.3;
+		const einheitSingular = sz.einheit1 === 'Brötchen'
+			? 'Brötchen'
+			: sz.einheit1.replace('en', 'e');
+		let s1, sFrage;
 
-			let menge1 = randInt(3, 6);
-			let menge2
-			do {
-				menge2 = menge1 + randInt(1, 6);
-			} while (menge2 % menge1 === 0);
-			let einzelwert;
-			
-			// Realistische Werte je nach Typ festlegen
-
-			if (sz.type === 'print') {
-				einzelwert = randInt(5, 20); // 5 bis 20 Seiten pro Minute
-			} else if (sz.type === 'job') {
-				einzelwert = randInt(5, 9) + (Math.random() < 0.5 ? 0.5 : 0); // 5,00€ bis 9,50€ Stundenlohn
+		if (!reverseQuestion) {
+			if (sz.type === 'job') {
+				s1 = `${de(wert1)} ${sz.einheit2} verdient ${sz.objekt} in ${menge1} ${sz.einheit1}`;
+				sFrage = `Wie viel verdient er in ${menge2} ${sz.einheit1}?`;
+			} else if (sz.type === 'print') {
+				s1 = `${de(wert1)} ${sz.einheit2} schafft ${sz.objekt} in ${menge1} ${sz.einheit1}`;
+				sFrage = `Wie viele ${sz.einheit2} schafft er in ${menge2} ${sz.einheit1}?`;
 			} else {
-				einzelwert = randInt(1, 7) * 0.2; // 0,20€ bis 1,40€ für Lebensmittel
+				s1 = `${menge1} ${sz.einheit1} kosten ${de(wert1)} ${sz.einheit2}`;
+				sFrage = `Wie viel kosten ${menge2} ${sz.einheit1}?`;
 			}
-			
-			let wert1 = menge1 * einzelwert;
-			let wert2 = menge2 * einzelwert;
+		} else if (sz.type === 'job') {
+			s1 = `${de(wert1)} ${sz.einheit2} verdient ${sz.objekt} in ${menge1} ${sz.einheit1}`;
+			sFrage = `Wie viele ${sz.einheit1} muss er für ${de(wert2)} ${sz.einheit2} arbeiten?`;
+		} else if (sz.type === 'print') {
+			s1 = `${de(wert1)} ${sz.einheit2} schafft ${sz.objekt} in ${menge1} ${sz.einheit1}`;
+			sFrage = `Wie viele ${sz.einheit1} braucht er für ${de(wert2)} ${sz.einheit2}?`;
+		} else {
+			s1 = `${menge1} ${sz.einheit1} kosten ${de(wert1)} ${sz.einheit2}`;
+			sFrage = `Wie viele ${sz.einheit1} bekommt man für ${de(wert2)} ${sz.einheit2}?`;
+		}
 
-			// 50% Chance, dass die Aufgabe umgedreht wird (Geld/Seiten -> Menge/Zeit)
-			let reverseQuestion = Math.random() < 0.3;
-			
-			let s1, s2, sFrage, sStep, sRes;
-			let einheitSingular = sz.einheit1 === 'Brötchen' ? 'Brötchen' : sz.einheit1.replace('en', 'e'); // Aus "Stunden" wird "Stunde"
-			
-			if (!reverseQuestion) {
-				// --- STANDARD-FRAGE: Nach dem Ziel-Wert (z.B. Preis) fragen ---
-				if (sz.type === 'job') {
-					s1 = `${de(wert1)} ${sz.einheit2} verdient ${sz.objekt} in ${menge1} ${sz.einheit1}`;
-					s2 = `${de(wert1)} ${sz.einheit2} ≙ ${menge1} ${sz.einheit1}`;
-					sFrage = `Wie viel verdient er in ${menge2} ${sz.einheit1}?`;
-					sStep = `${de(einzelwert)} ${sz.einheit2}  ≙ 1 ${einheitSingular}`;
-					sRes = `<b>${de(wert2)} ${sz.einheit2}</b> ≙ ${menge2} ${sz.einheit1}`;
-				} else if (sz.type === 'print') {
-					s1 = `${de(wert1)} ${sz.einheit2} schafft ${sz.objekt} in ${menge1} ${sz.einheit1}`;
-					s2 = `${de(wert1)} ${sz.einheit2} ≙ ${menge1} ${sz.einheit1}`;
-					sFrage = `Wie viele ${sz.einheit2} schafft er in ${menge2} ${sz.einheit1}?`;
-					sStep = `${de(einzelwert)} ${sz.einheit2} ≙ 1 ${einheitSingular}`;
-					sRes = `<b>${de(wert2)} ${sz.einheit2}</b> ≙ ${menge2} ${sz.einheit1}`;
-				} else {
-					// Lebensmittel
-					s1 = `${menge1} ${sz.einheit1} kosten ${de(wert1)} ${sz.einheit2}`;
-					s2 = `${menge1} ${sz.einheit1} ≙ ${de(wert1)} ${sz.einheit2}`;
-					sFrage = `Wie viel kosten ${menge2} ${sz.einheit1}?`;
-					sStep = `1 ${sz.einheit1.includes('Brötchen') ? 'Brötchen' : sz.einheit1} ≙ ${de(einzelwert)} ${sz.einheit2}`;
-					sRes = `${menge2} ${sz.einheit1} ≙ <b>${de(wert2)} ${sz.einheit2}</b>`;
-				}
-			} else {
-				// --- UMGEKEHRTE FRAGE: Nach der Start-Einheit (z.B. kg oder Stunden) fragen ---
-				if (sz.type === 'job') {
-					s1 = `${de(wert1)} ${sz.einheit2} verdient ${sz.objekt} in ${menge1} ${sz.einheit1}`;
-					s2 = `${de(wert1)} ${sz.einheit2} ≙ ${menge1} ${sz.einheit1}`;
-					sFrage = `Wie viele ${sz.einheit1} muss er für ${de(wert2)} ${sz.einheit2} arbeiten?`;
-					sStep = `${de(einzelwert)} ${sz.einheit2} ≙ 1 ${einheitSingular}`;
-					sRes = `${de(wert2)} ${sz.einheit2} ≙ <b>${menge2} ${sz.einheit1}</b>`;
-				} else if (sz.type === 'print') {
-					s1 = `${de(wert1)} ${sz.einheit2} schafft ${sz.objekt} in ${menge1} ${sz.einheit1}`;
-					s2 = `${de(wert1)} ${sz.einheit2} ≙ ${menge1} ${sz.einheit1}`;
-					sFrage = `Wie viele ${sz.einheit1} braucht er für ${de(wert2)} ${sz.einheit2}?`;
-					sStep = `${de(einzelwert)} ${sz.einheit2} ≙ 1 ${einheitSingular}`;
-					sRes = `${de(wert2)} ${sz.einheit2} ≙ <b>${menge2} ${sz.einheit1}</b>`;
-				} else {
-					// Lebensmittel
-					s1 = `${menge1} ${sz.einheit1} kosten ${de(wert1)} ${sz.einheit2}`;
-					s2 = `${menge1} ${sz.einheit1} ≙ ${de(wert1)} ${sz.einheit2}`;
-					sFrage = `Wie viele ${sz.einheit1} bekommt man für ${de(wert2)} ${sz.einheit2}?`;
-					sStep = `1 ${sz.einheit1.includes('Brötchen') ? 'Brötchen' : sz.einheit1} ≙ ${de(einzelwert)} ${sz.einheit2} `;
-					sRes = `<b>${menge2} ${sz.einheit1}</b> ≙ ${de(wert2)} ${sz.einheit2}`;
-				}
-			}
-
-			textDisplay = `${s1}.<br> ${sFrage}`;
-			s = formatUtils.buildSolutionTable([
-				[`${menge1} ${sz.einheit1}`, `${de(wert1)} ${sz.einheit2}`],
-				[`1 ${einheitSingular}`, `${de(einzelwert)} ${sz.einheit2}`],
-				[`${menge2} ${sz.einheit1}`, `${de(wert2)} ${sz.einheit2}`]
-			]);
+		textDisplay = `${s1}.<br> ${sFrage}`;
+		s = formatUtils.buildSolutionTable([
+			[`${menge1} ${sz.einheit1}`, `${de(wert1)} ${sz.einheit2}`],
+			[`1 ${einheitSingular}`, `${de(einzelwert)} ${sz.einheit2}`],
+			[`${menge2} ${sz.einheit1}`, `${de(wert2)} ${sz.einheit2}`]
+		]);
+		if (isQuizMode) {
+			answer = { kind: 'number', value: reverseQuestion ? menge2 : wert2 };
 		}
 		break;
 	}

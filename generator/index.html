@@ -57,7 +57,10 @@
     <aside v-if="currentView !== 'home' && currentView !== 'worksheet-builder'" :class="['settings-drawer', { 'is-open': isSettingsSidebarOpen, 'mode-quiz': currentView === 'quiz' }]">
         <div class="settings-drawer-header">
             <div class="settings-drawer-heading">
-                <h2 class="settings-drawer-title">Aufgabenauswahl</h2>
+                <h2 class="settings-drawer-title">
+                    Aufgabenauswahl
+                    <span v-if="taskMode === 'calculator'">mit TR &amp; TW</span>
+                </h2>
             </div>
             <button @click="closeSettingsSidebar" class="btn btn--back settings-drawer-close">Schließen</button>
         </div>

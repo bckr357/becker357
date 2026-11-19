@@ -1,590 +1,590 @@
 <!DOCTYPE html>
-<html lang="de">
-<head>
-<meta charset="utf-8">
+<html lang="de"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Geometrie-Zeichner: Dreieck &amp; Viereck</title>
+<title>Geometrie-Zeichner</title>
 <style>
-:root{--bg:#f4f5f2;--surf:#fff;--txt:#1d2433;--mut:#667085;--line:#d9dde5;--acc:#1f5fbf;--fill:#e8f0fc;--err:#b42318;
-box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14171d;--surf:#1c2029;--txt:#e8eaf0;--mut:#9aa3b2;--line:#323846;--acc:#7fb0ff;--fill:#22304a;--err:#ff8a80}}
-:root[data-theme="dark"]{--bg:#14171d;--surf:#1c2029;--txt:#e8eaf0;--mut:#9aa3b2;--line:#323846;--acc:#7fb0ff;--fill:#22304a;--err:#ff8a80}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--txt);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-main{max-width:1180px;margin:0 auto;padding:16px}
-header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
-h1{font-size:1.3rem;margin:0}
-.tabs{display:flex;gap:6px}
-button,select,input{font:inherit;color:var(--txt)}
-.tab,.btn{border:1px solid var(--line);background:var(--surf);padding:7px 14px;border-radius:8px;cursor:pointer}
-.tab.on,.btn.pri{background:var(--acc);border-color:var(--acc);color:#fff}
-:root:not([data-theme="light"]) .tab.on,:root:not([data-theme="light"]) .btn.pri{color:#0b1220}
-.btn.sm{padding:4px 10px;font-size:.88rem}
-.layout{display:grid;grid-template-columns:minmax(300px,370px) minmax(0,1fr);gap:14px;align-items:start}
-.panel,.stage{display:flex;flex-direction:column;gap:10px;min-width:0}
-@media (max-width:860px){.layout{grid-template-columns:1fr}.stage{order:-1}}
-.card{background:var(--surf);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
-.card h2{font-size:1rem;margin:0 0 10px}
-details.card>summary{cursor:pointer;font-weight:600;font-size:.98rem;list-style:none;display:flex;justify-content:space-between;align-items:center}
-details.card>summary::-webkit-details-marker{display:none}
-details.card>summary::after{content:'▾';color:var(--mut)}
-details.card[open]>summary::after{content:'▴'}
-details.card>.ctl{margin-top:10px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:10px}
-label{display:block;font-size:.85rem;color:var(--mut)}
-input[type=text],select{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
-.hint{font-size:.88rem;color:var(--mut);margin:8px 0 0}
-.err{color:var(--err);margin:8px 0 0;font-weight:600}
-.btns{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
-.ctl{display:flex;flex-direction:column;gap:9px}
-.ctl label{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:.93rem;color:var(--txt)}
-.ctl label.ck{justify-content:flex-start;gap:8px}
-.ctl select{width:auto}
-.ctl input[type=range]{width:52%}
-.sep{border-top:1px solid var(--line)}
-.hrow{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
-.hrow label.sm{font-size:.82rem;color:var(--mut)}
-.arow{display:grid;grid-template-columns:26px 1fr 1fr;gap:8px;align-items:end;font-size:.9rem}
-.arow b{font-weight:600;padding-bottom:2px}
-.ctl .arow label{flex-direction:column;align-items:stretch;justify-content:flex-start;gap:2px;font-size:.78rem;color:var(--mut)}
-.ctl .arow input[type=range]{width:100%}
-.arow label span{float:right}
-#svg{width:100%;height:auto;display:block}
-.g3{grid-template-columns:repeat(3,minmax(0,1fr));max-width:600px}
-.top{margin-bottom:14px}
-.poly{fill:var(--fill);stroke:var(--txt);stroke-width:var(--sw,1.3);stroke-linejoin:round}
-.arc{fill:none;stroke:var(--txt);stroke-width:calc(var(--sw,1.3)*.6)}
-.t{font-size:var(--fs,15px);fill:var(--acc);font-weight:400;stroke:none;text-anchor:middle;dominant-baseline:middle}
-.t.g{fill:#1a7f37}
-.dot{fill:var(--txt)}
-.hl{stroke:var(--txt);stroke-width:calc(var(--sw,1.3)*.6);stroke-dasharray:5 3;fill:none}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .t.g{fill:#5fd38a}:root:not([data-theme="light"]) .gv{color:#5fd38a}}
-:root[data-theme="dark"] .t.g{fill:#5fd38a}
-.v{font-size:calc(var(--fs,15px) + 4px);font-weight:400;fill:var(--txt);text-anchor:middle;dominant-baseline:middle}
-table{border-collapse:collapse;width:100%;font-size:.92rem}
-td,th{padding:5px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
-th{color:var(--mut);font-weight:600;font-size:.82rem}
-.gv{color:#1a7f37}.cv{color:var(--acc)}
-mjx-container{margin:0!important}
-</style>
-<script>window.MathJax={svg:{fontCache:"none"},options:{enableMenu:false}};</script>
-<script defer src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.js"></script>
-</head>
-<body>
-<main>
-<header><h1>Geometrie-Zeichner</h1>
-<div class="tabs"><button class="tab on" id="tabT">Dreieck</button><button class="tab" id="tabQ">Viereck</button></div></header>
-  <section class="card top">
-    <h2>Eingabe</h2>
-    <div id="typeRow" style="display:none;margin-bottom:10px"><label>Art des Vierecks<select id="qtype"></select></label></div>
-    <div class="grid" id="fields"></div>
-    <p class="hint" id="hint"></p>
-    <div class="btns"><button class="btn pri" id="go">Zeichnen</button><span id="sols" style="display:flex;gap:6px"></span></div>
-    <p class="err" id="err"></p>
-  </section>
-<div class="layout">
-<aside class="panel">
-  <details class="card" open><summary>Beschriftung</summary><div class="ctl">
-    <label class="ck"><input type="checkbox" id="nov" checked> nicht gegebene Bezeichnungen</label>
-    <label class="ck"><input type="checkbox" id="calc" checked> berechnete Werte beschriften</label>
-    <label>Nachkommastellen <select id="dec"><option>0</option><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label>
-    <label>Einheit <select id="unit"><option value="">keine</option><option>mm</option><option selected>cm</option><option>dm</option><option>m</option><option>km</option></select></label>
-  </div></details>
-  <details class="card"><summary>Darstellung</summary><div class="ctl">
-    <label>Schriftgröße <input type="range" id="fs" min="10" max="28" value="15"></label>
-    <label>Strichstärke <input type="range" id="sw" min="0.5" max="4" step="0.1" value="1.3"></label>
-    <label>Radius der Winkelbögen <input type="range" id="ar" min="10" max="80" value="30"></label>
-    <label>Abstand der Seitenbeschriftung <input type="range" id="sg" min="0" max="30" value="6"></label>
-    <div class="sep"></div>
-    <label>Füllfarbe der Figur <input type="color" id="bg" value="#ffffff" style="width:44px;height:30px;padding:0;border:1px solid var(--line);background:none"></label>
-    <div><button class="btn sm" id="bgr">Füllfarbe zurücksetzen</button></div>
-  </div></details>
-  <details class="card" id="triCard" open><summary>Dreieck: Höhen</summary><div class="ctl">
-    <div class="hrow"><label class="ck"><input type="checkbox" id="hda"> Höhe \(h_a\) anzeigen</label><label class="ck sm"><input type="checkbox" id="hfa"> Beschriftung spiegeln</label></div>
-    <div class="hrow"><label class="ck"><input type="checkbox" id="hdb"> Höhe \(h_b\) anzeigen</label><label class="ck sm"><input type="checkbox" id="hfb"> Beschriftung spiegeln</label></div>
-    <div class="hrow"><label class="ck"><input type="checkbox" id="hdc"> Höhe \(h_c\) anzeigen</label><label class="ck sm"><input type="checkbox" id="hfc"> Beschriftung spiegeln</label></div>
-  </div></details>
-  <details class="card" id="qHCard" open style="display:none"><summary>Höhen und Diagonalen</summary><div class="ctl">
-    <div class="hrow" id="rowS"><label class="ck"><input type="checkbox" id="hqs"> Höhe \(h\) anzeigen</label><label class="ck sm"><input type="checkbox" id="hfqs"> Beschriftung spiegeln</label></div>
-    <div class="hrow" id="rowA"><label class="ck"><input type="checkbox" id="hqa"> Höhe \(h_a\) anzeigen</label><label class="ck sm"><input type="checkbox" id="hfqa"> Beschriftung spiegeln</label></div>
-    <div class="hrow" id="rowB"><label class="ck"><input type="checkbox" id="hqb"> Höhe \(h_b\) anzeigen</label><label class="ck sm"><input type="checkbox" id="hfqb"> Beschriftung spiegeln</label></div>
-    <label class="ck" id="rowD"><input type="checkbox" id="hdg"> Diagonalen \(e\) und \(f\) einzeichnen</label>
-  </div></details>
-  <details class="card" id="tabCard" open><summary>Tabelle</summary><div class="ctl">
-    <label class="ck" id="hcalcRow"><input type="checkbox" id="hcalc"> Alle Höhen in der Tabelle berechnen</label>
-    <label class="ck"><input type="checkbox" id="sol"> Lösungsweg in der Tabelle anzeigen</label>
-  </div></details>
-  <details class="card" id="apsCard"><summary>Winkelbeschriftung (Dreieck)</summary><div class="ctl" id="aps"></div></details>
-</aside>
-<section class="stage">
-  <div class="card"><svg id="svg" viewBox="0 0 640 460" role="img" aria-label="Gezeichnete Figur"></svg></div>
-  <div class="card" id="tbl"></div>
-  <p class="hint">Grün = von dir vorgegeben, blau = berechnet. Dezimalkomma und Dezimalpunkt werden beide akzeptiert.</p>
-</section>
+:root{--bg:#fff;--fg:#1a1a1a;--grid:#c8ccd2;--help:#a6b3c9;--bar:#f1f2f4;--acc:#d9480f;--btn:#fff;--bd:#b9bdc4;--on:#1c5fd4;--onf:#fff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17191c;--fg:#eee;--grid:#4a4f57;--help:#6c7889;--bar:#24272b;--acc:#ff8c4a;--btn:#2d3136;--bd:#555b64;--on:#6ea0ff;--onf:#111}}
+:root[data-theme="dark"]{--bg:#17191c;--fg:#eee;--grid:#4a4f57;--help:#6c7889;--bar:#24272b;--acc:#ff8c4a;--btn:#2d3136;--bd:#555b64;--on:#6ea0ff;--onf:#111}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);font:14px system-ui,sans-serif}
+body{display:flex;flex-direction:column}
+#bar{display:flex;flex-direction:column;align-items:center;gap:8px;padding:8px 10px;background:var(--bar)}
+#opts{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;width:100%}
+.grp{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:6px 10px;border:1px solid var(--bd);border-radius:8px}
+.grp.full{flex-direction:row;flex-wrap:wrap;align-items:center;gap:6px 14px}
+.grp b{font-size:11px;text-transform:uppercase;letter-spacing:.04em;opacity:.65}
+.g{display:flex;gap:4px;flex-wrap:wrap}
+button{font:inherit;padding:5px 9px;border:1px solid var(--bd);background:var(--btn);color:var(--fg);border-radius:6px;cursor:pointer}
+button:disabled{opacity:.45;cursor:default}
+button.on{background:var(--on);color:var(--onf);border-color:var(--on)}
+#brec{width:160px;white-space:nowrap}
+#bplay{width:110px;white-space:nowrap}
+#bprev,#bnext{width:34px;padding-left:0;padding-right:0}
+#tog{width:125px;white-space:nowrap}
+#brec.recording{background:var(--btn);border-color:#d98a8f}
+.rec-dot{color:var(--fg);font-size:1.15em}
+#brec.recording .rec-dot{color:#d71920;animation:rec-blink 1.8s ease-in-out infinite}
+@keyframes rec-blink{0%,35%,65%,100%{opacity:1}50%{opacity:0}}
+@media (prefers-reduced-motion:reduce){#brec.recording .rec-dot{animation:none}}
+label{display:flex;gap:5px;align-items:center;cursor:pointer}
+label:has(:disabled){opacity:.45;cursor:default}
+input[type=range]{width:90px}
+input[type=color]{width:32px;height:26px;padding:0;border:0px solid var(--bd);border-radius:6px;background:transparent}
+select{font:inherit}
+#w{flex:1;position:relative;min-height:0;overflow:hidden}
+canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+#inp{position:absolute;display:none;width:70px;font:inherit;padding:2px}
+#hint{padding:4px 10px;font-size:12px;opacity:.75}
+</style></head><body>
+<div id="bar">
+ <div class="grp full"><b>Werkzeuge</b><div class="g" id="modes"></div>
+  <div class="g"><button id="undo">↶ Zurück</button><button id="clr">Alles löschen</button><button id="tog">▲ ausblenden</button></div></div>
+ <div id="opts">
+  <div class="grp"><b>Raster</b><div class="g" id="grids"></div><label>Größe <input type="range" id="sz" min="20" max="150" value="100"></label>
+   <label>Schrittweite <select id="step"><option value="1">1</option><option value="0.5" selected>0,5</option><option value="0.25">0,25</option><option value="0.2">0,2</option><option value="0.1">0,1</option></select></label></div>
+  <div class="grp"><b>Zeichnen</b>
+   <label><input type="checkbox" id="ras" checked> am Raster fangen</label>
+   <label><input type="checkbox" id="fix" > freie Längen</label>
+   <label><input type="checkbox" id="auto" checked> Punkte benennen</label>
+   <label><input type="checkbox" id="autol" checked> Strecken benennen</label></div>
+  <div class="grp"><b>Anzeige</b>
+   <label><input type="checkbox" id="lab" checked> Bezeichnungen</label>
+   <label><input type="checkbox" id="cross" checked> Punkte als Kreuz</label>
+   <label><input type="checkbox" id="geo"> Geodreieck anzeigen</label>
+   <button id="georeset" type="button">Drehung zurücksetzen</button></div>
+  <div class="grp"><b>Darstellung</b>
+   <label>Schriftgröße <input type="range" id="fs" min="12" max="36" value="20"></label>
+   <label>Füllfarbe (Fläche) <input type="color" id="fc" value="#4da3ff"></label>
+   <label>Einheit <select id="unit"><option value="mm">mm</option><option value="cm" selected>cm</option><option value="dm">dm</option><option value="m">m</option><option value="km">km</option></select></label></div>
+  <div class="grp"><b>Berechnungen</b>
+   <label><input type="checkbox" id="d3"> Winkel und Längen in 3D</label>
+   <label><input type="checkbox" id="siz"> Größen anzeigen</label>
+   <label><input type="checkbox" id="onlyn"> ... an allen Strecken</label>
+   <label><input type="checkbox" id="leg" checked> Legende</label>
+   <!-- <label><input type="checkbox" id="vol"> Volumen der Körper</label>
+   <label><input type="checkbox" id="sol"> Lösungswege</label>
+   <label>Körper-Typ <select id="btype"><option value="pyr">Pyramide / Kegel</option><option value="pri">Prisma / Zylinder</option></select></label> -->
+   <label><input type="checkbox" id="sol"> Lösungswege</label></div>
+  <div class="grp"><b>Rekorder</b>
+   <div class="g"><button id="brec">● Aufnahme starten</button><button id="bplay">▶ Abspielen</button></div>
+   <div class="g"><button id="bsave">💾 Speichern</button><button id="bload">📂 Laden</button><input type="file" id="bfile" accept=".json,application/json" style="display:none"></div>
+   <label>Geschwindigkeit <input type="range" id="speed" min="0.5" max="3" step="0.1" value="1"></label>
+   <div class="g"><button id="bprev" title="Vorheriger Schritt" aria-label="Vorheriger Schritt">◀</button><button id="bnext" title="Nächster Schritt" aria-label="Nächster Schritt">▶</button></div>
+   <span id="rinfo" style="font-size:12px;opacity:.75"></span></div>
+ </div>
 </div>
-</main>
+<div id="w"><canvas id="c"></canvas><input id="inp" maxlength="100"></div>
+<div id="hint"></div>
 <script>
-const R=Math.PI/180, W=640, H=460, M=78;
-const LBL={a:'a',b:'b',c:'c',d:'d',al:'α',be:'β',ga:'γ',de:'δ',ha:'h_a',hb:'h_b',hc:'h_c'};
-const FL={a:'a',b:'b',c:'c',d:'d',al:'α in °',be:'β in °',ga:'γ in °',ha:'h<sub>a</sub>',hb:'h<sub>b</sub>',hc:'h<sub>c</sub>'};
-const isAng=k=>['al','be','ga','de'].includes(k);
-const QT={
- quadrat:{n:'Quadrat',f:['a'],h:'Eine Seite a genügt.'},
- rechteck:{n:'Rechteck',f:['a','b'],h:'Zwei benachbarte Seiten a (AB) und b (BC).'},
- raute:{n:'Raute',f:['a','al','ha'],req:['a'],alt:['al','ha'],fl:{ha:'h'},h:'Seitenlänge a und Winkel α bei A oder Höhe h.'},
- para:{n:'Parallelogramm',f:['a','b','al','ha','hb'],req:['a','b'],alt:['al','ha','hb'],fl:{ha:'h<sub>a</sub>',hb:'h<sub>b</sub>'},h:'Seiten a (AB), b (BC) und Winkel α bei A oder eine Höhe (h_a auf a, h_b auf b).'},
- drachen:{n:'Drachen',f:['a','b','be'],h:'AB = AD = a, BC = CD = b, Winkel β bei B (zwischen a und b).'},
- trapez:{n:'Gleichschenkliges Trapez',f:['a','c','al','ha'],req:['a','c'],alt:['al','ha'],fl:{ha:'h'},h:'Parallele Seiten a (AB) und c (CD), Basiswinkel α bei A oder Höhe h.'},
- allg1:{n:'Allgemeines Viereck: a, b, α, β, γ',f:['a','b','al','be','ga'],h:'Fünf Angaben sind mindestens nötig (2·4 − 3). Hier: zwei Seiten und drei Winkel.'},
- allg2:{n:'Allgemeines Viereck: a, b, c, d, α',f:['a','b','c','d','al'],h:'Fünf Angaben: alle vier Seiten und ein Winkel. Es kann zwei Lösungen geben.'}
+const $=id=>document.getElementById(id),cv=$('c'),ctx=cv.getContext('2d'),inp=$('inp');
+let P=[],L=[],K=[],A=[],F=[],BD=[],Q=[],nid=1,hist=[],start=null,sel=[],bsel=null,mode='line',grid='dots',showGrid=true,hover=null,hl=-1,hk=-1,W=0,H=0,k=100,ox=0,oy=0,fs=16,mouse={x:0,y:0},drag=null,space=false,M=new Map(),crossKey='',crossCache=[],legPos=null,legR=null,legRows=[],rec=false,snaps=[],manualStep=-1,playing=false,live=null,pi=0,pt=null,touchPointers=new Map(),pinch=null,geoPos=null,geoDrag=null,geoSize=100,geoAngle=0,compass=null;
+const geoImg=new Image();
+geoImg.src='Geodreieck.png';
+let geoAlpha=null;
+geoImg.onload=()=>{const c=document.createElement('canvas');c.width=geoImg.naturalWidth;c.height=geoImg.naturalHeight;const g=c.getContext('2d',{willReadFrequently:true});g.drawImage(geoImg,0,0);geoAlpha=g.getImageData(0,0,c.width,c.height).data;draw()};
+const GR='αβγδεζηθικλμνξπρστφχψω',LC='abcdefghijklmnopqrstuvwxyz',PAL=['#4da3ff','#ffb347','#6fd08c','#ff7b9c','#b48cff','#ffd84d','#4dd0c8','#ff8c66'];
+const MODES=[['line','Strecke (S)'],['point','Punkt (P)'],['arc','Kreis (K)'],['style','Stil (G)'],['label','Beschriften (B)'],['text','Text (T)'],['move','Verschieben (V)'],['angle','Winkel (W)'],['face','Fläche (F)'],/* ['body','Körper (O)'], */['hand','Hand (H)'],['del','Löschen (L)']];
+const KEYS={s:'line',p:'point',k:'arc',g:'style',b:'label',t:'text',v:'move',w:'angle',f:'face',/* o:'body', */h:'hand',l:'del'};
+const HINTS={line:'Punkt oder Schnittpunkt anklicken, Maus bewegen, zweiter Klick setzt das Ende. Klick auf einen vorhandenen Punkt verbindet frei. Esc bricht ab.',point:'Klick setzt einen Punkt (rastet an Schnittpunkten von Strecken ein und bleibt daran verankert).',arc:'Zirkel: Mittelpunkt anklicken, Radius festlegen und mit dem zweiten Klick sperren. Danach Maus um den Mittelpunkt bewegen; der Kreis wird schrittweise gezeichnet. Esc bricht ab.',label:'Punkt, Strecke, Winkelbogen oder Fläche anklicken, Namen eingeben (tiefgestellt: F_1 oder F_{12}), Enter.',text:'Klick an die gewünschte Stelle, Text eingeben und Enter drücken. Esc bricht ab.',style:'Strecke oder Kreisbogen anklicken: normal → gestrichelt → Hilfslinie.',move:'Punkt, Strecke oder Text ziehen, angrenzende Strecken wandern mit.',angle:'Nacheinander anklicken: Punkt auf Schenkel 1, Scheitelpunkt, Punkt auf Schenkel 2.',face:'Punkte der Reihe nach anklicken; ersten Punkt erneut anklicken oder Enter schließt die Fläche.',/* body:'Grundfläche anklicken (in die Fläche, oder eine waagerechte Strecke als Kreisdurchmesser), dann Spitze bzw. einen Punkt der Deckfläche. Typ unter Berechnungen. Löschen: in der Legende anklicken.', */hand:'Zeichenfläche ziehen. Alternativ: rechte/mittlere Maustaste oder Leertaste. Mausrad zoomt.',del:'Punkt, Strecke, Kreisbogen, Winkelbogen, Fläche oder Text anklicken zum Löschen.'};
+const sp=()=>start===null?null:start.id!==undefined?M.get(start.id):start;
+const fmt=(n,d=2)=>(+n.toFixed(d)).toString().replace('.',',');
+const X=x=>ox+x*k,Y=y=>oy+y*k,wx=x=>(x-ox)/k,wy=y=>(y-oy)/k;
+const S=()=>[P,L,K,A,F,BD,Q,nid],snap=()=>JSON.stringify(S()),load=a=>{[P,L,K,A,F,BD,Q,nid]=a.length==8?a:[...a.slice(0,6),[],a[6]]};
+function btns(el,arr,cur,fn){el.innerHTML='';arr.forEach(([key,t])=>{const b=document.createElement('button');b.textContent=t;b.className=cur()==key?'on':'';b.onclick=()=>{fn(key);btns(el,arr,cur,fn);draw()};el.appendChild(b)})}
+function ui(){btns($('modes'),MODES,()=>mode,setMode);btns($('grids'),[['dots','Punkte'],['karo','Karo'],['off','Aus']],()=>showGrid?grid:'off',key=>{if(key=='off')showGrid=false;else{showGrid=true;grid=key}})}
+function setMode(m){mode=m;start=null;sel=[];bsel=null;compass=null;drag=null;inp.style.display='none';$('hint').textContent=HINTS[m];cv.style.cursor=m=='hand'?'grab':m=='move'?'move':'crosshair';ui();draw()}
+function resize(){const r=cv.parentNode.getBoundingClientRect(),d=devicePixelRatio||1;W=r.width;H=r.height;cv.width=W*d;cv.height=H*d;ctx.setTransform(d,0,0,d,0,0);draw()}
+new ResizeObserver(()=>resize()).observe($('w'));
+$('tog').onclick=e=>{const o=$('opts'),h=o.style.display=='none';o.style.display=h?'flex':'none';e.target.textContent=h?'▲ ausblenden':'▼ einblenden';e.target.blur()};
+const push=()=>{hist.push(snap());if(hist.length>100)hist.shift();if(rec&&!drag)setTimeout(capture,0)};
+function undo(){if(playing)return;if(hist.length){if(rec&&snaps.length>1)snaps.pop();load(JSON.parse(hist.pop()));start=null;sel=[];bsel=null;compass=null;drag=null;rebuild();draw()}}
+$('undo').onclick=e=>{e.target.blur();undo()};
+$('clr').onclick=e=>{e.target.blur();if(playing)return;if(P.length||Q.length){push();P=[];L=[];K=[];A=[];F=[];BD=[];Q=[];start=null;sel=[];bsel=null;compass=null;drag=null;rebuild();draw()}};
+/* Rekorder */
+function capture(){if(!rec)return;const s=snap();if(snaps[snaps.length-1]!==s)snaps.push(s);recUI()}
+function show(i){load(JSON.parse(snaps[i]));start=null;sel=[];bsel=null;rebuild();draw();const total=Math.max(1,snaps.length-1);$('rinfo').textContent=i?'Schritt '+Math.min(total,i)+' von '+total:'Grundzustand'}
+function recUI(){$('brec').innerHTML=rec?'<span class="rec-dot" aria-hidden="true">●</span> Aufnahme beenden':'<span class="rec-dot" aria-hidden="true">●</span> Aufnahme starten';$('brec').className=rec?'recording':'';$('bplay').textContent=playing?'■ Anhalten':'▶ Abspielen';$('bplay').className=playing?'on':'';
+ $('bprev').disabled=snaps.length<2||rec||playing;$('bnext').disabled=snaps.length<2||rec||playing;$('bsave').disabled=snaps.length<2;
+ if(rec)$('rinfo').textContent='Aufnahme läuft: '+(snaps.length-1)+' Schritte';else if(!playing)$('rinfo').textContent=snaps.length>1?(snaps.length-1)+' Schritte aufgenommen':''}
+function toggleRec(){if(playing)stop();rec=!rec;if(rec)snaps=[snap()];manualStep=-1;recUI()}
+function play(){if(snaps.length<2){$('rinfo').textContent='Erst aufnehmen: mindestens ein Schritt nötig';return}rec=false;live=snap();playing=true;pi=0;start=null;sel=[];recUI();playStep()}
+function playStep(){if(!playing)return;show(pi);const last=pi==snaps.length-1;pi=last?0:pi+1;const speed=+$('speed').value||1;pt=setTimeout(playStep,(last?2.5:1)/speed*1000)}
+function moveStep(direction){if(snaps.length<2||rec||playing)return;manualStep=(manualStep+direction+snaps.length)%snaps.length;show(manualStep)}
+function stop(){playing=false;clearTimeout(pt);if(live){load(JSON.parse(live));live=null;rebuild();draw()}recUI()}
+$('brec').onclick=e=>{e.currentTarget.blur();toggleRec()};$('bplay').onclick=e=>{e.currentTarget.blur();playing?stop():play()};$('bprev').onclick=e=>{e.currentTarget.blur();moveStep(-1)};$('bnext').onclick=e=>{e.currentTarget.blur();moveStep(1)};
+let dl=null;
+try{if(typeof claude!=='undefined'&&claude.use)claude.use('downloads').then(x=>{dl=x}).catch(()=>{dl=null})}catch(e){dl=null}
+$('bsave').onclick=async e=>{e.target.blur();if(snaps.length<2)return;const data=JSON.stringify({typ:'schraegbild-aufnahme',v:1,steps:snaps.map(s=>JSON.parse(s))});
+ try{if(dl)await dl.save({filename:'konstruktion.json',data});else{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'application/json'}));a.download='konstruktion.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),0)}$('rinfo').textContent='Aufnahme gespeichert'}catch(err){if(!err||err.code!='declined')$('rinfo').textContent='Speichern nicht möglich'}};
+$('bload').onclick=e=>{e.target.blur();$('bfile').click()};
+$('bfile').onchange=e=>{const f=e.target.files[0];e.target.value='';if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.steps||d.steps.length<2||!d.steps.every(s=>Array.isArray(s)&&(s.length==7||s.length==8)))throw 0;if(playing)stop();rec=false;snaps=d.steps.map(s=>JSON.stringify(s));recUI();play()}catch(x){$('rinfo').textContent='Datei konnte nicht gelesen werden'}};r.readAsText(f)};
+function sync(){$('fix').disabled=!$('ras').checked;$('step').disabled=!$('ras').checked||$('fix').checked}
+document.querySelectorAll('input[type=checkbox]').forEach(c=>c.onchange=()=>{c.blur();sync();draw()});
+$('opts').addEventListener('input',()=>draw());
+$('sz').oninput=e=>{zoom(+e.target.value,W/2,H/2)};
+$('georeset').onclick=()=>{geoAngle=0;draw()};
+$('geo').onchange=()=>{$('geo').blur();$('georeset').style.display=$('geo').checked?'':'none';if($('geo').checked&&!geoPos)geoPos={x:wx(W/2),y:wy(H/2)};draw()};
+$('georeset').style.display='none';
+function zoom(k2,mx,my){k2=Math.max(20,Math.min(150,k2));ox=mx-(mx-ox)*k2/k;oy=my-(my-oy)*k2/k;k=k2;$('sz').value=k;draw()}
+cv.addEventListener('wheel',e=>{e.preventDefault();const p=pos(e);zoom(k*(e.deltaY<0?1.1:1/1.1),p.x,p.y)},{passive:false});
+cv.addEventListener('contextmenu',e=>e.preventDefault());
+function nextP(){const u=new Set(P.map(q=>q.l));let n=0,l;do{l=String.fromCharCode(65+n%26)+(n>=26?Math.floor(n/26):'');n++}while(u.has(l));return l}
+function nextL(){const u=new Set(L.map(q=>q.l));let n=0,l;do{l=LC[n%26]+(n>=26?Math.floor(n/26):'');n++}while(u.has(l));return l}
+function add(x,y,cx){const e=P.find(p=>Math.hypot(p.x-x,p.y-y)<.02);if(e)return e.id;const p={id:nid++,x,y};if(cx)p.cx=cx;if($('auto').checked)p.l=nextP();P.push(p);return p.id}
+function anchor(){const eps=1e-7,limit=Math.max(1,P.length+1);
+ for(let n=0;n<limit;n++){let changed=false;
+  P.forEach(p=>{if(!p.cx)return;const l1=L.find(l=>l.id==p.cx[0]),l2=L.find(l=>l.id==p.cx[1]);if(!l1||!l2){p.cx=null;changed=true;return}
+   const a=M.get(l1.a),b=M.get(l1.b),c=M.get(l2.a),d=M.get(l2.b),d1x=b.x-a.x,d1y=b.y-a.y,d2x=d.x-c.x,d2y=d.y-c.y,den=d1x*d2y-d1y*d2x;if(Math.abs(den)<1e-9)return;
+   const dx=c.x-a.x,dy=c.y-a.y,t=(dx*d2y-dy*d2x)/den,u=(dx*d1y-dy*d1x)/den;
+   if(t<-eps||t>1+eps||u<-eps||u>1+eps){p.cx=null;changed=true;return}
+   const nt=Math.max(0,Math.min(1,t)),nx=a.x+nt*d1x,ny=a.y+nt*d1y;
+   if(Math.abs(p.x-nx)>eps||Math.abs(p.y-ny)>eps){p.x=nx;p.y=ny;changed=true}
+  });
+  if(!changed)break;
+ }}
+function rebuild(){const ok=new Set(P.map(p=>p.id));let removed=0;
+ M=new Map(P.map(p=>[p.id,p]));const validSegment=(a,b)=>{const p=M.get(a),q=M.get(b);return p&&q&&Math.hypot(p.x-q.x,p.y-q.y)>1e-9};
+ const oldL=L.length;L=L.filter(l=>ok.has(l.a)&&ok.has(l.b)&&validSegment(l.a,l.b));removed+=oldL-L.length;
+ const oldK=K.length;K=K.filter(o=>o.s=='circle'?ok.has(o.a)&&Number.isFinite(o.r)&&o.r>0:ok.has(o.a)&&ok.has(o.b)&&validSegment(o.a,o.b));removed+=oldK-K.length;
+ const oldA=A.length;A=A.filter(a=>ok.has(a.a)&&ok.has(a.b)&&ok.has(a.c));removed+=oldA-A.length;
+ const oldF=F.length;F=F.filter(f=>f.p.every(i=>ok.has(i)));removed+=oldF-F.length;
+ const oldBD=BD.length;BD=BD.filter(b=>ok.has(b.top)&&(b.base.k=='c'?ok.has(b.base.a)&&ok.has(b.base.b):b.base.p.every(i=>ok.has(i))));removed+=oldBD-BD.length;
+ crossKey='';crossCache=[];anchor();
+ if(removed)$('hint').textContent=removed+' ungültige oder abhängige Objekte entfernt.'}
+function crossings(){const key=L.map(l=>{const a=M.get(l.a),b=M.get(l.b);return l.id+':'+a.x+','+a.y+','+b.x+','+b.y}).join('|');if(key==crossKey)return crossCache;
+ const r=[];for(let i=0;i<L.length;i++)for(let j=i+1;j<L.length;j++){const p=M.get(L[i].a),q=M.get(L[i].b),a=M.get(L[j].a),b=M.get(L[j].b),
+ d1x=q.x-p.x,d1y=q.y-p.y,d2x=b.x-a.x,d2y=b.y-a.y,den=d1x*d2y-d1y*d2x;if(Math.abs(den)<1e-9)continue;
+ const t=((a.x-p.x)*d2y-(a.y-p.y)*d2x)/den,v=((a.x-p.x)*d1y-(a.y-p.y)*d1x)/den;if(t>=0&&t<=1&&v>=0&&v<=1)r.push({x:p.x+t*d1x,y:p.y+t*d1y,l1:L[i].id,l2:L[j].id})}crossKey=key;crossCache=r;return r}
+function nearCross(x,y){let b=null,bd=11;crossings().forEach(c=>{const d=Math.hypot(X(c.x)-x,Y(c.y)-y);if(d<bd){bd=d;b=c}});return b}
+function hit(x,y,ex){let b=null,bd=11;P.forEach(p=>{const d=Math.hypot(X(p.x)-x,Y(p.y)-y);if(p.id!==ex&&d<bd){bd=d;b=p}});return b}
+function lineHit(x,y){for(let i=L.length-1;i>=0;i--){const p=M.get(L[i].a),q=M.get(L[i].b),px=X(p.x),py=Y(p.y),dx=X(q.x)-px,dy=Y(q.y)-py,
+ t=Math.max(0,Math.min(1,((x-px)*dx+(y-py)*dy)/(dx*dx+dy*dy)));if(Math.hypot(px+t*dx-x,py+t*dy-y)<7)return i}return -1}
+const geoMetrics=()=>{
+ const w=520*(geoSize/100),h=w*(643/1280);
+ return{w,h,cx:X(geoPos.x),cy:Y(geoPos.y),angle:geoAngle*Math.PI/180};
 };
-let mode='T', sols=[], cur=0, given=[], posf=[.5,.5,.5,.5], distf=[null,null,null,null];
-const $=s=>document.querySelector(s);
-const U=()=>{const u=$('#unit').value;return u?' '+u:''};
-const fmt=(x,d=+$('#dec').value)=>{let s=(+x).toFixed(d);if(s.includes('.'))s=s.replace(/0+$/,'').replace(/\.$/,'');return s.replace('.',',')};
-const num=s=>{s=s.trim().replace(',','.');if(s==='')return null;const v=Number(s);if(!isFinite(v))throw 'Ungültige Zahl: „'+s+'“';return v};
+function geoContainsScreen(x,y){
+ if(!geoPos||!geoAlpha)return false;
+ const g=geoMetrics(),dx=x-g.cx,dy=y-g.cy,a=-g.angle;
+ const lx=dx*Math.cos(a)-dy*Math.sin(a),ly=dx*Math.sin(a)+dy*Math.cos(a);
+ if(lx< -g.w/2||lx>g.w/2||ly< -g.h||ly>0)return false;
+ const px=Math.round((lx/g.w+.5)*geoImg.naturalWidth);
+ const py=Math.round((ly/g.h+1)*geoImg.naturalHeight);
+ if(px<0||px>=geoImg.naturalWidth||py<0||py>=geoImg.naturalHeight)return false;
+ return geoAlpha[(py*geoImg.naturalWidth+px)*4+3]>20;
+}
+function arcData(a,b,x,y){const ax=X(a.x),ay=Y(a.y),bx=X(b.x),by=Y(b.y),dx=bx-ax,dy=by-ay,d=Math.hypot(dx,dy)||1,cx=(ax+bx)/2,cy=(ay+by)/2,r=d/2;
+ const mx=x===undefined?cx:x,my=y===undefined?cy:y,ang=Math.atan2(dy,dx),upNormal={x:Math.sin(ang),y:-Math.cos(ang)},side=(mx-cx)*upNormal.x+(my-cy)*upNormal.y;
+ const full=Math.hypot(mx-cx,my-cy)>r*1.15;
+ return{cx,cy,r,ang,side,kind:full?'c':side>0?'u':'l'}}
+function arcPath(a,b,s,x,y){if(s=='c'){const q=arcData(a,b,x,y);ctx.arc(q.cx,q.cy,q.r,0,Math.PI*2);return}
+ const q=arcData(a,b,x,y),ry=q.r*.5;ctx.ellipse(q.cx,q.cy,q.r,ry,q.ang,s=='u'?Math.PI:0,s=='u'?2*Math.PI:Math.PI)}
+function arcHit(x,y){for(let i=K.length-1;i>=0;i--){const o=K[i];
+ if(o.s=='circle'){const a=M.get(o.a);if(a&&Math.abs(Math.hypot(x-X(a.x),y-Y(a.y))-o.r*k)<7)return i;continue}
+ const a=M.get(o.a),b=M.get(o.b);if(!a||!b)continue;
+ if(o.s=='c'){const q=arcData(a,b);if(Math.abs(Math.hypot(x-q.cx,y-q.cy)-q.r)<7)return i}
+ else{const q=arcData(a,b);for(let n=0;n<=40;n++){const p=(o.s=='u'?Math.PI:0)+Math.PI*n/40,px=q.cx+q.r*Math.cos(p)*Math.cos(q.ang)-q.r*.5*Math.sin(p)*Math.sin(q.ang),py=q.cy+q.r*Math.cos(p)*Math.sin(q.ang)+q.r*.5*Math.sin(p)*Math.cos(q.ang);if(Math.hypot(px-x,py-y)<7)return i}}}return -1}
+function textHit(x,y){for(let i=Q.length-1;i>=0;i--){const q=Q[i],w=halo(q.t,0,0,'','','left','','',fs,true);if(x>=X(q.x)-5&&x<=X(q.x)+w+5&&y>=Y(q.y)-fs&&y<=Y(q.y)+5)return i}return -1}
+const angHit=(x,y)=>A.findIndex(a=>{const B=M.get(a.b);return Math.abs(Math.hypot(X(B.x)-x,Y(B.y)-y)-26)<8});
+function inFace(f,x,y){let c=false;const q=f.p.map(i=>M.get(i));for(let i=0,j=q.length-1;i<q.length;j=i++){const a=q[i],b=q[j],ay=Y(a.y),by=Y(b.y);
+ if((ay>y)!=(by>y)&&x<(X(b.x)-X(a.x))*(y-ay)/(by-ay)+X(a.x))c=!c}return c}
+const faceAt=(x,y)=>{let r=-1;F.forEach((f,i)=>{if(inFace(f,x,y))r=i});return r};
+/* 3D-Modell: x rechts, z oben, Tiefe y; Tiefenstrecke der Länge l erscheint nach rechts oben mit den Komponenten 0,5·l */
+function solve3d(){const q=.5,T=new Map(),e=.02;let comp=0;
+ T.bad=new Set();
+ const axis=(a,b)=>{const dx=b.x-a.x,dy=b.y-a.y;if(Math.abs(dy)<e)return{x:dx,y:0,z:0};if(Math.abs(dx)<e)return{x:0,y:0,z:-dy};
+  if(Math.abs(Math.abs(dx)-Math.abs(dy))<e&&dx*dy<0)return{x:0,y:Math.abs(dx)/q*Math.sign(dx),z:0};return null};
+ const ps=P.filter(p=>L.some(l=>l.a==p.id||l.b==p.id));
+ const run=()=>{let ch=true,n=0;while(ch&&n++<60){ch=false;
+  L.forEach(l=>{const a=M.get(l.a),b=M.get(l.b),ta=T.get(a.id),tb=T.get(b.id);
+   if(ta&&!tb){const v=axis(a,b);if(v){T.set(b.id,{x:ta.x+v.x,y:ta.y+v.y,z:ta.z+v.z,c:ta.c});ch=true}else T.bad.add(l.id)}
+   else if(tb&&!ta){const v=axis(b,a);if(v){T.set(a.id,{x:tb.x+v.x,y:tb.y+v.y,z:tb.z+v.z,c:tb.c});ch=true}else T.bad.add(l.id)}});
+  P.forEach(p=>{for(const l of L){if(l.a==p.id||l.b==p.id)continue;const a=M.get(l.a),b=M.get(l.b),ta=T.get(a.id),tb=T.get(b.id);if(!ta||!tb||ta.c!=tb.c)continue;
+   const dx=b.x-a.x,dy=b.y-a.y,t=((p.x-a.x)*dx+(p.y-a.y)*dy)/(dx*dx+dy*dy);if(t<-e||t>1+e||Math.hypot(a.x+t*dx-p.x,a.y+t*dy-p.y)>e)continue;
+   const v={x:ta.x+t*(tb.x-ta.x),y:ta.y+t*(tb.y-ta.y),z:ta.z+t*(tb.z-ta.z),c:ta.c},o=T.get(p.id);
+   if(!o){T.set(p.id,v);ch=true;break}
+   if(o.c!=ta.c){const ddx=v.x-o.x,ddy=v.y-o.y,ddz=v.z-o.z,oc=o.c;for(const w of T.values())if(w.c==oc){w.x+=ddx;w.y+=ddy;w.z+=ddz;w.c=ta.c}ch=true;break}}})}};
+ for(const p of ps)if(!T.has(p.id)){T.set(p.id,{x:0,y:0,z:0,c:comp++});run()}
+ L.forEach(l=>{if(!T.has(M.get(l.a).id)||!T.has(M.get(l.b).id)||!axis(M.get(l.a),M.get(l.b)))T.bad.add(l.id)});
+ return T}
+function componentExpr(value,axis,T,ignore){for(const m of L){if(m.id==ignore)continue;const a=M.get(m.a),b=M.get(m.b),ta=T.get(a.id),tb=T.get(b.id);if(!ta||!tb||ta.c!=tb.c||T.bad.has(m.id))continue;
+ const v=[tb.x-ta.x,tb.y-ta.y,tb.z-ta.z],other=v.filter((x,i)=>i!=axis&&Math.abs(x)>1e-6);if(!other.length&&Math.abs(Math.abs(v[axis])-Math.abs(value))<1e-6)return m.l||fmt(Math.abs(v[axis]))}return null}
+function vectorSolution(c,T,ignore){const nz=c.map((x,i)=>({x:Math.abs(x),i})).filter(v=>v.x>1e-6);if(nz.length<2)return '';
+ const parts=nz.map(v=>componentExpr(v.x,v.i,T,ignore));if(parts.some(v=>!v))return '';
+ return '√('+parts.map(v=>v+'²').join('+')+')'}
+function triangleSolution(l){const a=M.get(l.a),b=M.get(l.b),find=(x,y)=>L.find(m=>(m.a==x&&m.b==y)||(m.a==y&&m.b==x));for(const c of P){if(c.id==a.id||c.id==b.id)continue;const ab=find(a.id,b.id),ac=find(a.id,c.id),bc=find(b.id,c.id);if(!ab||!ac||!bc)continue;
+  const vAB=[b.x-a.x,b.y-a.y],acv=[c.x-a.x,c.y-a.y],bcv=[c.x-b.x,c.y-b.y],rightA=Math.abs(vAB[0]*acv[0]+vAB[1]*acv[1])<1e-6,rightB=Math.abs((-vAB[0])*bcv[0]+(-vAB[1])*bcv[1])<1e-6,rightC=Math.abs((-acv[0])*(-bcv[0])+(-acv[1])*(-bcv[1]))<1e-6;
+  const name=m=>m.l||fmt(Math.hypot(M.get(m.a).x-M.get(m.b).x,M.get(m.a).y-M.get(m.b).y)),nAB=name(ab),nAC=name(ac),nBC=name(bc);
+  if(rightA)return bc.id==l.id?'√('+nAB+'² + '+nAC+'²)':l.id==ac.id?'√('+nBC+'² - '+nAB+'²)':'√('+nBC+'² - '+nAC+'²)';
+  if(rightB)return ac.id==l.id?'√('+nAB+'² + '+nBC+'²)':l.id==bc.id?'√('+nAC+'² - '+nBC+'²)':'√('+nAC+'² - '+nAB+'²)';
+  if(rightC)return l.id==ab.id?'√('+nAC+'² + '+nBC+'²)':l.id==ac.id?'√('+nAB+'² - '+nBC+'²)':'√('+nAB+'² - '+nAC+'²)';
+  const angleC=Math.acos(Math.max(-1,Math.min(1,((-acv[0])*(-bcv[0])+(-acv[1])*(-bcv[1]))/(Math.hypot(...acv)*Math.hypot(...bcv)))))*180/Math.PI;
+  return'√('+nAC+'² + '+nBC+'² - 2·'+nAC+'·'+nBC+'·cos('+fmt(angleC,1)+'°))';
+ }return''}
+function lenInfo(l,T){const a=M.get(l.a),b=M.get(l.b),ta=T&&T.get(a.id),tb=T&&T.get(b.id);
+ if(T&&T.bad.has(l.id))return{v:null,s:triangleSolution(l)||'3D nicht eindeutig'};
+ if(T&&(!ta||!tb||ta.c!=tb.c))return{v:null,s:triangleSolution(l)||'3D nicht eindeutig'};
+ const c=T?[tb.x-ta.x,tb.y-ta.y,tb.z-ta.z]:[b.x-a.x,b.y-a.y,0],nz=c.map(x=>Math.abs(x)).filter(x=>x>1e-6);
+ return{v:Math.hypot(...c),s:T?vectorSolution(c,T,l.id)||triangleSolution(l):triangleSolution(l)}}
+function areaInfo(ids,T){const t=T&&ids.map(i=>T.get(i));let q,d2=false;
+ if(T&&(!t.every(x=>x&&x.c==t[0].c)))return{v:null,s:'3D nicht eindeutig',d2:false};
+ if(t)q=t;else{q=ids.map(i=>{const p=M.get(i);return{x:p.x,y:p.y,z:0}});d2=true}
+ let cx=0,cy=0,cz=0;q.forEach((p,i)=>{const r=q[(i+1)%q.length];cx+=p.y*r.z-p.z*r.y;cy+=p.z*r.x-p.x*r.z;cz+=p.x*r.y-p.y*r.x});
+ const n=q.length,e=q.map((p,i)=>{const r=q[(i+1)%n];return[r.x-p.x,r.y-p.y,r.z-p.z]}),len=e.map(w=>Math.hypot(...w)),dot=(i,j)=>e[i][0]*e[j][0]+e[i][1]*e[j][1]+e[i][2]*e[j][2];
+ let s='';if(n==4&&Math.abs(dot(0,1))<1e-6&&Math.abs(dot(1,2))<1e-6&&Math.abs(dot(2,3))<1e-6)s=fmt(len[0])+'·'+fmt(len[1]);
+ else if(n==3){const right=[Math.abs(dot(0,1)),Math.abs(dot(1,2)),Math.abs(dot(2,0))].findIndex(v=>v<1e-6);
+  if(right>=0){const legs=right==0?[len[2],len[0]]:right==1?[len[0],len[1]]:[len[1],len[2]];s='½·'+fmt(legs[0])+'·'+fmt(legs[1])}
+  else{const angle=Math.acos(Math.max(-1,Math.min(1,dot(0,1)/(len[0]*len[1]))))*180/Math.PI;s='½·'+fmt(len[0])+'·'+fmt(len[1])+'·sin('+fmt(angle,1)+'°)'}}
+ return{v:Math.hypot(cx,cy,cz)/2,s,d2}}
+/*
+function bodyInfo(b,T){if(!T)return null;let G,gs,gt,pt;
+ if(b.base.k=='c'){const ta=T.get(b.base.a),tb=T.get(b.base.b);if(!ta||!tb||ta.c!=tb.c)return null;const r=Math.hypot(tb.x-ta.x,tb.y-ta.y,tb.z-ta.z)/2;G=Math.PI*r*r;gt='π·'+fmt(r)+'²';gs='G = '+gt+' = '+fmt(G);pt=ta}
+ else{const r=areaInfo(b.base.p,T);if(r.d2||r.v===null)return null;G=r.v;gt=fmt(G);gs='G = '+(r.s?r.s+' = ':'')+fmt(G);pt=T.get(b.base.p[0])}
+ const tt=T.get(b.top);if(!pt||!tt||pt.c!=tt.c)return null;const h=Math.abs(tt.z-pt.z),pyr=b.t=='pyr',v=G*h/(pyr?3:1);
+ return{v,s:(pyr?'⅓·':'')+gt+'·'+fmt(h),g:gs}}
+*/
+function angleInfo(a,T,a1,a2){const tb=T&&T.get(a.b),tp=T&&T.get(a.a),tc=T&&T.get(a.c);
+ if(T&&(!tb||!tp||!tc||tb.c!=tp.c||tb.c!=tc.c))return{v:null,s:'3D nicht eindeutig'};
+ const pa=T?tp:M.get(a.a),pb=T?tb:M.get(a.b),pc=T?tc:M.get(a.c),u=[pa.x-pb.x,pa.y-pb.y,T?pa.z-pb.z:0],v=[pc.x-pb.x,pc.y-pb.y,T?pc.z-pb.z:0],lu=Math.hypot(...u),lv=Math.hypot(...v),dot=u[0]*v[0]+u[1]*v[1]+u[2]*v[2];
+ if(lu<1e-9||lv<1e-9)return{v:null,s:'Winkel nicht bestimmbar'};
+ const pcross=[pa.x-pc.x,pa.y-pc.y,T?pa.z-pc.z:0],rightA=Math.abs((pb.x-pa.x)*(pc.x-pa.x)+(pb.y-pa.y)*(pc.y-pa.y)+(T?pb.z-pa.z:0)*(T?pc.z-pa.z:0))<1e-6,rightB=Math.abs(dot)<1e-6,rightC=Math.abs((pb.x-pc.x)*(pa.x-pc.x)+(pb.y-pc.y)*(pa.y-pc.y)+(T?pb.z-pc.z:0)*(T?pa.z-pc.z:0))<1e-6;
+ const deg=Math.acos(Math.max(-1,Math.min(1,dot/(lu*lv))))*180/Math.PI;
+ if(rightB)return{v:90,s:'90°'};
+ if(rightA||rightC){const opposite=Math.hypot(...pcross),adjacent=rightA?lu:lv;return{v:deg,s:'tan⁻¹('+fmt(opposite)+'/'+fmt(adjacent)+')'}}
+ return{v:deg,s:'cos⁻¹(('+fmt(lu)+'²+'+fmt(lv)+'²-'+fmt(Math.hypot(...pcross))+'²)/(2·'+fmt(lu)+'·'+fmt(lv)+'))'}}
+function target(){const s=sp();if(!s)return null;const h=hit(mouse.x,mouse.y,start.id);if(h)return{x:h.x,y:h.y,id:h.id};
+ const c=nearCross(mouse.x,mouse.y);if(c)return{x:c.x,y:c.y,cx:[c.l1,c.l2]};
+ const mx=wx(mouse.x),my=wy(mouse.y);if(!$('ras').checked)return{x:mx,y:my};
+ const dx=mx-s.x,dy=my-s.y,n=Math.round(Math.atan2(dy,dx)/(Math.PI/4)),a=n*Math.PI/4,ux=Math.cos(a),uy=Math.sin(a),p=dx*ux+dy*uy;
+ const unit=+$('step').value||.1,stepSize=Math.abs(n)%2?unit*Math.SQRT2:unit,len=!$('fix').checked?Math.round(p/stepSize)*stepSize:p;if(len<=0)return null;
+ return{x:Math.round((s.x+ux*len)*1e6)/1e6,y:Math.round((s.y+uy*len)*1e6)/1e6}}
+function pos(e){const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
+function compassTarget(){
+ if(!compass)return null;
+ const center=M.get(compass.centerId);if(!center)return null;
+ const h=hit(mouse.x,mouse.y,center.id);if(h)return{x:h.x,y:h.y,id:h.id};
+ const cr=nearCross(mouse.x,mouse.y);if(cr)return{x:cr.x,y:cr.y,cx:[cr.l1,cr.l2]};
+ const mx=wx(mouse.x),my=wy(mouse.y);
+ if(!$('ras').checked)return{x:mx,y:my};
+ const dx=mx-center.x,dy=my-center.y,n=Math.round(Math.atan2(dy,dx)/(Math.PI/4)),a=n*Math.PI/4,ux=Math.cos(a),uy=Math.sin(a),p=dx*ux+dy*uy;
+ const unit=+$('step').value||.1,stepSize=Math.abs(n)%2?unit*Math.SQRT2:unit,len=!$('fix').checked?Math.round(p/stepSize)*stepSize:p;
+ if(len<=0)return null;
+ return{x:Math.round((center.x+ux*len)*1e6)/1e6,y:Math.round((center.y+uy*len)*1e6)/1e6}}
+function lockCompassRadius(){
+ if(!compass||compass.locked)return;
+ const center=M.get(compass.centerId),li=lineHit(mouse.x,mouse.y);
+ let t=compassTarget();if(!center)return;
+ if(li>=0){
+  const l=L[li],a=M.get(l.a),b=M.get(l.b),radius=Math.hypot(b.x-a.x,b.y-a.y),angle=Math.atan2(wy(mouse.y)-center.y,wx(mouse.x)-center.x);
+  t={x:center.x+Math.cos(angle)*radius,y:center.y+Math.sin(angle)*radius};
+ }
+ if(!t)return;
+ const radius=Math.hypot(t.x-center.x,t.y-center.y);if(radius<=1e-9)return;
+ push();const endpointId=t.id!==undefined?t.id:add(t.x,t.y,t.cx);
+ if(endpointId!==center.id){
+  rebuild();
+  const startAngle=Math.atan2(M.get(endpointId).y-center.y,M.get(endpointId).x-center.x);
+  compass={centerId:center.id,endpointId,radius,locked:true,tracing:false,startAngle,lastAngle:startAngle,sweep:0};
+  sel=[centerId,endpointId];$('hint').textContent='Radius ist gesperrt. Maus um den Mittelpunkt bewegen, um den Kreis schrittweise zu zeichnen.';draw();
+ }
+}
+function createCompassCircle(centerId,radius){const center=M.get(centerId);if(!center||!Number.isFinite(radius)||radius<=1e-9)return;
+ push();K.push({id:nid++,a:centerId,b:null,s:'circle',r:radius,d:0});sel=[];compass=null;rebuild()}
+function closeFace(){push();F.push({p:sel.slice(),c:$('fc').value});sel=[];$('fc').value=PAL[F.length%PAL.length];draw()}
+function openInp(kind,i,x,y){inp.style.display='block';inp.style.left=(x+8)+'px';inp.style.top=(y-30)+'px';inp.dataset.k=kind;inp.dataset.i=i;
+ const arr=kind=='p'?P:kind=='l'?L:kind=='a'?A:F;let v=(kind=='p'?M.get(i):arr[i]).l;
+ if(!v){const u=new Set(arr.map(o=>o.l));if(kind=='p')v=nextP();else if(kind=='f'){let n=1;while(u.has('F_'+n))n++;v='F_'+n}else v=[...(kind=='l'?LC:GR)].find(c=>!u.has(c))||''}
+ inp.value=v||'';setTimeout(()=>{inp.focus();inp.select()},0)}
+function nameUsed(kind,index,value){if(!value)return false;const arr=kind=='p'?P:kind=='l'?L:kind=='a'?A:F;return arr.some((o,i)=>(kind=='p'?o.id!==index:i!==index)&&o.l===value)}
+function openText(x,y){inp.style.display='block';inp.style.left=(x+8)+'px';inp.style.top=(y-30)+'px';inp.dataset.k='t';inp.dataset.x=wx(x);inp.dataset.y=wy(y);inp.value='';setTimeout(()=>{inp.focus()},0)}
+inp.addEventListener('keydown',e=>{e.stopPropagation();if(e.key=='Enter'){const v=inp.value.trim(),i=+inp.dataset.i,kd=inp.dataset.k;
+ if(kd=='t'){if(v){push();Q.push({x:+inp.dataset.x,y:+inp.dataset.y,t:v})}}
+ else{if(nameUsed(kd,i,v)){$('hint').textContent='Der Name ist bereits vergeben.';return}push();if(kd=='p'){const p=M.get(i);if(p)p.l=v}else if(kd=='l'){if(L[i])L[i].l=v}else if(kd=='a'){if(A[i])A[i].l=v}else if(F[i])F[i].l=v}
+ inp.style.display='none';draw()}if(e.key=='Escape')inp.style.display='none'});
+function handleClick(e){
+ $('hint').textContent=HINTS[mode];
+ const h=hit(mouse.x,mouse.y),ras=$('ras').checked,fix=$('fix').checked,mx=wx(mouse.x),my=wy(mouse.y),step=ras&&!fix?+$('step').value||.1:0,pgx=step?Math.round(mx/step)*step:mx,pgy=step?Math.round(my/step)*step:my,li=lineHit(mouse.x,mouse.y),ki=arcHit(mouse.x,mouse.y),ti=textHit(mouse.x,mouse.y),cr=nearCross(mouse.x,mouse.y);
+ if(mode=='line'){if(!start)start=h?{id:h.id}:cr?{x:cr.x,y:cr.y,cx:[cr.l1,cr.l2]}:{x:pgx,y:pgy};else{const t=target();if(t){push();const a=start.id!==undefined?start.id:add(start.x,start.y,start.cx),b=t.id!==undefined?t.id:add(t.x,t.y,t.cx),ax=start.id!==undefined?M.get(a).x:start.x,ay=start.id!==undefined?M.get(a).y:start.y,bx=t.id!==undefined?M.get(b).x:t.x,by=t.id!==undefined?M.get(b).y:t.y;
+   if(a!==b&&Math.hypot(ax-bx,ay-by)>1e-9&&!L.some(l=>(l.a==a&&l.b==b)||(l.a==b&&l.b==a)))L.push({id:nid++,a,b,d:0,l:$('autol').checked?nextL():''});rebuild();start=null}}}
+ else if(mode=='point'){push();if(!h)add(cr?cr.x:pgx,cr?cr.y:pgy,cr?[cr.l1,cr.l2]:null);rebuild()}
+ else if(mode=='arc'){
+  if(!compass){
+   push();const centerId=h?h.id:add(cr?cr.x:pgx,cr?cr.y:pgy,cr?[cr.l1,cr.l2]:null);rebuild();
+   compass={centerId,locked:false};sel=[centerId];$('hint').textContent='Radius wie eine Strecke aufziehen; zweiter Klick sperrt ihn.';
+  }else if(!compass.locked){lockCompassRadius()}
+ }
+ else if(mode=='text')openText(mouse.x,mouse.y);
+ else if(mode=='label'){const ai=angHit(mouse.x,mouse.y);if(h)openInp('p',h.id,X(h.x),Y(h.y));else if(ai>=0){const B=M.get(A[ai].b);openInp('a',ai,X(B.x)+26,Y(B.y))}
+  else if(li>=0){const p=M.get(L[li].a),q=M.get(L[li].b);openInp('l',li,X((p.x+q.x)/2),Y((p.y+q.y)/2))}
+  else{const fi=faceAt(mouse.x,mouse.y);if(fi>=0)openInp('f',fi,mouse.x,mouse.y)}}
+ else if(mode=='style'){if(ki>=0){push();K[ki].d=((+K[ki].d||0)+1)%3}else if(li>=0){push();L[li].d=((+L[li].d||0)+1)%3}}
+ else if(mode=='move'){const pts=h?[h]:li>=0?[M.get(L[li].a),M.get(L[li].b)]:ti>=0?[Q[ti]]:null;if(pts){drag={t:'move',pts,o:pts.map(p=>({x:p.x,y:p.y})),mx,my};if(e)cv.setPointerCapture(e.pointerId)}}
+ else if(mode=='angle'){if(h&&!sel.includes(h.id)){sel.push(h.id);if(sel.length==3){push();A.push({a:sel[0],b:sel[1],c:sel[2],l:[...GR].find(g=>!A.some(x=>x.l==g))});sel=[]}}}
+ else if(mode=='face'){if(h){if(sel.length>2&&h.id==sel[0])closeFace();else if(!sel.includes(h.id))sel.push(h.id)}}
+  /*
+ else if(mode=='body'){if(!bsel){if(li>=0){const p=M.get(L[li].a),q=M.get(L[li].b);if(Math.abs(p.y-q.y)>.02)$('hint').textContent='Als Kreisdurchmesser muss die Strecke waagerecht sein.';else{bsel={k:'c',a:p.id,b:q.id};sel=[p.id,q.id]}}
+   else{const fi=faceAt(mouse.x,mouse.y);if(fi>=0){bsel={k:'f',p:F[fi].p.slice()};sel=bsel.p.slice()}}}
+  else if(h){push();BD.push({id:nid++,t:$('btype').value,base:bsel,top:h.id});bsel=null;sel=[]}}
+  */
+ else if(mode=='del'){if(h){push();P=P.filter(p=>p!==h);rebuild()}else if(ki>=0){push();K.splice(ki,1);rebuild()}else if(li>=0){push();L.splice(li,1);rebuild()}else if(ti>=0){push();Q.splice(ti,1)}else{const ai=angHit(mouse.x,mouse.y);if(ai>=0){push();A.splice(ai,1)}else{const fi=faceAt(mouse.x,mouse.y);if(fi>=0){push();F.splice(fi,1)}}}}
+ draw()}
 
-const LT={a:'a',b:'b',c:'c',d:'d',al:'\\alpha',be:'\\beta',ga:'\\gamma',de:'\\delta'};
-const fL=x=>fmt(x).replace(',','{,}');
-const uL=()=>{const u=$('#unit').value;return u?'\\,\\text{'+u+'}':''};
-const u2L=()=>{const u=$('#unit').value;return u?'\\,\\text{'+u+'}^2':''};
-const vL=x=>fL(x)+uL(),aL=x=>fL(x)+'^\\circ',qL=x=>'{'+fL(x)+'}^2';
-function setFields(keys,preset={},fl){
-  $('#fields').classList.toggle('g3',mode==='T');
-  $('#fields').innerHTML=keys.map(k=>`<label>${(fl&&fl[k])||FL[k]}${['a','b','c','d'].includes(k)?'':''}<input type="text" inputmode="decimal" data-k="${k}" value="${preset[k]??''}"></label>`).join('');
-  document.querySelectorAll('#fields input').forEach(i=>i.addEventListener('keydown',e=>{if(e.key==='Enter')run()}));
-}
-function setMode(m){
-  mode=m;vis();$('#tabT').classList.toggle('on',m==='T');$('#tabQ').classList.toggle('on',m==='Q');
-  $('#typeRow').style.display=m==='Q'?'block':'none';
-  if(m==='T'){setFields(['a','b','c','al','be','ga','ha','hb','hc'],{c:'7,3',al:'40',be:'30'});$('#hint').textContent='Trage mindestens die Angaben ein, die das Dreieck eindeutig festlegen (z. B. SSS, SWS, WSW, WWS, SsW). Auch Höhen können vorgegeben werden. Seite a liegt gegenüber von A (α), h_a ist die Höhe auf a usw.'}
-  else qSel();
-  run();
-}
-function qSel(){const t=QT[$('#qtype').value];setFields(t.f,{quadrat:{a:'5'},rechteck:{a:'6',b:'4'},raute:{a:'5',al:'60'},para:{a:'6',b:'4',al:'70'},drachen:{a:'4',b:'6',be:'100'},trapez:{a:'8',c:'4',al:'65'},allg1:{a:'7',b:'5',al:'80',be:'100',ga:'90'},allg2:{a:'7',b:'4',c:'5',d:'4',al:'75'}}[$('#qtype').value],t.fl);$('#hint').textContent=t.h+' Ecken A, B, C, D gegen den Uhrzeigersinn; a = AB, b = BC, c = CD, d = DA.'}
-$('#qtype').innerHTML=Object.entries(QT).map(([k,v])=>`<option value="${k}">${v.n}</option>`).join('');
-$('#qtype').addEventListener('change',()=>{qSel();run()});
-$('#tabT').onclick=()=>setMode('T');$('#tabQ').onclick=()=>setMode('Q');
-$('#go').onclick=()=>run();$('#fs').oninput=()=>draw();['#calc','#dec','#unit','#hda','#hdb','#hdc','#hfa','#hfb','#hfc','#hqs','#hfqs','#hqa','#hfqa','#hqb','#hfqb','#hdg','#hcalc','#sol','#nov'].forEach(s=>$(s).onchange=()=>draw());
-['#sg','#sw','#ar'].forEach(s=>$(s).oninput=()=>draw());
-$('#bg').oninput=()=>{$('#bg').dataset.on=1;draw()};
-$('#bgr').onclick=()=>{delete $('#bg').dataset.on;draw()};
+cv.addEventListener('pointerdown',e=>{
+ mouse=pos(e);
+ if($('geo').checked&&geoPos){
+  const x=mouse.x,y=mouse.y,w=520*(geoSize/100),h=w*(643/1280),cx=X(geoPos.x),cy=Y(geoPos.y),a=geoAngle*Math.PI/180;
+  const rotateX=cx+0*Math.cos(a)-(-h)*Math.sin(a),rotateY=cy+0*Math.sin(a)+(-h)*Math.cos(a);
+  const moveLocalX=0,moveLocalY=-h/2;
+  const moveX=cx+moveLocalX*Math.cos(a)-moveLocalY*Math.sin(a),moveY=cy+moveLocalX*Math.sin(a)+moveLocalY*Math.cos(a);
+   const leftScaleLocalX=-w/2,leftScaleLocalY=0;
+   const rightScaleLocalX=w/2,rightScaleLocalY=0;
+   const leftScaleX=cx+leftScaleLocalX*Math.cos(a)-leftScaleLocalY*Math.sin(a),leftScaleY=cy+leftScaleLocalX*Math.sin(a)+leftScaleLocalY*Math.cos(a);
+   const rightScaleX=cx+rightScaleLocalX*Math.cos(a)-rightScaleLocalY*Math.sin(a),rightScaleY=cy+rightScaleLocalX*Math.sin(a)+rightScaleLocalY*Math.cos(a);
+  if(Math.hypot(x-rotateX,y-rotateY)<12){
+   geoDrag={type:'rotate'};cv.setPointerCapture(e.pointerId);return;
+  }
+  if(Math.hypot(x-moveX,y-moveY)<14){
+   geoDrag={type:'move',mx:wx(x),my:wy(y),px:geoPos.x,py:geoPos.y};cv.setPointerCapture(e.pointerId);return;
+  }
+  if(Math.hypot(x-leftScaleX,y-leftScaleY)<14||Math.hypot(x-rightScaleX,y-rightScaleY)<14){
+   const activeScaleX=Math.hypot(x-leftScaleX,y-leftScaleY)<14?leftScaleX:rightScaleX;
+   const activeScaleY=Math.hypot(x-leftScaleX,y-leftScaleY)<14?leftScaleY:rightScaleY;
+   geoDrag={type:'scale',distance:Math.max(1,Math.hypot(activeScaleX-cx,activeScaleY-cy)),size:geoSize};cv.setPointerCapture(e.pointerId);return;
+  }
+ }
+  if(mode=='arc'&&e.button==0&&!playing){
+    if(!compass){handleClick(e);return}
+    if(!compass.locked){drag={t:'arcRadius',px:e.clientX,py:e.clientY,moved:false,pending:true,click:e};cv.setPointerCapture(e.pointerId);return}
+    return
+  }
+ if(e.pointerType=='touch'){touchPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(touchPointers.size==2){const p=[...touchPointers.values()],mid={x:(p[0].x+p[1].x)/2,y:(p[0].y+p[1].y)/2};
+   const r=cv.getBoundingClientRect(),mx=mid.x-r.left,my=mid.y-r.top;
+   pinch={d:Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y),k,wx:(mx-ox)/k,wy:(my-oy)/k};drag=null;cv.setPointerCapture(e.pointerId);return}}
+ if(e.button==1||e.button==2||mode=='hand'||space){drag={t:'pan',x:e.clientX,y:e.clientY,ox,oy};cv.setPointerCapture(e.pointerId);return}
+ if(e.button==0&&legR&&mouse.x>=legR.x&&mouse.x<=legR.x+legR.w&&mouse.y>=legR.y&&mouse.y<=legR.y+legR.h){
+  if(mode=='del'&&!playing){const m=legRows[Math.round((mouse.y-legR.y)/(fs+4)-1.65)];if(m&&m.b!==undefined){push();BD.splice(m.b,1);rebuild();draw();return}}
+  drag={t:'leg',dx:mouse.x-legR.x,dy:mouse.y-legR.y};cv.setPointerCapture(e.pointerId);return}
+ if(e.button>0||playing)return;
+ const h=hit(mouse.x,mouse.y),li=lineHit(mouse.x,mouse.y);
+ if(h||li>=0){
+  const pts=h?[h]:[M.get(L[li].a),M.get(L[li].b)];
+  drag={t:'move',pts,o:pts.map(p=>({x:p.x,y:p.y})),mx:wx(mouse.x),my:wy(mouse.y),px:e.clientX,py:e.clientY,pending:true,click:e};
+  cv.setPointerCapture(e.pointerId);return
+ }
+ handleClick(e);
+});
 
-/* ---------- Konstruktion ---------- */
-const HP={ha:[['b','ga'],['c','be']],hb:[['a','ga'],['c','al']],hc:[['a','be'],['b','al']]},HS={ha:'a',hb:'b',hc:'c'};
-function expandH(v){
-  let L=[{...v}];
-  for(let pass=0;pass<6;pass++){
-    let changed=false;const N=[];
-    for(const w of L){
-      const hk=['ha','hb','hc'].filter(k=>w[k]!=null);
-      if(hk.length===3&&w.a==null&&w.b==null&&w.c==null){
-        const r=[1/w.ha,1/w.hb,1/w.hc],S=r[0]+r[1]+r[2],P=S*(S-2*r[0])*(S-2*r[1])*(S-2*r[2]);
-        if(P<=1e-12)throw 'Mit diesen Höhen gibt es kein Dreieck.';
-        const T=1/Math.sqrt(P);N.push({...w,a:2*T*r[0],b:2*T*r[1],c:2*T*r[2]});changed=true;continue;
-      }
-      let w2=null,done=false;
-      for(const hx of hk){
-        const sx=HS[hx];
-        for(const hy of hk){if(hy===hx)continue;const sy=HS[hy];if(w[sx]!=null&&w[sy]==null){w2={...w,[sy]:w[sx]*w[hx]/w[hy]};break}}
-        if(w2)break;
-        for(const [S,A] of HP[hx]){
-          if(w[S]!=null&&w[A]==null){
-            const q=w[hx]/w[S];if(q>1+1e-9)throw 'Mit diesen Angaben gibt es kein Dreieck (Höhe größer als die zugehörige Seite).';
-            const a1=Math.asin(Math.min(1,q))/R;N.push({...w,[A]:a1});if(q<1-1e-12)N.push({...w,[A]:180-a1});changed=true;done=true;break}
-          if(w[A]!=null&&w[S]==null){w2={...w,[S]:w[hx]/Math.sin(w[A]*R)};break}
-        }
-        if(done||w2)break;
-      }
-      if(done)continue;
-      if(w2){N.push(w2);changed=true}else N.push(w);
+cv.addEventListener('pointermove',e=>{mouse=pos(e);
+ if(geoDrag){
+  if(geoDrag.type=='move'){
+   const cx=X(geoPos.x),cy=Y(geoPos.y);
+   geoPos={x:geoDrag.px+(wx(mouse.x)-geoDrag.mx),y:geoDrag.py+(wy(mouse.y)-geoDrag.my)};
+  }else if(geoDrag.type=='rotate'){
+   const cx=X(geoPos.x),cy=Y(geoPos.y);
+   let angle=Math.atan2(mouse.y-cy,mouse.x-cx)*180/Math.PI+90;
+   while(angle<-180)angle+=360;
+   while(angle>180)angle-=360;
+   geoAngle=Math.round(angle);
+  }else if(geoDrag.type=='scale'){
+    const cx=X(geoPos.x),cy=Y(geoPos.y);
+    const distance=Math.hypot(mouse.x-cx,mouse.y-cy);
+   const size=Math.round(Math.max(25,Math.min(200,geoDrag.size*distance/geoDrag.distance)));
+   geoSize=size;
+  }
+  draw();return;
+ }
+ if(e.pointerType=='touch'&&touchPointers.has(e.pointerId))touchPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ if(pinch&&touchPointers.size>=2){const p=[...touchPointers.values()].slice(0,2),mid={x:(p[0].x+p[1].x)/2,y:(p[0].y+p[1].y)/2},d=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y);
+  const r=cv.getBoundingClientRect(),mx=mid.x-r.left,my=mid.y-r.top,k2=Math.max(20,Math.min(150,pinch.k*d/pinch.d));ox=mx-pinch.wx*k2;oy=my-pinch.wy*k2;k=k2;$('sz').value=k;draw();return}
+ if(mode=='arc'&&compass&&compass.locked&&!drag){
+  const center=M.get(compass.centerId);if(center){
+   const angle=Math.atan2(mouse.y-Y(center.y),mouse.x-X(center.x));
+   if(compass.lastAngle!==undefined){
+    let delta=angle-compass.lastAngle;while(delta>Math.PI)delta-=Math.PI*2;while(delta<-Math.PI)delta+=Math.PI*2;
+    if(Math.hypot(mouse.x-X(center.x),mouse.y-Y(center.y))>3){
+     compass.sweep+=delta;compass.tracing=true;
+     if(Math.abs(compass.sweep)>=Math.PI*2){
+      createCompassCircle(compass.centerId,compass.radius);compass=null;
+     }
     }
-    L=N.slice(0,12);if(!changed)break;
+   }
+   compass.lastAngle=angle;
   }
-  return L;
-}
-function triSolveH(v){
-  const hk=['ha','hb','hc'].filter(k=>v[k]!=null);
-  if(!hk.length)return triSolve(v);
-  if(hk.some(k=>v[k]<=0))throw 'Höhen müssen größer als 0 sein.';
-  const out=[];let err=null;
-  for(const w of expandH(v)){try{for(const q of triSolve(w))out.push(q)}catch(e){err=e}}
-  const seen=new Set(),ok=[];
-  for(const q of out){const m=measure(q).val;
-    if(!hk.every(k=>Math.abs(m[k]-v[k])<=Math.max(1e-6,v[k]*0.003)))continue;
-    const key=[m.a,m.b,m.c].map(x=>x.toFixed(4)).join('|');if(seen.has(key))continue;seen.add(key);ok.push(q)}
-  if(!ok.length)throw err||'Mit diesen Angaben gibt es kein Dreieck.';
-  return ok;
-}
-function fromSides(a,b,c){ // A=(0,0), B=(c,0)
-  const x=(b*b+c*c-a*a)/(2*c), y2=b*b-x*x;
-  if(y2<=1e-9) throw 'Mit diesen Seiten ist die Dreiecksungleichung verletzt – es gibt kein Dreieck.';
-  return [[0,0],[c,0],[x,Math.sqrt(y2)]];
-}
-function triSolve(v){
-  const S=[v.a,v.b,v.c], An=[v.al,v.be,v.ga];
-  let n=An.filter(x=>x!=null).length;
-  if(n===2){const i=An.indexOf(null);An[i]=180-An.reduce((s,x)=>s+(x??0),0);if(An[i]<=1e-4)throw 'Die Winkelsumme muss kleiner als 180° sein.'}
-  else if(n===3&&Math.abs(An[0]+An[1]+An[2]-180)>0.01)throw 'Die Winkelsumme muss 180° ergeben.';
-  n=An.filter(x=>x!=null).length;const m=S.filter(x=>x!=null).length;
-  if(S.some(x=>x!=null&&x<=0)||An.some(x=>x!=null&&(x<=0||x>=180)))throw 'Seiten müssen > 0 und Winkel zwischen 0° und 180° sein.';
-  let T=[];
-  if(n===3){
-    if(!m)throw 'Drei Winkel allein legen die Größe nicht fest – gib mindestens eine Seite an.';
-    const i=S.findIndex(x=>x!=null),k=S[i]/Math.sin(An[i]*R);T.push(An.map(x=>k*Math.sin(x*R)));
-  }else if(m===3)T.push(S);
-  else if(m===2&&n===1){
-    const mi=S.indexOf(null),ai=An.findIndex(x=>x!=null);
-    if(ai===mi){const [p,q]=[0,1,2].filter(j=>j!==mi).map(j=>S[j]);const t=[...S];t[mi]=Math.sqrt(p*p+q*q-2*p*q*Math.cos(An[ai]*R));T.push(t)}
-    else{
-      const j=[0,1,2].find(t=>t!==mi&&t!==ai),sn=S[j]*Math.sin(An[ai]*R)/S[ai];
-      if(sn>1+1e-9)throw 'Mit diesen Angaben gibt es kein Dreieck.';
-      const b1=Math.asin(Math.min(1,sn))/R;
-      for(const bj of [b1,180-b1]){const am=180-An[ai]-bj;if(am<=1e-6)continue;if(T.length&&Math.abs(bj-b1)<1e-6)continue;const t=[...S];t[mi]=S[ai]*Math.sin(am*R)/Math.sin(An[ai]*R);T.push(t)}
-      if(!T.length)throw 'Mit diesen Angaben gibt es kein Dreieck.';
-    }
-  }else throw 'Zu wenige Angaben: Das Dreieck ist so nicht eindeutig bestimmt (nötig sind drei passende Stücke, darunter mindestens eine Seite).';
-  return T.map(t=>fromSides(t[0],t[1],t[2]));
-}
-const pol=(x,y,r,deg)=>[x+r*Math.cos(deg*R),y+r*Math.sin(deg*R)];
-function quadSolve(type,v){
-  let {a,b,c,d,al,be,ga}=v;const {ha,hb}=v;let P=[];
-  if(al==null){
-    if(type==='raute'||type==='para'){const q=type==='raute'?ha/a:(ha!=null?ha/b:hb/a);if(q>1+1e-9)throw 'Die Höhe darf nicht größer sein als die zugehörige Seite.';al=Math.asin(Math.min(1,q))/R}
-    if(type==='trapez')al=Math.atan2(ha,(a-c)/2)/R;
+ }
+ if(drag){if(drag.t=='arcRadius'){
+   if(Math.hypot(e.clientX-drag.px,e.clientY-drag.py)>=3){drag.moved=true;drag.pending=false}
+  }else if(drag.t=='pan'){ox=drag.ox+e.clientX-drag.x;oy=drag.oy+e.clientY-drag.y}
+  else if(drag.t=='leg'){legPos={x:mouse.x-drag.dx,y:mouse.y-drag.dy}}
+  else{if(drag.pending&&Math.hypot(e.clientX-drag.px,e.clientY-drag.py)<3){hover=hit(mouse.x,mouse.y);draw();return}
+   if(drag.pending){push();drag.pending=false;drag.moved=1;drag.pts.forEach(p=>{p.cx=null})}
+   let dx=wx(mouse.x)-drag.mx,dy=wy(mouse.y)-drag.my;if($('ras').checked&&!$('fix').checked){const step=+$('step').value||.1;dx=Math.round(dx/step)*step;dy=Math.round(dy/step)*step}
+   if(!drag.moved&&(dx||dy)){push();drag.moved=1;drag.pts.forEach(p=>{p.cx=null})}
+   drag.pts.forEach((p,i)=>{p.x=drag.o[i].x+dx;p.y=drag.o[i].y+dy});rebuild()}}
+ hover=hit(mouse.x,mouse.y);const lm=['style','label','move','del','arc'].includes(mode)&&(!hover||mode=='arc');hk=lm?arcHit(mouse.x,mouse.y):-1;hl=lm&&hk<0?lineHit(mouse.x,mouse.y):-1;draw()});
+const up=e=>{
+ if(geoDrag){geoDrag=null;return}
+ if(drag&&drag.t=='arcRadius'){
+  mouse=pos(e);
+  if(drag.moved)lockCompassRadius();
+  else{const click=drag.click;drag=null;mouse=pos(click);handleClick(click)}
+  drag=null;draw();return
+ }
+ if(drag&&drag.pending&&!drag.moved){const click=drag.click;drag=null;mouse=pos(click);handleClick(click);return}
+ if(drag&&drag.moved&&rec)capture();drag=null
+};
+const touchEnd=e=>{touchPointers.delete(e.pointerId);if(touchPointers.size<2)pinch=null;if(touchPointers.size==0)drag=null};
+cv.addEventListener('pointerup',e=>{up(e);touchEnd(e)});
+cv.addEventListener('pointercancel',touchEnd);
+addEventListener('keydown',e=>{if(e.target===inp||e.target.type=='number'||e.target.tagName=='SELECT')return;
+ if(e.key=='Escape'){start=null;sel=[];bsel=null;compass=null;drag=null;$('hint').textContent=HINTS[mode];draw();return}
+ if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()=='z'){e.preventDefault();undo();return}
+ if(e.key==' '){space=true;e.preventDefault();return}
+ if(e.key=='Enter'&&mode=='face'&&sel.length>2){closeFace();return}
+ if(e.ctrlKey||e.metaKey||e.altKey)return;const m=KEYS[e.key.toLowerCase()];if(m)setMode(m)});
+addEventListener('keyup',e=>{if(e.key==' ')space=false});
+/* Text mit LaTeX-artigem Tiefstellen: F_1, F_{12} */
+function parts(t){const r=[],re=/_(\{[^}]*\}|.)|([^_]+|_)/g;let m;while(m=re.exec(t)){if(m[1]!==undefined)r.push({s:m[1].replace(/^\{|\}$/g,''),sub:1});else r.push({s:m[2]})}return r}
+function halo(t,x,y,fg,bg,al,st,fam,size,dry){size=size||fs;st=st===undefined?'normal ':st;fam=fam||'serif';const ps=parts(String(t)),fnt=p=>st+(p.sub?size*.72:size)+'px '+fam;let w=0;
+ ps.forEach(p=>{ctx.font=fnt(p);p.w=ctx.measureText(p.s).width;w+=p.w});if(dry)return w;
+ let cx=al=='center'?x-w/2:x,pad=2;ctx.save();ctx.globalAlpha=.72;ctx.fillStyle=bg;ctx.fillRect(cx-pad,y-size*.82-pad,w+pad*2,size+pad*2);ctx.restore();ctx.textAlign='left';ctx.lineJoin='round';ctx.lineWidth=3;
+ ps.forEach(p=>{ctx.font=fnt(p);const yy=y+(p.sub?size*.28:0);ctx.strokeStyle=bg;ctx.strokeText(p.s,cx,yy);ctx.fillStyle=fg;ctx.fillText(p.s,cx,yy);cx+=p.w});return w}
+const txt=(n,v,sl,ss)=>[sl&&n?n:'',ss?v:''].filter(Boolean).join(' = ');
+function draw(){const cs=getComputedStyle(document.documentElement),fg=cs.getPropertyValue('--fg'),gc=cs.getPropertyValue('--grid'),ac=cs.getPropertyValue('--acc'),bg=cs.getPropertyValue('--bg'),hp=cs.getPropertyValue('--help'),
+ sl=$('lab').checked,sol=$('sol').checked,ss=$('siz').checked;fs=+$('fs').value;const T=$('d3').checked?solve3d():null;
+ ctx.clearRect(0,0,W,H);
+ if(showGrid){ctx.fillStyle=ctx.strokeStyle=gc;const x0=((ox%k)+k)%k,y0=((oy%k)+k)%k;
+  if(grid=='karo'){
+   ctx.strokeStyle=gc;ctx.lineWidth=1;ctx.beginPath();
+  for(let x=x0-k/2;x<=W;x+=k/2){ctx.moveTo(x,0);ctx.lineTo(x,H)}
+  for(let y=y0-k/2;y<=H;y+=k/2){ctx.moveTo(0,y);ctx.lineTo(W,y)}
+   ctx.stroke()}
+  else {
+   ctx.fillStyle=gc;
+  for(let x=x0-k/2;x<=W;x+=k/2)for(let y=y0-k/2;y<=H;y+=k/2){ctx.beginPath();ctx.arc(x,y,1.6,0,7);ctx.fill()}}}
+ F.forEach(f=>{ctx.globalAlpha=.22;ctx.fillStyle=f.c;ctx.beginPath();f.p.forEach((i,n)=>{const p=M.get(i);n?ctx.lineTo(X(p.x),Y(p.y)):ctx.moveTo(X(p.x),Y(p.y))});ctx.closePath();ctx.fill();ctx.globalAlpha=1});
+ ctx.lineCap='round';
+ L.forEach((l,i)=>{const p=M.get(l.a),q=M.get(l.b),x1=X(p.x),y1=Y(p.y),x2=X(q.x),y2=Y(q.y),hlp=l.d==2;
+  ctx.strokeStyle=i==hl?ac:hlp?hp:fg;ctx.lineWidth=i==hl?3.5:hlp?1.5:2;ctx.setLineDash(l.d==1?[8,6]:[]);
+  ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.setLineDash([]);
+  const r=lenInfo(l,T),t=txt(l.l,r.v===null?r.s:fmt(r.v),sl,ss&&($('onlyn').checked||!!l.l));
+  if(t){const dx=x2-x1,dy=y2-y1,n=Math.hypot(dx,dy)||1;let nx=-dy/n,ny=dx/n;if(ny>0){nx=-nx;ny=-ny}halo(t,(x1+x2)/2+nx*(fs*.8),(y1+y2)/2+ny*(fs*.8)+fs*.3,fg,bg,'center')}});
+ K.forEach((o,i)=>{const a=M.get(o.a),b=M.get(o.b),hlp=o.d==2;ctx.strokeStyle=i==hk?ac:hlp?hp:fg;ctx.lineWidth=i==hk?3.5:hlp?1.5:2;ctx.setLineDash(o.d==1?[8,6]:[]);ctx.beginPath();
+  if(o.s=='circle'){ctx.arc(X(a.x),Y(a.y),o.r*k,0,Math.PI*2)}
+  else{arcPath(a,b,o.s)}ctx.stroke();ctx.setLineDash([])});
+ if(compass){
+  const center=M.get(compass.centerId);
+  if(center&&!compass.locked){
+   const t=compassTarget();if(t){
+    ctx.strokeStyle=ac;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(X(center.x),Y(center.y));ctx.lineTo(X(t.x),Y(t.y));ctx.stroke();
+    ctx.fillStyle=ac;ctx.beginPath();ctx.arc(X(t.x),Y(t.y),5,0,Math.PI*2);ctx.fill();
+    halo(fmt(Math.hypot(t.x-center.x,t.y-center.y)),X(t.x)+12,Y(t.y)-12,ac,bg,'left','','sans-serif',14);
+   }
+  }else if(center){
+   ctx.strokeStyle=ac;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(X(center.x),Y(center.y));ctx.lineTo(X(center.x)+Math.cos(compass.lastAngle)*compass.radius*k,Y(center.y)+Math.sin(compass.lastAngle)*compass.radius*k);ctx.stroke();
+   if(compass.tracing){
+    ctx.strokeStyle=ac;ctx.lineWidth=2;ctx.beginPath();ctx.arc(X(center.x),Y(center.y),compass.radius*k,compass.startAngle,compass.startAngle+compass.sweep,compass.sweep<0);ctx.stroke();
+   }
   }
-  if(type==='quadrat')P=[[[0,0],[a,0],[a,a],[0,a]]];
-  if(type==='rechteck')P=[[[0,0],[a,0],[a,b],[0,b]]];
-  if(type==='raute'){const D=pol(0,0,a,al);P=[[[0,0],[a,0],[a+D[0],D[1]],D]]}
-  if(type==='para'){const D=pol(0,0,b,al);P=[[[0,0],[a,0],[a+D[0],D[1]],D]]}
-  if(type==='drachen'){const B=[a,0],C=pol(a,0,b,180-be),l=Math.hypot(...C),u=[C[0]/l,C[1]/l],k=2*(B[0]*u[0]+B[1]*u[1]);P=[[[0,0],B,C,[k*u[0]-B[0],k*u[1]-B[1]]]]}
-  if(type==='trapez'){const x=(a-c)/2,h=ha!=null?ha:x*Math.tan(al*R);P=[[[0,0],[a,0],[a-x,h],[x,h]]]}
-  if(type==='allg1'){
-    const C=pol(a,0,b,180-be),u=[Math.cos(al*R),Math.sin(al*R)],ang=Math.atan2(0-C[1],a-C[0])-ga*R,w=[Math.cos(ang),Math.sin(ang)];
-    const cr=(p,q)=>p[0]*q[1]-p[1]*q[0],den=cr(u,w);
-    if(Math.abs(den)<1e-9)throw 'Die Winkel ergeben parallele Seiten – kein Viereck.';
-    const t=cr(C,w)/den,s=cr(C,u)/den;
-    if(t<=0||s<=0)throw 'Mit diesen Angaben schließen sich die Seiten nicht zu einem Viereck.';
-    P=[[[0,0],[a,0],C,[t*u[0],t*u[1]]]];
-  }
-  if(type==='allg2'){
-    const D=pol(0,0,d,al),B=[a,0],dx=D[0]-B[0],dy=D[1]-B[1],dist=Math.hypot(dx,dy);
-    if(dist>b+c||dist<Math.abs(b-c)||dist<1e-9)throw 'Mit diesen Längen schließt sich das Viereck nicht.';
-    const q=(b*b-c*c+dist*dist)/(2*dist),h=Math.sqrt(Math.max(0,b*b-q*q)),mx=B[0]+q*dx/dist,my=B[1]+q*dy/dist;
-    P=[1,-1].map(sg=>[[0,0],B,[mx-sg*h*dy/dist,my+sg*h*dx/dist],D]);
-    if(h<1e-9)P=[P[0]];
-  }
-  P=P.filter(valid);
-  if(!P.length)throw 'Mit diesen Angaben ergibt sich keine gültige (überschneidungsfreie) Figur.';
-  return P;
-}
-function valid(p){
-  const n=p.length;if(p.flat().some(x=>!isFinite(x)))return false;
-  let A=0;for(let i=0;i<n;i++){const q=p[(i+1)%n];A+=p[i][0]*q[1]-q[0]*p[i][1]}
-  if(A/2<=1e-9)return false;
-  const cr=(o,a,b)=>(a[0]-o[0])*(b[1]-o[1])-(a[1]-o[1])*(b[0]-o[0]);
-  const x=(a,b,c,d)=>cr(a,b,c)*cr(a,b,d)<0&&cr(c,d,a)*cr(c,d,b)<0;
-  if(n===4&&(x(p[0],p[1],p[2],p[3])||x(p[1],p[2],p[3],p[0])))return false;
-  return true;
-}
+ }
+ F.forEach(f=>{if(sl&&f.l){let cx=0,cy=0;f.p.forEach(i=>{const p=M.get(i);cx+=X(p.x);cy+=Y(p.y)});halo(f.l,cx/f.p.length,cy/f.p.length+fs*.3,fg,bg,'center')}});
+ A.forEach(a=>{const B=M.get(a.b),p=M.get(a.a),c=M.get(a.c),a1=Math.atan2(p.y-B.y,p.x-B.x),a2=Math.atan2(c.y-B.y,c.x-B.x),ai=angleInfo(a,T,a1,a2),deg=ai.v;let d=a2-a1;
+  while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;const bx=X(B.x),by=Y(B.y),r=26;ctx.strokeStyle=ac;ctx.lineWidth=1.8;ctx.beginPath();
+  ctx.arc(bx,by,r,a1,a1+d,d<0);
+  ctx.stroke();if(deg!==null&&Math.abs(deg-90)<.5){const m0=a1+d/2;ctx.fillStyle=ac;ctx.beginPath();ctx.arc(bx+Math.cos(m0)*r*.55,by+Math.sin(m0)*r*.55,2.6,0,7);ctx.fill()}
+  const av=deg===null?ai.s:sol&&ss&&ai.s?ai.s+' = '+fmt(deg,1)+'°':fmt(deg,1)+'°',t=txt(a.l,av,sl,ss);if(t){const m=a1+d/2;halo(t,bx+Math.cos(m)*(r+fs+4),by+Math.sin(m)*(r+fs+4)+fs*.3,ac,bg,'center','','sans-serif',fs-2)}});
+  Q.forEach(q=>halo(q.t,X(q.x),Y(q.y),fg,bg,'left'));
+ const s=sp(),t=mode=='line'?target():null;
+ if(s&&t){ctx.strokeStyle=ac;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(X(s.x),Y(s.y));ctx.lineTo(X(t.x),Y(t.y));ctx.stroke();ctx.fillStyle=ac;ctx.beginPath();ctx.arc(X(t.x),Y(t.y),5,0,7);ctx.fill();
+  halo(fmt(Math.hypot(t.x-s.x,t.y-s.y)),X(t.x)+12,Y(t.y)-12,ac,bg,'left','','sans-serif',14)}
+ if(s){ctx.strokeStyle=ac;ctx.lineWidth=2;ctx.beginPath();ctx.arc(X(s.x),Y(s.y),7,0,7);ctx.stroke()}
+ if(mode=='face'&&sel.length){ctx.strokeStyle=ac;ctx.lineWidth=2;ctx.setLineDash([5,4]);ctx.beginPath();sel.forEach((i,n)=>{const p=M.get(i);n?ctx.lineTo(X(p.x),Y(p.y)):ctx.moveTo(X(p.x),Y(p.y))});ctx.lineTo(mouse.x,mouse.y);ctx.stroke();ctx.setLineDash([])}
+ sel.forEach(i=>{const p=M.get(i);if(p){ctx.strokeStyle=ac;ctx.lineWidth=2;ctx.beginPath();ctx.arc(X(p.x),Y(p.y),8,0,7);ctx.stroke()}});
+ if((mode=='line'||mode=='point')&&!hover){const c=nearCross(mouse.x,mouse.y);if(c){ctx.strokeStyle=ac;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(X(c.x),Y(c.y),7,0,7);ctx.stroke()}}
+ const cr=$('cross').checked;
+ P.forEach(p=>{const on=p===hover,x=X(p.x),y=Y(p.y);ctx.fillStyle=ctx.strokeStyle=on?ac:fg;
+  if(cr){const z=on?6:4.5;ctx.lineWidth=1.8;ctx.beginPath();ctx.moveTo(x-z,y-z);ctx.lineTo(x+z,y+z);ctx.moveTo(x+z,y-z);ctx.lineTo(x-z,y+z);ctx.stroke()}
+  else{ctx.beginPath();ctx.arc(x,y,on?5:3.5,0,7);ctx.fill()}
+  if(sl&&p.l)halo(p.l,x+7,y-7,fg,bg,'left')});
+ if($('geo').checked&&geoPos&&geoImg.complete&&geoImg.naturalWidth){
+  const w=520*(geoSize/100),h=w*(geoImg.naturalHeight/geoImg.naturalWidth);
+  const angle=geoAngle*Math.PI/180;
+  const cx=X(geoPos.x),cy=Y(geoPos.y);
+  ctx.save();ctx.translate(cx,cy);ctx.rotate(angle);ctx.drawImage(geoImg,-w/2,-h,w,h);ctx.restore();
 
-/* ---------- Werte aus Koordinaten ---------- */
-function measure(p){
-  const n=p.length,sk=n===3?['c','a','b']:['a','b','c','d'],ak=n===3?['al','be','ga']:['al','be','ga','de'],val={},arcs=[];
-  for(let i=0;i<n;i++){
-    const V=p[i],N=p[(i+1)%n],Pr=p[(i+n-1)%n];
-    val[sk[i]]=Math.hypot(N[0]-V[0],N[1]-V[1]);
-    const a1=Math.atan2(N[1]-V[1],N[0]-V[0]),a2=Math.atan2(Pr[1]-V[1],Pr[0]-V[0]);
-    let it=(a2-a1)%(2*Math.PI);if(it<0)it+=2*Math.PI;
-    val[ak[i]]=it/R;arcs.push({a1,it});
-  }
-  if(n===3){const T2=Math.abs((p[1][0]-p[0][0])*(p[2][1]-p[0][1])-(p[2][0]-p[0][0])*(p[1][1]-p[0][1]));val.ha=T2/val.a;val.hb=T2/val.b;val.hc=T2/val.c}
-  if(n===4){const cr=(u,w)=>Math.abs(u[0]*w[1]-u[1]*w[0]);val.ha=cr([p[1][0]-p[0][0],p[1][1]-p[0][1]],[p[3][0]-p[0][0],p[3][1]-p[0][1]])/val.a;val.hb=cr([p[2][0]-p[1][0],p[2][1]-p[1][1]],[p[0][0]-p[1][0],p[0][1]-p[1][1]])/val.b}
-  return {val,sk,ak,arcs};
-}
+  const rotateLocalY=-h;
+  const rx=cx+rotateLocalY*-Math.sin(angle),ry=cy+rotateLocalY*Math.cos(angle);
+  const moveLocalX=0,moveLocalY=-h/2;
+  const mx=cx+moveLocalX*Math.cos(angle)-moveLocalY*Math.sin(angle),my=cy+moveLocalX*Math.sin(angle)+moveLocalY*Math.cos(angle);
+  const leftScaleLocalX=-w/2,leftScaleLocalY=0;
+  const rightScaleLocalX=w/2,rightScaleLocalY=0;
+  const lsx=cx+leftScaleLocalX*Math.cos(angle)-leftScaleLocalY*Math.sin(angle),lsy=cy+leftScaleLocalX*Math.sin(angle)+leftScaleLocalY*Math.cos(angle);
+  const rsx=cx+rightScaleLocalX*Math.cos(angle)-rightScaleLocalY*Math.sin(angle),rsy=cy+rightScaleLocalX*Math.sin(angle)+rightScaleLocalY*Math.cos(angle);
 
-function rightMark(F,V,W,r,dr){
-  const tu=Math.atan2(V[1]-F[1],V[0]-F[0]),tf=Math.atan2(W[1]-F[1],W[0]-F[0]);let dl=tf-tu;
-  while(dl>Math.PI)dl-=2*Math.PI;while(dl<=-Math.PI)dl+=2*Math.PI;
-  let d='';for(let j=0;j<=12;j++){const a=tu+dl*j/12;d+=(j?'L':'M')+(F[0]+r*Math.cos(a)).toFixed(1)+','+(F[1]+r*Math.sin(a)).toFixed(1)}
-  return `<path class="arc" d="${d}"/><circle class="dot" cx="${(F[0]+dr*Math.cos(tu+dl/2)).toFixed(1)}" cy="${(F[1]+dr*Math.sin(tu+dl/2)).toFixed(1)}" r="2.2"/>`;
-}
-function lineLabel(V,F,sym,val,cen,sgn,FS,t=.5){
-  const mx=V[0]+(F[0]-V[0])*t,my=V[1]+(F[1]-V[1])*t,hx=F[0]-V[0],hy=F[1]-V[1],hq=Math.hypot(hx,hy);let nx=-hy/hq,ny=hx/hq;
-  if(sgn*((mx-cen[0])*nx+(my-cen[1])*ny)<0){nx=-nx;ny=-ny}
-  const plain=sym.replace(/<[^>]+>/g,'')+(val?' = '+val:''),off=(plain.length*.507*FS+4)/2*Math.abs(nx)+FS*.55*Math.abs(ny)+4,sub=/tspan/.test(sym);
-  return `<text class="t" x="${(mx+nx*off).toFixed(1)}" y="${(my+ny*off).toFixed(1)}">${sym}${val?`<tspan${sub?' dy="-4"':''}> = ${val}</tspan>`:''}</text>`;
-}
-function heightSvg(V,P,Q,sym,vs,cen,sgn,FS){
-  const dx=Q[0]-P[0],dy=Q[1]-P[1],t=((V[0]-P[0])*dx+(V[1]-P[1])*dy)/(dx*dx+dy*dy),F=[P[0]+t*dx,P[1]+t*dy];
-  const dP=Math.hypot(F[0]-P[0],F[1]-P[1]),dQ=Math.hypot(F[0]-Q[0],F[1]-Q[1]);
-  if(Math.min(dP,dQ)<1.5)return '';
-  let o=`<line class="hl" x1="${V[0]}" y1="${V[1]}" x2="${F[0]}" y2="${F[1]}"/>`;
-  if(t<0||t>1){const E=t<0?P:Q;o+=`<line class="hl" x1="${E[0]}" y1="${E[1]}" x2="${F[0]}" y2="${F[1]}"/>`}
-  o+=rightMark(F,V,dP>dQ?P:Q,16,9);
-  if(vs!==null)o+=lineLabel(V,F,sym,vs,cen,sgn,FS);
-  return o;
-}
-/* ---------- Zeichnen ---------- */
-function vis(){
-  const T=mode==='T',qt=$('#qtype').value,hq={raute:['rowS'],trapez:['rowS'],para:['rowA','rowB']}[qt]||[],dg=['raute','drachen'].includes(qt);
-  $('#triCard').style.display=T?'block':'none';
-  $('#qHCard').style.display=(!T&&(hq.length||dg))?'block':'none';
-  for(const id of ['rowS','rowA','rowB'])$('#'+id).style.display=!T&&hq.includes(id)?'flex':'none';
-  $('#rowD').style.display=!T&&dg?'flex':'none';
-  $('#hcalcRow').style.display=(T||hq.length)?'flex':'none';
-  $('#apsCard').style.display=(T||!['quadrat','rechteck'].includes(qt))?'block':'none';
-}
-function draw(){
-  const svg=$('#svg');if(!sols.length){svg.innerHTML='';$('#tbl').innerHTML='';return}
-  const p=sols[cur],n=p.length,{val,sk,ak,arcs}=measure(p),showC=$('#calc').checked,SG=+$('#sg').value,FS=+$('#fs').value,AR=+$('#ar').value;svg.style.setProperty('--fs',FS+'px');svg.style.setProperty('--sw',+$('#sw').value);
-  $('#calc').parentElement.style.display=$('#nov').checked?'flex':'none';
-  vis();
-  const xs=p.map(q=>q[0]),ys=p.map(q=>q[1]),minx=Math.min(...xs),miny=Math.min(...ys),w=Math.max(...xs)-minx,h=Math.max(...ys)-miny;
-  const s=Math.min((W-2*M)/w,(H-2*M)/h),ox=(W-w*s)/2,oy=(H-h*s)/2;
-  const S=p.map(q=>[ox+(q[0]-minx)*s,H-(oy+(q[1]-miny)*s)]);
-  const tri=n===3,names=['A','B','C','D'];let o=`<polygon class="poly"${$('#bg').dataset.on?` style="fill:${$('#bg').value}"`:''} points="${S.map(q=>q.join(',')).join(' ')}"/>`;
-  const lab=k=>LBL[k]+(given.includes(k)||$('#calc').checked?' = '+fmt(val[k])+(isAng(k)?'°':U()):'');
-  const txt=(k,x,y,rot=0)=>{const g=given.includes(k);if(!g&&!$('#nov').checked)return '';return `<text class="t${g?' g':''}" x="${x.toFixed(1)}" y="${y.toFixed(1)}"${rot?` transform="rotate(${rot.toFixed(1)} ${x.toFixed(1)} ${y.toFixed(1)})"`:''}>${lab(k)}</text>`};
-  for(let i=0;i<n;i++){
-    const V=S[i],N=S[(i+1)%n],Pr=S[(i+n-1)%n],{a1,it}=arcs[i],m=a1+it/2;
-    const un=[N[0]-V[0],N[1]-V[1]],lu=Math.hypot(...un),up=[Pr[0]-V[0],Pr[1]-V[1]],lp=Math.hypot(...up);
-    const r=Math.max(8,Math.min(AR,0.45*Math.min(lu,lp)));
-    if(Math.abs(it/R-90)<0.01)o+=`<circle class="dot" cx="${(V[0]+0.55*r*Math.cos(m)).toFixed(1)}" cy="${(V[1]-0.55*r*Math.sin(m)).toFixed(1)}" r="2"/>`;
-    {let d='';for(let j=0;j<=24;j++){const t=a1+it*j/24;d+=(j?'L':'M')+(V[0]+r*Math.cos(t)).toFixed(1)+','+(V[1]-r*Math.sin(t)).toFixed(1)}o+=`<path class="arc" d="${d}"/>`}
-    o+=`<text class="v" x="${V[0]-22*Math.cos(m)}" y="${V[1]+22*Math.sin(m)}">${names[i]}</text>`;
-    const pd=(posf[i]??.5)*it,mp=a1+pd,tw=lab(ak[i]).length*.507*FS+4,hh=FS*.55,ux=Math.cos(mp),uy=-Math.sin(mp),need=r+6;let lr=r;
-    for(;lr<400;lr+=0.5){if(Math.hypot(Math.max(Math.abs(lr*ux)-tw/2,0),Math.max(Math.abs(lr*uy)-hh,0))>=need)break}
-    {if(distf[i]!=null)lr=distf[i];const ds=document.querySelector('[data-g="'+i+'"]');if(ds&&distf[i]==null)ds.value=Math.round(lr)}
-    if(Math.abs(it/R-90)>=0.01)o+=txt(ak[i],V[0]+lr*ux,V[1]+lr*uy);
-    const pv=document.getElementById('pv'+i);if(pv)pv.textContent=fmt(pd/R)+'°';
-    const mx=(V[0]+N[0])/2,my=(V[1]+N[1])/2,ex=(N[0]-V[0])/lu,ey=(N[1]-V[1])/lu;
-    // Seitenbeschriftung außen (math-Normale (dy,-dx) -> Bildschirm (dy,dx))
-    const mathDx=p[(i+1)%n][0]-p[i][0],mathDy=p[(i+1)%n][1]-p[i][1],ml=Math.hypot(mathDx,mathDy);
-    const rot0=Math.atan2(ey,ex)/R,rot=rot0>90?rot0-180:rot0<-90?rot0+180:rot0,off=SG+8;
-    o+=txt(sk[i],mx+mathDy/ml*off,my+mathDx/ml*off,rot);
-  }
-  const u=U(),u2=u?u+'²':'',SOL=$('#sol').checked;let hv=null;
-  if(n===3){
-    const T2=Math.abs((p[1][0]-p[0][0])*(p[2][1]-p[0][1])-(p[2][0]-p[0][0])*(p[1][1]-p[0][1]));
-    hv=[T2/val.a,T2/val.b,T2/val.c];
-    {
-      const cen=[(S[0][0]+S[1][0]+S[2][0])/3,(S[0][1]+S[1][1]+S[2][1])/3],hn=['a','b','c'];
-      for(let v=0;v<3;v++){
-        if(!$('#hd'+hn[v]).checked)continue;
-        const V=S[v],P=S[(v+1)%3],Q=S[(v+2)%3],dx=Q[0]-P[0],dy=Q[1]-P[1],t=((V[0]-P[0])*dx+(V[1]-P[1])*dy)/(dx*dx+dy*dy),F=[P[0]+t*dx,P[1]+t*dy];
-        const dP=Math.hypot(F[0]-P[0],F[1]-P[1]),dQ=Math.hypot(F[0]-Q[0],F[1]-Q[1]);
-        if(Math.min(dP,dQ)<1.5)continue;
-        o+=`<line class="hl" x1="${V[0]}" y1="${V[1]}" x2="${F[0]}" y2="${F[1]}"/>`;
-        if(t<0||t>1){const E=t<0?P:Q;o+=`<line class="hl" x1="${E[0]}" y1="${E[1]}" x2="${F[0]}" y2="${F[1]}"/>`}
-        const far=dP>dQ?P:Q,tu=Math.atan2(V[1]-F[1],V[0]-F[0]),tf=Math.atan2(far[1]-F[1],far[0]-F[0]);
-        let dl=tf-tu;while(dl>Math.PI)dl-=2*Math.PI;while(dl<=-Math.PI)dl+=2*Math.PI;
-        let d='';for(let j=0;j<=12;j++){const a=tu+dl*j/12;d+=(j?'L':'M')+(F[0]+16*Math.cos(a)).toFixed(1)+','+(F[1]+16*Math.sin(a)).toFixed(1)}
-        o+=`<path class="arc" d="${d}"/><circle class="dot" cx="${(F[0]+9*Math.cos(tu+dl/2)).toFixed(1)}" cy="${(F[1]+9*Math.sin(tu+dl/2)).toFixed(1)}" r="2.2"/>`;
-        const nv=!$('#calc').checked;
-        if($('#nov').checked){
-          const mx2=(V[0]+F[0])/2,my2=(V[1]+F[1])/2,hx=F[0]-V[0],hy=F[1]-V[1],hq=Math.hypot(hx,hy);let nx=-hy/hq,ny=hx/hq;
-          const sgn=((v===2)!==$('#hf'+hn[v]).checked)?-1:1;if(sgn*((mx2-cen[0])*nx+(my2-cen[1])*ny)<0){nx=-nx;ny=-ny}
-          const s1='h'+hn[v]+(nv?'':' = '+fmt(hv[v])+u),off=(s1.length*.507*FS+4)/2*Math.abs(nx)+FS*.55*Math.abs(ny)+4;
-          o+=`<text class="t" x="${(mx2+nx*off).toFixed(1)}" y="${(my2+ny*off).toFixed(1)}">h<tspan dy="4" style="font-size:75%">${hn[v]}</tspan>${nv?'':`<tspan dy="-4"> = ${fmt(hv[v])}${u}</tspan>`}</text>`;
-        }
-      }
-    }
-  }
-  if(n===4){
-    const qt=$('#qtype').value,cen=[S.reduce((s2,q)=>s2+q[0],0)/4,S.reduce((s2,q)=>s2+q[1],0)/4],nvq=!$('#calc').checked,shw=$('#nov').checked;
-    const HQ={raute:[['s','ha',3,0,1,'']],trapez:[['s','ha',3,0,1,'']],para:[['a','ha',3,0,1,'a'],['b','hb',0,1,2,'b']]}[qt]||[];
-    for(const [id,hk,vi,pi,qi,sub] of HQ){
-      if(!$('#hq'+id).checked)continue;
-      o+=heightSvg(S[vi],S[pi],S[qi],sub?`h<tspan dy="4" style="font-size:75%">${sub}</tspan>`:'h',shw?(nvq?'':fmt(val[hk])+U()):null,cen,$('#hfq'+id).checked?-1:1,FS);
-    }
-    if($('#hdg').checked&&(qt==='raute'||qt==='drachen')){
-      const A=S[0],B=S[1],C=S[2],D=S[3];
-      o+=`<line class="hl" x1="${A[0]}" y1="${A[1]}" x2="${C[0]}" y2="${C[1]}"/><line class="hl" x1="${B[0]}" y1="${B[1]}" x2="${D[0]}" y2="${D[1]}"/>`;
-      const d1=[C[0]-A[0],C[1]-A[1]],d2=[D[0]-B[0],D[1]-B[1]],den=d1[0]*d2[1]-d1[1]*d2[0];
-      if(Math.abs(den)>1e-6){const tt=((B[0]-A[0])*d2[1]-(B[1]-A[1])*d2[0])/den;o+=rightMark([A[0]+tt*d1[0],A[1]+tt*d1[1]],B,C,14,8)}
-      if(shw){const E=Math.hypot(p[2][0]-p[0][0],p[2][1]-p[0][1]),Fd=Math.hypot(p[3][0]-p[1][0],p[3][1]-p[1][1]);
-        o+=lineLabel(A,C,'e',nvq?'':fmt(E)+U(),cen,1,FS,.3)+lineLabel(B,D,'f',nvq?'':fmt(Fd)+U(),cen,1,FS,.3)}
-    }
-  }
-  svg.innerHTML=o;
-  const QS=n===4?quadSteps($('#qtype').value,p,val,given):null;
-  const how=n===3?triSteps(val,given):QS.how;
-  const rowsA=[...sk,...ak].map(k=>['\\('+LT[k]+'\\)',fmt(val[k])+(isAng(k)?'°':u),given.includes(k)?'gv':'cv',given.includes(k)?'gegeben':'berechnet',given.includes(k)?'':(how[k]||'')]);
-  if(n===4)for(const r of QS.extra)rowsA.push(r);
-  if(n===3){
-    [['a','c','be'],['b','a','ga'],['c','b','al']].forEach(([x,sd,an],i)=>{
-      const hk='h'+x,isG=given.includes(hk);
-      if(!($('#hcalc').checked||$('#hd'+x).checked||isG))return;
-      rowsA.push(['\\(h_{'+x+'}\\)',fmt(hv[i])+u,isG?'gv':'cv',isG?'gegeben':'berechnet',isG?'':(how[hk]||`h_{${x}} = ${LT[sd]}\\cdot\\sin ${LT[an]} = ${vL(val[sd])}\\cdot\\sin ${aL(val[an])} = ${vL(hv[i])}`)]);
-    });
-    const per=sk.reduce((s2,k)=>s2+val[k],0),ar=.5*val.c*hv[2];
-    rowsA.push(['Umfang \\(u\\)',fmt(per)+u,'cv','berechnet','u = a + b + c = '+['a','b','c'].map(k=>vL(val[k])).join(' + ')+' = '+vL(per)]);
-    rowsA.push(['Flächeninhalt \\(A\\)',fmt(ar)+u2,'cv','berechnet',`A = \\frac{1}{2}\\cdot c\\cdot h_c = \\frac{1}{2}\\cdot ${vL(val.c)}\\cdot ${vL(hv[2])} = ${fL(ar)}${u2L()}`]);
-  }else{
-    for(const [id,hk,nm,ft] of QS.hrows){const isG=given.includes(hk);if(!($('#hcalc').checked||$('#hq'+id).checked||isG))continue;rowsA.push(['\\('+nm+'\\)',fmt(val[hk])+u,isG?'gv':'cv',isG?'gegeben':'berechnet',isG?'':ft])}
-    rowsA.push(['Umfang \\(u\\)',fmt(QS.per.v)+u,'cv','berechnet',QS.per.t]);
-    rowsA.push(['Flächeninhalt \\(A\\)',fmt(QS.area.v)+u2,'cv','berechnet',QS.area.t]);
-  }
-  $('#tbl').innerHTML=`<div style="overflow-x:auto"><table><tr><th>Größe</th><th>Wert</th><th></th>${SOL?'<th>Lösungsweg</th>':''}</tr>${rowsA.map(r=>`<tr><td>${r[0]}</td><td class="${r[2]}">${r[1]}</td><td>${r[3]}</td>${SOL?(r[4]?`<td>\\(${r[4]}\\)</td>`:'<td></td>'):''}</tr>`).join('')}</table></div>`;
-  if(window.MathJax&&MathJax.typesetPromise)MathJax.typesetPromise([$('#tbl')]).catch(()=>{});
-}
+  ctx.save();
+  ctx.lineWidth=1.5;
+  ctx.strokeStyle=fg;
+  ctx.fillStyle=bg;
 
-function triSteps(val,given){
-  const SK=['a','b','c'],AK=['al','be','ga'],kn=new Set(given),how={};
-  const L=k=>LT[k],sv=k=>vL(val[k]),av=k=>aL(val[k]),sq=k=>qL(val[k]);
-  const f4=x=>{let t=(+x).toFixed(4);t=t.replace(/0+$/,'').replace(/\.$/,'');return t.replace('.','{,}')};
-  const tab={'hyp>opp':['*','sin'],'hyp>adj':['*','cos'],'opp>hyp':['/','sin'],'opp>adj':['/','tan'],'adj>hyp':['/','cos'],'adj>opp':['*','tan']};
-  const rIdx=AK.findIndex(k=>Math.abs(val[k]-90)<0.01),all=[...SK,...AK];
-  for(let g=0;g<12&&all.some(k=>!kn.has(k));g++){
-    const C=[],rOK=rIdx>=0&&kn.has(AK[rIdx]);
-    for(let i=0;i<3;i++){
-      const k=AK[i],o1=AK[(i+1)%3],o2=AK[(i+2)%3];
-      if(kn.has(k))continue;
-      if(kn.has(o1)&&kn.has(o2)){C.push({k,pri:0,tb:0,t:`${L(k)} = 180^\\circ - ${L(o1)} - ${L(o2)} = 180^\\circ - ${av(o1)} - ${av(o2)} = ${av(k)}`});continue}
-      if(rOK&&i!==rIdx){
-        const hyp=SK[rIdx],opp=SK[i],adj=SK[3-rIdx-i];let rel=null;
-        if(kn.has(opp)&&kn.has(hyp))rel=['sin',opp,hyp];else if(kn.has(adj)&&kn.has(hyp))rel=['cos',adj,hyp];else if(kn.has(opp)&&kn.has(adj))rel=['tan',opp,adj];
-        if(rel){const q=f4(val[rel[1]]/val[rel[2]]);C.push({k,pri:1,tb:0,t:`\\${rel[0]}\\,${L(k)} = \\frac{${L(rel[1])}}{${L(rel[2])}} = \\frac{${sv(rel[1])}}{${sv(rel[2])}} = ${q} \\;\\Rightarrow\\; ${L(k)} = \\${rel[0]}^{-1}(${q}) = ${av(k)}`})}
-      }
-      if(i===rIdx&&SK.every(x=>kn.has(x))){const s1=SK[(i+1)%3],s2=SK[(i+2)%3];C.push({k,pri:1,tb:0,t:`${L(s1)}^2 + ${L(s2)}^2 = ${L(SK[i])}^2 \\;\\Rightarrow\\; ${sq(s1)} + ${sq(s2)} = ${sq(SK[i])} \\;\\Rightarrow\\; ${L(k)} = 90^\\circ \\quad\\text{(Umkehrung des Satzes von Pythagoras)}`})}
-      for(const hx of ['ha','hb','hc'])for(const [S2,A2] of HP[hx])if(A2===k&&kn.has(hx)&&kn.has(S2)){const q=f4(Math.sin(val[k]*R)),obt=val[k]>90.0001;C.push({k,pri:1,tb:0,t:`\\sin ${L(k)} = \\frac{h_{${hx[1]}}}{${L(S2)}} = \\frac{${vL(val[hx])}}{${sv(S2)}} = ${q} \\;\\Rightarrow\\; ${L(k)} = ${obt?'180^\\circ - ':''}\\sin^{-1}(${q}) = ${av(k)}`})}
-      if(kn.has(SK[i]))for(let j=0;j<3;j++)if(j!==i&&kn.has(SK[j])&&kn.has(AK[j])){
-        const q=f4(Math.sin(val[k]*R)),obt=val[k]>90.0001;
-        C.push({k,pri:2,tb:val[k],t:`\\sin ${L(k)} = \\frac{${L(SK[i])}\\cdot\\sin ${L(AK[j])}}{${L(SK[j])}} = \\frac{${sv(SK[i])}\\cdot\\sin ${av(AK[j])}}{${sv(SK[j])}} = ${q} \\;\\Rightarrow\\; ${L(k)} = ${obt?'180^\\circ - ':''}\\sin^{-1}(${q}) = ${av(k)}`});break}
-      if(SK.every(x=>kn.has(x))){const s1=SK[i],s2=SK[(i+1)%3],s3=SK[(i+2)%3],q=f4(Math.cos(val[k]*R));
-        C.push({k,pri:3,tb:-val[k],t:`\\cos ${L(k)} = \\frac{${L(s2)}^2 + ${L(s3)}^2 - ${L(s1)}^2}{2\\cdot ${L(s2)}\\cdot ${L(s3)}} = \\frac{${sq(s2)} + ${sq(s3)} - ${sq(s1)}}{2\\cdot ${fL(val[s2])}\\cdot ${fL(val[s3])}} = ${q} \\;\\Rightarrow\\; ${L(k)} = \\cos^{-1}(${q}) = ${av(k)}`})}
-    }
-    for(let i=0;i<3;i++){
-      const k=SK[i];if(kn.has(k))continue;
-      const o1=SK[(i+1)%3],o2=SK[(i+2)%3];
-      if(rOK){
-        if(kn.has(o1)&&kn.has(o2)){
-          if(i===rIdx)C.push({k,pri:1,tb:0,t:`${L(k)} = \\sqrt{${L(o1)}^2 + ${L(o2)}^2} = \\sqrt{${sq(o1)} + ${sq(o2)}} = ${sv(k)}`});
-          else{const h=SK[rIdx],o=o1===h?o2:o1;C.push({k,pri:1,tb:0,t:`${L(k)} = \\sqrt{${L(h)}^2 - ${L(o)}^2} = \\sqrt{${sq(h)} - ${sq(o)}} = ${sv(k)}`})}
-        }else{
-          let done=false;
-          for(let x=0;x<3&&!done;x++){
-            if(x===rIdx||!kn.has(AK[x]))continue;
-            const hyp=SK[rIdx],opp=SK[x],adj=SK[3-rIdx-x],role={[hyp]:'hyp',[opp]:'opp',[adj]:'adj'};
-            for(const K of [hyp,opp,adj]){
-              if(K===k||!kn.has(K))continue;
-              const e=tab[role[K]+'>'+role[k]];if(!e)continue;
-              const sym=num=>e[0]==='*'?`${num?sv(K):L(K)}\\cdot\\${e[1]}\\,${num?av(AK[x]):L(AK[x])}`:`\\frac{${num?sv(K):L(K)}}{\\${e[1]}\\,${num?av(AK[x]):L(AK[x])}}`;
-              C.push({k,pri:1,tb:0,t:`${L(k)} = ${sym(false)} = ${sym(true)} = ${sv(k)}`});done=true;break;
-            }
-          }
-        }
-      }
-      for(const hx of ['ha','hb','hc'])for(const [S2,A2] of HP[hx])if(S2===k&&kn.has(hx)&&kn.has(A2))C.push({k,pri:1,tb:0,t:`${L(k)} = \\frac{h_{${hx[1]}}}{\\sin ${L(A2)}} = \\frac{${vL(val[hx])}}{\\sin ${av(A2)}} = ${sv(k)}`});
-      if(kn.has('h'+k))for(const j of SK)if(j!==k&&kn.has(j)&&kn.has('h'+j))C.push({k,pri:1,tb:0,t:`${L(k)} = \\frac{${L(j)}\\cdot h_{${j}}}{h_{${k}}} = \\frac{${sv(j)}\\cdot ${vL(val['h'+j])}}{${vL(val['h'+k])}} = ${sv(k)}`});
-      if(['ha','hb','hc'].every(h=>kn.has(h))&&!SK.some(x=>kn.has(x)))C.push({k,pri:1,tb:0,t:`a:b:c = \\frac{1}{h_a}:\\frac{1}{h_b}:\\frac{1}{h_c} \\;\\Rightarrow\\; ${L(k)} = ${sv(k)}`});
-      if(kn.has(AK[i]))for(let j=0;j<3;j++)if(j!==i&&kn.has(SK[j])&&kn.has(AK[j])){
-        C.push({k,pri:2,tb:0,t:`${L(k)} = \\frac{${L(SK[j])}\\cdot\\sin ${L(AK[i])}}{\\sin ${L(AK[j])}} = \\frac{${sv(SK[j])}\\cdot\\sin ${av(AK[i])}}{\\sin ${av(AK[j])}} = ${sv(k)}`});break}
-      if(kn.has(o1)&&kn.has(o2)&&kn.has(AK[i]))C.push({k,pri:3,tb:0,t:`${L(k)} = \\sqrt{${L(o1)}^2 + ${L(o2)}^2 - 2\\cdot ${L(o1)}\\cdot ${L(o2)}\\cdot\\cos ${L(AK[i])}} = \\sqrt{${sq(o1)} + ${sq(o2)} - 2\\cdot ${fL(val[o1])}\\cdot ${fL(val[o2])}\\cdot\\cos ${av(AK[i])}} = ${sv(k)}`});
-    }
-    if(!C.length)break;
-    C.sort((x,y)=>x.pri-y.pri||x.tb-y.tb);const b=C[0];how[b.k]=b.t;kn.add(b.k);
-  }
-  return how;
-}
-function quadSteps(type,p,val,given){
-  const how={},extra=[],hrows=[],g=k=>given.includes(k),L=k=>LT[k],sv=k=>vL(val[k]),av=k=>aL(val[k]),u=U();
-  const E=Math.hypot(p[2][0]-p[0][0],p[2][1]-p[0][1]),Fd=Math.hypot(p[3][0]-p[1][0],p[3][1]-p[1][1]);
-  const f4=x=>{let t=(+x).toFixed(4).replace(/0+$/,'').replace(/\.$/,'');return t.replace('.','{,}')};
-  const set=(k,t)=>{if(!g(k))how[k]=t};
-  const sameS=(k,j,w)=>set(k,`${L(k)} = ${L(j)} = ${sv(j)}\\quad\\text{(${w})}`);
-  const sameA=(k,j,w)=>set(k,`${L(k)} = ${L(j)} = ${av(j)}\\quad\\text{(${w})}`);
-  const sup=(k,j,w)=>set(k,`${L(k)} = 180^\\circ - ${L(j)} = 180^\\circ - ${av(j)} = ${av(k)}\\quad\\text{(${w})}`);
-  const r90=(k,w)=>set(k,`${L(k)} = 90^\\circ\\quad\\text{(${w})}`);
-  const ex=(nm,v,t)=>extra.push(['\\('+nm+'\\)',fmt(v)+u,'cv','berechnet',t]);
-  const alFromH=()=>{
-    if(g('al'))return;
-    if(type==='raute'){const q=f4(val.ha/val.a);set('al',`\\sin\\alpha = \\frac{h}{a} = \\frac{${vL(val.ha)}}{${sv('a')}} = ${q} \\;\\Rightarrow\\; \\alpha = \\sin^{-1}(${q}) = ${av('al')}`)}
-    if(type==='para'){const hk=g('ha')?'ha':'hb',sd=g('ha')?'b':'a',q=f4(val[hk]/val[sd]);set('al',`\\sin\\alpha = \\frac{h_{${hk[1]}}}{${sd}} = \\frac{${vL(val[hk])}}{${sv(sd)}} = ${q} \\;\\Rightarrow\\; \\alpha = \\sin^{-1}(${q}) = ${av('al')}`)}
-    if(type==='trapez'){const x=(val.a-val.c)/2,q=f4(Math.abs(val.ha/x));set('al',`\\tan\\alpha = \\frac{h}{(a-c)/2} = \\frac{${vL(val.ha)}}{(${sv('a')}-${sv('c')})/2} \\;\\Rightarrow\\; \\alpha = ${x<0?'180^\\circ - ':''}\\tan^{-1}(${q}) = ${av('al')}`)}
-  };
-  const SK=['a','b','c','d'],AK=['al','be','ga','de'];
-  if(type==='quadrat'){for(const k of ['b','c','d'])sameS(k,'a','alle Seiten gleich lang');for(const k of AK)r90(k,'alle Winkel 90°')}
-  if(type==='rechteck'){sameS('c','a','gegenüberliegende Seiten gleich lang');sameS('d','b','gegenüberliegende Seiten gleich lang');for(const k of AK)r90(k,'alle Winkel 90°')}
-  if(type==='raute'||type==='para'){
-    if(type==='raute'){for(const k of ['b','c','d'])sameS(k,'a','alle Seiten gleich lang')}else{sameS('c','a','gegenüberliegende Seiten gleich lang');sameS('d','b','gegenüberliegende Seiten gleich lang')}
-    alFromH();
-    sup('be','al','Nachbarwinkel ergänzen sich zu 180°');sameA('ga','al','gegenüberliegende Winkel gleich');sameA('de','be','gegenüberliegende Winkel gleich');
-    if(type==='raute'){
-      ex('e',E,`e = 2\\cdot a\\cdot\\cos\\frac{\\alpha}{2} = 2\\cdot ${sv('a')}\\cdot\\cos\\frac{${av('al')}}{2} = ${vL(E)}`);
-      ex('f',Fd,`f = 2\\cdot a\\cdot\\sin\\frac{\\alpha}{2} = 2\\cdot ${sv('a')}\\cdot\\sin\\frac{${av('al')}}{2} = ${vL(Fd)}`);
-      hrows.push(['s','ha','h',`h = a\\cdot\\sin\\alpha = ${sv('a')}\\cdot\\sin ${av('al')} = ${vL(val.ha)}`]);
-    }else{
-      hrows.push(['a','ha','h_{a}',`h_{a} = b\\cdot\\sin\\alpha = ${sv('b')}\\cdot\\sin ${av('al')} = ${vL(val.ha)}`]);
-      hrows.push(['b','hb','h_{b}',`h_{b} = a\\cdot\\sin\\alpha = ${sv('a')}\\cdot\\sin ${av('al')} = ${vL(val.hb)}`]);
-    }
-  }
-  if(type==='drachen'){
-    sameS('c','b','Drachen: BC = CD');sameS('d','a','Drachen: AB = AD');sameA('de','be','Symmetrie: Winkel bei B und D gleich');
-    const q=f4(val.b*Math.sin(val.be*R)/E);
-    ex('e',E,`e = \\sqrt{a^2+b^2-2\\cdot a\\cdot b\\cdot\\cos\\beta} = \\sqrt{${qL(val.a)}+${qL(val.b)}-2\\cdot ${fL(val.a)}\\cdot ${fL(val.b)}\\cdot\\cos ${av('be')}} = ${vL(E)}`);
-    set('al',`\\alpha = 2\\cdot\\sin^{-1}\\frac{b\\cdot\\sin\\beta}{e} = 2\\cdot\\sin^{-1}\\frac{${sv('b')}\\cdot\\sin ${av('be')}}{${vL(E)}} = 2\\cdot\\sin^{-1}(${q}) = ${av('al')}`);
-    set('ga',`\\gamma = 360^\\circ - \\alpha - \\beta - \\delta = 360^\\circ - ${av('al')} - ${av('be')} - ${av('de')} = ${av('ga')}`);
-    ex('f',Fd,`f = 2\\cdot a\\cdot\\sin\\frac{\\alpha}{2} = 2\\cdot ${sv('a')}\\cdot\\sin\\frac{${av('al')}}{2} = ${vL(Fd)}`);
-  }
-  if(type==='trapez'){
-    alFromH();
-    set('b',`b = \\frac{(a-c)/2}{\\cos\\alpha} = \\frac{(${sv('a')}-${sv('c')})/2}{\\cos ${av('al')}} = ${sv('b')}`);
-    sameS('d','b','gleichschenklig: Schenkel gleich lang');sameA('be','al','Basiswinkel gleich');sup('ga','al','Nachbarwinkel an Parallelen');sameA('de','ga','Basiswinkel gleich');
-    hrows.push(['s','ha','h',`h = \\frac{a-c}{2}\\cdot\\tan\\alpha = \\frac{${sv('a')}-${sv('c')}}{2}\\cdot\\tan ${av('al')} = ${vL(val.ha)}`]);
-  }
-  if(type==='allg2'){
-    const a=val.a,b=val.b,c=val.c,d=val.d,f=Fd,psi=Math.acos((a*a+f*f-d*d)/(2*a*f))/R,phi=Math.acos((b*b+f*f-c*c)/(2*b*f))/R,qg=f4(Math.cos(Math.min(val.ga,360-val.ga)*R));
-    ex('f',f,`f = \\sqrt{a^2+d^2-2\\cdot a\\cdot d\\cdot\\cos\\alpha} = \\sqrt{${qL(a)}+${qL(d)}-2\\cdot ${fL(a)}\\cdot ${fL(d)}\\cdot\\cos ${av('al')}} = ${vL(f)}`);
-    set('ga',`\\cos\\gamma = \\frac{b^2+c^2-f^2}{2\\cdot b\\cdot c} = \\frac{${qL(b)}+${qL(c)}-${qL(f)}}{2\\cdot ${fL(b)}\\cdot ${fL(c)}} = ${qg} \\;\\Rightarrow\\; \\gamma = ${val.ga>180?'360^\\circ - ':''}\\cos^{-1}(${qg}) = ${av('ga')}`);
-    set('be',`\\beta = \\cos^{-1}\\frac{a^2+f^2-d^2}{2\\cdot a\\cdot f} + \\cos^{-1}\\frac{b^2+f^2-c^2}{2\\cdot b\\cdot f} = ${aL(psi)} + ${aL(phi)} = ${av('be')}`);
-    set('de',`\\delta = 360^\\circ - \\alpha - \\beta - \\gamma = 360^\\circ - ${av('al')} - ${av('be')} - ${av('ga')} = ${av('de')}`);
-  }
-  if(type==='allg1'){
-    const eps=Math.atan2(p[2][1],p[2][0])/R,q=f4(Math.sin(eps*R)),ang2=val.ga-(180-val.be-eps);
-    ex('e',E,`e = \\sqrt{a^2+b^2-2\\cdot a\\cdot b\\cdot\\cos\\beta} = \\sqrt{${qL(val.a)}+${qL(val.b)}-2\\cdot ${fL(val.a)}\\cdot ${fL(val.b)}\\cdot\\cos ${av('be')}} = ${vL(E)}`);
-    extra.push(['\\(\\varepsilon\\)',fmt(eps)+'°','cv','berechnet',`\\sin\\varepsilon = \\frac{b\\cdot\\sin\\beta}{e} = \\frac{${sv('b')}\\cdot\\sin ${av('be')}}{${vL(E)}} = ${q} \\;\\Rightarrow\\; \\varepsilon = ${eps>90.0001?'180^\\circ - ':''}\\sin^{-1}(${q}) = ${aL(eps)}\\quad\\text{(\\(\\varepsilon\\) = Winkel BAC)}`]);
-    set('de',`\\delta = 360^\\circ - \\alpha - \\beta - \\gamma = 360^\\circ - ${av('al')} - ${av('be')} - ${av('ga')} = ${av('de')}`);
-    set('c',`c = \\frac{e\\cdot\\sin(\\alpha-\\varepsilon)}{\\sin\\delta} = \\frac{${vL(E)}\\cdot\\sin(${av('al')}-${aL(eps)})}{\\sin ${av('de')}} = ${sv('c')}`);
-    set('d',`d = \\frac{e\\cdot\\sin(\\gamma-(180^\\circ-\\beta-\\varepsilon))}{\\sin\\delta} = \\frac{${vL(E)}\\cdot\\sin(${av('ga')}-(180^\\circ-${av('be')}-${aL(eps)}))}{\\sin ${av('de')}} = ${sv('d')}`);
-  }
-  // Umfang & Fläche
-  const per=SK.reduce((s2,k)=>s2+val[k],0);let s2=0;for(let i=0;i<4;i++){const q=p[(i+1)%4];s2+=p[i][0]*q[1]-q[0]*p[i][1]}const ar=Math.abs(s2)/2;
-  const u2=u?'\\,\\text{'+u.trim()+'}^2':'';
-  const PT={quadrat:`u = 4\\cdot a = 4\\cdot ${sv('a')}`,raute:`u = 4\\cdot a = 4\\cdot ${sv('a')}`,rechteck:`u = 2\\cdot(a+b) = 2\\cdot(${sv('a')}+${sv('b')})`,para:`u = 2\\cdot(a+b) = 2\\cdot(${sv('a')}+${sv('b')})`,drachen:`u = 2\\cdot(a+b) = 2\\cdot(${sv('a')}+${sv('b')})`}[type]||`u = a+b+c+d = ${SK.map(sv).join(' + ')}`;
-  const AT={quadrat:`A = a^2 = (${sv('a')})^2`,rechteck:`A = a\\cdot b = ${sv('a')}\\cdot ${sv('b')}`,raute:`A = a\\cdot h = ${sv('a')}\\cdot ${vL(val.ha)}`,para:`A = a\\cdot h_a = ${sv('a')}\\cdot ${vL(val.ha)}`,trapez:`A = \\frac{a+c}{2}\\cdot h = \\frac{${sv('a')}+${sv('c')}}{2}\\cdot ${vL(val.ha)}`,drachen:`A = \\frac{e\\cdot f}{2} = \\frac{${vL(E)}\\cdot ${vL(Fd)}}{2}`}[type]||`A = \\frac{1}{2}\\cdot a\\cdot b\\cdot\\sin\\beta + \\frac{1}{2}\\cdot c\\cdot d\\cdot\\sin\\delta = \\frac{1}{2}\\cdot ${sv('a')}\\cdot ${sv('b')}\\cdot\\sin ${av('be')} + \\frac{1}{2}\\cdot ${sv('c')}\\cdot ${sv('d')}\\cdot\\sin ${av('de')}`;
-  return {how,extra,hrows,per:{v:per,t:PT+` = ${vL(per)}`},area:{v:ar,t:AT+` = ${fL(ar)}${u2}`}};
-}
-function buildAps(){
-  const n=sols.length?sols[0].length:0,box=$('#aps');posf=[.5,.5,.5,.5];distf=[null,null,null,null];
-  if(!(n===3||(n===4&&!['quadrat','rechteck'].includes($('#qtype').value)))){box.innerHTML='';return}
-  const ak=n===3?['al','be','ga']:['al','be','ga','de'];
-  box.innerHTML=ak.map((k,i)=>`<div class="arow"><b>${LBL[k]}</b><label>Position <span id="pv${i}"></span><input type="range" min="0" max="1000" value="500" data-i="${i}"></label><label>Abstand zum Scheitel<input type="range" min="0" max="200" value="30" data-g="${i}"></label></div>`).join('');
-  box.querySelectorAll('input').forEach(s=>s.oninput=()=>{if(s.dataset.g!==undefined)distf[+s.dataset.g]=+s.value;else posf[+s.dataset.i]=s.value/1000;draw()});
-}
-function run(){
-  $('#err').textContent='';sols=[];cur=0;vis();
-  try{
-    const v={};given=[];
-    document.querySelectorAll('#fields input').forEach(i=>{const x=num(i.value);v[i.dataset.k]=x;if(x!=null)given.push(i.dataset.k)});
-    if(mode==='T'){sols=triSolveH(v)}
-    else{const t=$('#qtype').value;
-      const rq=QT[t].req||QT[t].f;
-      for(const k of rq)if(v[k]==null)throw 'Bitte alle Pflichtfelder ausfüllen: '+rq.map(x=>LBL[x]).join(', ');
-      if(QT[t].alt&&!QT[t].alt.some(k=>v[k]!=null))throw 'Bitte '+QT[t].alt.map(x=>LBL[x]).join(' oder ')+' angeben.';
-      for(const k of QT[t].f)if(v[k]!=null&&(v[k]<=0||(isAng(k)&&v[k]>=180)))throw 'Seiten und Höhen müssen > 0 sein, Winkel zwischen 0° und 180°.';
-      sols=quadSolve(t,v)}
-    // Plausibilität: gegebene Werte müssen zur Figur passen
-    const mm=measure(sols[0]).val;
-    for(const k of given){const tol=isAng(k)?0.05:Math.abs(v[k])*0.003;if(!sols.some(p=>Math.abs(measure(p).val[k]-v[k])<=tol))throw 'Die Angaben widersprechen sich (Wert '+LBL[k]+' passt nicht zur Figur).'}
-  }catch(e){sols=[];$('#err').textContent=typeof e==='string'?e:'Fehler: '+e.message}
-  buildAps();
-  $('#sols').innerHTML=sols.length>1?sols.map((_,i)=>`<button class="tab${i===cur?' on':''}" data-i="${i}">Lösung ${i+1}</button>`).join(' '):'';
-  document.querySelectorAll('#sols button').forEach(b=>b.onclick=()=>{cur=+b.dataset.i;document.querySelectorAll('#sols button').forEach(x=>x.classList.toggle('on',x===b));draw()});
-  draw();
-}
-setMode('T');
-</script>
-</body>
-</html>
+  ctx.beginPath();ctx.arc(mx,my,13,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(mx-7,my);ctx.lineTo(mx+7,my);ctx.moveTo(mx,my-7);ctx.lineTo(mx,my+7);
+  ctx.moveTo(mx-10,my);ctx.lineTo(mx-7,my-3);ctx.moveTo(mx-10,my);ctx.lineTo(mx-7,my+3);
+  ctx.moveTo(mx+10,my);ctx.lineTo(mx+7,my-3);ctx.moveTo(mx+10,my);ctx.lineTo(mx+7,my+3);
+  ctx.moveTo(mx,my-10);ctx.lineTo(mx-3,my-7);ctx.moveTo(mx,my-10);ctx.lineTo(mx+3,my-7);
+  ctx.moveTo(mx,my+10);ctx.lineTo(mx-3,my+7);ctx.moveTo(mx,my+10);ctx.lineTo(mx+3,my+7);ctx.stroke();
+
+  // Äußerer Button-Kreis
+  ctx.beginPath();ctx.arc(rx,ry,12,0,Math.PI*2);ctx.fill();ctx.stroke();
+
+  // Innerer Pfeilbogen
+  const r=6.5;
+  const startAngle=Math.PI*.25;
+  const endAngle=Math.PI*1.85;
+
+  ctx.beginPath();
+  ctx.arc(rx,ry,r,startAngle,endAngle,false);
+  ctx.stroke();
+
+  // Pfeilspitze berechnen
+  const tipX=rx+r*Math.cos(endAngle);
+  const tipY=ry+r*Math.sin(endAngle);
+
+  // Tangente leicht nach innen korrigieren
+  const tangentAngle=endAngle+Math.PI/2-.35;
+  const headLen=3.2;
+  const headSpread=.55;
+
+  ctx.beginPath();
+  ctx.moveTo(tipX,tipY);
+  ctx.lineTo(tipX-headLen*Math.cos(tangentAngle-headSpread),tipY-headLen*Math.sin(tangentAngle-headSpread));
+  ctx.moveTo(tipX,tipY);
+  ctx.lineTo(tipX-headLen*Math.cos(tangentAngle+headSpread),tipY-headLen*Math.sin(tangentAngle+headSpread));
+  ctx.stroke();
+
+  ctx.beginPath();ctx.arc(lsx,lsy,13,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(lsx-7,lsy+7);ctx.lineTo(lsx+7,lsy-7);
+  ctx.moveTo(lsx-7,lsy+7);ctx.lineTo(lsx-7,lsy+2);ctx.moveTo(lsx-7,lsy+7);ctx.lineTo(lsx-2,lsy+7);
+  ctx.moveTo(lsx+7,lsy-7);ctx.lineTo(lsx+7,lsy-2);ctx.moveTo(lsx+7,lsy-7);ctx.lineTo(lsx+2,lsy-7);ctx.stroke();
+
+  ctx.beginPath();ctx.arc(rsx,rsy,13,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(rsx+7,rsy+7);ctx.lineTo(rsx-7,rsy-7);
+  ctx.moveTo(rsx+7,rsy+7);ctx.lineTo(rsx+7,rsy+2);ctx.moveTo(rsx+7,rsy+7);ctx.lineTo(rsx+2,rsy+7);
+  ctx.moveTo(rsx-7,rsy-7);ctx.lineTo(rsx-7,rsy-2);ctx.moveTo(rsx-7,rsy-7);ctx.lineTo(rsx-2,rsy-7);ctx.stroke();
+  ctx.restore();
+ }
+ /* Legende */
+ legR=null;legRows=[];const lg=$('leg').checked||sol,vo=false/* $('vol').checked */;
+ if(lg||vo){const rows=[];
+  if(lg){L.forEach(l=>{if(l.l){const r=lenInfo(l,T);if(sol&&!$('leg').checked&&!r.s)return;const u=$('unit').value,v=r.v===null?r.s:sol&&r.s?r.s+(ss||$('leg').checked?' = '+fmt(r.v)+' '+u:''):fmt(r.v)+' '+u;rows.push(l.l+' = '+v);legRows.push({})}});
+   F.forEach(f=>{if(f.l){const r=areaInfo(f.p,T);if(sol&&!$('leg').checked&&!r.s)return;const v=r.v===null?r.s:sol&&r.s?r.s+(ss||$('leg').checked?' = '+fmt(r.v):''):fmt(r.v);rows.push(f.l+' = '+v);legRows.push({})}})}
+  if(vo)BD.forEach((b,i)=>{const r=bodyInfo(b,T);if(!r){rows.push('V_'+(i+1)+' nicht berechenbar');legRows.push({b:i});return}
+   rows.push('V_'+(i+1)+' = '+(sol?r.s+' = ':'')+fmt(r.v));legRows.push({b:i});if(sol){rows.push('   '+r.g);legRows.push({b:i})}});
+  if(rows.length){const lh=fs+4,fz=fs-2,w=Math.max(...rows.map(r=>halo(r,0,0,fg,bg,'left','','sans-serif',fz,true)),halo('Legende',0,0,fg,bg,'left','bold ','sans-serif',fz,true))+20,h=(rows.length+1)*lh+10;
+   if(!legPos)legPos={x:Math.max(10,W-w-14),y:12};legR={x:legPos.x,y:legPos.y,w,h};
+   ctx.globalAlpha=.93;ctx.fillStyle=bg;ctx.fillRect(legR.x,legR.y,w,h);ctx.globalAlpha=1;ctx.strokeStyle=gc;ctx.lineWidth=1;ctx.strokeRect(legR.x+.5,legR.y+.5,w,h);
+   halo('Legende',legR.x+10,legR.y+lh,fg,bg,'left','bold ','sans-serif',fz);rows.forEach((r,i)=>halo(r,legR.x+10,legR.y+lh*(i+2),fg,bg,'left','','sans-serif',fz))}}}
+$('fc').value=PAL[0];sync();recUI();rebuild();setMode('line');resize();
+</script></body></html>

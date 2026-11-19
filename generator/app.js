@@ -52,16 +52,19 @@ if (missingModules.length > 0) {
 createApp({
     setup() {
         const state = window.MTGStateModule.createState(Vue, typeLabels);
+        const shareLink = window.MTGShareLinkModule.createCodec(window.MTGShareLinkTypeRegistry);
+        const initialShareConfig = shareLink.read(window.location.href);
+        state.taskMode.value = initialShareConfig.taskMode;
         const isQuizEnabled = quizEnabledByPage && typeof window.MTGQuizModeModule?.createQuizMode === 'function';
-        const viewTabs = isQuizEnabled
-            ? state.viewTabs
-            : state.viewTabs.filter(tab => tab.key !== 'quiz');
+        const viewTabs = state.taskMode.value === 'calculator'
+            ? state.viewTabs.filter(tab => tab.key !== 'quiz')
+            : (isQuizEnabled
+                ? state.viewTabs
+                : state.viewTabs.filter(tab => tab.key !== 'quiz'));
         const allTypes = Object.keys(typeLabels);
         const selectedGrade = ref(10);
         const gradeOptions = ['GS', 5, 6, 7, 8, 9, 10];
         const randomSelectionConfig = ref(window.MTG_RANDOM_SELECTION_CONFIG ?? null);
-        const shareLink = window.MTGShareLinkModule.createCodec(window.MTGShareLinkTypeRegistry);
-        const initialShareConfig = shareLink.read(window.location.href);
         if (initialShareConfig.grade !== null) {
             selectedGrade.value = initialShareConfig.grade;
         }
@@ -74,6 +77,9 @@ createApp({
         if (initialShareConfig.pages !== null) {
             state.worksheetA5Pages.value = initialShareConfig.pages;
         }
+        if (state.taskMode.value === 'calculator' && initialShareConfig.pages === null) {
+            state.worksheetA5Pages.value = 1;
+        }
         if (initialShareConfig.presentationColumns !== null) {
             state.presentationColumns.value = initialShareConfig.presentationColumns;
         }
@@ -85,32 +91,44 @@ createApp({
             state.weights.value = true;
         }
 
-        const classConfig = (typeof taskTypesByGrade === 'object' && taskTypesByGrade)
+        const standardClassConfig = (typeof taskTypesByGrade === 'object' && taskTypesByGrade)
             ? taskTypesByGrade
             : {};
+        const calculatorClassConfig = (typeof window.calculatorTaskTypesByGrade === 'object' && window.calculatorTaskTypesByGrade)
+            ? window.calculatorTaskTypesByGrade
+            : {};
+        const classConfig = computed(() => state.taskMode.value === 'calculator'
+            ? calculatorClassConfig
+            : standardClassConfig);
         const visibleTypeKeys = computed(() => {
             const gradeKey = selectedGrade.value === 'GS' ? 'grundschule' : `klasse${selectedGrade.value}`;
-            const configured = classConfig[gradeKey];
+            const configured = classConfig.value[gradeKey];
 
             if (!Array.isArray(configured)) {
-                return allTypes;
+                return state.taskMode.value === 'calculator' ? [] : allTypes;
             }
 
             const validKeys = configured.filter(type => Object.prototype.hasOwnProperty.call(typeLabels, type));
-            return validKeys.length > 0 ? validKeys : allTypes;
+            return validKeys;
         });
 
         const visibleTypeEntries = computed(() => visibleTypeKeys.value.map(key => [key, typeLabels[key]]));
         const quizVisibleTypeKeys = computed(() => {
             const gradeKey = selectedGrade.value === 'GS' ? 'grundschule' : `klasse${selectedGrade.value}`;
-            const configured = classConfig[gradeKey];
+            if (state.taskMode.value === 'calculator') {
+                return [];
+            }
+            const quizClassConfig = (typeof quizAutoTaskTypesByGrade === 'object' && quizAutoTaskTypesByGrade)
+                ? quizAutoTaskTypesByGrade
+                : standardClassConfig;
+            const configured = quizClassConfig[gradeKey];
 
             if (!Array.isArray(configured)) {
-                return allTypes;
+                return [];
             }
 
             const validKeys = configured.filter(type => Object.prototype.hasOwnProperty.call(typeLabels, type));
-            return validKeys.length > 0 ? validKeys : allTypes;
+            return validKeys;
         });
 
         const quizVisibleTypeEntries = computed(() => quizVisibleTypeKeys.value.map(key => [key, typeLabels[key]]));
@@ -239,7 +257,8 @@ createApp({
                 presentationColumns: state.presentationColumns.value,
                 worksheetTitle: state.worksheetTitle.value,
                 weights: state.taskWeights.value,
-                weightsEnabled: state.weights.value
+                weightsEnabled: state.weights.value,
+                taskMode: state.taskMode.value
             });
             const nextUrl = `${url.pathname}${url.search}${url.hash}`;
             const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
@@ -274,7 +293,9 @@ createApp({
             typesetMathJax,
             selectedGrade,
             typeLabels,
-            taskTypesByGrade,
+            taskTypesByGrade: state.taskMode.value === 'calculator'
+                ? window.calculatorTaskTypesByGrade
+                : taskTypesByGrade,
             createJsonImportHandler,
             onTasksGenerated: syncShareUrl
         });

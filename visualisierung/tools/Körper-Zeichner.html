@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Körper darstellen</title>
+<style>
+:root{--bg:#fff;--card:#f4f6f8;--ink:#1c2126;--mut:#667085;--acc:#2563eb;--line:#d0d5dd;--fill:rgba(37,99,235,.07);--red:#dc2626;--cg:#15803d;--ch:#2563eb;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#14171c;--card:#1d2229;--ink:#e8ecf1;--mut:#9aa4b2;--acc:#6ea0ff;--line:#343b45;--fill:rgba(110,160,255,.1);--red:#ff7b7b;--cg:#4ade80;--ch:#6ea0ff}}
+:root[data-theme=dark]{--bg:#14171c;--card:#1d2229;--ink:#e8ecf1;--mut:#9aa4b2;--acc:#6ea0ff;--line:#343b45;--fill:rgba(110,160,255,.1);--red:#ff7b7b;--cg:#4ade80;--ch:#6ea0ff}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+.w{max-width:900px;margin:0 auto;padding:16px}
+h1{font-size:22px;margin:0 0 10px}
+button,select{font:inherit;padding:7px 12px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;cursor:pointer}
+select{background:var(--bg);padding:6px 8px}
+button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+button:disabled{opacity:.4;cursor:default}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:10px 0}
+.row{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center}
+.row label{display:flex;align-items:center;gap:6px}
+summary{cursor:pointer;font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:6px 18px;margin-top:10px}
+.grid label{display:flex;align-items:center;gap:6px}
+input[type=number]{width:78px;font:inherit;padding:5px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+.mut{color:var(--mut)}
+.fh{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px}.fh .sp{flex:1}.fh button{padding:4px 10px}
+.sbar{margin:0 0 8px}.sbar p{margin:6px 0 0}
+svg{touch-action:pan-y;user-select:none;width:100%;height:auto;background:var(--bg);border:1px solid var(--line);border-radius:10px;display:block}
+.sol{stroke:var(--ink);stroke-width:calc(2px*var(--lw,1));fill:none;stroke-linejoin:round;stroke-linecap:round}
+.hid{stroke:var(--ink);stroke-width:calc(1.6px*var(--lw,1));fill:none;stroke-dasharray:7 5}
+.aux{stroke:var(--mut);stroke-width:calc(1.2px*var(--lw,1));fill:none;stroke-dasharray:2 4}
+.net{stroke:var(--ink);stroke-width:calc(1.8px*var(--lw,1));fill:var(--fill);stroke-linejoin:round}
+.dim{stroke:var(--mut);stroke-width:calc(1px*var(--lw,1));fill:none}
+.ax{stroke:var(--ink);stroke-width:calc(2.5px*var(--lw,1))}
+.lg,.lh,.ls,.rm{fill:none;stroke-width:calc(2.4px*var(--lw,1));stroke-linecap:round;stroke-linejoin:round}
+.lg{stroke:var(--cg)}.lh{stroke:var(--ch)}.ls{stroke:var(--red)}.rm{stroke:var(--mut);stroke-width:calc(1.6px*var(--lw,1))}.hd{stroke-dasharray:7 5}
+.t{fill:var(--ink);font-family:system-ui,sans-serif;font-size:var(--fs,13px);paint-order:stroke;stroke:var(--bg);stroke-width:3px;stroke-linejoin:round}
+.t.m{fill:var(--mut);font-size:calc(var(--fs,13px)*.85)}.t.b{font-weight:600;font-size:16px}
+.t.d{fill:var(--acc);font-weight:600}.t.r,.t.ds{fill:var(--red);font-weight:600}.t.dg{fill:var(--cg);font-weight:600}.t.dh{fill:var(--ch);font-weight:600}
+.lb{fill:var(--bg);fill-opacity:.7;stroke:none}
+.nc .lg,.nc .lh,.nc .ls{stroke:var(--ink)}.nc .t.dg,.nc .t.dh,.nc .t.ds,.nc .t.d,.nc .t.r{fill:var(--ink)}
+.kg{color:var(--cg);font-weight:600}.kh{color:var(--ch);font-weight:600}.ks{color:var(--red);font-weight:600}
+.nocol .kg,.nocol .kh,.nocol .ks{color:inherit;font-weight:inherit}.nocol #leg{display:none}
+#leg{display:flex;flex-wrap:wrap;gap:6px 18px;margin:8px 0}
+#calc{margin:12px 0 4px;background:var(--acc);border-color:var(--acc);color:#fff}
+#task{font-size:17px}
+#sol{font-size:19px;padding:4px 18px 18px}
+#sol .lw{margin:10px 0 2px;font-size:26px}
+.sctl{margin:8px 0}
+.sec{background:var(--bg);border:1px solid var(--line);border-left:6px solid var(--acc);border-radius:10px;padding:8px 18px 10px;margin:16px 0;overflow-x:auto}
+.sec h3{margin:4px 0 8px;font-size:23px;color:var(--acc)}
+.eq{border-collapse:collapse;margin:4px 0 14px;font-size:22px}
+.eq td{padding:3px 8px;vertical-align:baseline;white-space:nowrap}
+.eq td.l{text-align:right}
+.eq td:nth-child(2){text-align:center;color:var(--mut)}
+.res{display:inline-block;font-weight:700;border:2px solid var(--acc);border-radius:8px;padding:2px 12px;background:var(--fill)}
+.st{margin:12px 0 2px;color:var(--mut);font-size:18px}
+.hs{display:none}
+[hidden]{display:none!important}
+</style></head><body><div class="w">
+<h1>Körper darstellen</h1>
+<div class="card">
+<div class="row"><label>Körper <select id="bodysel"></select></label>
+<label id="btw" hidden>Grundfläche <select id="bt"></select></label>
+<label id="pvw" hidden>Schrägbild <select id="pvsel"></select></label>
+<label id="zlw" hidden>Zweitafelbild <select id="zlsel"></select></label></div>
+<div class="row" id="inp" style="margin-top:10px"></div>
+<div class="row" style="margin-top:10px"><b>Darstellungen</b><button data-v="s" class="on">Schrägbild</button><button data-v="n">Netz</button><button data-v="z">Zweitafelbild</button></div>
+</div>
+<details class="card"><summary>Anzeige und Beschriftung</summary>
+<div class="grid">
+<label><input type="checkbox" data-sh="pt" checked> Punktbezeichnungen (A, B, M …)</label>
+<label><input type="checkbox" data-sh="ed" checked> Kantennamen (a, b, h …)</label>
+<label><input type="checkbox" data-sh="val" checked> Längenwerte (a = 5 cm)</label>
+<label><input type="checkbox" data-sh="fl" checked> Flächennamen im Netz</label>
+<label><input type="checkbox" data-sh="cap" checked> Bildnamen (Aufriss, Grundriss, x₁₂)</label>
+<label><input type="checkbox" data-sh="col" checked> Farben</label>
+<label><input type="checkbox" data-sh="hl" checked> Hilfslinien (Höhe, Radius, Diagonalen …)</label>
+<label>Schriftgröße <input type="range" id="fs" min="9" max="28" value="13"> <span id="fsv">13</span></label>
+<label>Strichbreite <input type="range" id="lw" min="0.5" max="3" step="0.1" value="1"> <span id="lwv">1</span></label>
+</div>
+<div class="row" style="margin-top:10px"><button data-all="1">Alle Beschriftungen an</button><button data-all="0">Alle Beschriftungen aus</button></div>
+</details>
+<details class="card"><summary>Unterricht</summary>
+<div class="row" style="margin-top:8px"><label><input type="checkbox" id="task_on"> Aufgabenmodus (Lösung zunächst ausgeblendet)</label><button id="newtask">Neue Zufallsmaße</button></div>
+</details>
+<div id="task" class="card" hidden></div>
+<div id="figs"></div>
+<div id="leg"><span class="kh">■ Höhe</span><span class="kg">■ Maße der Grundfläche</span><span class="ks">■ Mantel (Mantellinie s, Seitenhöhen)</span></div>
+<button id="calc">Volumen und Oberflächeninhalt berechnen</button>
+<div id="sol" class="card" hidden></div>
+</div>
+<script>
+
+const KC=.5*Math.SQRT1_2,KS=KC,VV=[KC,-1,KS];
+const D={wuerfel:{n:'Würfel',g:'des Würfels',f:[['a','Kantenlänge a']],v:{a:4}},
+quader:{n:'Quader',g:'des Quaders',f:[['a','Länge a'],['b','Breite b'],['c','Höhe c']],v:{a:5,b:3,c:4}},
+pyramide:{n:'Pyramide',g:'der Pyramide',f:[['a','Grundkante a'],['b','Grundkante b'],['h','Höhe h']],v:{a:5,b:4,h:6}},
+kegel:{n:'Kreiskegel',g:'des Kreiskegels',f:[['r','Radius r'],['h','Höhe h']],v:{r:3,h:5}},
+zylinder:{n:'Kreiszylinder',g:'des Kreiszylinders',f:[['r','Radius r'],['h','Höhe h']],v:{r:2.5,h:5}},
+prisma:{n:'Prisma',g:'des Prismas',f:[],v:{a:4,b:5,c:2,ha:3,e:6,f:4,p:2,m:2,h:5}},
+kugel:{n:'Kugel',g:'der Kugel',f:[['r','Radius r']],v:{r:3}}};
+const VIEWS=[['s','Schrägbild'],['n','Netz'],['z','Zweitafelbild']];
+let B='wuerfel',BT='dg',PV='vorn',ZV='st',STP=99,OPEN=false,TASK=false,STEPMODE=false,SOLSTEP=Infinity,ST={t:[]},FS=13,LW=1;const STPv={s:99,n:99,z:99},STs={s:[],n:[],z:[]},VWs={s:true,n:false,z:false},ZLs={prisma:'2'},SH={pt:true,ed:true,val:true,fl:true,cap:true,col:true,hl:true};
+const P={};for(const k in D)P[k]={...D[k].v};
+const $=id=>document.getElementById(id);
+const n=x=>(Math.round(x*100)/100).toLocaleString('de-DE',{maximumFractionDigits:2}),cm=x=>n(x)+' cm',f1=x=>x.toFixed(1);
+const PL=(q,c)=>`<polyline class="${c}" points="${q.map(z=>f1(z[0])+','+f1(z[1])).join(' ')}"/>`;
+const PG=(q,c)=>PL(q,c).replace('polyline','polygon');
+const LN=(a,b,c)=>`<line class="${c}" x1="${f1(a[0])}" y1="${f1(a[1])}" x2="${f1(b[0])}" y2="${f1(b[1])}"/>`;
+const TX=(q,t,c='',an='middle')=>{let r='';if(/^(d[ghs]?|r)$/.test(c)){const w=t.replace(/<[^>]+>/g,'').length*FS*.6+10,x=an=='middle'?q[0]-w/2:an=='start'?q[0]-5:q[0]-w+5;r=`<rect class="lb" x="${f1(x)}" y="${f1(q[1]-FS/2-3)}" width="${f1(w)}" height="${f1(FS+6)}" rx="3"/>`}return r+`<text class="t ${c}" x="${f1(q[0])}" y="${f1(q[1])}" text-anchor="${an}" dominant-baseline="central">${t}</text>`};
+const head=(t,s)=>TX([16,26],t,'b','start')+(s?TX([16,46],s,'m','start'):'');
+const SUB=(a,b)=>`${a}<tspan baseline-shift="sub" font-size="9">${b}</tspan>`;
+function fit(pts,mx=60,my=64){const X=pts.map(q=>q[0]),Y=pts.map(q=>q[1]),x0=Math.min(...X),x1=Math.max(...X),y0=Math.min(...Y),y1=Math.max(...Y),s=Math.min((720-2*mx)/((x1-x0)||1),(460-2*my)/((y1-y0)||1)),ox=(720-s*(x1-x0))/2-s*x0,oy=(460+s*(y1-y0))/2+s*y0;const g=q=>[ox+s*q[0],oy-s*q[1]];g.s=s;return g}
+const sub=(p,q)=>p.map((x,i)=>x-q[i]),cr=(u,v)=>[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]],dot=(u,v)=>u[0]*v[0]+u[1]*v[1]+u[2]*v[2];
+function poly(t,p){const a=p.a;if(t=='pyramide'){const b=p.b,h=p.h;return{V:[[0,0,0],[a,0,0],[a,b,0],[0,b,0],[a/2,b/2,h]],F:[[0,3,2,1],[0,1,4],[1,2,4],[2,3,4],[3,0,4]]}}
+const b=t=='wuerfel'?a:p.b,c=t=='wuerfel'?a:p.c;return{V:[[0,0,0],[a,0,0],[a,b,0],[0,b,0],[0,0,c],[a,0,c],[a,b,c],[0,b,c]],F:[[0,3,2,1],[4,5,6,7],[0,1,5,4],[1,2,6,5],[2,3,7,6],[3,0,4,7]]}}
+function edges(m){const c=[0,1,2].map(k=>m.V.reduce((s,q)=>s+q[k],0)/m.V.length),E={};
+m.F.forEach(f=>{let nv=cr(sub(m.V[f[1]],m.V[f[0]]),sub(m.V[f[2]],m.V[f[0]]));if(dot(nv,sub(m.V[f[0]],c))<0)nv=nv.map(x=>-x);const vis=dot(nv,VV)>1e-9;
+f.forEach((v,k)=>{const w=f[(k+1)%f.length],i=Math.min(v,w),j=Math.max(v,w),key=i+'-'+j;E[key]=E[key]||{i,j,hid:true,fr:false,up:false};if(vis)E[key].hid=false;if(nv[1]<-1e-9)E[key].fr=true;if(nv[2]>1e-9)E[key].up=true})});return Object.values(E)}
+function circ(vf,r,z,Qf){const T=2*Math.PI,N=720,A=[],R=[];
+for(let i=0;i<N;i++){const a=T*i/N,b=T*(i+1)/N;A.push(a);if((vf(a)>0)!=(vf(b)>0)){let lo=a,hi=b;const s=vf(a)>0;for(let k=0;k<40;k++){const m=(lo+hi)/2;(vf(m)>0)==s?lo=m:hi=m}const x=(lo+hi)/2;A.push(x);R.push(x)}}
+A.push(T);const Q=Qf||(a=>[r*Math.cos(a),r*Math.sin(a),z]),out=[];let cur=null;
+for(let i=0;i<A.length-1;i++){const h=vf((A[i]+A[i+1])/2)<=0;if(!cur||cur.hid!=h){cur={hid:h,pts:[Q(A[i])]};out.push(cur)}cur.pts.push(Q(A[i+1]))}
+return{out,R,Q}}
+const pj=q=>[q[0]+KC*q[1],q[2]+KS*q[1]];
+function lbl(a,b,t,C,d=8+FS*.4,c='d'){const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2;let nx=-(b[1]-a[1]),ny=b[0]-a[0];const l=Math.hypot(nx,ny)||1;nx/=l;ny/=l;if(nx*(mx-C[0])+ny*(my-C[1])<0){nx=-nx;ny=-ny}
+const an=nx>.4?'start':nx<-.4?'end':'middle';return an=='middle'?TX([mx+nx*(d+FS*.3),my+ny*(d+FS*.3)],t,c,an):TX([mx+nx*d,my+ny*d*.4],t,c,an)}
+const BN={dg:'Gleichschenkliges Dreieck',dr:'Rechtwinkliges Dreieck',al:'Allgemeines Dreieck',pa:'Parallelogramm',tr:'Gleichschenkliges Trapez',ra:'Raute',dk:'Drachenviereck',se:'Regelmäßiges Sechseck'};
+const BF={dg:[['a','Grundseite a'],['ha','Höhe h<sub>a</sub>']],dr:[['a','Kathete a'],['b','Kathete b']],al:[['a','Grundseite a'],['ha','Höhe h<sub>a</sub>'],['p','Versatz p']],pa:[['a','Seite a'],['b','Seite b'],['ha','Höhe h<sub>a</sub>']],tr:[['a','Grundseite a'],['c','Deckseite c'],['ha','Höhe h<sub>a</sub>']],ra:[['e','Diagonale e'],['f','Diagonale f']],dk:[['e','Diagonale e (Symmetrieachse)'],['f','Diagonale f'],['m','Abschnitt m von unten']],se:[['a','Seite a']]};
+const FLD=t=>t=='prisma'?[...BF[BT],['h','Körperhöhe h']]:D[t].f;
+const NT=s=>SH.val?s:s.split(' = ')[0],NMS={ha:SUB('h','a')};
+const bad=(t,p)=>t!='prisma'?'':BT=='pa'&&p.b<=p.ha?'Die Seite b muss größer sein als die Höhe ha.':BT=='dk'&&p.m>=p.e?'Der Abschnitt m muss kleiner sein als die Diagonale e.':'';
+const RK=(t,k)=>k=='h'||(t=='quader'&&k=='c')?'kh':'kg';
+const DEFS='<defs><marker id="ar" viewBox="0 0 8 8" refX="4" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1L7 4L1 7" fill="none" style="stroke:var(--mut)" stroke-width="1.2"/></marker></defs>';
+function bdef(p){const{a,b,c,e,f,ha,m}=p,pv=p.p;let q,nm,aux=[];
+if(BT=='dg'){q=[[0,0],[a,0],[a/2,ha]];nm=['a','s','s'];aux=[[[a/2,0],[a/2,ha],'ha']]}
+else if(BT=='dr'){q=[[0,0],[a,0],[0,b]];nm=['a','c','b']}
+else if(BT=='al'){q=[[0,0],[a,0],[pv,ha]];nm=['a','b','c'];aux=[[[pv,0],[pv,ha],'ha']]}
+else if(BT=='pa'){const pp=Math.sqrt(Math.max(b*b-ha*ha,0));q=[[0,0],[a,0],[a+pp,ha],[pp,ha]];nm=['a','b','a','b'];aux=[[[pp,0],[pp,ha],'ha']]}
+else if(BT=='tr'){const o=(a-c)/2;q=[[0,0],[a,0],[a-o,ha],[o,ha]];nm=['a','d','c','d'];aux=[[[o,0],[o,ha],'ha']]}
+else if(BT=='dk'){q=[[f/2,0],[f,m],[f/2,e],[0,m]];nm=['a','b','b','a'];aux=[[[f/2,0],[f/2,e],'e'],[[0,m],[f,m],'f']]}
+else if(BT=='ra'){q=[[e/2,0],[e,f/2],[e/2,f],[0,f/2]];nm=['a','a','a','a'];aux=[[[0,f/2],[e,f/2],'e'],[[e/2,0],[e/2,f],'f']]}
+else{const k=a*Math.sqrt(3)/2;q=[[a/2,0],[1.5*a,0],[2*a,k],[1.5*a,2*k],[a/2,2*k],[0,k]];nm=['a','a','a','a','a','a']}
+return{q,nm,aux,lens:q.map((u,i)=>Math.hypot(q[(i+1)%q.length][0]-u[0],q[(i+1)%q.length][1]-u[1]))}}
+const prismM=(q,h)=>{const n_=q.length;return{V:[...q.map(u=>[u[0],u[1],0]),...q.map(u=>[u[0],u[1],h])],F:[q.map((_,i)=>n_-1-i),q.map((_,i)=>n_+i),...q.map((_,i)=>[i,(i+1)%n_,n_+(i+1)%n_,n_+i])]}};
+const prismF=(q,h)=>({V:[...q.map(u=>[u[0],0,u[1]]),...q.map(u=>[u[0],h,u[1]])],F:prismM(q,h).F});
+const cen=q=>[q.reduce((s,z)=>s+z[0],0)/q.length,q.reduce((s,z)=>s+z[1],0)/q.length];
+function lblp(a,b,t,lp,c){const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2;if(lp[0])return TX([mx+lp[0]*8,my],t,c,lp[0]>0?'start':'end');return TX([mx,my+lp[1]*(8+FS*.6)],t,c)}
+function rightAngle(m,a,b){const R=26,a1=Math.atan2(a[1]-m[1],a[0]-m[0]),a2=Math.atan2(b[1]-m[1],b[0]-m[0]);let da=a2-a1;while(da>Math.PI)da-=2*Math.PI;while(da<-Math.PI)da+=2*Math.PI;
+const q=[];for(let i=0;i<=16;i++){const g=a1+da*i/16;q.push([m[0]+R*Math.cos(g),m[1]+R*Math.sin(g)])}
+const g=a1+da/2;return PL(q,'rm')+`<circle cx="${f1(m[0]+R*.55*Math.cos(g))}" cy="${f1(m[1]+R*.55*Math.sin(g))}" r="2" style="fill:var(--mut)"/>`}
+
+function schraeg(t,p){
+const PR=[],VL=[],C=[360,230];let tx=[],pjx=pj,sbt='Verzerrungswinkel 45° · Verkürzungsfaktor 0,5';
+const add=(pts,s,o={})=>{const q={pts,st:s,...o};PR.push(q);return q};
+const vls=(m,N)=>m.V.forEach((v,i)=>VL.push({p:v,t:N[i],s:Math.min(...PR.filter(q=>q.i==i||q.j==i).map(q=>q.st))}));
+if(t=='quader'||t=='wuerfel'||t=='pyramide'){
+const m=poly(t,p),E=edges(m),a=p.a,b=t=='wuerfel'?a:p.b,c=t=='wuerfel'?a:p.c,h=p.h,py=t=='pyramide',N=py?'ABCDS':'ABCDEFGH';
+E.forEach(e=>{const A=m.V[e.i],Z=m.V[e.j];
+const s=py?(e.j==4?6:e.i==0&&e.j==1?1:e.i==2&&e.j==3?3:2):(A[1]==0&&Z[1]==0?1:A[1]==b&&Z[1]==b?3:2);
+const q=add([A,Z],s,{hid:e.hid,i:e.i,j:e.j,rl:py?(e.j==4?'s':'g'):(A[2]==Z[2]?'g':'h')});
+if(e.i==0&&e.j==1)q.lab='a = '+cm(a);if(e.i==1&&e.j==2)q.lab=(t=='wuerfel'?'a':'b')+' = '+cm(b);if(!py&&e.i==0&&e.j==4)q.lab=(t=='wuerfel'?'a':'c')+' = '+cm(c)});
+if(py){const M=[a/2,b/2,0];add([m.V[0],m.V[2]],4,{aux:1});add([m.V[1],m.V[3]],4,{aux:1});add([M,m.V[4]],5,{cl:'lh',rl:'h',hl:1,lab:'h = '+cm(h)});VL.push({p:M,t:'M',s:4,ax:1})}
+vls(m,N);
+const sch=`Zeichne in jeder Ecke der Vorderfläche die Schrägkanten unter dem Verzerrungswinkel 45°. Wegen des Verkürzungsfaktors 0,5 werden sie halbiert: b/2 = ${cm(b/2)} statt b = ${cm(b)}.`;
+tx=py?[`Zeichne die vordere Grundkante AB in wahrer Länge: a = ${cm(a)}.`,sch.replace('in jeder Ecke der Vorderfläche','in A und B'),'Verbinde die Endpunkte D und C. Die Grundfläche erscheint als Parallelogramm.','Zeichne die Diagonalen der Grundfläche. Ihr Schnittpunkt ist der Mittelpunkt M.',`Trage in M senkrecht nach oben die Höhe h = ${cm(h)} in wahrer Länge ab. Du erhältst die Spitze S.`,'Verbinde die Spitze S mit den Ecken A, B, C und D.','Zeichne die verdeckten Kanten DA, CD und SD gestrichelt.']
+:[`Zeichne die Vorderfläche in wahrer Größe: ein Rechteck mit a = ${cm(a)} und c = ${cm(c)}.`,sch,'Verbinde die Endpunkte der Schrägkanten. Die hintere Fläche liegt parallel zur Vorderfläche.','Zeichne die verdeckten Kanten (hinten, unten, links) gestrichelt.']}
+else if(t=='prisma'){const bd=bdef(p),q=bd.q,n_=q.length,h=p.h,m=PV=='st'?prismM(q,h):prismF(q,h),E=edges(m),N='ABCDEFGHIJKL',mp=PV=='st'?(u=>[u[0],u[1],0]):(u=>[u[0],0,u[1]]);
+E.forEach(e=>{const s=e.j<n_?1:e.i>=n_?3:2,x=add([m.V[e.i],m.V[e.j]],s,{hid:e.hid,i:e.i,j:e.j,rl:s==2?'h':'g'});
+if(s==1){const k=e.j==e.i+1?e.i:(e.i==0&&e.j==n_-1?n_-1:-1);if(k>=0&&!((BT=='se'||BT=='ra')&&k>0))x.lab=bd.nm[k]+' = '+cm(bd.lens[k])}
+if(s==2&&e.i==0)x.lab='h = '+cm(h)});
+bd.aux.forEach(([u,v,key])=>add([mp(u),mp(v)],1,{cl:'lg',rl:'g',hl:1,lab:(NMS[key]||key)+' = '+cm(p[key])}));
+vls(m,N);
+tx=PV!='st'?[`Zeichne die Grundfläche (${BN[BT]}) in wahrer Gestalt in der Zeichenebene.`,`Zeichne in jeder Ecke die Schrägkante unter dem Verzerrungswinkel 45°. Wegen des Verkürzungsfaktors 0,5 ist sie nur halb so lang: h/2 = ${cm(h/2)} statt h = ${cm(h)}.`,'Verbinde die Endpunkte der Schrägkanten: Die Deckfläche ist kongruent und parallel zur Grundfläche.','Zeichne die verdeckten Kanten gestrichelt.']:[`Zeichne die Grundfläche (${BN[BT]}) im Schrägbild: Kanten in Breitenrichtung in wahrer Länge, Kanten in Tiefenrichtung unter 45° mit halber Länge.`,`Zeichne in jeder Ecke der Grundfläche senkrecht nach oben die Körperhöhe h = ${cm(h)} in wahrer Länge.`,'Verbinde die oberen Endpunkte: Die Deckfläche ist kongruent und parallel zur Grundfläche.','Zeichne die verdeckten Kanten gestrichelt.']}
+else if(t=='kugel'){const r=p.r,Qe=a=>[r*Math.cos(a),r*Math.sin(a),0];pjx=q=>[q[0],q[2]+.5*q[1]];sbt='Tiefe im rechten Winkel · Verkürzungsfaktor 0,5';
+add(Array.from({length:181},(_,i)=>{const a=Math.PI*i/90;return[r*Math.cos(a),0,r*Math.sin(a)]}),1,{});
+circ(q=>-Math.sin(q),r,0,Qe).out.forEach(o=>add(o.pts,2,{hid:o.hid}));
+add([[0,0,0],[r,0,0]],3,{cl:'lg',rl:'g',hl:1,lab:'r = '+cm(r),lp:[0,1]});VL.push({p:[0,0,0],t:'M',s:3,ax:1});
+tx=[`Zeichne den Umriss: einen Kreis mit dem Radius r = ${cm(r)}.`,`Zeichne den Äquator als Ellipse: Der waagerechte Durchmesser 2r = ${cm(2*r)} bleibt unverzerrt, die Tiefe wird im rechten Winkel um die Hälfte gestaucht (Halbachse r/2 = ${cm(r/2)}).`,'Markiere den Mittelpunkt M und zeichne den Radius r.','Zeichne die hintere Hälfte des Äquators gestrichelt.']}
+else{const r=p.r,h=p.h,cy=t=='zylinder',md=cy?ZV:'st',P0=[0,0,0],PA=[-r,0,0],PB=[r,0,0],PT=[0,0,h],ds=Math.hypot(r,h);
+const e1=`Zeichne die Grundfläche als Ellipse: Der waagerechte Durchmesser 2r = ${cm(2*r)} bleibt unverzerrt, die Tiefe wird im rechten Winkel dazu um die Hälfte gestaucht (Halbachse r/2 = ${cm(r/2)}). Markiere M und A.`;
+const eh=`Zeichne in M senkrecht nach oben die Höhe h = ${cm(h)} in wahrer Länge ab (rechter Winkel zum Radius).`;
+if(md=='st'){pjx=q=>[q[0],q[2]+.5*q[1]];sbt='Tiefe im rechten Winkel · Verkürzungsfaktor 0,5';
+const Qb=z=>a=>[r*Math.cos(a),r*Math.sin(a),z],vb=cy?q=>-Math.sin(q):q=>.5*r-h*Math.sin(q),gr=circ(vb,r,0,Qb(0));
+gr.out.forEach(o=>add(o.pts,1,{hid:o.hid}));
+add([P0,PA],1,{cl:'lg',rl:'g',hl:1,lab:'r = '+cm(r),lp:[0,1]});add([P0,PT],2,{cl:'lh',rl:'h',hl:1,lab:'h = '+cm(h),lp:[1,0]});add([P0],2,{hl:1,ra:[PA,PT]});
+VL.push({p:PA,t:'A',s:1,o:[-1,0],ax:1},{p:P0,t:cy?'M₁':'M',s:1,o:[0,1],ax:1});
+if(cy){circ(()=>1,r,h,Qb(h)).out.forEach(o=>add(o.pts,3));add([PA,[-r,0,h]],4);add([PB,[r,0,h]],4);VL.push({p:PT,t:'M₂',s:2,o:[1,0],ax:1});
+tx=[e1.replace('M und A','M₁ und A'),eh.replace('in M','in M₁')+' Das Ende ist M₂.','Zeichne die Deckfläche als gleiche Ellipse um M₂ (um h nach oben verschoben).','Zeichne die beiden senkrechten Mantellinien an den Endpunkten der waagerechten Durchmesser.','Zeichne die hintere Hälfte der Grundellipse gestrichelt.']}
+else{const rs=gr.R.length>=2?gr.R.map(x=>gr.Q(x)):[PA,PB],gs=rs.map(P_=>add([PT,P_],3)),lf=gs.reduce((u,v)=>pjx(u.pts[1])[0]<pjx(v.pts[1])[0]?u:v);
+lf.cl='ls';lf.rl='s';lf.lab='s = '+cm(ds);lf.lp=[-1,0];VL.push({p:PT,t:'S',s:2,o:[0,-1]});
+tx=[e1,eh+' Du erhältst die Spitze S.','Zeichne von S aus die beiden Mantellinien als Tangenten an die Ellipse. Dadurch ist die hintere Hälfte der Grundfläche verdeckt.','Zeichne den verdeckten Teil der Grundellipse gestrichelt.']}}
+else if(md=='li'){pjx=q=>[q[0]+.5*q[1],q[2]];sbt='Tiefe im rechten Winkel · Verkürzungsfaktor 0,5';
+const Qd=d=>a=>[d,r*Math.cos(a),r*Math.sin(a)],M2=[h,0,0],Rp=[h,0,r];
+circ(q=>-Math.cos(q),r,0,Qd(0)).out.forEach(o=>add(o.pts,1,{hid:o.hid}));
+add([P0,M2],2,{cl:'lh',rl:'h',hl:1,lab:'h = '+cm(h),lp:[0,1]});
+circ(()=>1,r,0,Qd(h)).out.forEach(o=>add(o.pts,3));
+add([M2,Rp],3,{cl:'lg',rl:'g',hl:1,lab:'r = '+cm(r),lp:[1,0]});add([M2],3,{hl:1,ra:[P0,Rp]});
+add([[0,0,r],[h,0,r]],4);add([[0,0,-r],[h,0,-r]],4);
+VL.push({p:P0,t:'M₁',s:2,o:[-1,0],ax:1},{p:M2,t:'M₂',s:3,o:[1,0],ax:1});
+tx=[`Zeichne die linke Kreisfläche als Ellipse: Die senkrechte Achse 2r = ${cm(2*r)} bleibt unverzerrt, die Tiefe wird im rechten Winkel dazu um die Hälfte gestaucht (Halbachse r/2 = ${cm(r/2)}).`,`Zeichne von M₁ waagerecht die Höhe h = ${cm(h)} in wahrer Länge ab. Das Ende ist M₂.`,'Zeichne die rechte Kreisfläche als gleiche Ellipse um M₂ und markiere den Radius.','Verbinde die obersten und die untersten Punkte beider Ellipsen waagerecht (Mantellinien).','Zeichne die verdeckte Hälfte der linken Ellipse gestrichelt.']}
+else{const Qf=d=>a=>[r*Math.cos(a),d,r*Math.sin(a)];
+circ(()=>1,r,0,Qf(0)).out.forEach(o=>add(o.pts,1));
+const bk=circ(q=>KC*Math.cos(q)+KS*Math.sin(q),r,0,Qf(h));bk.out.forEach(o=>add(o.pts,3,{hid:o.hid}));bk.R.forEach(x=>add([Qf(0)(x),Qf(h)(x)],4));
+add([P0,PB],1,{cl:'lg',rl:'g',hl:1,lab:'r = '+cm(r)});add([P0,[0,h,0]],2,{cl:'lh',rl:'h',hl:1,lab:'h = '+cm(h)});
+VL.push({p:P0,t:'M₁',s:1,ax:1},{p:[0,h,0],t:'M₂',s:3,ax:1});
+tx=[`Zeichne die Grundfläche in der Zeichenebene als wahren Kreis mit r = ${cm(r)}.`,`Markiere M₁ und zeichne die Höhe als Schrägkante unter 45°: h/2 = ${cm(h/2)} statt h = ${cm(h)}.`,'Zeichne die Deckfläche als gleich großen Kreis um M₂ (Ende der Schrägkante).','Zeichne die beiden seitlichen Mantellinien als Tangenten an beide Kreise.','Zeichne den verdeckten Teil des hinteren Kreises gestrichelt.']}}
+ST={t:tx};STP=Math.min(STP,tx.length);const dash=tx.length;
+const f=fit(PR.flatMap(q=>q.pts.map(pjx)));let s=head('Schrägbild '+D[t].g,sbt);
+PR.filter(q=>q.st<=STP&&(SH.hl||!(q.hl||q.aux))).forEach(q=>{
+if(q.ra){s+=rightAngle(f(pjx(q.pts[0])),f(pjx(q.ra[0])),f(pjx(q.ra[1])));return}
+const z=q.pts.map(x=>f(pjx(x)));s+=PL(z,q.cl||(q.rl?'l'+q.rl+(q.hid&&STP>=dash?' hd':''):(q.aux?'aux':(q.hid&&STP>=dash?'hid':'sol'))));
+if(q.lab&&SH.ed)s+=q.lp?lblp(z[0],z[z.length-1],NT(q.lab),q.lp,'d'+(q.rl||'')):lbl(z[0],z[z.length-1],NT(q.lab),C,undefined,'d'+(q.rl||''))});
+VL.filter(v=>SH.pt&&v.s<=STP&&(SH.hl||!v.ax)).forEach(v=>{const z=f(pjx(v.p));let dx,dy;if(v.o){dx=v.o[0];dy=v.o[1]}else{dx=z[0]-C[0];dy=z[1]-C[1];const l=Math.hypot(dx,dy)||1;dx/=l;dy/=l}const d=6+FS*.6;s+=TX([z[0]+dx*d,z[1]+dy*d],v.t)});
+return s}
+
+function zwei(t,p){
+const rd=t=='kegel'||t=='zylinder',ku=t=='kugel',py=t=='pyramide',pr=t=='prisma',L2=zl(t)=='2',Ln=[],pts=[],Ci=[],EL=[],last=rd?4:py?5:4,sAu=L2?2:last,sGr=L2?last:2;
+let G1=[],G2=[],dm=[],sc=[],e,ax0,ax1,top,gy0,gy1,tx;
+const L_=(a,b,c,st)=>{Ln.push([a,b,c,st]);pts.push(a,b)},d2=(u,v)=>Math.hypot(u[0]-v[0],u[1]-v[1]);
+const s1='Zeichne die Rissachse x₁₂ waagerecht.';
+if(ku){const r=p.r;e=.36*r;ax0=-r;ax1=r;const ca=e+r,cg=-(e+r);top=e+2*r;gy0=-(e+2*r);gy1=-e;
+Ci.push([[0,cg],r,2],[[0,ca],r,4]);
+L_([-1.2*r,cg],[1.2*r,cg],'aux',2);L_([0,cg-1.2*r],[0,cg+1.2*r],'aux',2);L_([-1.2*r,ca],[1.2*r,ca],'aux',4);L_([0,ca-1.2*r],[0,ca+1.2*r],'aux',4);
+L_([-r,ca],[-r,cg],'aux',3);L_([r,ca],[r,cg],'aux',3);L_([0,ca],[0,cg],'aux',3);
+G1=[{q:[0,ca],t:'M″',st:4}];G2=[{q:[0,cg],t:'M′',st:2}];sc=[[[r/2,cg],'r = '+cm(r),2,'g'],[[r/2,ca],'r = '+cm(r),4,'g']];
+tx=[s1,`Zeichne den Grundriss: einen Kreis mit r = ${cm(r)}. Sein Mittelpunkt hat den Abstand e + r = ${cm(e+r)} von der Rissachse.`,'Zeichne die Ordnungslinien durch die Endpunkte des waagerechten Durchmessers und durch den Mittelpunkt senkrecht nach oben.','Der Aufriss ist ebenfalls ein Kreis mit dem Radius r. Sein Mittelpunkt liegt auf der mittleren Ordnungslinie.']}
+else if(!rd){let m,N,hz;
+if(pr){const bd=bdef(p);m=prismM(bd.q,p.h);N='ABCDEFGHIJKL';hz=p.h}else{m=poly(t,p);N=py?'ABCDS':'ABCDEFGH';hz=py?p.h:(t=='wuerfel'?p.a:p.c)}
+const hn=(py||pr?'h':t=='wuerfel'?'a':'c'),dn=t=='wuerfel'?'a':'b',oy1=Math.max(...m.V.map(v=>v[1])),od=pr?0:(t=='wuerfel'?p.a:p.b);
+if(L2)m={V:m.V.map(v=>[v[0],v[2],oy1-v[1]]),F:m.F};
+const X=m.V.map(v=>v[0]),Y=m.V.map(v=>v[1]),Zz=m.V.map(v=>v[2]),ym=Math.max(...Y),Hd=Math.max(...Zz),Dp=ym-Math.min(...Y);
+ax0=Math.min(...X);ax1=Math.max(...X);e=.18*Math.max(ax1-ax0,Dp,Hd);top=e+Hd;gy0=-(e+Dp);gy1=-e;
+const pa=v=>[v[0],v[2]+e],pg=v=>[v[0],-(e+ym-v[1])],ae=cm(e);
+edges(m).forEach(ed=>{const A=m.V[ed.i],Zv=m.V[ed.j],ap=py&&ed.j==4,sa=L2?(ap?3:2):last,sg=L2?last:(ap?3:2);
+if(d2(pa(A),pa(Zv))>1e-9)L_(pa(A),pa(Zv),ed.fr?'sol':'hid',sa);
+if(d2(pg(A),pg(Zv))>1e-9)L_(pg(A),pg(Zv),ed.up?'sol':'hid',sg)});
+const G=(fn,mk,sf)=>{const M={};m.V.forEach((v,i)=>{const q=fn(v),k=q.map(x=>x.toFixed(4)).join();(M[k]=M[k]||{q,n:[]}).n.push(N[i]+mk)});return Object.values(M).map(o=>({q:o.q,t:o.n.join('='),st:sf(o.n.join())}))};
+G1=G(pa,'″',s=>L2?(/S/.test(s)?3:2):last);G2=G(pg,'′',s=>L2?last:(/S/.test(s)?3:2));
+const og=py?4:3,seen={};m.V.forEach(v=>{const a=pa(v),b=pg(v),k=a.map(x=>x.toFixed(3)).join()+'|'+b.map(x=>x.toFixed(3)).join();if(!seen[k]){seen[k]=1;L_(a,b,'aux',og)}});
+if(!pr){const aH=L2?[dn,od,'g']:[hn,hz,'h'],gD=L2?[hn,hz,'h']:[dn,od,'g'];
+dm.push([[ax0,e],[ax0,top],[-24,0],aH[0]+' = '+cm(aH[1]),sAu,aH[2]],[[ax0,top],[ax1,top],[0,-22],'a = '+cm(p.a),sAu,'g'],[[ax0,gy0],[ax1,gy0],[0,22],'a = '+cm(p.a),sGr,'g'],[[ax1,gy0],[ax1,gy1],[24,0],gD[0]+' = '+cm(gD[1]),sGr,gD[2]])}
+else{const bd=bdef(p),bm=L2?u=>[u[0],e+oy1-u[1]]:u=>[u[0],-(e+oy1-u[1])],q=bd.q.map(bm),cn=cen(q);
+q.forEach((u,k)=>{if((BT=='se'||BT=='ra')&&k>0)return;EL.push({a:u,b:q[(k+1)%q.length],c:cn,t:bd.nm[k]+' = '+cm(bd.lens[k]),st:2})});
+bd.aux.forEach(([u,v])=>L_(bm(u),bm(v),'aux',2));
+dm.push(L2?[[ax1,gy0],[ax1,gy1],[24,0],'h = '+cm(hz),last,'h']:[[ax0,e],[ax0,top],[-24,0],'h = '+cm(hz),last,'h'])}
+const ol=L2?`Zeichne in den Ecken des Aufrisses die Ordnungslinien senkrecht zur Rissachse nach unten bis zum Grundriss. Der Körper hat von beiden Bildebenen den Abstand e = ${ae}.`:`Zeichne in den Ecken des Grundrisses die Ordnungslinien senkrecht zur Rissachse nach oben bis zum Aufriss. Der Körper hat von beiden Bildebenen den Abstand e = ${ae}.`;
+const base=L2?`Zeichne den Aufriss (Vorderansicht): Die Grundfläche liegt parallel zu π₂ und erscheint in wahrer Gestalt im Abstand e = ${ae} über der Rissachse.`:`Zeichne den Grundriss (Draufsicht) unterhalb der Rissachse in wahrer Gestalt. Die hintere Kante hat den Abstand e = ${ae} von der Rissachse.`;
+const other=L2?`Trage unterhalb der Rissachse ab dem Abstand e = ${ae} die Körperhöhe ${cm(hz)} ab und zeichne den Grundriss.`:`Trage ab dem Abstand e = ${ae} über der Rissachse die Höhe ${cm(hz)} ab und zeichne den Aufriss (Vorderansicht). Verdeckte Kanten werden gestrichelt.`;
+tx=py?[s1,base,L2?'Zeichne die Diagonalen (gestrichelt, da verdeckt). Ihr Schnittpunkt S″ ist der Aufriss der Spitze.':'Zeichne die Diagonalen der Grundfläche. Ihr Schnittpunkt S′ ist der Grundriss der Spitze.',ol,other+' Die Spitze liegt auf der Ordnungslinie durch ihren anderen Riss.']:[s1,base,ol,other]}
+else{const r=p.r,h=p.h;e=.18*Math.max(2*r,h);ax0=-r;ax1=r;
+if(!L2){const cy=-(e+r);top=e+h;gy0=-(e+2*r);gy1=-e;
+if(t=='zylinder'){L_([-r,e],[r,e],'sol',4);L_([r,e],[r,e+h],'sol',4);L_([r,e+h],[-r,e+h],'sol',4);L_([-r,e+h],[-r,e],'sol',4)}else{L_([-r,e],[r,e],'sol',4);L_([r,e],[0,e+h],'sol',4);L_([0,e+h],[-r,e],'sol',4)}
+Ci.push([[0,cy],r,2]);L_([-1.2*r,cy],[1.2*r,cy],'aux',2);L_([0,cy-1.2*r],[0,cy+1.2*r],'aux',2);
+L_([-r,e],[-r,cy],'aux',3);L_([r,e],[r,cy],'aux',3);L_([0,e+h],[0,cy],'aux',3);
+G1=[{q:[0,e],t:'M″',st:4}];G2=[{q:[0,cy],t:t=='kegel'?'S′=M′':'M′',st:2}];if(t=='kegel')G1.push({q:[0,e+h],t:'S″',st:4});
+dm=[[[ax0,e],[ax0,top],[-24,0],'h = '+cm(h),4,'h']];sc=[[[r/2,cy],'r = '+cm(r),2,'g']];
+tx=[s1,`Zeichne den Grundriss: einen Kreis mit r = ${cm(r)}. Sein Mittelpunkt hat den Abstand e + r = ${cm(e+r)} von der Rissachse.`,'Zeichne die Ordnungslinien durch die Endpunkte des waagerechten Durchmessers und durch den Mittelpunkt senkrecht nach oben.',t=='zylinder'?`Trage ab dem Abstand e = ${cm(e)} über der Rissachse die Höhe h = ${cm(h)} ab: Der Aufriss ist ein Rechteck 2r × h.`:`Trage auf der Mittellinie ab e = ${cm(e)} die Höhe h = ${cm(h)} ab (Spitze S″). Der Aufriss ist ein gleichschenkliges Dreieck mit der Grundseite 2r.`]}
+else{const cy=e+r;top=e+2*r;gy0=-(e+h);gy1=-e;const cz=t=='zylinder';
+Ci.push([[0,cy],r,2]);L_([-1.2*r,cy],[1.2*r,cy],'aux',2);L_([0,cy-1.2*r],[0,cy+1.2*r],'aux',2);
+if(cz){L_([-r,gy0],[r,gy0],'sol',4);L_([r,gy0],[r,gy1],'sol',4);L_([r,gy1],[-r,gy1],'sol',4);L_([-r,gy1],[-r,gy0],'sol',4)}else{L_([-r,gy0],[r,gy0],'sol',4);L_([r,gy0],[0,gy1],'sol',4);L_([0,gy1],[-r,gy0],'sol',4)}
+L_([-r,cy],[-r,gy0],'aux',3);L_([r,cy],[r,gy0],'aux',3);L_([0,cy],[0,cz?gy0:gy1],'aux',3);
+G1=[{q:[0,cy],t:cz?'M″':'S″=M″',st:2}];G2=cz?[]:[{q:[0,gy1],t:'S′',st:4}];
+dm=[[[ax1,gy0],[ax1,gy1],[24,0],'h = '+cm(h),4,'h']];sc=[[[r/2,cy],'r = '+cm(r),2,'g']];
+tx=[s1,`Zeichne den Aufriss (Vorderansicht): Die Grundfläche liegt parallel zu π₂ und erscheint als Kreis mit r = ${cm(r)}. Sein Mittelpunkt hat den Abstand e + r = ${cm(e+r)} über der Rissachse.`,'Zeichne die Ordnungslinien senkrecht zur Rissachse nach unten durch die Endpunkte des waagerechten Durchmessers und durch den Mittelpunkt.',cz?`Trage ab dem Abstand e = ${cm(e)} unter der Rissachse die Höhe h = ${cm(h)} ab: Der Grundriss ist ein Rechteck 2r × h.`:`Trage ab dem Abstand e = ${cm(e)} die Höhe h = ${cm(h)} ab (Spitze S′). Der Grundriss ist ein gleichschenkliges Dreieck mit der Grundseite 2r.`]}}
+const W=ax1-ax0,xc=(ax0+ax1)/2;pts.push([ax0-.12*W,0],[ax1+.12*W,0],[xc,top],[xc,gy0]);
+ST={t:tx};STP=Math.min(STP,tx.length);
+const f=fit(pts,70,72);let s=DEFS+head('Zweitafelbild '+D[t].g,'Aufriss (Vorderansicht) und Grundriss (Draufsicht)');
+Ln.filter(l=>l[3]<=STP&&(SH.hl||l[2]!='aux')).sort((u,v)=>(u[2]=='hid'?0:u[2]=='aux'?-1:1)-(v[2]=='hid'?0:v[2]=='aux'?-1:1)).forEach(l=>s+=LN(f(l[0]),f(l[1]),l[2]));
+Ci.filter(c=>c[2]<=STP).forEach(c=>{const z=f(c[0]);s+=`<circle class="sol" cx="${f1(z[0])}" cy="${f1(z[1])}" r="${f1(c[1]*f.s)}"/>`});
+s+=LN(f([ax0-.12*W,0]),f([ax1+.12*W,0]),'ax')+(SH.cap?TX(f([ax1+.12*W,0]).map((v,i)=>v+(i?0:16)),'x₁₂','b'):'');
+const out=(q,c)=>{const z=f(q),w=f(c);let dx=z[0]-w[0],dy=z[1]-w[1];const l=Math.hypot(dx,dy)||1;return[z[0]+dx/l*14,z[1]+dy/l*14]};
+if(SH.pt){G1.filter(o=>o.st<=STP).forEach(o=>s+=TX(out(o.q,[xc,e+(top-e)/2]),o.t));G2.filter(o=>o.st<=STP).forEach(o=>s+=TX(out(o.q,[xc,(gy0+gy1)/2]),o.t))}
+if(SH.cap){if(STP>=sGr)s+=TX([f([xc,0])[0],f([xc,gy0])[1]+48],'Grundriss','m');if(STP>=sAu)s+=TX([f([xc,0])[0],f([xc,top])[1]-48],'Aufriss','m')}
+if(SH.ed){dm.filter(d=>d[4]<=STP).forEach(d=>{const a=f(d[0]),b=f(d[1]),o=d[2],A2=[a[0]+o[0],a[1]+o[1]],B2=[b[0]+o[0],b[1]+o[1]];
+s+=`<line class="dim" x1="${f1(A2[0])}" y1="${f1(A2[1])}" x2="${f1(B2[0])}" y2="${f1(B2[1])}" marker-start="url(#ar)" marker-end="url(#ar)"/>`+LN(a,A2,'dim')+LN(b,B2,'dim')+TX([(A2[0]+B2[0])/2+o[0]*.5,(A2[1]+B2[1])/2+o[1]*.5],NT(d[3]),'d'+d[5],o[0]?(o[0]>0?'start':'end'):'middle')});
+sc.filter(q=>q[2]<=STP).forEach(q=>{const z=f(q[0]);s+=TX([z[0]+4,z[1]-12],NT(q[1]),'d'+q[3])});
+EL.filter(l=>l.st<=STP).forEach(l=>s+=lbl(f(l.a),f(l.b),NT(l.t),f(l.c),undefined,'dg'))}
+return s}
+
+function netz(t,p){if(t=='kugel'){ST={t:[]};return head('Netz '+D[t].g)+TX([360,215],'Die Kugeloberfläche lässt sich nicht in die Ebene abwickeln.')+TX([360,245],'Deshalb gibt es kein Netz der Kugel.')}const S=[],T=[],Cs=[],LB=[],pts=[];let cur=1,tx;
+const pg=(q,nms,rls)=>{S.push([q,'net',cur]);pts.push(...q);const c=cen(q);if(nms)q.forEach((u,i)=>{if(nms[i])LB.push({a:u,b:q[(i+1)%q.length],c,t:nms[i],st:cur,rl:(rls&&rls[i])||'g'})})};
+const tx_=(q,s,dx=0,dy=0,c='',an='middle',fw)=>T.push([q,s,dx,dy,c,an,cur,fw]);
+const R=(x,y,w,h,wn,hn,nm,tn=wn,wr='g',hr='h')=>{pg([[x,y],[x+w,y],[x+w,y+h],[x,y+h]],[wn,hn,tn,hn],[wr,hr,wr,hr]);tx_([x+w/2,y+h/2],nm,0,0,'m','middle',w)};
+const ci=(x,y,r)=>{Cs.push([x,y,r,cur]);pts.push([x-r,y-r],[x+r,y+r])};
+const aux=(a,b,lab,dir,rl='g')=>{S.push([[a,b],'l'+rl,cur]);pts.push(a,b);if(lab)LB.push({a,b,t:lab,st:cur,aux:1,dir,rl})};
+if(t=='quader'||t=='wuerfel'){const a=p.a,b=t=='wuerfel'?a:p.b,c=t=='wuerfel'?a:p.c,A='a = '+cm(a),Bb=t=='wuerfel'?A:'b = '+cm(b),Cc=t=='wuerfel'?A:'c = '+cm(c),F=t=='wuerfel'?'Quadrat':'Rechteck';
+R(0,0,a,c,A,Cc,'Vorderseite');cur=2;R(-b,0,b,c,Bb,Cc,'Linke Seite');R(a,0,b,c,Bb,Cc,'Rechte Seite');cur=3;R(a+b,0,a,c,A,Cc,'Rückseite');cur=4;R(0,c,a,b,A,Bb,'Deckfläche',A,'g','g');cur=5;R(0,-b,a,b,A,Bb,'Grundfläche',A,'g','g');
+tx=[`Zeichne die Vorderseite als ${F} mit a = ${cm(a)} und c = ${cm(c)}.`,`Zeichne links und rechts an die Vorderseite die Seitenflächen mit b = ${cm(b)} und c = ${cm(c)}.`,'Zeichne rechts neben die rechte Seite die Rückseite (wie die Vorderseite).','Zeichne an die obere Kante der Vorderseite die Deckfläche.','Zeichne an die untere Kante der Vorderseite die Grundfläche.']}
+else if(t=='pyramide'){const a=p.a,b=p.b,h=p.h,ha=Math.hypot(h,b/2),hb=Math.hypot(h,a/2),s=Math.hypot(h,Math.hypot(a,b)/2),A='a = '+cm(a),Bb='b = '+cm(b),Sn='s = '+cm(s);
+R(0,0,a,b,A,Bb,'Grundfläche',A,'g','g');
+cur=2;pg([[0,b],[a,b],[a/2,b+ha]],['',Sn,Sn],['','s','s']);pg([[0,0],[a/2,-ha],[a,0]],['',Sn,Sn],['','s','s']);tx_([a/2,b+ha/3],'Seitenfläche',0,0,'m');tx_([a/2,-ha/3],'Seitenfläche',0,0,'m');
+aux([a/2,b],[a/2,b+ha],SUB('h','a')+' = '+cm(ha),[1,0],'s');
+cur=3;pg([[0,0],[0,b],[-hb,b/2]],['',Sn,Sn],['','s','s']);pg([[a,0],[a,b],[a+hb,b/2]],['',Sn,Sn],['','s','s']);tx_([-hb/3,b/2],'Seitenfläche',0,0,'m');tx_([a+hb/3,b/2],'Seitenfläche',0,0,'m');
+aux([a,b/2],[a+hb,b/2],SUB('h','b')+' = '+cm(hb),[0,-1],'s');
+tx=[`Zeichne die Grundfläche als Rechteck mit a = ${cm(a)} und b = ${cm(b)}.`,`Zeichne über den Kanten a (oben und unten) gleichschenklige Dreiecke mit der Höhe h<sub>a</sub> = ${cm(ha)}.`,`Zeichne über den Kanten b (links und rechts) gleichschenklige Dreiecke mit der Höhe h<sub>b</sub> = ${cm(hb)}.`]}
+else if(t=='prisma'){const bd=bdef(p),q=bd.q,n_=q.length,h=p.h,ln=bd.lens,nmv=k=>bd.nm[k]+' = '+cm(ln[k]),mw=Math.min(...ln);
+pg(q,q.map((_,k)=>nmv(k)));tx_(cen(q),'Grundfläche',0,0,'m','middle',mw);
+cur=2;let n0,u0;
+q.forEach((u,k)=>{const v=q[(k+1)%n_],d=[(v[0]-u[0])/ln[k],(v[1]-u[1])/ln[k]],nr=[d[1],-d[0]],A=[u[0]+nr[0]*h,u[1]+nr[1]*h],B2=[v[0]+nr[0]*h,v[1]+nr[1]*h];
+if(k==0){n0=nr;u0=u}
+pg([u,v,B2,A],['',k==0?'h = '+cm(h):'','',''],['','h','','']);tx_(cen([u,v,B2,A]),'Seitenfläche',0,0,'m','middle',Math.min(ln[k],h))});
+cur=3;const rf=X=>{const t_=(X[0]-u0[0])*n0[0]+(X[1]-u0[1])*n0[1]-h/2;return[X[0]-2*t_*n0[0],X[1]-2*t_*n0[1]]};
+const tp=q.map(rf);pg(tp);tx_(cen(tp),'Deckfläche',0,0,'m','middle',mw);
+tx=[`Zeichne die Grundfläche (${BN[BT]}) in wahrer Gestalt.`,`Zeichne an jede Kante der Grundfläche ein Rechteck mit der Höhe h = ${cm(h)} (Mantelfläche).`,'Zeichne an die Außenkante eines Rechtecks die kongruente Deckfläche (gespiegelt an der Mittellinie des Rechtecks).']}
+else if(t=='zylinder'){const r=p.r,h=p.h,U=2*Math.PI*r;R(0,0,U,h,'u = 2π·r = '+cm(U),'h = '+cm(h),'Mantelfläche');
+cur=2;ci(.3*U,h+r,r);tx_([.3*U,h+r],'Deckfläche',0,12,'m');aux([.3*U,h+r],[.3*U+r,h+r],'r = '+cm(r),[0,-1]);
+cur=3;ci(.7*U,-r,r);tx_([.7*U,-r],'Grundfläche',0,12,'m');aux([.7*U,-r],[.7*U+r,-r],'r = '+cm(r),[0,-1]);
+tx=[`Zeichne die Mantelfläche als Rechteck mit der Breite u = 2π·r = ${cm(U)} und der Höhe h = ${cm(h)}.`,`Zeichne die Deckfläche (Kreis mit r = ${cm(r)}) so, dass sie die obere Kante berührt.`,'Zeichne die Grundfläche als gleichen Kreis unter die untere Kante.']}
+else{const r=p.r,h=p.h,s=Math.hypot(r,h),th=2*Math.PI*r/s,a0=-Math.PI/2-th/2,Q=[[0,0]];for(let i=0;i<=80;i++){const a=a0+th*i/80;Q.push([s*Math.cos(a),s*Math.sin(a)])}
+pg(Q);tx_([0,-s*.55],'Mantelfläche',0,0,'m');
+LB.push({a:Q[0],b:Q[1],c:[0,-s*.5],t:'s = '+cm(s),st:1,rl:'s'},{a:Q[81],b:Q[0],c:[0,-s*.5],t:'s = '+cm(s),st:1,rl:'s'},{a:Q[20],b:Q[21],c:[0,0],t:'u = 2π·r = '+cm(2*Math.PI*r),st:1,rl:'g'});
+tx_([0,0],'α = '+n(360*r/s)+'°',0,26,'dg');
+cur=2;ci(0,-s-r,r);tx_([0,-s-r],'Grundfläche',0,12,'m');aux([0,-s-r],[r,-s-r],'r = '+cm(r),[0,-1]);
+tx=[`Berechne s = ${cm(s)} und den Mittelpunktswinkel α = 360° · r : s = ${n(360*r/s)}°. Zeichne den Kreissektor mit dem Radius s und dem Winkel α.`,`Zeichne die Grundfläche (Kreis mit r = ${cm(r)}) so, dass sie den Kreisbogen berührt.`]}
+ST={t:tx};STP=Math.min(STP,tx.length);
+const f=fit(pts);let o=head('Netz '+D[t].g);
+S.filter(x=>x[2]<=STP&&(SH.hl||x[1]=='net')).forEach(([q,c])=>o+=(c=='net'?PG:PL)(q.map(f),c));
+Cs.filter(c=>c[3]<=STP).forEach(([x,y,r])=>{const z=f([x,y]);o+=`<circle class="net" cx="${f1(z[0])}" cy="${f1(z[1])}" r="${f1(r*f.s)}"/>`});
+const seen=new Set();
+LB.filter(l=>l.st<=STP).forEach(l=>{const k=[l.a,l.b].map(z=>z.map(v=>v.toFixed(3)).join()).sort().join('|');if(seen.has(k))return;seen.add(k);
+const a=f(l.a),b=f(l.b);
+if(l.aux){if(!SH.hl||!SH.ed)return;const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2,d=l.dir;o+=d[0]?TX([mx+d[0]*8,my],NT(l.t),'d'+l.rl,d[0]>0?'start':'end'):TX([mx,my+d[1]*(8+FS*.6)],NT(l.t),'d'+l.rl)}
+else{o+=LN(a,b,'l'+l.rl);if(SH.ed)o+=lbl(a,b,NT(l.t),f(l.c),undefined,'d'+l.rl)}});
+T.filter(x=>x[6]<=STP).forEach(([q,s,dx,dy,c,an,_,fw])=>{if(c=='m'){if(!SH.fl)return;if(fw!=null&&fw*f.s<s.length*FS*.55+2*(FS+20))return}else if(!SH.ed)return;const z=f(q);o+=TX([z[0]+dx,z[1]+dy],/^d/.test(c)?NT(s):s,c,an)});
+return o}
+
+const EQ=(l,rs,fin)=>`<table class="eq">${rs.map((r,i)=>{const ap=/^≈/.test(r),x=ap?r.slice(1).trim():r,last=i==rs.length-1;return `<tr><td class="l">${i?'':l}</td><td>${ap?'≈':'='}</td><td>${fin&&last?`<span class="res">${x}</span>`:x}</td></tr>`}).join('')}</table>`;
+const TXT=s=>`<p class="st">${s}</p>`,SEC=(t,...a)=>`<section class="sec"><h3>${t}</h3>${a.join('')}</section>`;
+const AO='A<sub>O</sub>',AG='A<sub>G</sub>',AM='A<sub>M</sub>',val=(x,u)=>(Math.abs(Math.round(x*100)/100-x)>1e-9?'≈ ':'')+n(x)+' '+u;
+const Gs=s=>`<span class="kg">${s}</span>`,Gn=x=>`<span class="kg">${cm(x)}</span>`,Ss=s=>`<span class="ks">${s}</span>`,Sn=x=>`<span class="ks">${cm(x)}</span>`;
+function calc(t,p){const PI=Math.PI,{a,b,c,h,r,e,f,ha,m}=p,pv=p.p;
+const V=k=>`<span class="${RK(t,k)}">${k=='ha'?'h<sub>a</sub>':k}</span>`,Nv=(k,x=1)=>`<span class="${RK(t,k)}">${cm(p[k]*x)}</span>`;
+const gv=FLD(t).map(([k])=>`<span class="${RK(t,k)}">${k=='ha'?'h<sub>a</sub>':k} = ${cm(p[k])}</span>`).join(', ');let o;
+if(t=='wuerfel')o=[SEC('Volumen V',EQ('V',[`${V('a')}³`,`(${Nv('a')})³`,`${Nv('a')} · ${Nv('a')} · ${Nv('a')}`,val(a**3,'cm³')],1)),
+SEC('Oberflächeninhalt '+AO,TXT('Der Würfel wird von 6 gleich großen Quadraten begrenzt.'),EQ(AO,[`6 · ${V('a')}²`,`6 · (${Nv('a')})²`,`6 · ${n(a*a)} cm²`,val(6*a*a,'cm²')],1))];
+else if(t=='quader')o=[SEC('Volumen V',EQ('V',[`${V('a')} · ${V('b')} · ${V('c')}`,`${Nv('a')} · ${Nv('b')} · ${Nv('c')}`,val(a*b*c,'cm³')],1)),
+SEC('Oberflächeninhalt '+AO,TXT('Der Quader hat drei Paare gleich großer Rechtecke.'),EQ(AO,[`2 · (${V('a')}·${V('b')} + ${V('a')}·${V('c')} + ${V('b')}·${V('c')})`,`2 · (${Nv('a')}·${Nv('b')} + ${Nv('a')}·${Nv('c')} + ${Nv('b')}·${Nv('c')})`,`2 · (${n(a*b)} cm² + ${n(a*c)} cm² + ${n(b*c)} cm²)`,`2 · ${n(a*b+a*c+b*c)} cm²`,val(2*(a*b+a*c+b*c),'cm²')],1))];
+else if(t=='pyramide'){const ha_=Math.hypot(h,b/2),hb=Math.hypot(h,a/2),G=a*b,M=a*ha_+b*hb,Ha=Ss('h<sub>a</sub>'),Hb=Ss('h<sub>b</sub>');
+o=[SEC('Volumen V',TXT('Grundfläche (Rechteck)'),EQ(AG,[`${V('a')} · ${V('b')}`,`${Nv('a')} · ${Nv('b')}`,val(G,'cm²')]),TXT('Volumen der Pyramide'),EQ('V',[`⅓ · ${AG} · ${V('h')}`,`⅓ · ${n(G)} cm² · ${Nv('h')}`,val(G*h/3,'cm³')],1)),
+SEC('Oberflächeninhalt '+AO,TXT('Höhe der Seitenflächen über der Kante a'),EQ(Ha,[`√(${V('h')}² + (${V('b')}/2)²)`,`√((${Nv('h')})² + (${Nv('b',.5)})²)`,`√(${n(h*h)} cm² + ${n(b*b/4)} cm²)`,val(ha_,'cm')]),
+TXT('Höhe der Seitenflächen über der Kante b'),EQ(Hb,[`√(${V('h')}² + (${V('a')}/2)²)`,`√((${Nv('h')})² + (${Nv('a',.5)})²)`,`√(${n(h*h)} cm² + ${n(a*a/4)} cm²)`,val(hb,'cm')]),
+TXT('Mantel: zwei Paare gleicher Dreiecke'),EQ(AM,[`2 · ½ · ${V('a')} · ${Ha} + 2 · ½ · ${V('b')} · ${Hb}`,`${V('a')} · ${Ha} + ${V('b')} · ${Hb}`,`${Nv('a')} · ${Sn(ha_)} + ${Nv('b')} · ${Sn(hb)}`,val(M,'cm²')]),
+TXT('Oberflächeninhalt'),EQ(AO,[`${AG} + ${AM}`,`${n(G)} cm² + ${n(M)} cm²`,val(G+M,'cm²')],1))]}
+else if(t=='prisma'){const bd=bdef(p),ln=bd.lens;let gr=[],G,ag,ue;
+if(BT=='dg'){const s=ln[1];gr=[TXT('Länge der Schenkel'),EQ(Gs('s'),[`√((${V('a')}/2)² + ${V('ha')}²)`,`√((${Nv('a',.5)})² + (${Nv('ha')})²)`,`√(${n(a*a/4)} cm² + ${n(ha*ha)} cm²)`,val(s,'cm')])];G=a*ha/2;ag=[`½ · ${V('a')} · ${V('ha')}`,`½ · ${Nv('a')} · ${Nv('ha')}`,val(G,'cm²')];ue=[`${V('a')} + 2 · ${Gs('s')}`,`${Nv('a')} + 2 · ${Gn(s)}`,val(a+2*s,'cm')]}
+else if(BT=='dr'){const cc=ln[1];gr=[TXT('Hypotenuse'),EQ(Gs('c'),[`√(${V('a')}² + ${V('b')}²)`,`√((${Nv('a')})² + (${Nv('b')})²)`,`√(${n(a*a)} cm² + ${n(b*b)} cm²)`,val(cc,'cm')])];G=a*b/2;ag=[`½ · ${V('a')} · ${V('b')}`,`½ · ${Nv('a')} · ${Nv('b')}`,val(G,'cm²')];ue=[`${V('a')} + ${V('b')} + ${Gs('c')}`,`${Nv('a')} + ${Nv('b')} + ${Gn(cc)}`,val(a+b+cc,'cm')]}
+else if(BT=='al'){const s1=ln[1],s2=ln[2];gr=[TXT('Länge der Seiten b und c'),EQ(Gs('b'),[`√((${V('a')} − ${V('p')})² + ${V('ha')}²)`,`√((${Gn(a-pv)})² + (${Nv('ha')})²)`,`√(${n((a-pv)*(a-pv))} cm² + ${n(ha*ha)} cm²)`,val(s1,'cm')]),EQ(Gs('c'),[`√(${V('p')}² + ${V('ha')}²)`,`√((${Nv('p')})² + (${Nv('ha')})²)`,`√(${n(pv*pv)} cm² + ${n(ha*ha)} cm²)`,val(s2,'cm')])];G=a*ha/2;ag=[`½ · ${V('a')} · ${V('ha')}`,`½ · ${Nv('a')} · ${Nv('ha')}`,val(G,'cm²')];ue=[`${V('a')} + ${Gs('b')} + ${Gs('c')}`,`${Nv('a')} + ${Gn(s1)} + ${Gn(s2)}`,val(a+s1+s2,'cm')]}
+else if(BT=='pa'){G=a*ha;ag=[`${V('a')} · ${V('ha')}`,`${Nv('a')} · ${Nv('ha')}`,val(G,'cm²')];ue=[`2 · (${V('a')} + ${V('b')})`,`2 · (${Nv('a')} + ${Nv('b')})`,val(2*(a+b),'cm')]}
+else if(BT=='tr'){const d=ln[1];gr=[TXT('Länge der Schenkel'),EQ(Gs('d'),[`√(((${V('a')} − ${V('c')})/2)² + ${V('ha')}²)`,`√((${Gn((a-c)/2)})² + (${Nv('ha')})²)`,`√(${n((a-c)*(a-c)/4)} cm² + ${n(ha*ha)} cm²)`,val(d,'cm')])];G=(a+c)/2*ha;ag=[`½ · (${V('a')} + ${V('c')}) · ${V('ha')}`,`½ · (${Nv('a')} + ${Nv('c')}) · ${Nv('ha')}`,val(G,'cm²')];ue=[`${V('a')} + ${V('c')} + 2 · ${Gs('d')}`,`${Nv('a')} + ${Nv('c')} + 2 · ${Gn(d)}`,val(a+c+2*d,'cm')]}
+else if(BT=='ra'){const sd=ln[0];gr=[TXT('Seitenlänge'),EQ(Gs('a'),[`√((${V('e')}/2)² + (${V('f')}/2)²)`,`√((${Nv('e',.5)})² + (${Nv('f',.5)})²)`,`√(${n(e*e/4)} cm² + ${n(f*f/4)} cm²)`,val(sd,'cm')])];G=e*f/2;ag=[`½ · ${V('e')} · ${V('f')}`,`½ · ${Nv('e')} · ${Nv('f')}`,val(G,'cm²')];ue=[`4 · ${Gs('a')}`,`4 · ${Gn(sd)}`,val(4*sd,'cm')]}
+else if(BT=='dk'){const a_=ln[0],b_=ln[1];gr=[TXT('Länge der Seiten a und b'),EQ(Gs('a'),[`√((${V('f')}/2)² + ${V('m')}²)`,`√((${Nv('f',.5)})² + (${Nv('m')})²)`,`√(${n(f*f/4)} cm² + ${n(m*m)} cm²)`,val(a_,'cm')]),EQ(Gs('b'),[`√((${V('f')}/2)² + (${V('e')} − ${V('m')})²)`,`√((${Nv('f',.5)})² + (${Gn(e-m)})²)`,`√(${n(f*f/4)} cm² + ${n((e-m)*(e-m))} cm²)`,val(b_,'cm')])];G=e*f/2;ag=[`½ · ${V('e')} · ${V('f')}`,`½ · ${Nv('e')} · ${Nv('f')}`,val(G,'cm²')];ue=[`2 · (${Gs('a')} + ${Gs('b')})`,`2 · (${Gn(a_)} + ${Gn(b_)})`,val(2*(a_+b_),'cm')]}
+else{G=1.5*Math.sqrt(3)*a*a;ag=[`(3/2) · √3 · ${V('a')}²`,`(3/2) · √3 · (${Nv('a')})²`,val(G,'cm²')];ue=[`6 · ${V('a')}`,`6 · ${Nv('a')}`,val(6*a,'cm')]}
+const U=ln.reduce((x,y)=>x+y,0);
+o=[SEC('Grundfläche '+AG+' ('+BN[BT]+')',...gr,EQ(AG,ag)),SEC('Volumen V',EQ('V',[`${AG} · ${V('h')}`,`${n(G)} cm² · ${Nv('h')}`,val(G*h,'cm³')],1)),SEC('Oberflächeninhalt '+AO,TXT('Umfang der Grundfläche'),EQ('U',ue),TXT('Mantelfläche (Rechtecke nebeneinander)'),EQ(AM,[`U · ${V('h')}`,`${n(U)} cm · ${Nv('h')}`,val(U*h,'cm²')]),TXT('Oberflächeninhalt'),EQ(AO,[`2 · ${AG} + ${AM}`,`2 · ${n(G)} cm² + ${n(U*h)} cm²`,val(2*G+U*h,'cm²')],1))]}
+else if(t=='kegel'){const s=Math.hypot(r,h),G=PI*r*r,M=PI*r*s;
+o=[SEC('Volumen V',EQ('V',[`⅓ · π · ${V('r')}² · ${V('h')}`,`⅓ · π · (${Nv('r')})² · ${Nv('h')}`,`⅓ · π · ${n(r*r)} cm² · ${Nv('h')}`,val(G*h/3,'cm³')],1)),
+SEC('Oberflächeninhalt '+AO,TXT('Mantellinie'),EQ(Ss('s'),[`√(${V('r')}² + ${V('h')}²)`,`√((${Nv('r')})² + (${Nv('h')})²)`,`√(${n(r*r)} cm² + ${n(h*h)} cm²)`,val(s,'cm')]),
+TXT('Grundfläche'),EQ(AG,[`π · ${V('r')}²`,`π · (${Nv('r')})²`,val(G,'cm²')]),TXT('Mantelfläche'),EQ(AM,[`π · ${V('r')} · ${Ss('s')}`,`π · ${Nv('r')} · ${Sn(s)}`,val(M,'cm²')]),
+TXT('Oberflächeninhalt'),EQ(AO,[`${AG} + ${AM}`,`${n(G)} cm² + ${n(M)} cm²`,val(G+M,'cm²')],1))]}
+else if(t=='zylinder'){const G=PI*r*r,M=2*PI*r*h;
+o=[SEC('Volumen V',EQ('V',[`π · ${V('r')}² · ${V('h')}`,`π · (${Nv('r')})² · ${Nv('h')}`,`π · ${n(r*r)} cm² · ${Nv('h')}`,val(G*h,'cm³')],1)),
+SEC('Oberflächeninhalt '+AO,TXT('Grund- und Deckfläche (zwei gleiche Kreise)'),EQ(AG,[`π · ${V('r')}²`,`π · (${Nv('r')})²`,val(G,'cm²')]),TXT('Mantelfläche (Rechteck mit Umfang 2πr und Höhe h)'),EQ(AM,[`2 · π · ${V('r')} · ${V('h')}`,`2 · π · ${Nv('r')} · ${Nv('h')}`,val(M,'cm²')]),
+TXT('Oberflächeninhalt'),EQ(AO,[`2 · ${AG} + ${AM}`,`2 · ${n(G)} cm² + ${n(M)} cm²`,val(2*G+M,'cm²')],1))]}
+else o=[SEC('Volumen V',EQ('V',[`(4/3) · π · ${V('r')}³`,`(4/3) · π · (${Nv('r')})³`,`(4/3) · π · ${n(r**3)} cm³`,val(4/3*PI*r**3,'cm³')],1)),
+SEC('Oberflächeninhalt '+AO,EQ(AO,[`4 · π · ${V('r')}²`,`4 · π · (${Nv('r')})²`,`4 · π · ${n(r*r)} cm²`,val(4*PI*r*r,'cm²')],1))];
+return `<h2 class="lw">Lösungsweg</h2>`+TXT('Gegeben: '+gv)+o.join('')}
+
+const LAGE2=['quader','zylinder','prisma'],zl=t=>LAGE2.includes(t)?(ZLs[t]||'1'):'1';
+const VK=['s','n','z'],VN={s:'Schrägbild',n:'Netz',z:'Zweitafelbild'},ZMs={s:{z:1,x:0,y:0},n:{z:1,x:0,y:0},z:{z:1,x:0,y:0}};
+let DL=null,SOLTOT=1;
+function figs(){$('figs').innerHTML=VK.map(k=>`<section class="fig card" id="fg_${k}" hidden><div class="fh"><b>${VN[k]}</b><span class="sp"></span><button data-zm="-" data-f="${k}" title="Verkleinern">−</button><span class="mut" id="zl_${k}">100 %</span><button data-zm="+" data-f="${k}" title="Vergrößern">+</button><button data-zm="0" data-f="${k}" title="Zoom zurücksetzen">⟲</button><button data-png="${k}" class="pngb">Als PNG speichern</button></div><div id="sb_${k}" class="sbar"></div><svg id="sv_${k}" viewBox="0 0 720 460"></svg></section>`).join('')}
+function applyVB(k){const z=ZMs[k],w=720/z.z,h=460/z.z;z.x=Math.max(0,Math.min(720-w,z.x));z.y=Math.max(0,Math.min(460-h,z.y));const sv=$('sv_'+k);sv.setAttribute('viewBox',`${z.x} ${z.y} ${w} ${h}`);$('zl_'+k).textContent=Math.round(z.z*100)+' %';sv.style.touchAction=z.z>1?'none':'pan-y'}
+function zoomAt(k,f,cx,cy){const z=ZMs[k],nz=Math.max(1,Math.min(8,z.z*f));z.x=cx-(cx-z.x)*z.z/nz;z.y=cy-(cy-z.y)*z.z/nz;z.z=nz;applyVB(k)}
+function attach(k){const sv=$('sv_'+k),PT={},vp=e=>{const r=sv.getBoundingClientRect(),z=ZMs[k];return[z.x+(e.clientX-r.left)/r.width*720/z.z,z.y+(e.clientY-r.top)/r.height*460/z.z]};
+sv.addEventListener('wheel',e=>{if(!(e.ctrlKey||e.metaKey))return;e.preventDefault();const q=vp(e);zoomAt(k,e.deltaY<0?1.15:1/1.15,q[0],q[1])},{passive:false});
+sv.addEventListener('pointerdown',e=>{PT[e.pointerId]=[e.clientX,e.clientY];sv.setPointerCapture(e.pointerId)});
+sv.addEventListener('pointermove',e=>{const o=PT[e.pointerId];if(!o)return;const ids=Object.keys(PT),r=sv.getBoundingClientRect(),z=ZMs[k];
+if(ids.length==2){const o2=PT[ids.find(i=>i!=e.pointerId)],d0=Math.hypot(o[0]-o2[0],o[1]-o2[1]),d1=Math.hypot(e.clientX-o2[0],e.clientY-o2[1]);if(d0>0){const q=vp({clientX:(e.clientX+o2[0])/2,clientY:(e.clientY+o2[1])/2});zoomAt(k,d1/d0,q[0],q[1])}}
+else if(z.z>1){z.x-=(e.clientX-o[0])/r.width*720/z.z;z.y-=(e.clientY-o[1])/r.height*460/z.z;applyVB(k)}
+PT[e.pointerId]=[e.clientX,e.clientY]});
+['pointerup','pointercancel'].forEach(n=>sv.addEventListener(n,e=>{delete PT[e.pointerId]}))}
+const resetSteps=()=>{for(const k of VK)STPv[k]=99};
+function rndTask(){const r=(a,b)=>a+Math.floor(Math.random()*(b-a+1)),p=P[B];FLD(B).forEach(([k])=>p[k]=r(2,9));
+if(B=='prisma'){if(BT=='pa'){p.ha=r(2,5);p.b=p.ha+r(1,4)}if(BT=='tr')p.c=r(1,Math.max(1,p.a-1));if(BT=='dk')p.m=r(1,p.e-1);if(BT=='al')p.p=r(1,p.a)}}
+function menu(){const isP=B=='prisma';
+$('bodysel').innerHTML=Object.keys(D).map(k=>`<option value="${k}"${k==B?' selected':''}>${D[k].n}</option>`).join('');
+$('btw').hidden=!isP;if(isP)$('bt').innerHTML=Object.keys(BN).map(k=>`<option value="${k}"${k==BT?' selected':''}>${BN[k]}</option>`).join('');
+const pv=B=='zylinder'||isP;$('pvw').hidden=!pv||!VWs.s;
+if(pv){const o=isP?[['vorn','Grundfläche vorn (Höhe nach hinten)'],['st','Stehend']]:[['gf','Grundfläche vorn'],['st','Stehend'],['li','Liegend (Mantelfläche vorn)']],cur=isP?PV:ZV;$('pvsel').innerHTML=o.map(v=>`<option value="${v[0]}"${v[0]==cur?' selected':''}>${v[1]}</option>`).join('')}
+$('zlw').hidden=!LAGE2.includes(B)||!VWs.z;
+if(LAGE2.includes(B))$('zlsel').innerHTML=[['1','Stehend (Grundfläche parallel zu π₁)'],['2','Liegend (Grundfläche parallel zu π₂)']].map(v=>`<option value="${v[0]}"${v[0]==zl(B)?' selected':''}>${v[1]}</option>`).join('');
+$('inp').innerHTML=FLD(B).map(([k,l])=>`<label class="${RK(B,k)}">${l} <input type="number" class="in" data-k="${k}" min="0.1" step="0.1" value="${P[B][k]}"> cm</label>`).join('');
+document.querySelectorAll('[data-v]').forEach(b=>b.classList.toggle('on',VWs[b.dataset.v]))}
+function ui(){for(const k of VK)ZMs[k]={z:1,x:0,y:0};menu();draw()}
+function applySteps(){let c=0;$('solc').querySelectorAll('section,h3,.st,table,tr').forEach(nd=>{const s=nd.tagName=='TR'?++c:c+1;nd.classList.toggle('hs',s>(STEPMODE?SOLSTEP:Infinity));SOLTOT=Math.max(c,1)})}
+function draw(){const p=P[B],ok=FLD(B).every(([k])=>p[k]>0&&isFinite(p[k])),msg=ok?bad(B,p):'Bitte positive Zahlen eingeben.';
+document.body.classList.toggle('nocol',!SH.col);
+$('task').hidden=!TASK;if(TASK)$('task').innerHTML=`<b>Aufgabe:</b> Berechne das Volumen V und den Oberflächeninhalt ${AO} (${D[B].n}${B=='prisma'?', Grundfläche: '+BN[BT]:''}). Alle Längen in cm.`;
+for(const k of VK){const fg=$('fg_'+k);fg.hidden=!VWs[k];if(!VWs[k])continue;
+const sv=$('sv_'+k),sb=$('sb_'+k);sv.style.setProperty('--fs',FS+'px');sv.style.setProperty('--lw',LW);sv.classList.toggle('nc',!SH.col);
+let s;if(msg){s=TX([360,230],msg);STs[k]=[]}else{STP=STPv[k];ST={t:[]};s=k=='s'?schraeg(B,p):k=='n'?netz(B,p):zwei(B,p);STPv[k]=STP;STs[k]=ST.t}
+sv.innerHTML=s;const kk=STs[k].length,sp=Math.min(STPv[k],kk);sb.hidden=!kk;
+if(kk)sb.innerHTML=`<div class="row"><b>Zeichenschritte</b><button data-a="pv" data-f="${k}" ${sp<=1?'disabled':''}>‹ Zurück</button><button data-a="nx" data-f="${k}" ${sp>=kk?'disabled':''}>Weiter ›</button><button data-a="al" data-f="${k}" ${sp>=kk?'disabled':''}>Fertig gezeichnet</button><span class="mut">Schritt ${sp} von ${kk}</span></div><p>${STs[k][sp-1]}</p>`;
+applyVB(k)}
+$('calc').textContent=TASK?(OPEN?'Lösung ausblenden':'Lösung anzeigen'):(OPEN?'Berechnung ausblenden':'Volumen und Oberflächeninhalt berechnen');
+$('sol').hidden=!OPEN;
+if(OPEN&&!msg){$('sol').innerHTML=`<div class="row sctl">${STEPMODE?'<button data-s="pv">‹ Zurück</button><button data-s="nx">Nächster Schritt ›</button><button data-s="al">Alles anzeigen</button>':'<button data-s="mode">Schrittweise einblenden</button>'}</div><div id="solc">${calc(B,p)}</div>`;applySteps()}}
+async function png(k){if(!DL)return;const sv=$('sv_'+k),cs=getComputedStyle(sv);
+const css=[...document.querySelectorAll('style')].map(s=>s.textContent).join('\n').replace(/var\((--[\w-]+)(?:,\s*([^)]*))?\)/g,(m,a,b)=>cs.getPropertyValue(a).trim()||(b||''));
+const vb=sv.getAttribute('viewBox').split(' ').map(Number),W=1600,H=Math.round(W*vb[3]/vb[2]),bg=cs.getPropertyValue('--bg').trim()||'#fff';
+const xml=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb.join(' ')}" width="${W}" height="${H}" class="${sv.getAttribute('class')||''}"><style>${css}</style><rect x="${vb[0]}" y="${vb[1]}" width="${vb[2]}" height="${vb[3]}" fill="${bg}"/>${sv.innerHTML}</svg>`;
+const img=new Image();img.onload=()=>{const c=document.createElement('canvas');c.width=W;c.height=H;c.getContext('2d').drawImage(img,0,0);c.toBlob(bl=>{if(bl)DL.save({filename:`${D[B].n}-${VN[k]}.png`,data:bl}).catch(()=>{})},'image/png')};
+img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(xml)}
+function syncDL(){const hide=()=>document.querySelectorAll('.pngb').forEach(b=>b.hidden=true);if(window.claude&&claude.use)claude.use('downloads').then(d=>{DL=d;if(!d)hide()}).catch(hide);else hide()}
+const syncSH=()=>document.querySelectorAll('[data-sh]').forEach(c=>c.checked=SH[c.dataset.sh]);
+document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;
+if(d.v){VWs[d.v]=!VWs[d.v];if(!VWs.s&&!VWs.n&&!VWs.z)VWs[d.v]=true;menu();draw()}
+else if(d.zm){const k=d.f,z=ZMs[k];if(d.zm=='0'){z.z=1;z.x=0;z.y=0;applyVB(k)}else zoomAt(k,d.zm=='+'?1.3:1/1.3,z.x+360/z.z,z.y+230/z.z)}
+else if(d.png)png(d.png)
+else if(d.a){const k=d.f,m=STs[k].length;STPv[k]=d.a=='pv'?Math.max(1,Math.min(STPv[k],m)-1):d.a=='nx'?Math.min(m,STPv[k]+1):99;draw()}
+else if(d.s){if(d.s=='mode'){STEPMODE=true;SOLSTEP=1}else if(d.s=='nx')SOLSTEP=Math.min(SOLTOT,SOLSTEP+1);else if(d.s=='pv')SOLSTEP=Math.max(1,SOLSTEP-1);else{STEPMODE=false;SOLSTEP=Infinity}draw()}
+else if(d.all!==undefined){['pt','ed','val','fl','cap'].forEach(k=>SH[k]=d.all=='1');syncSH();draw()}
+else if(b.id=='calc'){OPEN=!OPEN;draw()}
+else if(b.id=='newtask'){rndTask();TASK=true;$('task_on').checked=true;OPEN=false;STEPMODE=false;SOLSTEP=Infinity;menu();draw()}});
+document.addEventListener('change',e=>{const t=e.target,id=t.id;
+if(id=='bodysel'){B=t.value;resetSteps();STEPMODE=false;SOLSTEP=Infinity;ui()}
+else if(id=='bt'){BT=t.value;resetSteps();menu();draw()}
+else if(id=='pvsel'){if(B=='zylinder')ZV=t.value;else PV=t.value;resetSteps();draw()}
+else if(id=='zlsel'){ZLs[B]=t.value;resetSteps();draw()}
+else if(id=='task_on'){TASK=t.checked;if(TASK){OPEN=false;STEPMODE=false;SOLSTEP=Infinity}draw()}
+else if(t.dataset.sh){SH[t.dataset.sh]=t.checked;draw()}});
+document.addEventListener('input',e=>{const t=e.target;if(t.classList.contains('in')){P[B][t.dataset.k]=t.valueAsNumber;draw()}
+else if(t.id=='fs'){FS=+t.value;$('fsv').textContent=FS;draw()}else if(t.id=='lw'){LW=+t.value;$('lwv').textContent=LW;draw()}});
+figs();VK.forEach(attach);syncDL();ui();
+</script></body></html>

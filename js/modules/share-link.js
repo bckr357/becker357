@@ -145,6 +145,9 @@ window.MTGShareLinkModule = {
         const read = urlLike => {
             try {
                 const url = new URL(urlLike, window.location.href);
+                const taskMode = url.searchParams.get('mode') === 'calculator'
+                    ? 'calculator'
+                    : 'standard';
                 const rawGradeStr = url.searchParams.get('c') || url.searchParams.get('klasse') || url.searchParams.get('grade');
                 const rawGrade = Number(rawGradeStr);
                 const grade = rawGradeStr === 'GS'
@@ -194,7 +197,7 @@ window.MTGShareLinkModule = {
                     ?? url.searchParams.get('ueberschrift');
                 const weights = decodeWeights(url.searchParams.get('w'));
 
-                return { grade, types, taskCount, arrangement, pages, presentationColumns, worksheetTitle, weights };
+                return { grade, types, taskCount, arrangement, pages, presentationColumns, worksheetTitle, weights, taskMode };
             } catch (error) {
                 console.warn('MTG: Fehler beim Lesen der URL.', error);
                 return {
@@ -205,7 +208,8 @@ window.MTGShareLinkModule = {
                     pages: null,
                     presentationColumns: null,
                     worksheetTitle: null,
-                    weights: null
+                    weights: null,
+                    taskMode: 'standard'
                 };
             }
         };
@@ -219,7 +223,8 @@ window.MTGShareLinkModule = {
             presentationColumns,
             worksheetTitle,
             weights,
-            weightsEnabled
+            weightsEnabled,
+            taskMode
         }) => {
             const url = new URL(urlLike, window.location.href);
             if (['http:', 'https:'].includes(url.protocol) && url.pathname.endsWith('/index.html')) {
@@ -232,6 +237,10 @@ window.MTGShareLinkModule = {
             url.searchParams.delete('types');
             url.searchParams.delete('title');
             url.searchParams.delete('ueberschrift');
+            url.searchParams.delete('mode');
+            if (taskMode === 'calculator') {
+                url.searchParams.set('mode', 'calculator');
+            }
 
             if (grade === 'GS' || (Number.isInteger(grade) && grade >= 5 && grade <= 10 && grade !== MTG_SHARE_DEFAULT_GRADE)) {
                 url.searchParams.set('c', String(grade));

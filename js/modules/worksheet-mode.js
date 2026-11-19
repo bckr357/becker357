@@ -5,7 +5,10 @@ window.MTGWorksheetModeModule = {
             const classConfig = (typeof taskTypesByGrade === 'object' && taskTypesByGrade)
                 ? taskTypesByGrade
                 : {};
-            const configured = classConfig[`klasse${selectedGrade?.value}`];
+            const gradeKey = selectedGrade?.value === 'GS'
+                ? 'grundschule'
+                : `klasse${selectedGrade?.value}`;
+            const configured = classConfig[gradeKey];
 
             if (!Array.isArray(configured)) {
                 return allTypes;
