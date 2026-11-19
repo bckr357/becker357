@@ -418,7 +418,7 @@ cv.addEventListener('pointermove',e=>{mouse=pos(e);
   else if(drag.t=='leg'){legPos={x:mouse.x-drag.dx,y:mouse.y-drag.dy}}
   else{if(drag.pending&&Math.hypot(e.clientX-drag.px,e.clientY-drag.py)<3){hover=hit(mouse.x,mouse.y);draw();return}
    if(drag.pending){push();drag.pending=false;drag.moved=1;drag.pts.forEach(p=>{p.cx=null})}
-   let dx=wx(mouse.x)-drag.mx,dy=wy(mouse.y)-drag.my;if($('ras').checked&&!$('fix').checked){const step=+$('step').value||.1;dx=Math.round(dx/step)*step;dy=Math.round(dy/step)*step}
+   let dx=wx(mouse.x)-drag.mx,dy=wy(mouse.y)-drag.my;if($('ras').checked&&!$('fix').checked){const step=+$('step').value||.1;dx=Math.round((drag.o[0].x+dx)/step)*step-drag.o[0].x;dy=Math.round((drag.o[0].y+dy)/step)*step-drag.o[0].y}
    if(!drag.moved&&(dx||dy)){push();drag.moved=1;drag.pts.forEach(p=>{p.cx=null})}
    drag.pts.forEach((p,i)=>{p.x=drag.o[i].x+dx;p.y=drag.o[i].y+dy});rebuild()}}
  hover=hit(mouse.x,mouse.y);const lm=['style','label','move','del','arc'].includes(mode)&&(!hover||mode=='arc');hk=lm?arcHit(mouse.x,mouse.y):-1;hl=lm&&hk<0?lineHit(mouse.x,mouse.y):-1;draw()});

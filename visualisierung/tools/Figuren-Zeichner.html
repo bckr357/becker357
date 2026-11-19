@@ -33,6 +33,9 @@ details.card>.ctl{margin-top:10px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:10px}
 label{display:block;font-size:.85rem;color:var(--mut)}
 input[type=text],select{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+.grid.triangle-fields{grid-template-columns:repeat(9,minmax(82px,1fr));gap:12px}
+.grid.triangle-fields label{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:1.05rem;font-weight:700;color:var(--txt);line-height:1.25}
+.grid.triangle-fields input[type=text]{text-align:center;font-size:1rem}
 .hint{font-size:.88rem;color:var(--mut);margin:8px 0 0}
 .err{color:var(--err);margin:8px 0 0;font-weight:600}
 .btns{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
@@ -51,6 +54,7 @@ input[type=text],select{width:100%;padding:7px 9px;border:1px solid var(--line);
 .arow label span{float:right}
 #svg{width:100%;height:auto;display:block}
 .g3{grid-template-columns:repeat(3,minmax(0,1fr));max-width:600px}
+@media (max-width:860px){.grid.triangle-fields{grid-template-columns:repeat(3,minmax(82px,1fr))}}
 .top{margin-bottom:14px}
 .poly{fill:var(--fill);stroke:var(--txt);stroke-width:var(--sw,1.3);stroke-linejoin:round}
 .arc{fill:none;stroke:var(--txt);stroke-width:calc(var(--sw,1.3)*.6)}
@@ -64,11 +68,20 @@ input[type=text],select{width:100%;padding:7px 9px;border:1px solid var(--line);
 table{border-collapse:collapse;width:100%;font-size:.92rem}
 td,th{padding:5px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
 th{color:var(--mut);font-weight:600;font-size:.82rem}
+th.solution,td.solution{width:58%;min-width:360px}
+td.solution{line-height:1.65}
+td.solution mjx-container{margin:.12em 0!important}
 .gv{color:#1a7f37}.cv{color:var(--acc)}
 mjx-container{margin:0!important}
 </style>
-<script>window.MathJax={svg:{fontCache:"none"},options:{enableMenu:false}};</script>
-<script defer src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.js"></script>
+<script>
+window.MathJax={
+ tex:{inlineMath:[['\\(','\\)']],packages:{'[-]':['textmacros']}},
+ chtml:{mtextInheritFont:true,matchFontHeight:false,scale:1},
+ output:{font:'mathjax-stix2'}
+};
+</script>
+<script id="MathJax-script" defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
 </head>
 <body>
 <main>
@@ -126,15 +139,15 @@ mjx-container{margin:0!important}
 <script>
 const R=Math.PI/180, W=640, H=460, M=78;
 const LBL={a:'a',b:'b',c:'c',d:'d',al:'α',be:'β',ga:'γ',de:'δ',ha:'h_a',hb:'h_b',hc:'h_c'};
-const FL={a:'a',b:'b',c:'c',d:'d',al:'α in °',be:'β in °',ga:'γ in °',ha:'h<sub>a</sub>',hb:'h<sub>b</sub>',hc:'h<sub>c</sub>'};
+const FL={a:'\\(a\\)',b:'\\(b\\)',c:'\\(c\\)',d:'\\(d\\)',al:'\\(\\alpha\\)',be:'\\(\\beta\\)',ga:'\\(\\gamma\\)',ha:'\\(h_a\\)',hb:'\\(h_b\\)',hc:'\\(h_c\\)'};
 const isAng=k=>['al','be','ga','de'].includes(k);
 const QT={
  quadrat:{n:'Quadrat',f:['a'],h:'Eine Seite a genügt.'},
  rechteck:{n:'Rechteck',f:['a','b'],h:'Zwei benachbarte Seiten a (AB) und b (BC).'},
- raute:{n:'Raute',f:['a','al','ha'],req:['a'],alt:['al','ha'],fl:{ha:'h'},h:'Seitenlänge a und Winkel α bei A oder Höhe h.'},
- para:{n:'Parallelogramm',f:['a','b','al','ha','hb'],req:['a','b'],alt:['al','ha','hb'],fl:{ha:'h<sub>a</sub>',hb:'h<sub>b</sub>'},h:'Seiten a (AB), b (BC) und Winkel α bei A oder eine Höhe (h_a auf a, h_b auf b).'},
+ raute:{n:'Raute',f:['a','al','ha'],req:['a'],alt:['al','ha'],fl:{ha:'\\(h\\)'},h:'Seitenlänge a und Winkel α bei A oder Höhe h.'},
+ para:{n:'Parallelogramm',f:['a','b','al','ha','hb'],req:['a','b'],alt:['al','ha','hb'],fl:{ha:'\\(h_a\\)',hb:'\\(h_b\\)'},h:'Seiten a (AB), b (BC) und Winkel α bei A oder eine Höhe (h_a auf a, h_b auf b).'},
  drachen:{n:'Drachen',f:['a','b','be'],h:'AB = AD = a, BC = CD = b, Winkel β bei B (zwischen a und b).'},
- trapez:{n:'Gleichschenkliges Trapez',f:['a','c','al','ha'],req:['a','c'],alt:['al','ha'],fl:{ha:'h'},h:'Parallele Seiten a (AB) und c (CD), Basiswinkel α bei A oder Höhe h.'},
+ trapez:{n:'Gleichschenkliges Trapez',f:['a','c','al','ha'],req:['a','c'],alt:['al','ha'],fl:{ha:'\\(h\\)'},h:'Parallele Seiten a (AB) und c (CD), Basiswinkel α bei A oder Höhe h.'},
  allg1:{n:'Allgemeines Viereck: a, b, α, β, γ',f:['a','b','al','be','ga'],h:'Fünf Angaben sind mindestens nötig (2·4 − 3). Hier: zwei Seiten und drei Winkel.'},
  allg2:{n:'Allgemeines Viereck: a, b, c, d, α',f:['a','b','c','d','al'],h:'Fünf Angaben: alle vier Seiten und ein Winkel. Es kann zwei Lösungen geben.'}
 };
@@ -150,9 +163,20 @@ const uL=()=>{const u=$('#unit').value;return u?'\\,\\text{'+u+'}':''};
 const u2L=()=>{const u=$('#unit').value;return u?'\\,\\text{'+u+'}^2':''};
 const vL=x=>fL(x)+uL(),aL=x=>fL(x)+'^\\circ',qL=x=>'{'+fL(x)+'}^2';
 function setFields(keys,preset={},fl){
-  $('#fields').classList.toggle('g3',mode==='T');
+  $('#fields').classList.toggle('triangle-fields',mode==='T');
+  $('#fields').classList.remove('g3');
   $('#fields').innerHTML=keys.map(k=>`<label>${(fl&&fl[k])||FL[k]}${['a','b','c','d'].includes(k)?'':''}<input type="text" inputmode="decimal" data-k="${k}" value="${preset[k]??''}"></label>`).join('');
   document.querySelectorAll('#fields input').forEach(i=>i.addEventListener('keydown',e=>{if(e.key==='Enter')run()}));
+  typesetFields();
+}
+async function typesetFields(){
+  for(let i=0;i<40;i++){
+    if(window.MathJax&&typeof window.MathJax.typesetPromise==='function'){
+      await window.MathJax.typesetPromise([$('#fields')]).catch(()=>{});
+      return;
+    }
+    await new Promise(resolve=>setTimeout(resolve,25));
+  }
 }
 function setMode(m){
   mode=m;vis();$('#tabT').classList.toggle('on',m==='T');$('#tabQ').classList.toggle('on',m==='Q');
@@ -420,14 +444,24 @@ function draw(){
     });
     const per=sk.reduce((s2,k)=>s2+val[k],0),ar=.5*val.c*hv[2];
     rowsA.push(['Umfang \\(u\\)',fmt(per)+u,'cv','berechnet','u = a + b + c = '+['a','b','c'].map(k=>vL(val[k])).join(' + ')+' = '+vL(per)]);
-    rowsA.push(['Flächeninhalt \\(A\\)',fmt(ar)+u2,'cv','berechnet',`A = \\frac{1}{2}\\cdot c\\cdot h_c = \\frac{1}{2}\\cdot ${vL(val.c)}\\cdot ${vL(hv[2])} = ${fL(ar)}${u2L()}`]);
+    rowsA.push(['Flächeninhalt \\(A\\)',fmt(ar)+u2,'cv','berechnet',[
+      `A = \\frac{1}{2}\\cdot c\\cdot h_c = \\frac{1}{2}\\cdot ${vL(val.c)}\\cdot ${vL(hv[2])} = ${fL(ar)}${u2L()}`,
+      `A = \\frac{1}{2}\\cdot b\\cdot c\\cdot\\sin\\alpha = \\frac{1}{2}\\cdot ${vL(val.b)}\\cdot ${vL(val.c)}\\cdot\\sin ${aL(val.al)} = ${fL(ar)}${u2L()}`
+    ]]);
   }else{
     for(const [id,hk,nm,ft] of QS.hrows){const isG=given.includes(hk);if(!($('#hcalc').checked||$('#hq'+id).checked||isG))continue;rowsA.push(['\\('+nm+'\\)',fmt(val[hk])+u,isG?'gv':'cv',isG?'gegeben':'berechnet',isG?'':ft])}
     rowsA.push(['Umfang \\(u\\)',fmt(QS.per.v)+u,'cv','berechnet',QS.per.t]);
     rowsA.push(['Flächeninhalt \\(A\\)',fmt(QS.area.v)+u2,'cv','berechnet',QS.area.t]);
   }
-  $('#tbl').innerHTML=`<div style="overflow-x:auto"><table><tr><th>Größe</th><th>Wert</th><th></th>${SOL?'<th>Lösungsweg</th>':''}</tr>${rowsA.map(r=>`<tr><td>${r[0]}</td><td class="${r[2]}">${r[1]}</td><td>${r[3]}</td>${SOL?(r[4]?`<td>\\(${r[4]}\\)</td>`:'<td></td>'):''}</tr>`).join('')}</table></div>`;
-  if(window.MathJax&&MathJax.typesetPromise)MathJax.typesetPromise([$('#tbl')]).catch(()=>{});
+  $('#tbl').innerHTML=`<div style="overflow-x:auto"><table><tr><th>Größe</th><th>Wert</th><th></th>${SOL?'<th class="solution">Lösungsweg</th>':''}</tr>${rowsA.map(r=>`<tr><td>${r[0]}</td><td class="${r[2]}">${r[1]}</td><td>${r[3]}</td>${SOL?(r[4]?`<td class="solution">${(Array.isArray(r[4])?r[4]:[r[4]]).map(t=>`\\(${t}\\)`).join('<br>')}</td>`:'<td class="solution"></td>'):''}</tr>`).join('')}</table></div>`;
+  (async()=>{
+    for(let i=0;i<40;i++){
+      if(window.MathJax&&typeof MathJax.typesetPromise==='function'){
+        await MathJax.typesetPromise([$('#tbl')]).catch(()=>{});return;
+      }
+      await new Promise(resolve=>setTimeout(resolve,25));
+    }
+  })();
 }
 
 function triSteps(val,given){
