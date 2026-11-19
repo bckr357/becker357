@@ -56,7 +56,7 @@ createApp({
         const viewTabs = isQuizEnabled
             ? state.viewTabs
             : state.viewTabs.filter(tab => tab.key !== 'quiz');
-        const allTypes = sortByTypeDefinitions(Object.keys(typeLabels));
+        const allTypes = Object.keys(typeLabels);
         const selectedGrade = ref(10);
         const gradeOptions = ['GS', 5, 6, 7, 8, 9, 10];
         const randomSelectionConfig = ref(window.MTG_RANDOM_SELECTION_CONFIG ?? null);
@@ -88,10 +88,6 @@ createApp({
         const classConfig = (typeof taskTypesByGrade === 'object' && taskTypesByGrade)
             ? taskTypesByGrade
             : {};
-        const quizClassConfig = (isQuizEnabled && typeof quizTaskTypesByGrade === 'object' && quizTaskTypesByGrade)
-            ? quizTaskTypesByGrade
-            : classConfig;
-
         const visibleTypeKeys = computed(() => {
             const gradeKey = selectedGrade.value === 'GS' ? 'grundschule' : `klasse${selectedGrade.value}`;
             const configured = classConfig[gradeKey];
@@ -101,20 +97,20 @@ createApp({
             }
 
             const validKeys = configured.filter(type => Object.prototype.hasOwnProperty.call(typeLabels, type));
-            return validKeys.length > 0 ? sortByTypeDefinitions(validKeys) : allTypes;
+            return validKeys.length > 0 ? validKeys : allTypes;
         });
 
         const visibleTypeEntries = computed(() => visibleTypeKeys.value.map(key => [key, typeLabels[key]]));
         const quizVisibleTypeKeys = computed(() => {
             const gradeKey = selectedGrade.value === 'GS' ? 'grundschule' : `klasse${selectedGrade.value}`;
-            const configured = quizClassConfig[gradeKey];
+            const configured = classConfig[gradeKey];
 
             if (!Array.isArray(configured)) {
                 return allTypes;
             }
 
             const validKeys = configured.filter(type => Object.prototype.hasOwnProperty.call(typeLabels, type));
-            return validKeys.length > 0 ? sortByTypeDefinitions(validKeys) : allTypes;
+            return validKeys.length > 0 ? validKeys : allTypes;
         });
 
         const quizVisibleTypeEntries = computed(() => quizVisibleTypeKeys.value.map(key => [key, typeLabels[key]]));
@@ -451,7 +447,7 @@ createApp({
             state.taskCount.value = state.tasks.value.length;
         };
 
-        const builderTaskOptions = () => builderQuizMode.value ? { singleTask: true } : {};
+        const builderTaskOptions = () => builderQuizMode.value ? { mode: 'quiz' } : {};
 
         const builderGenerateTaskPreview = async type => {
             const task = taskGeneration.generateTaskByType(type, 'default', builderTaskOptions());
@@ -1322,8 +1318,7 @@ createApp({
             quizImportInput: quizMode.quizImportInput,
             generateQuiz: quizMode.generateQuiz,
             toggleQuizSolutions: quizMode.toggleQuizSolutions,
-            typeLabels,
-            typeDescriptions
+            typeLabels
         };
     }
 }).mount('#app');

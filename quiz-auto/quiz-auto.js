@@ -13,7 +13,12 @@ const app = createApp({
 		const grade = ref(10);
 		const selectedTypes = ref([]);
 		const shareLink = window.MTGShareLinkModule.createCodec(window.MTGShareLinkTypeRegistry);
-		const quizTypeLabels = { ...window.typeLabels, ...window.QUIZ_AUTO_TYPE_LABELS };
+		const quizTypeLabels = Object.fromEntries(
+			Object.entries(window.taskTypeDefinitions).map(([key, definition]) => [
+				key,
+				definition.quizLabel ?? definition.label
+			])
+		);
 		const initialShareConfig = shareLink.read(window.location.href);
 		if (initialShareConfig.grade !== null) {
 			grade.value = initialShareConfig.grade;
@@ -46,12 +51,7 @@ const app = createApp({
 			const gradeKey = grade.value === 'GS' ? 'grundschule' : `klasse${grade.value}`;
 			const configured = quizAutoTaskTypesByGrade[gradeKey] || [];
 			const quizTypes = new Set(window.QUIZ_AUTO_TYPES || []);
-			return [...new Set(configured)].filter(type => quizTypes.has(type)).sort((a, b) => {
-				const orderA = window.QUIZ_AUTO_TYPE_ORDER_INDEX?.[a] ?? Number.MAX_SAFE_INTEGER;
-				const orderB = window.QUIZ_AUTO_TYPE_ORDER_INDEX?.[b] ?? Number.MAX_SAFE_INTEGER;
-				if (orderA !== orderB) return orderA - orderB;
-				return a.localeCompare(b);
-			});
+			return [...new Set(configured)].filter(type => quizTypes.has(type));
 		});
 
 		if (initialShareConfig.types && initialShareConfig.types.length > 0) {
@@ -250,7 +250,7 @@ const app = createApp({
 			if (selectedTypes.value.length === 0) return null;
 
 			const type = selectedTypes.value[randInt(0, selectedTypes.value.length - 1)];
-			const generated = createTask(type, grade.value, { mode: 'quiz', singleTask: true });
+			const generated = createTask(type, grade.value, { mode: 'quiz' });
 
 			return reactive({
 				type,

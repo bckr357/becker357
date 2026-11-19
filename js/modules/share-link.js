@@ -1,6 +1,5 @@
 // Kompakte URL-Codierung fuer vorausgewaehlte Aufgabentypen.
-// Die IDs kommen aus einer stabilen, anwendungsbezogenen Registry und sind
-// unabhaengig von der Reihenfolge der sichtbaren typeDefinitions.
+// Die IDs kommen aus dem gemeinsamen taskTypeDefinitions-Katalog.
 const MTG_SHARE_DEFAULT_GRADE = 10;
 const MTG_SHARE_DEFAULT_TASK_COUNT = 20;
 

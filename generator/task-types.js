@@ -2,38 +2,6 @@
 // AUFGABEN-TYP-DEFINITIONEN
 // ==============================================================
 
-const QUIZ_AUTO_TYPES = [
-	'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren',
-	'prozentrechnung', 'prozentuale_veraenderung', 'zinsen', 'terme_zusammenfassen', 'terme_umformen', 'terme_einsetzen', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig', 'vorrang', 'runden',
-	'potenzen', 'einheiten', 'statistik', 'zahlengerade',
-	'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_kuerzen', 'brueche_umwandeln', 'anteile', 'wahrscheinlichkeiten',
-	'geometrie', 'proportionalitaet', 'einheiten_umrechnen',
-	'einmaleins_2', 'geteilt_durch_2', 'einmaleins_3', 'geteilt_durch_3',
-	'einmaleins_4', 'geteilt_durch_4', 'einmaleins_5', 'geteilt_durch_5',
-	'einmaleins_6', 'geteilt_durch_6', 'einmaleins_7', 'geteilt_durch_7',
-	'einmaleins_8', 'geteilt_durch_8', 'einmaleins_9', 'geteilt_durch_9',
-	'einmaleins_10', 'geteilt_durch_10',
-	'addition_bis_10', 'subtraktion_bis_10', 'addition_bis_20', 'subtraktion_bis_20',
-	'addition_bis_50', 'subtraktion_bis_50', 'addition_bis_100', 'subtraktion_bis_100',
-	'addition_bis_1000', 'subtraktion_bis_1000',
-	'kleines_1x1_multiplikation', 'kleines_1x1_division', 'kleines_1x1_komplett',
-	'addition_subtraktion_bis_20', 'addition_subtraktion_bis_100', 'addition_subtraktion_bis_1000'
-];
-
-const quizAutoTypeOrderIndex = Object.fromEntries(["teiler","primzahlen","einheiten","einheiten_umrechnen","potenzen","natuerliche_zahlen_addieren_subtrahieren","natuerliche_zahlen_multiplizieren_dividieren","ganze_zahlen_addieren_subtrahieren","ganze_zahlen_multiplizieren_dividieren","dezimalbrueche_addieren_subtrahieren","dezimalbrueche_multiplizieren_dividieren","zehnerpotenzen_multiplizieren_dividieren","vorrang","brueche_kuerzen","brueche_umwandeln","brueche_addieren_subtrahieren","brueche_multiplizieren_dividieren","brueche_ordnen","runden","zahlengerade","anteile","proportionalitaet","prozentrechnung","prozentuale_veraenderung","zinsen","terme_zusammenfassen","terme_umformen","terme_einsetzen","wortterme","lineare_gleichungen","lineare_gleichungen_beidseitig","lineare_gleichungen_umstellen","formel_umstellen","geometrie","winkel","schraegbild","wahrscheinlichkeiten","lineare_funktionen_zeichnen","funktionen","statistik","einmaleins_2","geteilt_durch_2","einmaleins_3","geteilt_durch_3","einmaleins_4","geteilt_durch_4","einmaleins_5","geteilt_durch_5","einmaleins_6","geteilt_durch_6","einmaleins_7","geteilt_durch_7","einmaleins_8","geteilt_durch_8","einmaleins_9","geteilt_durch_9","einmaleins_10","geteilt_durch_10","addition_bis_10","subtraktion_bis_10","addition_bis_20","subtraktion_bis_20","addition_bis_50","subtraktion_bis_50","addition_bis_100","subtraktion_bis_100","addition_bis_1000","subtraktion_bis_1000","kleines_1x1_multiplikation","kleines_1x1_division","kleines_1x1_komplett","addition_subtraktion_bis_20","addition_subtraktion_bis_100","addition_subtraktion_bis_1000"].map((key, index) => [key, index]));
-
-const taskCategories = {
-	arithmetic: ['natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'potenzen', 'schriftliche_addition_subtraktion', 'schriftliche_multiplikation_division', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'runden', 'ueberschlag', 'zahlengerade', 'vorrang'],
-	tables: ['additionstabellen', 'multiplikationstabellen', 'subtraktionstabellen', 'termtabellen'],
-	fractions: ['brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_kuerzen', 'brueche_umwandeln', 'brueche_ordnen'],
-	percent: ['anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen', 'einheiten'],
-	algebra: ['terme_zusammenfassen', 'terme_umformen', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig', 'formel_umstellen'],
-	geometry: ['geometrie', 'dreiecksberechnungen_zeichnung', 'winkel', 'schraegbild', 'kongruenz'],
-	functions: ['funktionen'],
-	statistics: ['statistik', 'wahrscheinlichkeiten'],
-	advanced: ['teiler', 'primzahlen']
-};
-
 // Sichtbare Aufgabentypen je Klassenstufe (wird vom UI-Dropdown genutzt)
 const taskTypesByGrade = {
 	grundschule: [
@@ -149,206 +117,109 @@ const quizAutoTaskTypesByGrade = {
 	]
 };
 
+const QUIZ_AUTO_TYPES = [...new Set(
+	Object.values(quizAutoTaskTypesByGrade).flat()
+)];
 
-// Dreiteilige Typ-Definition: [key, Label fuer Einstellungen, Beschreibung fuer Training]
-
-const quizTaskTypesByGrade = {
-	grundschule: [
-		'einmaleins_2', 'einmaleins_3', 'einmaleins_4', 'einmaleins_5', 'einmaleins_6',
-		'einmaleins_7', 'einmaleins_8', 'einmaleins_9', 'einmaleins_10',
-		'geteilt_durch_2', 'geteilt_durch_3', 'geteilt_durch_4', 'geteilt_durch_5',
-		'geteilt_durch_6', 'geteilt_durch_7', 'geteilt_durch_8', 'geteilt_durch_9', 'geteilt_durch_10',
-		'addition_bis_10', 'addition_bis_20', 'addition_bis_50', 'addition_bis_100', 'addition_bis_1000',
-		'subtraktion_bis_10', 'subtraktion_bis_20', 'subtraktion_bis_50', 'subtraktion_bis_100', 'subtraktion_bis_1000',
-		'kleines_1x1_multiplikation', 'kleines_1x1_division', 'kleines_1x1_komplett',
-		'addition_subtraktion_bis_20', 'addition_subtraktion_bis_100', 'addition_subtraktion_bis_1000'
-	],
-	klasse5: [
-		'teiler', 'primzahlen', 'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'schriftliche_addition_subtraktion', 'schriftliche_multiplikation_division', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
-		'additionstabellen',  'subtraktionstabellen', 'multiplikationstabellen','termtabellen',
-		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen', 'runden', 'ueberschlag', 'zahlengerade',
-		'geometrie', 'dreiecksberechnungen_zeichnung', 'winkel', 'schraegbild', 'statistik'
-	],
-	klasse6: [
-		'teiler', 'primzahlen', 'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'schriftliche_addition_subtraktion', 'schriftliche_multiplikation_division', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
-		'additionstabellen',  'subtraktionstabellen', 'multiplikationstabellen','termtabellen',
-		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen', 'runden', 'ueberschlag', 'zahlengerade',
-		'anteile', 'prozentrechnung', 'geometrie', 'dreiecksberechnungen_zeichnung', 'winkel', 'schraegbild', 'statistik', 'wahrscheinlichkeiten'
-	],
-	klasse7: [
-		'teiler', 'primzahlen', 'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'schriftliche_addition_subtraktion', 'schriftliche_multiplikation_division', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
-		'additionstabellen', 'subtraktionstabellen', 'multiplikationstabellen', 'termtabellen',
-		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen',
-		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen',
-		'lineare_gleichungen', 'lineare_gleichungen_umstellen', 'formel_umstellen',
-		'runden', 'ueberschlag', 'zahlengerade', 'geometrie', 'dreiecksberechnungen_zeichnung', 'winkel', 'schraegbild', 'kongruenz', 'statistik', 'wahrscheinlichkeiten'
-	],
-	klasse8: [
-		'teiler', 'primzahlen', 'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'schriftliche_addition_subtraktion', 'schriftliche_multiplikation_division', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
-		'additionstabellen', 'subtraktionstabellen', 'multiplikationstabellen', 'termtabellen',
-		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen', 'runden', 'ueberschlag', 'zahlengerade',
-		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen',
-		'lineare_gleichungen', 'lineare_gleichungen_beidseitig', 'lineare_gleichungen_umstellen', 'formel_umstellen',
-		'geometrie', 'dreiecksberechnungen_zeichnung', 'winkel', 'schraegbild', 'kongruenz', 'statistik', 'wahrscheinlichkeiten'
-	],
-	klasse9: [
-		'teiler', 'primzahlen', 'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'schriftliche_addition_subtraktion', 'schriftliche_multiplikation_division', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
-		'additionstabellen', 'subtraktionstabellen', 'multiplikationstabellen', 'termtabellen',
-		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen', 'runden', 'ueberschlag', 'zahlengerade',
-		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen',
-		'lineare_gleichungen', 'lineare_gleichungen_beidseitig', 'lineare_gleichungen_umstellen', 'formel_umstellen',
-		'geometrie', 'dreiecksberechnungen_zeichnung', 'winkel', 'schraegbild', 'kongruenz', 'statistik', 'wahrscheinlichkeiten'
-	],
-	klasse10: [
-		'teiler', 'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang', 'primzahlen',
-		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen', 'runden', 'ueberschlag', 'zahlengerade',
-		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen', 'wortterme',
-		'lineare_gleichungen', 'geometrie', 'dreiecksberechnungen_zeichnung', 'winkel', 'statistik', 'wahrscheinlichkeiten'
-	]
+const taskTypeDefinitions = {
+	teiler: { shareLinkId: 0, label: 'Teiler' },
+	primzahlen: { shareLinkId: 1, label: 'Primzahlen' },
+	einheiten: { shareLinkId: 2, label: 'Einheiten' },
+	runden: { shareLinkId: 3, label: 'Zahlen runden' },
+	natuerliche_zahlen_addieren_subtrahieren: { shareLinkId: 4, label: 'Natürliche Zahlen +/-' },
+	natuerliche_zahlen_multiplizieren_dividieren: { shareLinkId: 5, label: 'Natürliche Zahlen ×/÷' },
+	ganze_zahlen_addieren_subtrahieren: { shareLinkId: 6, label: 'Ganze Zahlen +/-' },
+	ganze_zahlen_multiplizieren_dividieren: { shareLinkId: 7, label: 'Ganze Zahlen ×/÷' },
+	dezimalbrueche_addieren_subtrahieren: { shareLinkId: 8, label: 'Dezimalbrüche +/-' },
+	dezimalbrueche_multiplizieren_dividieren: { shareLinkId: 9, label: 'Dezimalbrüche ×/÷' },
+	schriftliche_addition_subtraktion: { shareLinkId: 10, label: 'schriftlich rechnen +/-' },
+	schriftliche_multiplikation_division: { shareLinkId: 11, label: 'schriftlich rechnen ×/÷' },
+	potenzen: { shareLinkId: 12, label: 'Potenzen und Wurzeln' },
+	zehnerpotenzen_multiplizieren_dividieren: { shareLinkId: 13, label: 'Zehnerpotenzen ×/÷' },
+	vorrang: { shareLinkId: 14, label: 'Vorrangregeln' },
+	ueberschlag: { shareLinkId: 15, label: 'Überschlag' },
+	additionstabellen: { shareLinkId: 16, label: 'Additionstabelle' },
+	subtraktionstabellen: { shareLinkId: 17, label: 'Subtraktionstabelle' },
+	multiplikationstabellen: { shareLinkId: 18, label: 'Multiplikationstabelle' },
+	termtabellen: { shareLinkId: 19, label: 'Termtabelle' },
+	brueche_umwandeln: { shareLinkId: 20, label: 'Brüche umwandeln' },
+	brueche_kuerzen: { shareLinkId: 21, label: 'Brüche kürzen' },
+	brueche_addieren_subtrahieren: { shareLinkId: 22, label: 'Brüche +/-' },
+	brueche_multiplizieren_dividieren: { shareLinkId: 23, label: 'Brüche ×/÷' },
+	brueche_ordnen: { shareLinkId: 24, label: 'Brüche ordnen' },
+	zahlengerade: { shareLinkId: 25, label: 'Zahlenstrahl' },
+	anteile: { shareLinkId: 26, label: 'Anteile berechnen' },
+	proportionalitaet: { shareLinkId: 27, label: 'Proportionalitäten' },
+	prozentrechnung: { shareLinkId: 28, label: 'Prozentrechnung' },
+	prozentuale_veraenderung: { shareLinkId: 29, label: 'Prozentuale Veränderung' },
+	zinsen: { shareLinkId: 30, label: 'Zinsrechnung' },
+	terme_zusammenfassen: { shareLinkId: 81, label: 'Terme zusammenfassen' },
+	terme_umformen: { shareLinkId: 82, label: 'Terme umformen' },
+	terme_einsetzen: { shareLinkId: 84, label: 'Terme einsetzen' },
+	wortterme: { shareLinkId: 32, label: 'Wortterme' },
+	lineare_gleichungen: { shareLinkId: 33, label: 'lin. Gl. ax+b = c' },
+	lineare_gleichungen_beidseitig: { shareLinkId: 34, label: 'lin. Gl. ax+b = cx+d' },
+	lineare_gleichungen_umstellen: { shareLinkId: 35, label: 'lin. Gl. umstellen' },
+	formel_umstellen: { shareLinkId: 36, label: 'Formeln umstellen' },
+	geometrie: { shareLinkId: 37, label: 'A und u ebener Figuren' },
+	dreiecksberechnungen_zeichnung: { shareLinkId: 38, label: 'Dreiecksberechnungen (Zeichnung)' },
+	winkel: { shareLinkId: 39, label: 'Winkel' },
+	schraegbild: { shareLinkId: 40, label: 'Schrägbilder' },
+	kongruenz: { shareLinkId: 41, label: 'Kongruenzsätze' },
+	wahrscheinlichkeiten: { shareLinkId: 42, label: 'Wahrscheinlichkeiten' },
+	lineare_funktionen_zeichnen: { shareLinkId: 43, label: 'Lineare Funktionen zeichnen' },
+	funktionen: { shareLinkId: 44, label: 'Funktionen' },
+	statistik: { shareLinkId: 45, label: 'Statistik' },
+	einmaleins_2: { shareLinkId: 46, label: '2er-Reihe' },
+	geteilt_durch_2: { shareLinkId: 56, label: 'Geteilt durch 2', quizLabel: 'geteilt durch 2' },
+	einmaleins_3: { shareLinkId: 47, label: '3er-Reihe' },
+	geteilt_durch_3: { shareLinkId: 57, label: 'Geteilt durch 3', quizLabel: 'geteilt durch 3' },
+	einmaleins_4: { shareLinkId: 48, label: '4er-Reihe' },
+	geteilt_durch_4: { shareLinkId: 58, label: 'Geteilt durch 4', quizLabel: 'geteilt durch 4' },
+	einmaleins_5: { shareLinkId: 49, label: '5er-Reihe' },
+	geteilt_durch_5: { shareLinkId: 59, label: 'Geteilt durch 5', quizLabel: 'geteilt durch 5' },
+	einmaleins_6: { shareLinkId: 50, label: '6er-Reihe' },
+	geteilt_durch_6: { shareLinkId: 60, label: 'Geteilt durch 6', quizLabel: 'geteilt durch 6' },
+	einmaleins_7: { shareLinkId: 51, label: '7er-Reihe' },
+	geteilt_durch_7: { shareLinkId: 61, label: 'Geteilt durch 7', quizLabel: 'geteilt durch 7' },
+	einmaleins_8: { shareLinkId: 52, label: '8er-Reihe' },
+	geteilt_durch_8: { shareLinkId: 62, label: 'Geteilt durch 8', quizLabel: 'geteilt durch 8' },
+	einmaleins_9: { shareLinkId: 53, label: '9er-Reihe' },
+	geteilt_durch_9: { shareLinkId: 63, label: 'Geteilt durch 9', quizLabel: 'geteilt durch 9' },
+	einmaleins_10: { shareLinkId: 54, label: '10er-Reihe' },
+	geteilt_durch_10: { shareLinkId: 64, label: 'Geteilt durch 10', quizLabel: 'geteilt durch 10' },
+	addition_bis_10: { shareLinkId: 65, label: 'Addition bis 10' },
+	subtraktion_bis_10: { shareLinkId: 70, label: 'Subtraktion bis 10' },
+	addition_bis_20: { shareLinkId: 66, label: 'Addition bis 20' },
+	subtraktion_bis_20: { shareLinkId: 71, label: 'Subtraktion bis 20' },
+	addition_bis_50: { shareLinkId: 67, label: 'Addition bis 50' },
+	subtraktion_bis_50: { shareLinkId: 72, label: 'Subtraktion bis 50' },
+	addition_bis_100: { shareLinkId: 68, label: 'Addition bis 100' },
+	subtraktion_bis_100: { shareLinkId: 73, label: 'Subtraktion bis 100' },
+	addition_bis_1000: { shareLinkId: 69, label: 'Addition bis 1000' },
+	subtraktion_bis_1000: { shareLinkId: 74, label: 'Subtraktion bis 1000' },
+	kleines_1x1_multiplikation: { shareLinkId: 75, label: 'Kleines 1×1 Multiplikation' },
+	kleines_1x1_division: { shareLinkId: 76, label: 'Kleines 1×1 Division' },
+	kleines_1x1_komplett: { shareLinkId: 77, label: 'Kleines 1×1 komplett' },
+	addition_subtraktion_bis_20: { shareLinkId: 78, label: 'Addition und Subtraktion bis 20', quizLabel: '+ und - bis 20' },
+	addition_subtraktion_bis_100: { shareLinkId: 79, label: 'Addition und Subtraktion bis 100', quizLabel: '+ und - bis 100' },
+	addition_subtraktion_bis_1000: { shareLinkId: 80, label: 'Addition und Subtraktion bis 1000', quizLabel: '+ und - bis 1000' },
+	einheiten_umrechnen: { shareLinkId: 83, label: 'Einheiten umrechnen' },
+	terme: { shareLinkId: 31, label: 'Terme' },
 };
 
-// Dreiteilige Typ-Definition: [key, Label fuer Einstellungen, Beschreibung fuer Training]
-const typeDefinitions = [
-	// Zahlentheorie / fortgeschrittene Themen
-	['teiler', 'Teiler', 'Teiler einer Zahl bestimmen'],
-	['primzahlen', 'Primzahlen', 'Primzahlen finden'], 
-	['einheiten', 'Einheiten', 'Größen in verschiedene Einheiten umrechnen'],
-	['runden', 'Zahlen runden', 'Zahlen runden'],
-	
-	// Arithmetik: Ganze Zahlen, Dezimalbrüche, Stellenwerte
-	['natuerliche_zahlen_addieren_subtrahieren', 'Natürliche Zahlen +/-', 'Natürliche Zahlen addieren und subtrahieren'],
-	['natuerliche_zahlen_multiplizieren_dividieren', 'Natürliche Zahlen ×/÷', 'Natürliche Zahlen multiplizieren und dividieren'],
-	['ganze_zahlen_addieren_subtrahieren', 'Ganze Zahlen +/-', 'Ganze Zahlen addieren und subtrahieren'],
-	['ganze_zahlen_multiplizieren_dividieren', 'Ganze Zahlen ×/÷', 'Ganze Zahlen multiplizieren und dividieren'],
-	['dezimalbrueche_addieren_subtrahieren', 'Dezimalbrüche +/-', 'Dezimalbrüche addieren und subtrahieren'],
-	['dezimalbrueche_multiplizieren_dividieren', 'Dezimalbrüche ×/÷', 'Dezimalbrüche multiplizieren und dividieren'],
-	['schriftliche_addition_subtraktion', 'schriftlich rechnen +/-', 'Schriftliche Addition und Subtraktion'],
-	['schriftliche_multiplikation_division', 'schriftlich rechnen ×/÷', 'Schriftliche Multiplikation und Division'],
-	['potenzen', 'Potenzen und Wurzeln', 'Potenzen und Wurzeln berechnen'],
-	['zehnerpotenzen_multiplizieren_dividieren', 'Zehnerpotenzen ×/÷', 'Multiplikation und Division mit Zehnerpotenzen und Stufenzahlen'],
-	['vorrang', 'Vorrangregeln', 'Terme mit Vorrangregeln berechnen'],
-	['ueberschlag', 'Überschlag', 'Sinnvolle Überschläge für Grundrechenaufgaben bilden'],
-	
-	// Tabellen / Kopfrechnen
-	['additionstabellen', 'Additionstabelle', 'Tabellenaufgaben mit Summen'],
-	['subtraktionstabellen', 'Subtraktionstabelle', 'Tabellenaufgaben mit Differenzen'],
-	['multiplikationstabellen', 'Multiplikationstabelle', 'Tabellenaufgaben mit Produkten'],
-	['termtabellen', 'Termtabelle', 'Terme mit Variablen'],
-	
-	// Brüche
-	['brueche_umwandeln', 'Brüche umwandeln', 'Brüche, Dezimalzahlen und Prozentwerte umwandeln'],
-	['brueche_kuerzen', 'Brüche kürzen', 'Brüche vollständig kürzen'],
-	['brueche_addieren_subtrahieren', 'Brüche +/-', 'Brüche addieren und subtrahieren'],
-	['brueche_multiplizieren_dividieren', 'Brüche ×/÷', 'Brüche multiplizieren und dividieren'],
-	['brueche_ordnen', 'Brüche ordnen', 'Brüche der Größe nach sortieren'],
-	['zahlengerade', 'Zahlenstrahl', 'Zahlenstrahl-Aufgaben lesen, eintragen und zeichnen'],
-	
-	// Prozent / Proportionalität / Maßeinheiten
-	['anteile', 'Anteile berechnen', 'Anteile berechnen'],
-	['proportionalitaet', 'Proportionalitäten', 'Aufgaben zur direkten Proportionalität'],
-	['prozentrechnung', 'Prozentrechnung', 'Prozentwert, Grundwert und Prozentsatz berechnen'],
-	['prozentuale_veraenderung', 'Prozentuale Veränderung', 'Prozentuale Zu- und Abnahmen berechnen'],
-	['zinsen', 'Zinsrechnung', 'Zinsen, Kapital und Zinssatz berechnen'],
-	
-	// Algebra / Terme / Gleichungen
-	['terme_zusammenfassen', 'Terme zusammenfassen', 'Gleichartige Terme zusammenfassen'],
-	['terme_umformen', 'Terme umformen', 'Terme durch Klammerregeln umformen und vereinfachen'],
-	['terme_einsetzen', 'Terme einsetzen', 'Terme mit einer Variablen und gegebenem Einsetzungswert berechnen'],
-	['wortterme', 'Wortterme', 'Wortterme in mathematische Symbole übersetzen und berechnen'],
-	['lineare_gleichungen', 'lin. Gl. ax+b = c', 'Lineare Gleichung der Form ax + b = c lösen'],
-	['lineare_gleichungen_beidseitig', 'lin. Gl. ax+b = cx+d', 'Lineare Gleichung der Form ax + b = cx + d lösen'],
-	['lineare_gleichungen_umstellen', 'lin. Gl. umstellen', 'Lineare Gleichungen nach y umstellen'],
-	['formel_umstellen', 'Formeln umstellen', 'Formeln nach einer anderen Variablen umstellen'],
-	
-	// Geometrie
-	['geometrie', 'A und u ebener Figuren', 'Flächeninhalte und Umfänge berechnen'],
-	['dreiecksberechnungen_zeichnung', 'Dreiecksberechnungen (Zeichnung)', 'Flächeninhalt, Umfang, Seiten und Winkel mit Pythagoras, Sinus-/Kosinussatz berechnen'],
-	['winkel', 'Winkel', 'Winkel zeichnen und berechnen'],
-	['schraegbild', 'Schrägbilder', 'Schrägbilder von Körpern zeichnen'],
-	['kongruenz', 'Kongruenzsätze', 'Dreiecke mit Kongruenzsätzen konstruieren'],
-	
-	// Funktionen, Statistik & Wahrscheinlichkeiten
-	['wahrscheinlichkeiten', 'Wahrscheinlichkeiten', 'Wahrscheinlichkeiten bestimmen'],
-	['lineare_funktionen_zeichnen', 'Lineare Funktionen zeichnen', 'Lineare Funktionen grafisch darstellen'],
-	['funktionen', 'Funktionen', 'Funktionswerte, Argumente und Eigenschaften von Funktionen bestimmen'],
-	['statistik', 'Statistik', 'Kenngrößen der Statistik bestimmen'],
-	
-	// Grundschule: Kopfrechenaufgaben aus dem Quiz Auto Single
-	['einmaleins_2', '2er-Reihe', 'Aufgaben aus der 2er-Reihe des kleinen Einmaleins'],
-	['geteilt_durch_2', 'Geteilt durch 2', 'Divisionsaufgaben mit 2 aus dem kleinen Einmaleins'],
-	['einmaleins_3', '3er-Reihe', 'Aufgaben aus der 3er-Reihe des kleinen Einmaleins'],
-	['geteilt_durch_3', 'Geteilt durch 3', 'Divisionsaufgaben mit 3 aus dem kleinen Einmaleins'],
-	['einmaleins_4', '4er-Reihe', 'Aufgaben aus der 4er-Reihe des kleinen Einmaleins'],
-	['geteilt_durch_4', 'Geteilt durch 4', 'Divisionsaufgaben mit 4 aus dem kleinen Einmaleins'],
-	['einmaleins_5', '5er-Reihe', 'Aufgaben aus der 5er-Reihe des kleinen Einmaleins'],
-	['geteilt_durch_5', 'Geteilt durch 5', 'Divisionsaufgaben mit 5 aus dem kleinen Einmaleins'],
-	['einmaleins_6', '6er-Reihe', 'Aufgaben aus der 6er-Reihe des kleinen Einmaleins'],
-	['geteilt_durch_6', 'Geteilt durch 6', 'Divisionsaufgaben mit 6 aus dem kleinen Einmaleins'],
-	['einmaleins_7', '7er-Reihe', 'Aufgaben aus der 7er-Reihe des kleinen Einmaleins'],
-	['geteilt_durch_7', 'Geteilt durch 7', 'Divisionsaufgaben mit 7 aus dem kleinen Einmaleins'],
-	['einmaleins_8', '8er-Reihe', 'Aufgaben aus der 8er-Reihe des kleinen Einmaleins'],
-	['geteilt_durch_8', 'Geteilt durch 8', 'Divisionsaufgaben mit 8 aus dem kleinen Einmaleins'],
-	['einmaleins_9', '9er-Reihe', 'Aufgaben aus der 9er-Reihe des kleinen Einmaleins'],
-	['geteilt_durch_9', 'Geteilt durch 9', 'Divisionsaufgaben mit 9 aus dem kleinen Einmaleins'],
-	['einmaleins_10', '10er-Reihe', 'Aufgaben aus der 10er-Reihe des kleinen Einmaleins'],
-	['geteilt_durch_10', 'Geteilt durch 10', 'Divisionsaufgaben mit 10 aus dem kleinen Einmaleins'],
-	['addition_bis_10', 'Addition bis 10', 'Additionsaufgaben mit Zahlen bis 10'],
-	['subtraktion_bis_10', 'Subtraktion bis 10', 'Subtraktionsaufgaben mit Zahlen bis 10'],
-	['addition_bis_20', 'Addition bis 20', 'Additionsaufgaben mit Zahlen bis 20'],
-	['subtraktion_bis_20', 'Subtraktion bis 20', 'Subtraktionsaufgaben mit Zahlen bis 20'],
-	['addition_bis_50', 'Addition bis 50', 'Additionsaufgaben mit Zahlen bis 50'],
-	['subtraktion_bis_50', 'Subtraktion bis 50', 'Subtraktionsaufgaben mit Zahlen bis 50'],
-	['addition_bis_100', 'Addition bis 100', 'Additionsaufgaben mit Zahlen bis 100'],
-	['subtraktion_bis_100', 'Subtraktion bis 100', 'Subtraktionsaufgaben mit Zahlen bis 100'],
-	['addition_bis_1000', 'Addition bis 1000', 'Additionsaufgaben mit Zahlen bis 1000'],
-	['subtraktion_bis_1000', 'Subtraktion bis 1000', 'Subtraktionsaufgaben mit Zahlen bis 1000'],
-	['kleines_1x1_multiplikation', 'Kleines 1×1 Multiplikation', 'Alle Multiplikationsaufgaben des kleinen Einmaleins'],
-	['kleines_1x1_division', 'Kleines 1×1 Division', 'Alle Divisionsaufgaben des kleinen Einmaleins'],
-	['kleines_1x1_komplett', 'Kleines 1×1 komplett', 'Multiplikations- und Divisionsaufgaben des kleinen Einmaleins'],
-	['addition_subtraktion_bis_20', 'Addition und Subtraktion bis 20', 'Gemischte Additions- und Subtraktionsaufgaben bis 20'],
-	['addition_subtraktion_bis_100', 'Addition und Subtraktion bis 100', 'Gemischte Additions- und Subtraktionsaufgaben bis 100'],
-	['addition_subtraktion_bis_1000', 'Addition und Subtraktion bis 1000', 'Gemischte Additions- und Subtraktionsaufgaben bis 1000']
-];
+const typeLabels = Object.fromEntries(
+	Object.entries(taskTypeDefinitions).map(([key, definition]) => [key, definition.label])
+);
 
-const typeLabels = Object.fromEntries(typeDefinitions.map(([key, label]) => [key, label]));
-const typeDescriptions = Object.fromEntries(typeDefinitions.map(([key, , description]) => [key, description]));
-const quizAutoTypeLabels = {
-	einheiten_umrechnen: 'Einheiten umrechnen',
-	geteilt_durch_2: 'geteilt durch 2',
-	geteilt_durch_3: 'geteilt durch 3',
-	geteilt_durch_4: 'geteilt durch 4',
-	geteilt_durch_5: 'geteilt durch 5',
-	geteilt_durch_6: 'geteilt durch 6',
-	geteilt_durch_7: 'geteilt durch 7',
-	geteilt_durch_8: 'geteilt durch 8',
-	geteilt_durch_9: 'geteilt durch 9',
-	geteilt_durch_10: 'geteilt durch 10',
-	addition_subtraktion_bis_20: '+ und - bis 20',
-	addition_subtraktion_bis_100: '+ und - bis 100',
-	addition_subtraktion_bis_1000: '+ und - bis 1000'
-};
-
-const shareLinkTypeRegistry = [...new Set([
-	...typeDefinitions.map(([key]) => key),
-	...QUIZ_AUTO_TYPES
-])];
+// Neue Typen erhalten eine neue shareLinkId. Bestehende IDs nie aendern oder wiederverwenden.
+const shareLinkTypeRegistry = Object.fromEntries(
+	Object.entries(taskTypeDefinitions).map(([key, definition]) => [key, definition.shareLinkId])
+);
 
 if (typeof window !== 'undefined') {
+	window.taskTypeDefinitions = taskTypeDefinitions;
 	window.typeLabels = typeLabels;
-	window.QUIZ_AUTO_TYPE_LABELS = quizAutoTypeLabels;
 	window.MTGShareLinkTypeRegistry = shareLinkTypeRegistry;
 	window.QUIZ_AUTO_TYPES = QUIZ_AUTO_TYPES;
-	window.QUIZ_AUTO_TYPE_ORDER_INDEX = quizAutoTypeOrderIndex;
-}
-
-const typeOrderIndex = Object.fromEntries(typeDefinitions.map(([key], index) => [key, index]));
-function sortByTypeDefinitions(types) {
-	return [...types].sort((a, b) => {
-		const indexA = typeOrderIndex[a] ?? Number.MAX_SAFE_INTEGER;
-		const indexB = typeOrderIndex[b] ?? Number.MAX_SAFE_INTEGER;
-		if (indexA !== indexB) {
-			return indexA - indexB;
-		}
-		return a.localeCompare(b);
-	});
 }

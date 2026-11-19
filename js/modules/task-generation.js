@@ -1,5 +1,78 @@
 window.MTGTaskGenerationModule = {
     createTaskGenerationModule({ state, createTask, selectedGrade }) {
+        const buildTwoColumnTaskTable = (cells) => {
+            const cellHtml = cells.map(cell =>
+                `<td class="two-column-task-cell">${cell}</td>`
+            ).join('');
+
+            return `<table class="two-column-task"><tr>${cellHtml}</tr></table>`;
+        };
+
+        const twoColumnTaskTypes = new Set([
+            'dezimalbrueche_multiplizieren_dividieren',
+            'natuerliche_zahlen_addieren_subtrahieren',
+            'ganze_zahlen_addieren_subtrahieren',
+            'natuerliche_zahlen_multiplizieren_dividieren',
+            'ganze_zahlen_multiplizieren_dividieren',
+            'zehnerpotenzen_multiplizieren_dividieren',
+            'potenzen'
+        ]);
+
+        const shouldRenderTwoColumns = (type) => {
+            if (twoColumnTaskTypes.has(type)) return true;
+            if (type.startsWith('einmaleins_')) return true;
+            if (type.startsWith('geteilt_durch_')) return true;
+            if (type.startsWith('addition_bis_')) return true;
+            if (type.startsWith('subtraktion_bis_')) return true;
+            if (type.startsWith('kleines_1x1_')) return true;
+            if (type.startsWith('addition_subtraktion_bis_')) return true;
+            return false;
+        };
+
+        const generateRenderedTask = (type, options = {}) => {
+            const isQuizMode = options?.mode === 'quiz';
+            const usesCentralTwoColumns = shouldRenderTwoColumns(type);
+            const generated = createTask(type, getNumericGrade(), options);
+
+            if (isQuizMode || !usesCentralTwoColumns) {
+                return generated;
+            }
+
+            let second = createTask(type, getNumericGrade(), options);
+
+            if (type === 'potenzen') {
+                let attempts = 0;
+                while (second.textDisplay === generated.textDisplay && attempts < 10) {
+                    second = createTask(type, getNumericGrade(), options);
+                    attempts += 1;
+                }
+            }
+
+            if (type === 'zehnerpotenzen_multiplizieren_dividieren') {
+                let attempts = 0;
+                while (second.textDisplay === generated.textDisplay && attempts < 5) {
+                    second = createTask(type, getNumericGrade(), options);
+                    attempts += 1;
+                }
+            }
+
+            return {
+                ...generated,
+                textDisplay: buildTwoColumnTaskTable([
+                    generated.textDisplay ?? '',
+                    second.textDisplay ?? ''
+                ]),
+                textPrint: buildTwoColumnTaskTable([
+                    generated.textPrint ?? generated.textDisplay ?? '',
+                    second.textPrint ?? second.textDisplay ?? ''
+                ]),
+                solution: buildTwoColumnTaskTable([
+                    generated.solution ?? '',
+                    second.solution ?? ''
+                ])
+            };
+        };
+
         const getScopeConfig = (scope = 'default') => {
             if (scope === 'quiz') {
                 return {
@@ -300,7 +373,7 @@ window.MTGTaskGenerationModule = {
                 }
 
                 state.tasks.value = typePool.map(type => {
-                    const generated = createTask(type, getNumericGrade(), effectiveTaskOptions);
+                    const generated = generateRenderedTask(type, effectiveTaskOptions);
                     return {
                         type,
                         textDisplay: generated.textDisplay ?? '',
@@ -431,7 +504,7 @@ window.MTGTaskGenerationModule = {
             }
 
             state.tasks.value = typePool.map(type => {
-                const generated = createTask(type, getNumericGrade(), effectiveTaskOptions);
+                const generated = generateRenderedTask(type, effectiveTaskOptions);
                 return {
                     type,
                     textDisplay: generated.textDisplay ?? '',
@@ -451,7 +524,7 @@ window.MTGTaskGenerationModule = {
             }
 
             const normalizedType = type.trim();
-            const generated = createTask(normalizedType, getNumericGrade(), options);
+            const generated = generateRenderedTask(normalizedType, options);
 
             return {
                 type: normalizedType,

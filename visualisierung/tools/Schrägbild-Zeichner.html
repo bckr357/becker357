@@ -40,7 +40,8 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
  <div class="grp full"><b>Werkzeuge</b><div class="g" id="modes"></div>
   <div class="g"><button id="undo">↶ Zurück</button><button id="clr">Alles löschen</button><button id="tog">▲ ausblenden</button></div></div>
  <div id="opts">
-  <div class="grp"><b>Raster</b><div class="g" id="grids"></div><label>Größe <input type="range" id="sz" min="12" max="100" value="30"></label></div>
+  <div class="grp"><b>Raster</b><div class="g" id="grids"></div><label>Größe <input type="range" id="sz" min="20" max="150" value="100"></label>
+   <label>Schrittweite <select id="step"><option value="1">1</option><option value="0.5" selected>0,5</option><option value="0.25">0,25</option><option value="0.2">0,2</option><option value="0.1">0,1</option></select></label></div>
   <div class="grp"><b>Zeichnen</b>
    <label><input type="checkbox" id="ras" checked> am Raster fangen</label>
    <label><input type="checkbox" id="fix" > freie Längen</label>
@@ -48,10 +49,13 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
    <label><input type="checkbox" id="autol" checked> Strecken benennen</label></div>
   <div class="grp"><b>Anzeige</b>
    <label><input type="checkbox" id="lab" checked> Bezeichnungen</label>
-   <label><input type="checkbox" id="cross" checked> Punkte als Kreuz</label></div>
+   <label><input type="checkbox" id="cross" checked> Punkte als Kreuz</label>
+   <label><input type="checkbox" id="geo"> Geodreieck anzeigen</label>
+   <button id="georeset" type="button">Drehung zurücksetzen</button></div>
   <div class="grp"><b>Darstellung</b>
    <label>Schriftgröße <input type="range" id="fs" min="12" max="36" value="20"></label>
-   <label>Füllfarbe (Fläche) <input type="color" id="fc" value="#4da3ff"></label></div>
+   <label>Füllfarbe (Fläche) <input type="color" id="fc" value="#4da3ff"></label>
+   <label>Einheit <select id="unit"><option value="mm">mm</option><option value="cm" selected>cm</option><option value="dm">dm</option><option value="m">m</option><option value="km">km</option></select></label></div>
   <div class="grp"><b>Berechnungen</b>
    <label><input type="checkbox" id="d3"> Winkel und Längen in 3D</label>
    <label><input type="checkbox" id="siz"> Größen anzeigen</label>
@@ -73,25 +77,29 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 <div id="hint"></div>
 <script>
 const $=id=>document.getElementById(id),cv=$('c'),ctx=cv.getContext('2d'),inp=$('inp');
-let P=[],L=[],K=[],A=[],F=[],BD=[],Q=[],nid=1,hist=[],start=null,sel=[],bsel=null,mode='line',grid='dots',showGrid=true,hover=null,hl=-1,hk=-1,W=0,H=0,k=30,ox=0,oy=0,fs=16,mouse={x:0,y:0},drag=null,space=false,M=new Map(),crossKey='',crossCache=[],legPos=null,legR=null,legRows=[],rec=false,snaps=[],manualStep=-1,playing=false,live=null,pi=0,pt=null;
+let P=[],L=[],K=[],A=[],F=[],BD=[],Q=[],nid=1,hist=[],start=null,sel=[],bsel=null,mode='line',grid='dots',showGrid=true,hover=null,hl=-1,hk=-1,W=0,H=0,k=100,ox=0,oy=0,fs=16,mouse={x:0,y:0},drag=null,space=false,M=new Map(),crossKey='',crossCache=[],legPos=null,legR=null,legRows=[],rec=false,snaps=[],manualStep=-1,playing=false,live=null,pi=0,pt=null,touchPointers=new Map(),pinch=null,geoPos=null,geoDrag=null,geoSize=100,geoAngle=0,compass=null;
+const geoImg=new Image();
+geoImg.src='Geodreieck.png';
+let geoAlpha=null;
+geoImg.onload=()=>{const c=document.createElement('canvas');c.width=geoImg.naturalWidth;c.height=geoImg.naturalHeight;const g=c.getContext('2d',{willReadFrequently:true});g.drawImage(geoImg,0,0);geoAlpha=g.getImageData(0,0,c.width,c.height).data;draw()};
 const GR='αβγδεζηθικλμνξπρστφχψω',LC='abcdefghijklmnopqrstuvwxyz',PAL=['#4da3ff','#ffb347','#6fd08c','#ff7b9c','#b48cff','#ffd84d','#4dd0c8','#ff8c66'];
 const MODES=[['line','Strecke (S)'],['point','Punkt (P)'],['arc','Kreis (K)'],['style','Stil (G)'],['label','Beschriften (B)'],['text','Text (T)'],['move','Verschieben (V)'],['angle','Winkel (W)'],['face','Fläche (F)'],/* ['body','Körper (O)'], */['hand','Hand (H)'],['del','Löschen (L)']];
 const KEYS={s:'line',p:'point',k:'arc',g:'style',b:'label',t:'text',v:'move',w:'angle',f:'face',/* o:'body', */h:'hand',l:'del'};
-const HINTS={line:'Punkt oder Schnittpunkt anklicken, Maus bewegen, zweiter Klick setzt das Ende. Klick auf einen vorhandenen Punkt verbindet frei. Esc bricht ab.',point:'Klick setzt einen Punkt (rastet an Schnittpunkten von Strecken ein und bleibt daran verankert).',arc:'Zwei Endpunkte oder eine Strecke als Durchmesser anklicken, Maus auf eine Seite für oberen oder unteren Halbbogen bewegen; weiter vom Mittelpunkt entfernt ergibt einen normalen Kreis.',label:'Punkt, Strecke, Winkelbogen oder Fläche anklicken, Namen eingeben (tiefgestellt: F_1 oder F_{12}), Enter.',text:'Klick an die gewünschte Stelle, Text eingeben und Enter drücken. Esc bricht ab.',style:'Strecke oder Kreisbogen anklicken: normal → gestrichelt → Hilfslinie.',move:'Punkt, Strecke oder Text ziehen, angrenzende Strecken wandern mit.',angle:'Nacheinander anklicken: Punkt auf Schenkel 1, Scheitelpunkt, Punkt auf Schenkel 2.',face:'Punkte der Reihe nach anklicken; ersten Punkt erneut anklicken oder Enter schließt die Fläche.',/* body:'Grundfläche anklicken (in die Fläche, oder eine waagerechte Strecke als Kreisdurchmesser), dann Spitze bzw. einen Punkt der Deckfläche. Typ unter Berechnungen. Löschen: in der Legende anklicken.', */hand:'Zeichenfläche ziehen. Alternativ: rechte/mittlere Maustaste oder Leertaste. Mausrad zoomt.',del:'Punkt, Strecke, Kreisbogen, Winkelbogen, Fläche oder Text anklicken zum Löschen.'};
+const HINTS={line:'Punkt oder Schnittpunkt anklicken, Maus bewegen, zweiter Klick setzt das Ende. Klick auf einen vorhandenen Punkt verbindet frei. Esc bricht ab.',point:'Klick setzt einen Punkt (rastet an Schnittpunkten von Strecken ein und bleibt daran verankert).',arc:'Zirkel: Mittelpunkt anklicken, Radius festlegen und mit dem zweiten Klick sperren. Danach Maus um den Mittelpunkt bewegen; der Kreis wird schrittweise gezeichnet. Esc bricht ab.',label:'Punkt, Strecke, Winkelbogen oder Fläche anklicken, Namen eingeben (tiefgestellt: F_1 oder F_{12}), Enter.',text:'Klick an die gewünschte Stelle, Text eingeben und Enter drücken. Esc bricht ab.',style:'Strecke oder Kreisbogen anklicken: normal → gestrichelt → Hilfslinie.',move:'Punkt, Strecke oder Text ziehen, angrenzende Strecken wandern mit.',angle:'Nacheinander anklicken: Punkt auf Schenkel 1, Scheitelpunkt, Punkt auf Schenkel 2.',face:'Punkte der Reihe nach anklicken; ersten Punkt erneut anklicken oder Enter schließt die Fläche.',/* body:'Grundfläche anklicken (in die Fläche, oder eine waagerechte Strecke als Kreisdurchmesser), dann Spitze bzw. einen Punkt der Deckfläche. Typ unter Berechnungen. Löschen: in der Legende anklicken.', */hand:'Zeichenfläche ziehen. Alternativ: rechte/mittlere Maustaste oder Leertaste. Mausrad zoomt.',del:'Punkt, Strecke, Kreisbogen, Winkelbogen, Fläche oder Text anklicken zum Löschen.'};
 const sp=()=>start===null?null:start.id!==undefined?M.get(start.id):start;
 const fmt=(n,d=2)=>(+n.toFixed(d)).toString().replace('.',',');
 const X=x=>ox+x*k,Y=y=>oy+y*k,wx=x=>(x-ox)/k,wy=y=>(y-oy)/k;
 const S=()=>[P,L,K,A,F,BD,Q,nid],snap=()=>JSON.stringify(S()),load=a=>{[P,L,K,A,F,BD,Q,nid]=a.length==8?a:[...a.slice(0,6),[],a[6]]};
 function btns(el,arr,cur,fn){el.innerHTML='';arr.forEach(([key,t])=>{const b=document.createElement('button');b.textContent=t;b.className=cur()==key?'on':'';b.onclick=()=>{fn(key);btns(el,arr,cur,fn);draw()};el.appendChild(b)})}
-function ui(){btns($('modes'),MODES,()=>mode,setMode);btns($('grids'),[['dots','Punktraster'],['karo','Karo'],['off','Aus']],()=>showGrid?grid:'off',key=>{if(key=='off')showGrid=false;else{showGrid=true;grid=key}})}
-function setMode(m){mode=m;start=null;sel=[];bsel=null;inp.style.display='none';$('hint').textContent=HINTS[m];cv.style.cursor=m=='hand'?'grab':m=='move'?'move':'crosshair';ui();draw()}
+function ui(){btns($('modes'),MODES,()=>mode,setMode);btns($('grids'),[['dots','Punkte'],['karo','Karo'],['off','Aus']],()=>showGrid?grid:'off',key=>{if(key=='off')showGrid=false;else{showGrid=true;grid=key}})}
+function setMode(m){mode=m;start=null;sel=[];bsel=null;compass=null;drag=null;inp.style.display='none';$('hint').textContent=HINTS[m];cv.style.cursor=m=='hand'?'grab':m=='move'?'move':'crosshair';ui();draw()}
 function resize(){const r=cv.parentNode.getBoundingClientRect(),d=devicePixelRatio||1;W=r.width;H=r.height;cv.width=W*d;cv.height=H*d;ctx.setTransform(d,0,0,d,0,0);draw()}
 new ResizeObserver(()=>resize()).observe($('w'));
 $('tog').onclick=e=>{const o=$('opts'),h=o.style.display=='none';o.style.display=h?'flex':'none';e.target.textContent=h?'▲ ausblenden':'▼ einblenden';e.target.blur()};
 const push=()=>{hist.push(snap());if(hist.length>100)hist.shift();if(rec&&!drag)setTimeout(capture,0)};
-function undo(){if(playing)return;if(hist.length){if(rec&&snaps.length>1)snaps.pop();load(JSON.parse(hist.pop()));start=null;sel=[];bsel=null;rebuild();draw()}}
+function undo(){if(playing)return;if(hist.length){if(rec&&snaps.length>1)snaps.pop();load(JSON.parse(hist.pop()));start=null;sel=[];bsel=null;compass=null;drag=null;rebuild();draw()}}
 $('undo').onclick=e=>{e.target.blur();undo()};
-$('clr').onclick=e=>{e.target.blur();if(playing)return;if(P.length||Q.length){push();P=[];L=[];K=[];A=[];F=[];BD=[];Q=[];start=null;sel=[];bsel=null;rebuild();draw()}};
+$('clr').onclick=e=>{e.target.blur();if(playing)return;if(P.length||Q.length){push();P=[];L=[];K=[];A=[];F=[];BD=[];Q=[];start=null;sel=[];bsel=null;compass=null;drag=null;rebuild();draw()}};
 /* Rekorder */
 function capture(){if(!rec)return;const s=snap();if(snaps[snaps.length-1]!==s)snaps.push(s);recUI()}
 function show(i){load(JSON.parse(snaps[i]));start=null;sel=[];bsel=null;rebuild();draw();const total=Math.max(1,snaps.length-1);$('rinfo').textContent=i?'Schritt '+Math.min(total,i)+' von '+total:'Grundzustand'}
@@ -110,11 +118,14 @@ $('bsave').onclick=async e=>{e.target.blur();if(snaps.length<2)return;const data
  try{if(dl)await dl.save({filename:'konstruktion.json',data});else{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'application/json'}));a.download='konstruktion.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),0)}$('rinfo').textContent='Aufnahme gespeichert'}catch(err){if(!err||err.code!='declined')$('rinfo').textContent='Speichern nicht möglich'}};
 $('bload').onclick=e=>{e.target.blur();$('bfile').click()};
 $('bfile').onchange=e=>{const f=e.target.files[0];e.target.value='';if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.steps||d.steps.length<2||!d.steps.every(s=>Array.isArray(s)&&(s.length==7||s.length==8)))throw 0;if(playing)stop();rec=false;snaps=d.steps.map(s=>JSON.stringify(s));recUI();play()}catch(x){$('rinfo').textContent='Datei konnte nicht gelesen werden'}};r.readAsText(f)};
-function sync(){$('fix').disabled=!$('ras').checked}
+function sync(){$('fix').disabled=!$('ras').checked;$('step').disabled=!$('ras').checked||$('fix').checked}
 document.querySelectorAll('input[type=checkbox]').forEach(c=>c.onchange=()=>{c.blur();sync();draw()});
 $('opts').addEventListener('input',()=>draw());
 $('sz').oninput=e=>{zoom(+e.target.value,W/2,H/2)};
-function zoom(k2,mx,my){k2=Math.max(12,Math.min(100,k2));ox=mx-(mx-ox)*k2/k;oy=my-(my-oy)*k2/k;k=k2;$('sz').value=k;draw()}
+$('georeset').onclick=()=>{geoAngle=0;draw()};
+$('geo').onchange=()=>{$('geo').blur();$('georeset').style.display=$('geo').checked?'':'none';if($('geo').checked&&!geoPos)geoPos={x:wx(W/2),y:wy(H/2)};draw()};
+$('georeset').style.display='none';
+function zoom(k2,mx,my){k2=Math.max(20,Math.min(150,k2));ox=mx-(mx-ox)*k2/k;oy=my-(my-oy)*k2/k;k=k2;$('sz').value=k;draw()}
 cv.addEventListener('wheel',e=>{e.preventDefault();const p=pos(e);zoom(k*(e.deltaY<0?1.1:1/1.1),p.x,p.y)},{passive:false});
 cv.addEventListener('contextmenu',e=>e.preventDefault());
 function nextP(){const u=new Set(P.map(q=>q.l));let n=0,l;do{l=String.fromCharCode(65+n%26)+(n>=26?Math.floor(n/26):'');n++}while(u.has(l));return l}
@@ -134,7 +145,7 @@ function anchor(){const eps=1e-7,limit=Math.max(1,P.length+1);
 function rebuild(){const ok=new Set(P.map(p=>p.id));let removed=0;
  M=new Map(P.map(p=>[p.id,p]));const validSegment=(a,b)=>{const p=M.get(a),q=M.get(b);return p&&q&&Math.hypot(p.x-q.x,p.y-q.y)>1e-9};
  const oldL=L.length;L=L.filter(l=>ok.has(l.a)&&ok.has(l.b)&&validSegment(l.a,l.b));removed+=oldL-L.length;
- const oldK=K.length;K=K.filter(o=>ok.has(o.a)&&ok.has(o.b)&&validSegment(o.a,o.b));removed+=oldK-K.length;
+ const oldK=K.length;K=K.filter(o=>o.s=='circle'?ok.has(o.a)&&Number.isFinite(o.r)&&o.r>0:ok.has(o.a)&&ok.has(o.b)&&validSegment(o.a,o.b));removed+=oldK-K.length;
  const oldA=A.length;A=A.filter(a=>ok.has(a.a)&&ok.has(a.b)&&ok.has(a.c));removed+=oldA-A.length;
  const oldF=F.length;F=F.filter(f=>f.p.every(i=>ok.has(i)));removed+=oldF-F.length;
  const oldBD=BD.length;BD=BD.filter(b=>ok.has(b.top)&&(b.base.k=='c'?ok.has(b.base.a)&&ok.has(b.base.b):b.base.p.every(i=>ok.has(i))));removed+=oldBD-BD.length;
@@ -148,18 +159,31 @@ function nearCross(x,y){let b=null,bd=11;crossings().forEach(c=>{const d=Math.hy
 function hit(x,y,ex){let b=null,bd=11;P.forEach(p=>{const d=Math.hypot(X(p.x)-x,Y(p.y)-y);if(p.id!==ex&&d<bd){bd=d;b=p}});return b}
 function lineHit(x,y){for(let i=L.length-1;i>=0;i--){const p=M.get(L[i].a),q=M.get(L[i].b),px=X(p.x),py=Y(p.y),dx=X(q.x)-px,dy=Y(q.y)-py,
  t=Math.max(0,Math.min(1,((x-px)*dx+(y-py)*dy)/(dx*dx+dy*dy)));if(Math.hypot(px+t*dx-x,py+t*dy-y)<7)return i}return -1}
+const geoMetrics=()=>{
+ const w=520*(geoSize/100),h=w*(643/1280);
+ return{w,h,cx:X(geoPos.x),cy:Y(geoPos.y),angle:geoAngle*Math.PI/180};
+};
+function geoContainsScreen(x,y){
+ if(!geoPos||!geoAlpha)return false;
+ const g=geoMetrics(),dx=x-g.cx,dy=y-g.cy,a=-g.angle;
+ const lx=dx*Math.cos(a)-dy*Math.sin(a),ly=dx*Math.sin(a)+dy*Math.cos(a);
+ if(lx< -g.w/2||lx>g.w/2||ly< -g.h||ly>0)return false;
+ const px=Math.round((lx/g.w+.5)*geoImg.naturalWidth);
+ const py=Math.round((ly/g.h+1)*geoImg.naturalHeight);
+ if(px<0||px>=geoImg.naturalWidth||py<0||py>=geoImg.naturalHeight)return false;
+ return geoAlpha[(py*geoImg.naturalWidth+px)*4+3]>20;
+}
 function arcData(a,b,x,y){const ax=X(a.x),ay=Y(a.y),bx=X(b.x),by=Y(b.y),dx=bx-ax,dy=by-ay,d=Math.hypot(dx,dy)||1,cx=(ax+bx)/2,cy=(ay+by)/2,r=d/2;
  const mx=x===undefined?cx:x,my=y===undefined?cy:y,ang=Math.atan2(dy,dx),upNormal={x:Math.sin(ang),y:-Math.cos(ang)},side=(mx-cx)*upNormal.x+(my-cy)*upNormal.y;
  const full=Math.hypot(mx-cx,my-cy)>r*1.15;
  return{cx,cy,r,ang,side,kind:full?'c':side>0?'u':'l'}}
 function arcPath(a,b,s,x,y){if(s=='c'){const q=arcData(a,b,x,y);ctx.arc(q.cx,q.cy,q.r,0,Math.PI*2);return}
  const q=arcData(a,b,x,y),ry=q.r*.5;ctx.ellipse(q.cx,q.cy,q.r,ry,q.ang,s=='u'?Math.PI:0,s=='u'?2*Math.PI:Math.PI)}
-function arcHit(x,y){for(let i=K.length-1;i>=0;i--){const a=M.get(K[i].a),b=M.get(K[i].b),o=K[i];
+function arcHit(x,y){for(let i=K.length-1;i>=0;i--){const o=K[i];
+ if(o.s=='circle'){const a=M.get(o.a);if(a&&Math.abs(Math.hypot(x-X(a.x),y-Y(a.y))-o.r*k)<7)return i;continue}
+ const a=M.get(o.a),b=M.get(o.b);if(!a||!b)continue;
  if(o.s=='c'){const q=arcData(a,b);if(Math.abs(Math.hypot(x-q.cx,y-q.cy)-q.r)<7)return i}
- else{const q=arcData(a,b);
-  let found=false;
-  for(let n=0;n<=40;n++){const p=(u?Math.PI:0)+Math.PI*n/40,px=q.cx+q.r*Math.cos(p)*cos-q.r*.5*Math.sin(p)*sin,py=q.cy+q.r*Math.cos(p)*sin+q.r*.5*Math.sin(p)*cos;if(Math.hypot(px-x,py-y)<7){found=true;break}}
-  if(found)return i}}return -1}
+ else{const q=arcData(a,b);for(let n=0;n<=40;n++){const p=(o.s=='u'?Math.PI:0)+Math.PI*n/40,px=q.cx+q.r*Math.cos(p)*Math.cos(q.ang)-q.r*.5*Math.sin(p)*Math.sin(q.ang),py=q.cy+q.r*Math.cos(p)*Math.sin(q.ang)+q.r*.5*Math.sin(p)*Math.cos(q.ang);if(Math.hypot(px-x,py-y)<7)return i}}}return -1}
 function textHit(x,y){for(let i=Q.length-1;i>=0;i--){const q=Q[i],w=halo(q.t,0,0,'','','left','','',fs,true);if(x>=X(q.x)-5&&x<=X(q.x)+w+5&&y>=Y(q.y)-fs&&y<=Y(q.y)+5)return i}return -1}
 const angHit=(x,y)=>A.findIndex(a=>{const B=M.get(a.b);return Math.abs(Math.hypot(X(B.x)-x,Y(B.y)-y)-26)<8});
 function inFace(f,x,y){let c=false;const q=f.p.map(i=>M.get(i));for(let i=0,j=q.length-1;i<q.length;j=i++){const a=q[i],b=q[j],ay=Y(a.y),by=Y(b.y);
@@ -232,9 +256,40 @@ function target(){const s=sp();if(!s)return null;const h=hit(mouse.x,mouse.y,sta
  const c=nearCross(mouse.x,mouse.y);if(c)return{x:c.x,y:c.y,cx:[c.l1,c.l2]};
  const mx=wx(mouse.x),my=wy(mouse.y);if(!$('ras').checked)return{x:mx,y:my};
  const dx=mx-s.x,dy=my-s.y,n=Math.round(Math.atan2(dy,dx)/(Math.PI/4)),a=n*Math.PI/4,ux=Math.cos(a),uy=Math.sin(a),p=dx*ux+dy*uy;
- const unit=.1,stepSize=Math.abs(n)%2?unit*Math.SQRT2:unit,len=!$('fix').checked?Math.round(p/stepSize)*stepSize:p;if(len<=0)return null;
+ const unit=+$('step').value||.1,stepSize=Math.abs(n)%2?unit*Math.SQRT2:unit,len=!$('fix').checked?Math.round(p/stepSize)*stepSize:p;if(len<=0)return null;
  return{x:Math.round((s.x+ux*len)*1e6)/1e6,y:Math.round((s.y+uy*len)*1e6)/1e6}}
 function pos(e){const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
+function compassTarget(){
+ if(!compass)return null;
+ const center=M.get(compass.centerId);if(!center)return null;
+ const h=hit(mouse.x,mouse.y,center.id);if(h)return{x:h.x,y:h.y,id:h.id};
+ const cr=nearCross(mouse.x,mouse.y);if(cr)return{x:cr.x,y:cr.y,cx:[cr.l1,cr.l2]};
+ const mx=wx(mouse.x),my=wy(mouse.y);
+ if(!$('ras').checked)return{x:mx,y:my};
+ const dx=mx-center.x,dy=my-center.y,n=Math.round(Math.atan2(dy,dx)/(Math.PI/4)),a=n*Math.PI/4,ux=Math.cos(a),uy=Math.sin(a),p=dx*ux+dy*uy;
+ const unit=+$('step').value||.1,stepSize=Math.abs(n)%2?unit*Math.SQRT2:unit,len=!$('fix').checked?Math.round(p/stepSize)*stepSize:p;
+ if(len<=0)return null;
+ return{x:Math.round((center.x+ux*len)*1e6)/1e6,y:Math.round((center.y+uy*len)*1e6)/1e6}}
+function lockCompassRadius(){
+ if(!compass||compass.locked)return;
+ const center=M.get(compass.centerId),li=lineHit(mouse.x,mouse.y);
+ let t=compassTarget();if(!center)return;
+ if(li>=0){
+  const l=L[li],a=M.get(l.a),b=M.get(l.b),radius=Math.hypot(b.x-a.x,b.y-a.y),angle=Math.atan2(wy(mouse.y)-center.y,wx(mouse.x)-center.x);
+  t={x:center.x+Math.cos(angle)*radius,y:center.y+Math.sin(angle)*radius};
+ }
+ if(!t)return;
+ const radius=Math.hypot(t.x-center.x,t.y-center.y);if(radius<=1e-9)return;
+ push();const endpointId=t.id!==undefined?t.id:add(t.x,t.y,t.cx);
+ if(endpointId!==center.id){
+  rebuild();
+  const startAngle=Math.atan2(M.get(endpointId).y-center.y,M.get(endpointId).x-center.x);
+  compass={centerId:center.id,endpointId,radius,locked:true,tracing:false,startAngle,lastAngle:startAngle,sweep:0};
+  sel=[centerId,endpointId];$('hint').textContent='Radius ist gesperrt. Maus um den Mittelpunkt bewegen, um den Kreis schrittweise zu zeichnen.';draw();
+ }
+}
+function createCompassCircle(centerId,radius){const center=M.get(centerId);if(!center||!Number.isFinite(radius)||radius<=1e-9)return;
+ push();K.push({id:nid++,a:centerId,b:null,s:'circle',r:radius,d:0});sel=[];compass=null;rebuild()}
 function closeFace(){push();F.push({p:sel.slice(),c:$('fc').value});sel=[];$('fc').value=PAL[F.length%PAL.length];draw()}
 function openInp(kind,i,x,y){inp.style.display='block';inp.style.left=(x+8)+'px';inp.style.top=(y-30)+'px';inp.dataset.k=kind;inp.dataset.i=i;
  const arr=kind=='p'?P:kind=='l'?L:kind=='a'?A:F;let v=(kind=='p'?M.get(i):arr[i]).l;
@@ -246,26 +301,24 @@ inp.addEventListener('keydown',e=>{e.stopPropagation();if(e.key=='Enter'){const 
  if(kd=='t'){if(v){push();Q.push({x:+inp.dataset.x,y:+inp.dataset.y,t:v})}}
  else{if(nameUsed(kd,i,v)){$('hint').textContent='Der Name ist bereits vergeben.';return}push();if(kd=='p'){const p=M.get(i);if(p)p.l=v}else if(kd=='l'){if(L[i])L[i].l=v}else if(kd=='a'){if(A[i])A[i].l=v}else if(F[i])F[i].l=v}
  inp.style.display='none';draw()}if(e.key=='Escape')inp.style.display='none'});
-cv.addEventListener('pointerdown',e=>{mouse=pos(e);
- if(e.button==1||e.button==2||mode=='hand'||space){drag={t:'pan',x:e.clientX,y:e.clientY,ox,oy};cv.setPointerCapture(e.pointerId);return}
- if(e.button==0&&legR&&mouse.x>=legR.x&&mouse.x<=legR.x+legR.w&&mouse.y>=legR.y&&mouse.y<=legR.y+legR.h){
-  if(mode=='del'&&!playing){const m=legRows[Math.round((mouse.y-legR.y)/(fs+4)-1.65)];if(m&&m.b!==undefined){push();BD.splice(m.b,1);rebuild();draw();return}}
-  drag={t:'leg',dx:mouse.x-legR.x,dy:mouse.y-legR.y};cv.setPointerCapture(e.pointerId);return}
- if(e.button>0||playing)return;$('hint').textContent=HINTS[mode];
- const h=hit(mouse.x,mouse.y),ras=$('ras').checked,fix=$('fix').checked,mx=wx(mouse.x),my=wy(mouse.y),gx=ras&&!fix?Math.round(mx*10)/10:mx,gy=ras&&!fix?Math.round(my*10)/10:my,pgx=ras&&!fix?Math.round(mx*2)/2:mx,pgy=ras&&!fix?Math.round(my*2)/2:my,li=lineHit(mouse.x,mouse.y),ki=arcHit(mouse.x,mouse.y),ti=textHit(mouse.x,mouse.y),cr=nearCross(mouse.x,mouse.y);
- if(mode=='line'){if(!start)start=h?{id:h.id}:cr?{x:cr.x,y:cr.y,cx:[cr.l1,cr.l2]}:{x:pgx,y:pgy};else{const t=target();if(t){const a=start.id!==undefined?start.id:add(start.x,start.y,start.cx),b=t.id!==undefined?t.id:add(t.x,t.y,t.cx),ax=start.id!==undefined?M.get(a).x:start.x,ay=start.id!==undefined?M.get(a).y:start.y,bx=t.id!==undefined?M.get(b).x:t.x,by=t.id!==undefined?M.get(b).y:t.y;
-   if(a!==b&&Math.hypot(ax-bx,ay-by)>1e-9&&!L.some(l=>(l.a==a&&l.b==b)||(l.a==b&&l.b==a))){push();L.push({id:nid++,a,b,d:0,l:$('autol').checked?nextL():''})}rebuild();start=null}}}
+function handleClick(e){
+ $('hint').textContent=HINTS[mode];
+ const h=hit(mouse.x,mouse.y),ras=$('ras').checked,fix=$('fix').checked,mx=wx(mouse.x),my=wy(mouse.y),step=ras&&!fix?+$('step').value||.1:0,pgx=step?Math.round(mx/step)*step:mx,pgy=step?Math.round(my/step)*step:my,li=lineHit(mouse.x,mouse.y),ki=arcHit(mouse.x,mouse.y),ti=textHit(mouse.x,mouse.y),cr=nearCross(mouse.x,mouse.y);
+ if(mode=='line'){if(!start)start=h?{id:h.id}:cr?{x:cr.x,y:cr.y,cx:[cr.l1,cr.l2]}:{x:pgx,y:pgy};else{const t=target();if(t){push();const a=start.id!==undefined?start.id:add(start.x,start.y,start.cx),b=t.id!==undefined?t.id:add(t.x,t.y,t.cx),ax=start.id!==undefined?M.get(a).x:start.x,ay=start.id!==undefined?M.get(a).y:start.y,bx=t.id!==undefined?M.get(b).x:t.x,by=t.id!==undefined?M.get(b).y:t.y;
+   if(a!==b&&Math.hypot(ax-bx,ay-by)>1e-9&&!L.some(l=>(l.a==a&&l.b==b)||(l.a==b&&l.b==a)))L.push({id:nid++,a,b,d:0,l:$('autol').checked?nextL():''});rebuild();start=null}}}
  else if(mode=='point'){push();if(!h)add(cr?cr.x:pgx,cr?cr.y:pgy,cr?[cr.l1,cr.l2]:null);rebuild()}
- else if(mode=='arc'){if(sel.length==2){const a=M.get(sel[0]),b=M.get(sel[1]),s=arcData(a,b,mouse.x,mouse.y).kind;
-   if(!K.some(o=>o.s==s&&((o.a==a.id&&o.b==b.id)||(o.a==b.id&&o.b==a.id)))){push();K.push({id:nid++,a:a.id,b:b.id,s,d:0})}sel=[]}
-  else if(h&&!sel.includes(h.id)){sel.push(h.id)}
-  else if(sel.length==0&&li>=0){const l=L[li];sel=[l.a,l.b]}}
+ else if(mode=='arc'){
+  if(!compass){
+   push();const centerId=h?h.id:add(cr?cr.x:pgx,cr?cr.y:pgy,cr?[cr.l1,cr.l2]:null);rebuild();
+   compass={centerId,locked:false};sel=[centerId];$('hint').textContent='Radius wie eine Strecke aufziehen; zweiter Klick sperrt ihn.';
+  }else if(!compass.locked){lockCompassRadius()}
+ }
  else if(mode=='text')openText(mouse.x,mouse.y);
  else if(mode=='label'){const ai=angHit(mouse.x,mouse.y);if(h)openInp('p',h.id,X(h.x),Y(h.y));else if(ai>=0){const B=M.get(A[ai].b);openInp('a',ai,X(B.x)+26,Y(B.y))}
   else if(li>=0){const p=M.get(L[li].a),q=M.get(L[li].b);openInp('l',li,X((p.x+q.x)/2),Y((p.y+q.y)/2))}
   else{const fi=faceAt(mouse.x,mouse.y);if(fi>=0)openInp('f',fi,mouse.x,mouse.y)}}
  else if(mode=='style'){if(ki>=0){push();K[ki].d=((+K[ki].d||0)+1)%3}else if(li>=0){push();L[li].d=((+L[li].d||0)+1)%3}}
- else if(mode=='move'){const pts=h?[h]:li>=0?[M.get(L[li].a),M.get(L[li].b)]:ti>=0?[Q[ti]]:null;if(pts){drag={t:'move',pts,o:pts.map(p=>({x:p.x,y:p.y})),mx,my};cv.setPointerCapture(e.pointerId)}}
+ else if(mode=='move'){const pts=h?[h]:li>=0?[M.get(L[li].a),M.get(L[li].b)]:ti>=0?[Q[ti]]:null;if(pts){drag={t:'move',pts,o:pts.map(p=>({x:p.x,y:p.y})),mx,my};if(e)cv.setPointerCapture(e.pointerId)}}
  else if(mode=='angle'){if(h&&!sel.includes(h.id)){sel.push(h.id);if(sel.length==3){push();A.push({a:sel[0],b:sel[1],c:sel[2],l:[...GR].find(g=>!A.some(x=>x.l==g))});sel=[]}}}
  else if(mode=='face'){if(h){if(sel.length>2&&h.id==sel[0])closeFace();else if(!sel.includes(h.id))sel.push(h.id)}}
   /*
@@ -274,17 +327,117 @@ cv.addEventListener('pointerdown',e=>{mouse=pos(e);
   else if(h){push();BD.push({id:nid++,t:$('btype').value,base:bsel,top:h.id});bsel=null;sel=[]}}
   */
  else if(mode=='del'){if(h){push();P=P.filter(p=>p!==h);rebuild()}else if(ki>=0){push();K.splice(ki,1);rebuild()}else if(li>=0){push();L.splice(li,1);rebuild()}else if(ti>=0){push();Q.splice(ti,1)}else{const ai=angHit(mouse.x,mouse.y);if(ai>=0){push();A.splice(ai,1)}else{const fi=faceAt(mouse.x,mouse.y);if(fi>=0){push();F.splice(fi,1)}}}}
- draw()});
+ draw()}
+
+cv.addEventListener('pointerdown',e=>{
+ mouse=pos(e);
+ if($('geo').checked&&geoPos){
+  const x=mouse.x,y=mouse.y,w=520*(geoSize/100),h=w*(643/1280),cx=X(geoPos.x),cy=Y(geoPos.y),a=geoAngle*Math.PI/180;
+  const rotateX=cx+0*Math.cos(a)-(-h)*Math.sin(a),rotateY=cy+0*Math.sin(a)+(-h)*Math.cos(a);
+  const moveLocalX=0,moveLocalY=-h/2;
+  const moveX=cx+moveLocalX*Math.cos(a)-moveLocalY*Math.sin(a),moveY=cy+moveLocalX*Math.sin(a)+moveLocalY*Math.cos(a);
+   const leftScaleLocalX=-w/2,leftScaleLocalY=0;
+   const rightScaleLocalX=w/2,rightScaleLocalY=0;
+   const leftScaleX=cx+leftScaleLocalX*Math.cos(a)-leftScaleLocalY*Math.sin(a),leftScaleY=cy+leftScaleLocalX*Math.sin(a)+leftScaleLocalY*Math.cos(a);
+   const rightScaleX=cx+rightScaleLocalX*Math.cos(a)-rightScaleLocalY*Math.sin(a),rightScaleY=cy+rightScaleLocalX*Math.sin(a)+rightScaleLocalY*Math.cos(a);
+  if(Math.hypot(x-rotateX,y-rotateY)<12){
+   geoDrag={type:'rotate'};cv.setPointerCapture(e.pointerId);return;
+  }
+  if(Math.hypot(x-moveX,y-moveY)<14){
+   geoDrag={type:'move',mx:wx(x),my:wy(y),px:geoPos.x,py:geoPos.y};cv.setPointerCapture(e.pointerId);return;
+  }
+  if(Math.hypot(x-leftScaleX,y-leftScaleY)<14||Math.hypot(x-rightScaleX,y-rightScaleY)<14){
+   const activeScaleX=Math.hypot(x-leftScaleX,y-leftScaleY)<14?leftScaleX:rightScaleX;
+   const activeScaleY=Math.hypot(x-leftScaleX,y-leftScaleY)<14?leftScaleY:rightScaleY;
+   geoDrag={type:'scale',distance:Math.max(1,Math.hypot(activeScaleX-cx,activeScaleY-cy)),size:geoSize};cv.setPointerCapture(e.pointerId);return;
+  }
+ }
+  if(mode=='arc'&&e.button==0&&!playing){
+    if(!compass){handleClick(e);return}
+    if(!compass.locked){drag={t:'arcRadius',px:e.clientX,py:e.clientY,moved:false,pending:true,click:e};cv.setPointerCapture(e.pointerId);return}
+    return
+  }
+ if(e.pointerType=='touch'){touchPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(touchPointers.size==2){const p=[...touchPointers.values()],mid={x:(p[0].x+p[1].x)/2,y:(p[0].y+p[1].y)/2};
+   const r=cv.getBoundingClientRect(),mx=mid.x-r.left,my=mid.y-r.top;
+   pinch={d:Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y),k,wx:(mx-ox)/k,wy:(my-oy)/k};drag=null;cv.setPointerCapture(e.pointerId);return}}
+ if(e.button==1||e.button==2||mode=='hand'||space){drag={t:'pan',x:e.clientX,y:e.clientY,ox,oy};cv.setPointerCapture(e.pointerId);return}
+ if(e.button==0&&legR&&mouse.x>=legR.x&&mouse.x<=legR.x+legR.w&&mouse.y>=legR.y&&mouse.y<=legR.y+legR.h){
+  if(mode=='del'&&!playing){const m=legRows[Math.round((mouse.y-legR.y)/(fs+4)-1.65)];if(m&&m.b!==undefined){push();BD.splice(m.b,1);rebuild();draw();return}}
+  drag={t:'leg',dx:mouse.x-legR.x,dy:mouse.y-legR.y};cv.setPointerCapture(e.pointerId);return}
+ if(e.button>0||playing)return;
+ const h=hit(mouse.x,mouse.y),li=lineHit(mouse.x,mouse.y);
+ if(h||li>=0){
+  const pts=h?[h]:[M.get(L[li].a),M.get(L[li].b)];
+  drag={t:'move',pts,o:pts.map(p=>({x:p.x,y:p.y})),mx:wx(mouse.x),my:wy(mouse.y),px:e.clientX,py:e.clientY,pending:true,click:e};
+  cv.setPointerCapture(e.pointerId);return
+ }
+ handleClick(e);
+});
+
 cv.addEventListener('pointermove',e=>{mouse=pos(e);
- if(drag){if(drag.t=='pan'){ox=drag.ox+e.clientX-drag.x;oy=drag.oy+e.clientY-drag.y}
+ if(geoDrag){
+  if(geoDrag.type=='move'){
+   const cx=X(geoPos.x),cy=Y(geoPos.y);
+   geoPos={x:geoDrag.px+(wx(mouse.x)-geoDrag.mx),y:geoDrag.py+(wy(mouse.y)-geoDrag.my)};
+  }else if(geoDrag.type=='rotate'){
+   const cx=X(geoPos.x),cy=Y(geoPos.y);
+   let angle=Math.atan2(mouse.y-cy,mouse.x-cx)*180/Math.PI+90;
+   while(angle<-180)angle+=360;
+   while(angle>180)angle-=360;
+   geoAngle=Math.round(angle);
+  }else if(geoDrag.type=='scale'){
+    const cx=X(geoPos.x),cy=Y(geoPos.y);
+    const distance=Math.hypot(mouse.x-cx,mouse.y-cy);
+   const size=Math.round(Math.max(25,Math.min(200,geoDrag.size*distance/geoDrag.distance)));
+   geoSize=size;
+  }
+  draw();return;
+ }
+ if(e.pointerType=='touch'&&touchPointers.has(e.pointerId))touchPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ if(pinch&&touchPointers.size>=2){const p=[...touchPointers.values()].slice(0,2),mid={x:(p[0].x+p[1].x)/2,y:(p[0].y+p[1].y)/2},d=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y);
+  const r=cv.getBoundingClientRect(),mx=mid.x-r.left,my=mid.y-r.top,k2=Math.max(20,Math.min(150,pinch.k*d/pinch.d));ox=mx-pinch.wx*k2;oy=my-pinch.wy*k2;k=k2;$('sz').value=k;draw();return}
+ if(mode=='arc'&&compass&&compass.locked&&!drag){
+  const center=M.get(compass.centerId);if(center){
+   const angle=Math.atan2(mouse.y-Y(center.y),mouse.x-X(center.x));
+   if(compass.lastAngle!==undefined){
+    let delta=angle-compass.lastAngle;while(delta>Math.PI)delta-=Math.PI*2;while(delta<-Math.PI)delta+=Math.PI*2;
+    if(Math.hypot(mouse.x-X(center.x),mouse.y-Y(center.y))>3){
+     compass.sweep+=delta;compass.tracing=true;
+     if(Math.abs(compass.sweep)>=Math.PI*2){
+      createCompassCircle(compass.centerId,compass.radius);compass=null;
+     }
+    }
+   }
+   compass.lastAngle=angle;
+  }
+ }
+ if(drag){if(drag.t=='arcRadius'){
+   if(Math.hypot(e.clientX-drag.px,e.clientY-drag.py)>=3){drag.moved=true;drag.pending=false}
+  }else if(drag.t=='pan'){ox=drag.ox+e.clientX-drag.x;oy=drag.oy+e.clientY-drag.y}
   else if(drag.t=='leg'){legPos={x:mouse.x-drag.dx,y:mouse.y-drag.dy}}
-  else{let dx=wx(mouse.x)-drag.mx,dy=wy(mouse.y)-drag.my;if($('ras').checked&&!$('fix').checked){const step=drag.pts.length>1?.1:.5;dx=Math.round(dx/step)*step;dy=Math.round(dy/step)*step}
+  else{if(drag.pending&&Math.hypot(e.clientX-drag.px,e.clientY-drag.py)<3){hover=hit(mouse.x,mouse.y);draw();return}
+   if(drag.pending){push();drag.pending=false;drag.moved=1;drag.pts.forEach(p=>{p.cx=null})}
+   let dx=wx(mouse.x)-drag.mx,dy=wy(mouse.y)-drag.my;if($('ras').checked&&!$('fix').checked){const step=+$('step').value||.1;dx=Math.round(dx/step)*step;dy=Math.round(dy/step)*step}
    if(!drag.moved&&(dx||dy)){push();drag.moved=1;drag.pts.forEach(p=>{p.cx=null})}
    drag.pts.forEach((p,i)=>{p.x=drag.o[i].x+dx;p.y=drag.o[i].y+dy});rebuild()}}
  hover=hit(mouse.x,mouse.y);const lm=['style','label','move','del','arc'].includes(mode)&&(!hover||mode=='arc');hk=lm?arcHit(mouse.x,mouse.y):-1;hl=lm&&hk<0?lineHit(mouse.x,mouse.y):-1;draw()});
-const up=()=>{if(drag&&drag.moved&&rec)capture();drag=null};cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
+const up=e=>{
+ if(geoDrag){geoDrag=null;return}
+ if(drag&&drag.t=='arcRadius'){
+  mouse=pos(e);
+  if(drag.moved)lockCompassRadius();
+  else{const click=drag.click;drag=null;mouse=pos(click);handleClick(click)}
+  drag=null;draw();return
+ }
+ if(drag&&drag.pending&&!drag.moved){const click=drag.click;drag=null;mouse=pos(click);handleClick(click);return}
+ if(drag&&drag.moved&&rec)capture();drag=null
+};
+const touchEnd=e=>{touchPointers.delete(e.pointerId);if(touchPointers.size<2)pinch=null;if(touchPointers.size==0)drag=null};
+cv.addEventListener('pointerup',e=>{up(e);touchEnd(e)});
+cv.addEventListener('pointercancel',touchEnd);
 addEventListener('keydown',e=>{if(e.target===inp||e.target.type=='number'||e.target.tagName=='SELECT')return;
- if(e.key=='Escape'){start=null;sel=[];bsel=null;draw();return}
+ if(e.key=='Escape'){start=null;sel=[];bsel=null;compass=null;drag=null;$('hint').textContent=HINTS[mode];draw();return}
  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()=='z'){e.preventDefault();undo();return}
  if(e.key==' '){space=true;e.preventDefault();return}
  if(e.key=='Enter'&&mode=='face'&&sel.length>2){closeFace();return}
@@ -301,8 +454,14 @@ function draw(){const cs=getComputedStyle(document.documentElement),fg=cs.getPro
  sl=$('lab').checked,sol=$('sol').checked,ss=$('siz').checked;fs=+$('fs').value;const T=$('d3').checked?solve3d():null;
  ctx.clearRect(0,0,W,H);
  if(showGrid){ctx.fillStyle=ctx.strokeStyle=gc;const x0=((ox%k)+k)%k,y0=((oy%k)+k)%k;
-  if(grid=='karo'){ctx.lineWidth=1;ctx.beginPath();for(let x=x0;x<=W;x+=k){ctx.moveTo(x,0);ctx.lineTo(x,H)}for(let y=y0;y<=H;y+=k){ctx.moveTo(0,y);ctx.lineTo(W,y)}ctx.stroke()}
-  else for(let x=x0;x<=W;x+=k)for(let y=y0;y<=H;y+=k){ctx.beginPath();ctx.arc(x,y,1.6,0,7);ctx.fill()}}
+  if(grid=='karo'){
+   ctx.strokeStyle=gc;ctx.lineWidth=1;ctx.beginPath();
+  for(let x=x0-k/2;x<=W;x+=k/2){ctx.moveTo(x,0);ctx.lineTo(x,H)}
+  for(let y=y0-k/2;y<=H;y+=k/2){ctx.moveTo(0,y);ctx.lineTo(W,y)}
+   ctx.stroke()}
+  else {
+   ctx.fillStyle=gc;
+  for(let x=x0-k/2;x<=W;x+=k/2)for(let y=y0-k/2;y<=H;y+=k/2){ctx.beginPath();ctx.arc(x,y,1.6,0,7);ctx.fill()}}}
  F.forEach(f=>{ctx.globalAlpha=.22;ctx.fillStyle=f.c;ctx.beginPath();f.p.forEach((i,n)=>{const p=M.get(i);n?ctx.lineTo(X(p.x),Y(p.y)):ctx.moveTo(X(p.x),Y(p.y))});ctx.closePath();ctx.fill();ctx.globalAlpha=1});
  ctx.lineCap='round';
  L.forEach((l,i)=>{const p=M.get(l.a),q=M.get(l.b),x1=X(p.x),y1=Y(p.y),x2=X(q.x),y2=Y(q.y),hlp=l.d==2;
@@ -310,8 +469,24 @@ function draw(){const cs=getComputedStyle(document.documentElement),fg=cs.getPro
   ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.setLineDash([]);
   const r=lenInfo(l,T),t=txt(l.l,r.v===null?r.s:fmt(r.v),sl,ss&&($('onlyn').checked||!!l.l));
   if(t){const dx=x2-x1,dy=y2-y1,n=Math.hypot(dx,dy)||1;let nx=-dy/n,ny=dx/n;if(ny>0){nx=-nx;ny=-ny}halo(t,(x1+x2)/2+nx*(fs*.8),(y1+y2)/2+ny*(fs*.8)+fs*.3,fg,bg,'center')}});
- K.forEach((o,i)=>{const a=M.get(o.a),b=M.get(o.b),hlp=o.d==2;ctx.strokeStyle=i==hk?ac:hlp?hp:fg;ctx.lineWidth=i==hk?3.5:hlp?1.5:2;ctx.setLineDash(o.d==1?[8,6]:[]);ctx.beginPath();arcPath(a,b,o.s);ctx.stroke();ctx.setLineDash([])});
- if(mode=='arc'&&sel.length==2){const a=M.get(sel[0]),b=M.get(sel[1]),s=arcData(a,b,mouse.x,mouse.y).kind;ctx.strokeStyle=ac;ctx.lineWidth=2;ctx.beginPath();arcPath(a,b,s,mouse.x,mouse.y);ctx.stroke()}
+ K.forEach((o,i)=>{const a=M.get(o.a),b=M.get(o.b),hlp=o.d==2;ctx.strokeStyle=i==hk?ac:hlp?hp:fg;ctx.lineWidth=i==hk?3.5:hlp?1.5:2;ctx.setLineDash(o.d==1?[8,6]:[]);ctx.beginPath();
+  if(o.s=='circle'){ctx.arc(X(a.x),Y(a.y),o.r*k,0,Math.PI*2)}
+  else{arcPath(a,b,o.s)}ctx.stroke();ctx.setLineDash([])});
+ if(compass){
+  const center=M.get(compass.centerId);
+  if(center&&!compass.locked){
+   const t=compassTarget();if(t){
+    ctx.strokeStyle=ac;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(X(center.x),Y(center.y));ctx.lineTo(X(t.x),Y(t.y));ctx.stroke();
+    ctx.fillStyle=ac;ctx.beginPath();ctx.arc(X(t.x),Y(t.y),5,0,Math.PI*2);ctx.fill();
+    halo(fmt(Math.hypot(t.x-center.x,t.y-center.y)),X(t.x)+12,Y(t.y)-12,ac,bg,'left','','sans-serif',14);
+   }
+  }else if(center){
+   ctx.strokeStyle=ac;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(X(center.x),Y(center.y));ctx.lineTo(X(center.x)+Math.cos(compass.lastAngle)*compass.radius*k,Y(center.y)+Math.sin(compass.lastAngle)*compass.radius*k);ctx.stroke();
+   if(compass.tracing){
+    ctx.strokeStyle=ac;ctx.lineWidth=2;ctx.beginPath();ctx.arc(X(center.x),Y(center.y),compass.radius*k,compass.startAngle,compass.startAngle+compass.sweep,compass.sweep<0);ctx.stroke();
+   }
+  }
+ }
  F.forEach(f=>{if(sl&&f.l){let cx=0,cy=0;f.p.forEach(i=>{const p=M.get(i);cx+=X(p.x);cy+=Y(p.y)});halo(f.l,cx/f.p.length,cy/f.p.length+fs*.3,fg,bg,'center')}});
  A.forEach(a=>{const B=M.get(a.b),p=M.get(a.a),c=M.get(a.c),a1=Math.atan2(p.y-B.y,p.x-B.x),a2=Math.atan2(c.y-B.y,c.x-B.x),ai=angleInfo(a,T,a1,a2),deg=ai.v;let d=a2-a1;
   while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;const bx=X(B.x),by=Y(B.y),r=26;ctx.strokeStyle=ac;ctx.lineWidth=1.8;ctx.beginPath();
@@ -331,10 +506,79 @@ function draw(){const cs=getComputedStyle(document.documentElement),fg=cs.getPro
   if(cr){const z=on?6:4.5;ctx.lineWidth=1.8;ctx.beginPath();ctx.moveTo(x-z,y-z);ctx.lineTo(x+z,y+z);ctx.moveTo(x+z,y-z);ctx.lineTo(x-z,y+z);ctx.stroke()}
   else{ctx.beginPath();ctx.arc(x,y,on?5:3.5,0,7);ctx.fill()}
   if(sl&&p.l)halo(p.l,x+7,y-7,fg,bg,'left')});
+ if($('geo').checked&&geoPos&&geoImg.complete&&geoImg.naturalWidth){
+  const w=520*(geoSize/100),h=w*(geoImg.naturalHeight/geoImg.naturalWidth);
+  const angle=geoAngle*Math.PI/180;
+  const cx=X(geoPos.x),cy=Y(geoPos.y);
+  ctx.save();ctx.translate(cx,cy);ctx.rotate(angle);ctx.drawImage(geoImg,-w/2,-h,w,h);ctx.restore();
+
+  const rotateLocalY=-h;
+  const rx=cx+rotateLocalY*-Math.sin(angle),ry=cy+rotateLocalY*Math.cos(angle);
+  const moveLocalX=0,moveLocalY=-h/2;
+  const mx=cx+moveLocalX*Math.cos(angle)-moveLocalY*Math.sin(angle),my=cy+moveLocalX*Math.sin(angle)+moveLocalY*Math.cos(angle);
+  const leftScaleLocalX=-w/2,leftScaleLocalY=0;
+  const rightScaleLocalX=w/2,rightScaleLocalY=0;
+  const lsx=cx+leftScaleLocalX*Math.cos(angle)-leftScaleLocalY*Math.sin(angle),lsy=cy+leftScaleLocalX*Math.sin(angle)+leftScaleLocalY*Math.cos(angle);
+  const rsx=cx+rightScaleLocalX*Math.cos(angle)-rightScaleLocalY*Math.sin(angle),rsy=cy+rightScaleLocalX*Math.sin(angle)+rightScaleLocalY*Math.cos(angle);
+
+  ctx.save();
+  ctx.lineWidth=1.5;
+  ctx.strokeStyle=fg;
+  ctx.fillStyle=bg;
+
+  ctx.beginPath();ctx.arc(mx,my,13,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(mx-7,my);ctx.lineTo(mx+7,my);ctx.moveTo(mx,my-7);ctx.lineTo(mx,my+7);
+  ctx.moveTo(mx-10,my);ctx.lineTo(mx-7,my-3);ctx.moveTo(mx-10,my);ctx.lineTo(mx-7,my+3);
+  ctx.moveTo(mx+10,my);ctx.lineTo(mx+7,my-3);ctx.moveTo(mx+10,my);ctx.lineTo(mx+7,my+3);
+  ctx.moveTo(mx,my-10);ctx.lineTo(mx-3,my-7);ctx.moveTo(mx,my-10);ctx.lineTo(mx+3,my-7);
+  ctx.moveTo(mx,my+10);ctx.lineTo(mx-3,my+7);ctx.moveTo(mx,my+10);ctx.lineTo(mx+3,my+7);ctx.stroke();
+
+  // Äußerer Button-Kreis
+  ctx.beginPath();ctx.arc(rx,ry,12,0,Math.PI*2);ctx.fill();ctx.stroke();
+
+  // Innerer Pfeilbogen
+  const r=6.5;
+  const startAngle=Math.PI*.25;
+  const endAngle=Math.PI*1.85;
+
+  ctx.beginPath();
+  ctx.arc(rx,ry,r,startAngle,endAngle,false);
+  ctx.stroke();
+
+  // Pfeilspitze berechnen
+  const tipX=rx+r*Math.cos(endAngle);
+  const tipY=ry+r*Math.sin(endAngle);
+
+  // Tangente leicht nach innen korrigieren
+  const tangentAngle=endAngle+Math.PI/2-.35;
+  const headLen=3.2;
+  const headSpread=.55;
+
+  ctx.beginPath();
+  ctx.moveTo(tipX,tipY);
+  ctx.lineTo(tipX-headLen*Math.cos(tangentAngle-headSpread),tipY-headLen*Math.sin(tangentAngle-headSpread));
+  ctx.moveTo(tipX,tipY);
+  ctx.lineTo(tipX-headLen*Math.cos(tangentAngle+headSpread),tipY-headLen*Math.sin(tangentAngle+headSpread));
+  ctx.stroke();
+
+  ctx.beginPath();ctx.arc(lsx,lsy,13,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(lsx-7,lsy+7);ctx.lineTo(lsx+7,lsy-7);
+  ctx.moveTo(lsx-7,lsy+7);ctx.lineTo(lsx-7,lsy+2);ctx.moveTo(lsx-7,lsy+7);ctx.lineTo(lsx-2,lsy+7);
+  ctx.moveTo(lsx+7,lsy-7);ctx.lineTo(lsx+7,lsy-2);ctx.moveTo(lsx+7,lsy-7);ctx.lineTo(lsx+2,lsy-7);ctx.stroke();
+
+  ctx.beginPath();ctx.arc(rsx,rsy,13,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(rsx+7,rsy+7);ctx.lineTo(rsx-7,rsy-7);
+  ctx.moveTo(rsx+7,rsy+7);ctx.lineTo(rsx+7,rsy+2);ctx.moveTo(rsx+7,rsy+7);ctx.lineTo(rsx+2,rsy+7);
+  ctx.moveTo(rsx-7,rsy-7);ctx.lineTo(rsx-7,rsy-2);ctx.moveTo(rsx-7,rsy-7);ctx.lineTo(rsx-2,rsy-7);ctx.stroke();
+  ctx.restore();
+ }
  /* Legende */
  legR=null;legRows=[];const lg=$('leg').checked||sol,vo=false/* $('vol').checked */;
  if(lg||vo){const rows=[];
-  if(lg){L.forEach(l=>{if(l.l){const r=lenInfo(l,T);if(sol&&!$('leg').checked&&!r.s)return;const v=r.v===null?r.s:sol&&r.s?r.s+(ss||$('leg').checked?' = '+fmt(r.v):''):fmt(r.v);rows.push(l.l+' = '+v);legRows.push({})}});
+  if(lg){L.forEach(l=>{if(l.l){const r=lenInfo(l,T);if(sol&&!$('leg').checked&&!r.s)return;const u=$('unit').value,v=r.v===null?r.s:sol&&r.s?r.s+(ss||$('leg').checked?' = '+fmt(r.v)+' '+u:''):fmt(r.v)+' '+u;rows.push(l.l+' = '+v);legRows.push({})}});
    F.forEach(f=>{if(f.l){const r=areaInfo(f.p,T);if(sol&&!$('leg').checked&&!r.s)return;const v=r.v===null?r.s:sol&&r.s?r.s+(ss||$('leg').checked?' = '+fmt(r.v):''):fmt(r.v);rows.push(f.l+' = '+v);legRows.push({})}})}
   if(vo)BD.forEach((b,i)=>{const r=bodyInfo(b,T);if(!r){rows.push('V_'+(i+1)+' nicht berechenbar');legRows.push({b:i});return}
    rows.push('V_'+(i+1)+' = '+(sol?r.s+' = ':'')+fmt(r.v));legRows.push({b:i});if(sol){rows.push('   '+r.g);legRows.push({b:i})}});

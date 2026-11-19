@@ -29,7 +29,6 @@ function createTask(type, grade = 5, options = {}) {
 		grade = 5;
 	}
 	
-	const isSingleTask = Boolean(options.singleTask);
 	let answer = null;
 	const numericAnswer = value => ({ kind: 'number', value });
 	const fractionAnswer = (num, den, requireReduced = false) => ({ kind: 'fraction', num, den, requireReduced });
@@ -131,14 +130,6 @@ function createTask(type, grade = 5, options = {}) {
 				</table>
 			</div>
 		`;
-	};
-
-	const buildTwoColumnTaskTable = (cells) => {
-		const cellHtml = cells.map(cell =>
-			`<td class="two-column-task-cell">${cell}</td>`
-		).join('');
-
-		return `<table class="two-column-task"><tr>${cellHtml}</tr></table>`;
 	};
 
 	const buildEmptyRatioTable = () => formatUtils.buildSolutionTable(
@@ -734,384 +725,174 @@ function createTask(type, grade = 5, options = {}) {
 		}
 
 	case 'dezimalbrueche_addieren_subtrahieren': {
-		if (isQuizMode) {
-			const allowNegativeDecimals = grade >= 8;
-
-			const createDbAsEntry = () => {
-				let expr;
-				let solution;
-				let answer;
-				let a = allowNegativeDecimals ? trueDec(-15, 15) : trueDec(0, 15);
-				let b = allowNegativeDecimals ? trueDec(-15, 15) : trueDec(0, 13);
-
-				if (Math.random() > 0.5) {
-					const result = a + b;
-					expr = `\\[ ${comma(a)} + ${comma(fmt(b))} = \\]`;
-					solution = `\\[ ${comma(a)} + ${comma(fmt(b))} = ${comma(result.toFixed(1))} \\]`;
-					answer = numericAnswer(Number(result.toFixed(1)));
-				} else {
-					const result = a - b;
-					expr = `\\[ ${comma(a)} - ${comma(fmt(b))} = \\]`;
-					solution = `\\[ ${comma(a)} - ${comma(fmt(b))} = ${comma(result.toFixed(1))} \\]`;
-					answer = numericAnswer(Number(result.toFixed(1)));
-				}
-				return { expr, solution, answer };
+		const allowNegativeDecimals = grade >= 8;
+		const createDbAsEntry = () => {
+			const a = allowNegativeDecimals ? trueDec(-15, 15) : trueDec(0, 15);
+			const b = allowNegativeDecimals ? trueDec(-15, 15) : trueDec(0, 13);
+			const isAddition = Math.random() > 0.5;
+			const result = isAddition ? a + b : a - b;
+			const operator = isAddition ? '+' : '-';
+			return {
+				expr: `\\[ ${comma(a)} ${operator} ${comma(fmt(b))} = \\]`,
+				solution: `\\[ ${comma(a)} ${operator} ${comma(fmt(b))} = ${comma(result.toFixed(1))} \\]`,
+				answer: numericAnswer(Number(result.toFixed(1)))
 			};
-
-			const entry = createDbAsEntry();
-			textDisplay = entry.expr;
-			s = entry.solution;
-			answer = entry.answer;
-		} else {
-			const allowNegativeDecimals = grade >= 8;
-
-			const createDbAsEntry = () => {
-				let expr;
-				let solution;
-				let a = allowNegativeDecimals ? trueDec(-15, 15) : trueDec(0, 15);
-				let b = allowNegativeDecimals ? trueDec(-15, 15) : trueDec(0, 13);
-
-				if (Math.random() > 0.5) {
-					expr = `\\[ ${comma(a)} + ${comma(fmt(b))} = \\]`;
-					solution = `\\[ ${comma(a)} + ${comma(fmt(b))} = ${comma((a + b).toFixed(1))} \\]`;
-				} else {
-					expr = `\\[ ${comma(a)} - ${comma(fmt(b))} = \\]`;
-					solution = `\\[ ${comma(a)} - ${comma(fmt(b))} = ${comma((a - b).toFixed(1))} \\]`;
-				}
-				return { expr, solution };
-			};
-
-			const entry = createDbAsEntry();
-			textDisplay = entry.expr;
-			s = entry.solution;
-		}
+		};
+		const entry = createDbAsEntry();
+		textDisplay = entry.expr;
+		s = entry.solution;
+		answer = entry.answer;
 		break;
 	}
 	case 'dezimalbrueche_multiplizieren_dividieren': {
-		if (isQuizMode) {
-			const allowNegativeDecimals = grade >= 8;
-
-			const createDbMdEntry = () => {
-				let expr;
-				let solution;
-				let answer;
-				const rdLocal = Math.random();
-
-				if (rdLocal > 0.7) {
-					const a = allowNegativeDecimals ? trueDec(-9, 9) : trueDec(0, 9);
-					const b = allowNegativeDecimals ? rnd(-7, 7) : rnd(1, 7);
-					const result = a * b;
-					expr = `\\( ${comma(a)} \\cdot ${comma(fmt(b))} =\\)`;
-					solution = `\\( ${comma(a)} \\cdot ${comma(fmt(b))} = ${comma(result.toFixed(1))} \\)`;
-					answer = numericAnswer(Number(result.toFixed(1)));
-				} else if (rdLocal > 0.4) {
-					const a = allowNegativeDecimals ? trueDec(-1.5, 1.5) : trueDec(0, 1.5);
-					const b = allowNegativeDecimals ? trueDec(-1.5, 1.5) : trueDec(0, 1.5);
-					const result = a * b;
-					expr = `\\[ ${comma(a)} \\cdot ${comma(fmt(b))} = \\]`;
-					solution = `\\[ ${comma(a)} \\cdot ${comma(fmt(b))} = ${comma(result.toFixed(2))} \\]`;
-					answer = numericAnswer(Number(result.toFixed(2)));
-				} else {
-					const res = allowNegativeDecimals ? trueDec(-1.5, 1.5) : trueDec(0, 1.5);
-					let b = allowNegativeDecimals ? rnd(-9, 9) : rnd(2, 9);
-					while (b === 0) {
-						b = allowNegativeDecimals ? rnd(-9, 9) : rnd(2, 9);
-					}
-					const a = res * b;
-					expr = `\\[ ${comma(a.toFixed(1))} : ${comma(fmt(b))} = \\]`;
-					solution = `\\[ ${comma(a.toFixed(1))} : ${comma(fmt(b))} = ${comma(res.toFixed(1))} \\]`;
-					answer = numericAnswer(Number(res.toFixed(1)));
-				}
-				return { expr, solution, answer };
-			};
-
-			const entry = createDbMdEntry();
-			textDisplay = entry.expr;
-			s = entry.solution;
-			answer = entry.answer;
-		} else {
-			const allowNegativeDecimals = grade >= 8;
-
-			const createDbMdEntry = () => {
-				let expr;
-				let solution;
-				const rdLocal = Math.random();
-
-				if (rdLocal > 0.7) {
-					const a = allowNegativeDecimals ? trueDec(-9, 9) : trueDec(0, 9);
-					const b = allowNegativeDecimals ? rnd(-7, 7) : rnd(1, 7);
-					expr = `\\( ${comma(a)} \\cdot ${comma(fmt(b))} =\\)`;
-					solution = `\\( ${comma(a)} \\cdot ${comma(fmt(b))} = ${comma((a * b).toFixed(1))} \\)`;
-				} else if (rdLocal > 0.4) {
-					const a = allowNegativeDecimals ? trueDec(-1.5, 1.5) : trueDec(0, 1.5);
-					const b = allowNegativeDecimals ? trueDec(-1.5, 1.5) : trueDec(0, 1.5);
-					expr = `\\[ ${comma(a)} \\cdot ${comma(fmt(b))} = \\]`;
-					solution = `\\[ ${comma(a)} \\cdot ${comma(fmt(b))} = ${comma((a * b).toFixed(2))} \\]`;
-				} else {
-					const res = allowNegativeDecimals ? trueDec(-1.5, 1.5) : trueDec(0, 1.5);
-					let b = allowNegativeDecimals ? rnd(-9, 9) : rnd(2, 9);
-					while (b === 0) {
-						b = allowNegativeDecimals ? rnd(-9, 9) : rnd(2, 9);
-					}
-					const a = res * b;
-					expr = `\\[ ${comma(a.toFixed(1))} : ${comma(fmt(b))} = \\]`;
-					solution = `\\[ ${comma(a.toFixed(1))} : ${comma(fmt(b))} = ${comma(res.toFixed(1))} \\]`;
-				}
-				return { expr, solution };
-			};
-
-			if (isSingleTask) {
-				const entry = createDbMdEntry();
-				textDisplay = entry.expr;
-				s = entry.solution;
-			} else {
-				const entries = [createDbMdEntry(), createDbMdEntry()];
-				textDisplay = buildTwoColumnTaskTable(entries.map(item => item.expr));
-				s = buildTwoColumnTaskTable(entries.map(item => item.solution));
+		const allowNegativeDecimals = grade >= 8;
+		const createDbMdEntry = () => {
+			const rdLocal = Math.random();
+			if (rdLocal > 0.7) {
+				const a = allowNegativeDecimals ? trueDec(-9, 9) : trueDec(0, 9);
+				const b = allowNegativeDecimals ? rnd(-7, 7) : rnd(1, 7);
+				const result = a * b;
+				return {
+					expr: `\\( ${comma(a)} \\cdot ${comma(fmt(b))} =\\)`,
+					solution: `\\( ${comma(a)} \\cdot ${comma(fmt(b))} = ${comma(result.toFixed(1))} \\)`,
+					answer: numericAnswer(Number(result.toFixed(1)))
+				};
 			}
-		}
+			if (rdLocal > 0.4) {
+				const a = allowNegativeDecimals ? trueDec(-1.5, 1.5) : trueDec(0, 1.5);
+				const b = allowNegativeDecimals ? trueDec(-1.5, 1.5) : trueDec(0, 1.5);
+				const result = a * b;
+				return {
+					expr: `\\[ ${comma(a)} \\cdot ${comma(fmt(b))} = \\]`,
+					solution: `\\[ ${comma(a)} \\cdot ${comma(fmt(b))} = ${comma(result.toFixed(2))} \\]`,
+					answer: numericAnswer(Number(result.toFixed(2)))
+				};
+			}
+			const res = allowNegativeDecimals ? trueDec(-1.5, 1.5) : trueDec(0, 1.5);
+			let b = allowNegativeDecimals ? rnd(-9, 9) : rnd(2, 9);
+			while (b === 0) {
+				b = allowNegativeDecimals ? rnd(-9, 9) : rnd(2, 9);
+			}
+			const a = res * b;
+			return {
+				expr: `\\[ ${comma(a.toFixed(1))} : ${comma(fmt(b))} = \\]`,
+				solution: `\\[ ${comma(a.toFixed(1))} : ${comma(fmt(b))} = ${comma(res.toFixed(1))} \\]`,
+				answer: numericAnswer(Number(res.toFixed(1)))
+			};
+		};
+		const entry = createDbMdEntry();
+		textDisplay = entry.expr;
+		s = entry.solution;
+		answer = entry.answer;
 		break;
 	}
 	case 'natuerliche_zahlen_addieren_subtrahieren': {
-		if (isQuizMode) {
-			const createNatAsEntry = () => {
-				let expr;
-				let solution;
-				let answer;
-				const isAddition = Math.random() > 0.5;
-
-				if (isAddition) {
-					const v1 = randInt(20, 300);
-					const v2 = randInt(20, 300);
-					expr = `\\[ ${v1} + ${v2} = \\]`;
-					const sum = v1 + v2;
-					solution = `\\[ ${v1} + ${v2} = ${sum} \\]`;
-					answer = numericAnswer(sum);
-				} else {
-					const v1 = randInt(70, 300);
-					const v2 = randInt(20, v1);
-					expr = `\\[ ${v1} - ${v2} = \\]`;
-					const diff = v1 - v2;
-					solution = `\\[ ${v1} - ${v2} = ${diff} \\]`;
-					answer = numericAnswer(diff);
-				}
-				return { expr, solution, answer };
-			};
-
-			const entry = createNatAsEntry();
-			textDisplay = entry.expr;
-			s = entry.solution;
-			answer = entry.answer;
-		} else {
-			const createNatAsEntry = () => {
-				let expr;
-				let solution;
-				if (Math.random() > 0.5) {
-					const v1 = randInt(20, 300);
-					const v2 = randInt(20, 300);
-					expr = `\\[ ${v1} + ${v2} = \\]`;
-					const sum = v1 + v2;
-					solution = `\\[ ${v1} + ${v2} = ${sum} \\]`;
-				} else {
-					const v1 = randInt(70, 300);
-					const v2 = randInt(20, v1);
-					expr = `\\[ ${v1} - ${v2} = \\]`;
-					const diff = v1 - v2;
-					solution = `\\[ ${v1} - ${v2} = ${diff} \\]`;
-				}
-				return { expr, solution };
-			};
-
-			if (isSingleTask) {
-				const entry = createNatAsEntry();
-				textDisplay = entry.expr;
-				s = entry.solution;
-			} else {
-				const entries = [createNatAsEntry(), createNatAsEntry()];
-				textDisplay = buildTwoColumnTaskTable(entries.map(item => item.expr));
-				s = buildTwoColumnTaskTable(entries.map(item => item.solution));
+		const createNatAsEntry = () => {
+			const isAddition = Math.random() > 0.5;
+			if (isAddition) {
+				const v1 = randInt(20, 300);
+				const v2 = randInt(20, 300);
+				const sum = v1 + v2;
+				return {
+					expr: `\\[ ${v1} + ${v2} = \\]`,
+					solution: `\\[ ${v1} + ${v2} = ${sum} \\]`,
+					answer: numericAnswer(sum)
+				};
 			}
-		}
+			const v1 = randInt(70, 300);
+			const v2 = randInt(20, v1);
+			const diff = v1 - v2;
+			return {
+				expr: `\\[ ${v1} - ${v2} = \\]`,
+				solution: `\\[ ${v1} - ${v2} = ${diff} \\]`,
+				answer: numericAnswer(diff)
+			};
+		};
+		const entry = createNatAsEntry();
+		textDisplay = entry.expr;
+		s = entry.solution;
+		answer = entry.answer;
 		break;
 	}
 	case 'ganze_zahlen_addieren_subtrahieren': {
-		if (isQuizMode) {
-			const createZAsEntry = () => {
-				let expr;
-				let solution;
-				let answer;
-				if (Math.random() > 0.5) {
-					do {
-						v1 = rnd(-20, 20);
-						v2 = rnd(-20, 20);
-					} while (!(v1 < 0 || v2 < 0 || (v1 + v2) < 0));
-					expr = `\\[ ${v1} + ${fmt(v2)} = \\]`;
-					const sum = v1 + v2;
-					if (v2 < 0) {
-						solution = `\\[ ${v1} + ${fmt(v2)} = ${v1} - ${Math.abs(v2)} = ${sum} \\]`;
-					} else {
-						solution = `\\[ ${v1} + ${fmt(v2)} = ${sum} \\]`;
-					}
-					answer = numericAnswer(sum);
-				} else {
-					do {
-						v1 = rnd(-20, 20);
-						v2 = rnd(-20, 20);
-					} while (!(v1 < 0 || v2 < 0 || (v1 - v2) < 0));
-					expr = `\\[ ${v1} - ${fmt(v2)} = \\]`;
-					const diff = v1 - v2;
-					if (v2 < 0) {
-						solution = `\\[ ${v1} - ${fmt(v2)} = ${v1} + ${Math.abs(v2)} = ${diff} \\]`;
-					} else {
-						solution = `\\[ ${v1} - ${fmt(v2)} = ${diff} \\]`;
-					}
-					answer = numericAnswer(diff);
-				}
-				return { expr, solution, answer };
-			};
-
-			const entry = createZAsEntry();
-			textDisplay = entry.expr;
-			s = entry.solution;
-			answer = entry.answer;
-		} else {
-			const createZAsEntry = () => {
-				let expr;
-				let solution;
-				if (Math.random() > 0.5) {
-					do {
-						v1 = rnd(-20, 20);
-						v2 = rnd(-20, 20);
-					} while (!(v1 < 0 || v2 < 0 || (v1 + v2) < 0));
-					expr = `\\[ ${v1} + ${fmt(v2)} = \\]`;
-					const sum = v1 + v2;
-					if (v2 < 0) {
-						solution = `\\[ ${v1} + ${fmt(v2)} = ${v1} - ${Math.abs(v2)} = ${sum} \\]`;
-					} else {
-						solution = `\\[ ${v1} + ${fmt(v2)} = ${sum} \\]`;
-					}
-				} else {
-					do {
-						v1 = rnd(-20, 20);
-						v2 = rnd(-20, 20);
-					} while (!(v1 < 0 || v2 < 0 || (v1 - v2) < 0));
-					expr = `\\[ ${v1} - ${fmt(v2)} = \\]`;
-					const diff = v1 - v2;
-					if (v2 < 0) {
-						solution = `\\[ ${v1} - ${fmt(v2)} = ${v1} + ${Math.abs(v2)} = ${diff} \\]`;
-					} else {
-						solution = `\\[ ${v1} - ${fmt(v2)} = ${diff} \\]`;
-					}
-				}
-				return { expr, solution };
-			};
-
-			if (isSingleTask) {
-				const entry = createZAsEntry();
-				textDisplay = entry.expr;
-				s = entry.solution;
-			} else {
-				const entries = [createZAsEntry(), createZAsEntry()];
-				textDisplay = buildTwoColumnTaskTable(entries.map(item => item.expr));
-				s = buildTwoColumnTaskTable(entries.map(item => item.solution));
+		const createZAsEntry = () => {
+			if (Math.random() > 0.5) {
+				let first, second;
+				do {
+					first = rnd(-20, 20);
+					second = rnd(-20, 20);
+				} while (!(first < 0 || second < 0 || (first + second) < 0));
+				const sum = first + second;
+				const solution = second < 0
+					? `\\[ ${first} + ${fmt(second)} = ${first} - ${Math.abs(second)} = ${sum} \\]`
+					: `\\[ ${first} + ${fmt(second)} = ${sum} \\]`;
+				return {
+					expr: `\\[ ${first} + ${fmt(second)} = \\]`,
+					solution,
+					answer: numericAnswer(sum)
+				};
 			}
-		}
+			let first, second;
+			do {
+				first = rnd(-20, 20);
+				second = rnd(-20, 20);
+			} while (!(first < 0 || second < 0 || (first - second) < 0));
+			const diff = first - second;
+			const solution = second < 0
+				? `\\[ ${first} - ${fmt(second)} = ${first} + ${Math.abs(second)} = ${diff} \\]`
+				: `\\[ ${first} - ${fmt(second)} = ${diff} \\]`;
+			return {
+				expr: `\\[ ${first} - ${fmt(second)} = \\]`,
+				solution,
+				answer: numericAnswer(diff)
+			};
+		};
+		const entry = createZAsEntry();
+		textDisplay = entry.expr;
+		s = entry.solution;
+		answer = entry.answer;
 		break;
 	}
 	case 'natuerliche_zahlen_multiplizieren_dividieren': {
-		if (isQuizMode) {
-			const createNatMdEntry = () => {
-				let expr;
-				let solution;
-				let answer;
-				if (Math.random() < 0.6) {
-					if (Math.random() < 0.3) {
-						const factorCount = Math.random() < 0.5 ? 3 : 4;
-						let factors;
-						let product;
-						do {
-							factors = Array.from({ length: factorCount }, () => Math.random() < 0.05 ? 0 : randInt(0, 10));
-							product = factors.reduce((result, factor) => result * factor, 1);
-						} while (product > 400);
-						const factorText = factors.join(' \\cdot ');
-						expr = `\\[ ${factorText} = \\]`;
-						solution = `\\[ ${factorText} = ${product} \\]`;
-						answer = numericAnswer(product);
-					} else {
-						const v1 = Math.random() < 0.5 ? rnd(0, 13) : rnd(2, 9);
-						const v2 = Math.random() < 0.5 ? rnd(0, 13) : rnd(2, 9);
-						expr = `\\[ ${v1} \\cdot ${v2} = \\]`;
-						const product = v1 * v2;
-						solution = `\\[ ${v1} \\cdot ${v2} = ${product} \\]`;
-						answer = numericAnswer(product);
-					}
-				} else {
-					const divisor = Math.random() < 0.5 ? randInt(1, 13) : randInt(2, 9);
-					let quotient;
-					if (divisor >= 11) {
-						quotient = rnd(2, 5);
-					} else {
-						quotient = rnd(2, 12);
-					}
-					const dividend = divisor * quotient;
-					expr = `\\[ ${dividend} : ${divisor} = \\]`;
-					solution = `\\[ ${dividend} : ${divisor} = ${quotient} \\]`;
-					answer = numericAnswer(quotient);
+		const createNatMdEntry = () => {
+			if (Math.random() < 0.6) {
+				if (Math.random() < 0.3) {
+					const factorCount = Math.random() < 0.5 ? 3 : 4;
+					let factors;
+					let product;
+					do {
+						factors = Array.from({ length: factorCount }, () => Math.random() < 0.05 ? 0 : randInt(0, 10));
+						product = factors.reduce((result, factor) => result * factor, 1);
+					} while (product > 400);
+					const factorText = factors.join(' \\cdot ');
+					return {
+						expr: `\\[ ${factorText} = \\]`,
+						solution: `\\[ ${factorText} = ${product} \\]`,
+						answer: numericAnswer(product)
+					};
 				}
-				return { expr, solution, answer };
-			};
-
-			const entry = createNatMdEntry();
-			textDisplay = entry.expr;
-			s = entry.solution;
-			answer = entry.answer;
-		} else {
-			const createNatMdEntry = () => {
-				let expr;
-				let solution;
-				if (Math.random() < 0.6) {
-					if (Math.random() < 0.3) {
-						const factorCount = Math.random() < 0.5 ? 3 : 4;
-						let factors;
-						let product;
-						do {
-							factors = Array.from({ length: factorCount }, () => Math.random() < 0.05 ? 0 : randInt(0, 10));
-							product = factors.reduce((result, factor) => result * factor, 1);
-						} while (product > 400);
-						const factorText = factors.join(' \\cdot ');
-						expr = `\\[ ${factorText} = \\]`;
-						solution = `\\[ ${factorText} = ${product} \\]`;
-					} else {
-						const v1 = Math.random() < 0.5 ? rnd(0, 13) : rnd(2, 9);
-						const v2 = Math.random() < 0.5 ? rnd(0, 13) : rnd(2, 9);
-						expr = `\\[ ${v1} \\cdot ${v2} = \\]`;
-						solution = `\\[ ${v1} \\cdot ${v2} = ${v1 * v2} \\]`;
-					}
-				} else {
-					const divisor = Math.random() < 0.5 ? randInt(1, 13) : randInt(2, 9);
-					let quotient;
-					if (divisor >= 11) {
-						quotient = rnd(2, 5);
-					} else {
-						quotient = rnd(2, 12);
-					}
-					const dividend = divisor * quotient;
-					expr = `\\[ ${dividend} : ${divisor} = \\]`;
-					solution = `\\[ ${dividend} : ${divisor} = ${quotient} \\]`;
-				}
-				return { expr, solution };
-			};
-
-			if (isSingleTask) {
-				const entry = createNatMdEntry();
-				textDisplay = entry.expr;
-				s = entry.solution;
-			} else {
-				const entries = [createNatMdEntry(), createNatMdEntry()];
-				textDisplay = buildTwoColumnTaskTable(entries.map(item => item.expr));
-				s = buildTwoColumnTaskTable(entries.map(item => item.solution));
+				const v1 = rnd(2, 10);
+				const v2 = rnd(2, 9);
+				const product = v1 * v2;
+				return {
+					expr: `\\[ ${v1} \\cdot ${v2} = \\]`,
+					solution: `\\[ ${v1} \\cdot ${v2} = ${product} \\]`,
+					answer: numericAnswer(product)
+				};
 			}
-		}
+			const divisor = Math.random() < 0.5 ? randInt(1, 13) : randInt(2, 9);
+			const quotient = divisor >= 11 ? rnd(2, 5) : rnd(2, 12);
+			const dividend = divisor * quotient;
+			return {
+				expr: `\\[ ${dividend} : ${divisor} = \\]`,
+				solution: `\\[ ${dividend} : ${divisor} = ${quotient} \\]`,
+				answer: numericAnswer(quotient)
+			};
+		};
+		const entry = createNatMdEntry();
+		textDisplay = entry.expr;
+		s = entry.solution;
+		answer = entry.answer;
 		break;
 	}
 	case 'einmaleins_2':
@@ -1148,7 +929,10 @@ function createTask(type, grade = 5, options = {}) {
 	case 'addition_subtraktion_bis_20':
 	case 'addition_subtraktion_bis_100':
 	case 'addition_subtraktion_bis_1000': {
-		if (isQuizMode) {
+		const createGrundschuleEntry = () => {
+			let expr;
+			let solution;
+			let answer;
 			if (type.startsWith('einmaleins_')) {
 				const row = Number(type.slice('einmaleins_'.length));
 				const otherFactor = randInt(1, 10);
@@ -1156,123 +940,68 @@ function createTask(type, grade = 5, options = {}) {
 				const firstFactor = factorsReversed ? otherFactor : row;
 				const secondFactor = factorsReversed ? row : otherFactor;
 				const product = firstFactor * secondFactor;
-				textDisplay = `\\[ ${firstFactor} \\cdot ${secondFactor} = \\]`;
-				s = `\\[ ${firstFactor} \\cdot ${secondFactor} = ${product} \\]`;
+				expr = `\\[ ${firstFactor} \\cdot ${secondFactor} = \\]`;
+				solution = `\\[ ${firstFactor} \\cdot ${secondFactor} = ${product} \\]`;
 				answer = numericAnswer(product);
 			} else if (type.startsWith('geteilt_durch_')) {
 				const divisor = Number(type.slice('geteilt_durch_'.length));
 				const quotient = randInt(1, 10);
 				const dividend = divisor * quotient;
-				textDisplay = `\\[ ${dividend} : ${divisor} = \\]`;
-				s = `\\[ ${dividend} : ${divisor} = ${quotient} \\]`;
+				expr = `\\[ ${dividend} : ${divisor} = \\]`;
+				solution = `\\[ ${dividend} : ${divisor} = ${quotient} \\]`;
 				answer = numericAnswer(quotient);
 			} else if (type.startsWith('addition_bis_')) {
 				const limit = Number(type.slice('addition_bis_'.length));
 				const firstAddend = randInt(0, limit);
-				const secondAddend = randInt(0, limit-firstAddend);
+				const secondAddend = randInt(0, limit - firstAddend);
 				const sum = firstAddend + secondAddend;
-				textDisplay = `\\[ ${firstAddend} + ${secondAddend} = \\]`;
-				s = `\\[ ${firstAddend} + ${secondAddend} = ${sum} \\]`;
+				expr = `\\[ ${firstAddend} + ${secondAddend} = \\]`;
+				solution = `\\[ ${firstAddend} + ${secondAddend} = ${sum} \\]`;
 				answer = numericAnswer(sum);
 			} else if (type.startsWith('subtraktion_bis_')) {
 				const limit = Number(type.slice('subtraktion_bis_'.length));
 				const minuend = randInt(0, limit);
 				const subtrahend = randInt(0, minuend);
-				const difference = minuend-subtrahend;
-				textDisplay = `\\[ ${minuend} - ${subtrahend} = \\]`;
-				s = `\\[ ${minuend} - ${subtrahend} = ${difference} \\]`;
+				const difference = minuend - subtrahend;
+				expr = `\\[ ${minuend} - ${subtrahend} = \\]`;
+				solution = `\\[ ${minuend} - ${subtrahend} = ${difference} \\]`;
 				answer = numericAnswer(difference);
 			} else if (type.startsWith('kleines_1x1_')) {
-				const isMultiplication = type === 'kleines_1x1_multiplikation' || (type === 'kleines_1x1_komplett' && Math.random() < 0.5);
+				const isMultiplication = type === 'kleines_1x1_multiplikation'
+					|| (type === 'kleines_1x1_komplett' && Math.random() < 0.5);
 				const firstFactor = randInt(1, 10);
 				const secondFactor = randInt(1, 10);
 				const product = firstFactor * secondFactor;
 				if (isMultiplication) {
-					textDisplay = `\\[ ${firstFactor} \\cdot ${secondFactor} = \\]`;
-					s = `\\[ ${firstFactor} \\cdot ${secondFactor} = ${product} \\]`;
+					expr = `\\[ ${firstFactor} \\cdot ${secondFactor} = \\]`;
+					solution = `\\[ ${firstFactor} \\cdot ${secondFactor} = ${product} \\]`;
 					answer = numericAnswer(product);
 				} else {
-					textDisplay = `\\[ ${product} : ${secondFactor} = \\]`;
-					s = `\\[ ${product} : ${secondFactor} = ${firstFactor} \\]`;
+					expr = `\\[ ${product} : ${secondFactor} = \\]`;
+					solution = `\\[ ${product} : ${secondFactor} = ${firstFactor} \\]`;
 					answer = numericAnswer(firstFactor);
 				}
 			} else {
 				const limit = Number(type.slice('addition_subtraktion_bis_'.length));
 				const isAddition = Math.random() < 0.5;
 				const firstNumber = randInt(0, limit);
-				const secondNumber = isAddition ? randInt(0, limit-firstNumber) : randInt(0, firstNumber);
-				const result = isAddition ? firstNumber + secondNumber : firstNumber - secondNumber;
+				const secondNumber = isAddition
+					? randInt(0, limit - firstNumber)
+					: randInt(0, firstNumber);
+				const result = isAddition
+					? firstNumber + secondNumber
+					: firstNumber - secondNumber;
 				const operator = isAddition ? '+' : '-';
-				textDisplay = `\\[ ${firstNumber} ${operator} ${secondNumber} = \\]`;
-				s = `\\[ ${firstNumber} ${operator} ${secondNumber} = ${result} \\]`;
+				expr = `\\[ ${firstNumber} ${operator} ${secondNumber} = \\]`;
+				solution = `\\[ ${firstNumber} ${operator} ${secondNumber} = ${result} \\]`;
 				answer = numericAnswer(result);
 			}
-		} else {
-			const createGrundschuleEntry = () => {
-				let expr, solution;
-				if (type.startsWith('einmaleins_')) {
-					const row = Number(type.slice('einmaleins_'.length));
-					const otherFactor = randInt(1,10);
-					const factorsReversed = Math.random() < 0.5;
-					const firstFactor = factorsReversed ? otherFactor : row;
-					const secondFactor = factorsReversed ? row : otherFactor;
-					const product = firstFactor * secondFactor;
-					expr = `\\[ ${firstFactor} \\cdot ${secondFactor} = \\]`;
-					solution = `\\[ ${firstFactor} \\cdot ${secondFactor} = ${product} \\]`;
-				} else if (type.startsWith('geteilt_durch_')) {
-					const divisor = Number(type.slice('geteilt_durch_'.length));
-					const quotient = randInt(1,10);
-					const dividend = divisor*quotient;
-					expr = `\\[ ${dividend} : ${divisor} = \\]`;
-					solution = `\\[ ${dividend} : ${divisor} = ${quotient} \\]`;
-				} else if (type.startsWith('addition_bis_')) {
-					const limit = Number(type.slice('addition_bis_'.length));
-					const firstAddend = randInt(0,limit);
-					const secondAddend = randInt(0,limit-firstAddend);
-					const sum = firstAddend+secondAddend;
-					expr = `\\[ ${firstAddend} + ${secondAddend} = \\]`;
-					solution = `\\[ ${firstAddend} + ${secondAddend} = ${sum} \\]`;
-				} else if (type.startsWith('subtraktion_bis_')) {
-					const limit = Number(type.slice('subtraktion_bis_'.length));
-					const minuend = randInt(0,limit);
-					const subtrahend = randInt(0,minuend);
-					const difference = minuend-subtrahend;
-					expr = `\\[ ${minuend} - ${subtrahend} = \\]`;
-					solution = `\\[ ${minuend} - ${subtrahend} = ${difference} \\]`;
-				} else if (type.startsWith('kleines_1x1_')) {
-					const isMultiplication = type === 'kleines_1x1_multiplikation' || (type === 'kleines_1x1_komplett' && Math.random() < 0.5);
-					const firstFactor = randInt(1,10);
-					const secondFactor = randInt(1,10);
-					const product = firstFactor*secondFactor;
-					if(isMultiplication){
-						expr = `\\[ ${firstFactor} \\cdot ${secondFactor} = \\]`;
-						solution = `\\[ ${firstFactor} \\cdot ${secondFactor} = ${product} \\]`;
-					}else{
-						expr = `\\[ ${product} : ${secondFactor} = \\]`;
-						solution = `\\[ ${product} : ${secondFactor} = ${firstFactor} \\]`;
-					}
-				}else{
-					const limit = Number(type.slice('addition_subtraktion_bis_'.length));
-					const isAddition = Math.random()<0.5;
-					const firstNumber = randInt(0,limit);
-					const secondNumber = isAddition?randInt(0,limit-firstNumber):randInt(0,firstNumber);
-					const result = isAddition?firstNumber+secondNumber:firstNumber-secondNumber;
-					const operator=isAddition?'+':'-';
-					expr = `\\[ ${firstNumber} ${operator} ${secondNumber} = \\]`;
-					solution = `\\[ ${firstNumber} ${operator} ${secondNumber} = ${result} \\]`;
-				}
-				return {expr,solution};
-			};
-			if(isSingleTask){
-				const entry=createGrundschuleEntry();
-				textDisplay=entry.expr;
-				s=entry.solution;
-			}else{
-				const entries=[createGrundschuleEntry(),createGrundschuleEntry()];
-				textDisplay=buildTwoColumnTaskTable(entries.map(item=>item.expr));
-				s=buildTwoColumnTaskTable(entries.map(item=>item.solution));
-			}
-		}
+			return { expr, solution, answer };
+		};
+		const entry = createGrundschuleEntry();
+		textDisplay = entry.expr;
+		s = entry.solution;
+		answer = entry.answer;
 		break;
 	}
 	case 'ganze_zahlen_multiplizieren_dividieren': {
@@ -1350,15 +1079,9 @@ function createTask(type, grade = 5, options = {}) {
 				return { expr, solution };
 			};
 
-			if (isSingleTask) {
-				const entry = createZMdEntry();
-				textDisplay = entry.expr;
-				s = entry.solution;
-			} else {
-				const entries = [createZMdEntry(), createZMdEntry()];
-				textDisplay = buildTwoColumnTaskTable(entries.map(item => item.expr));
-				s = buildTwoColumnTaskTable(entries.map(item => item.solution));
-			}
+			const entry = createZMdEntry();
+			textDisplay = entry.expr;
+			s = entry.solution;
 		}
 		break;
 	}
@@ -1621,22 +1344,9 @@ function createTask(type, grade = 5, options = {}) {
 				return { expr, solution };
 			};
 
-			if (isSingleTask) {
-				const entry = createPow10Entry();
-				textDisplay = entry.expr;
-				s = entry.solution;
-			} else {
-				const entry1 = createPow10Entry();
-				let entry2 = createPow10Entry();
-				let attempts = 0;
-				while (entry2.expr === entry1.expr && attempts < 5) {
-					entry2 = createPow10Entry();
-					attempts++;
-				}
-				const entries = [entry1, entry2];
-				textDisplay = buildTwoColumnTaskTable(entries.map(item => item.expr));
-				s = buildTwoColumnTaskTable(entries.map(item => item.solution));
-			}
+			const entry = createPow10Entry();
+			textDisplay = entry.expr;
+			s = entry.solution;
 		}
 		break;
 	}
@@ -3987,122 +3697,79 @@ const fromUnit = displayUnits[unitIndex];
 		}
 		
 	case 'potenzen': {
-		if (isQuizMode) {
-			const createPotenzenEntry = () => {
-				let expr;
-				let solution;
-				let result;
-				const rdLocal = Math.random() + (grade <= 7 ? 0.21 : 0); // bei Klase 5 - 7 keine else Aufgaben 
-
-				if (rdLocal > 0.6) {
-					v1 = grade <= 7 ? randInt(0, 13) : randInt(-13, 13);
-					result = v1 * v1;
-					if (v1 < 0) {
-						expr = `\\[ (${v1})^2 = \\]`;
-						solution = `\\[ (${v1})^2 = ${result} \\]`;
-					} else {
-						expr = `\\[ ${v1}^2 = \\]`;
-						solution = `\\[ ${v1}^2 = ${result} \\]`;
-					}
-				} else if (rdLocal > 0.40) {
-					v1 = randInt(3, 13);
-					result = v1;
-					expr = `\\[ \\sqrt{${v1 * v1}} = \\]`;
-					solution = grade <= 7 ? `\\[ \\sqrt{${v1 * v1}} = ${v1} \\]` : `\\[ \\sqrt{${v1 * v1}} = \\pm ${v1} \\]`;
-					return { expr, solution, answer: { kind: 'either', options: [v1, -v1] } };
-				} else if (rdLocal > 0.2) {
-					v1 = randInt(0, 9);
-					result = Math.pow(2, v1);
-					expr = `\\[ 2^${v1} = \\]`;
-					solution = `\\[ 2^${v1} = ${result} \\]`;
-				} else {
-					const staticTasks = [
-						{ t: `\\[ 3^3 = \\]`, s: `\\[ 3^3 = ${Math.pow(3, 3)} \\]`, v: Math.pow(3, 3) },
-						{ t: `\\[ (-3)^3 = \\]`, s: `\\[ (-3)^3 = ${Math.pow(-3, 3)} \\]`, v: Math.pow(-3, 3) },
-						{ t: `\\[ 3^4 = \\]`, s: `\\[ 3^4 = ${Math.pow(3, 4)} \\]`, v: Math.pow(3, 4) },
-						{ t: `\\[ (-3)^4 = \\]`, s: `\\[ (-3)^4 = ${Math.pow(-3, 4)} \\]`, v: Math.pow(-3, 4) },
-						{ t: `\\[ 4^3 = \\]`, s: `\\[ 4^3 = ${Math.pow(4, 3)} \\]`, v: Math.pow(4, 3) },
-						{ t: `\\[ (-4)^3 = \\]`, s: `\\[ (-4)^3 = ${Math.pow(-4, 3)} \\]`, v: Math.pow(-4, 3) },
-						{ t: `\\[ 5^3 = \\]`, s: `\\[ 5^3 = ${Math.pow(5, 3)} \\]`, v: Math.pow(5, 3) },
-						{ t: `\\[ (-5)^3 = \\]`, s: `\\[ (-5)^3 = ${Math.pow(-5, 3)} \\]`, v: Math.pow(-5, 3) },
-						{ t: `\\[ 5^4 = \\]`, s: `\\[ 5^4 = ${Math.pow(5, 4)} \\]`, v: Math.pow(5, 4) }
-					];
-					const randomIndex = Math.floor(Math.random() * staticTasks.length);
-					expr = staticTasks[randomIndex].t;
-					solution = staticTasks[randomIndex].s;
-					result = staticTasks[randomIndex].v;
-				}
-
-				return { expr, solution, answer: numericAnswer(result) };
-			};
-
-			const entry = createPotenzenEntry();
-			textDisplay = entry.expr;
-			s = entry.solution;
-			answer = entry.answer;
-
-		} else {
-			const createPotenzenEntry = () => {
-				let expr;
-				let solution;
-				const rdLocal = Math.random() + (grade <= 7 ? 0.21 : 0); // bei Klase 5 - 7 keine else Aufgaben 
-
-				if (rdLocal > 0.6) {
-					v1 = grade <= 7 ? randInt(0, 13) : randInt(-13, 13);
-					if (v1 < 0) {
-						expr = `\\( (${v1})^2 = \\)`;
-						solution = `\\( (${v1})^2 = ${v1 * v1} \\)`;
-					} else {
-						expr = `\\( ${v1}^2 = \\)`;
-						solution = `\\( ${v1}^2 = ${v1 * v1} \\)`;
-					}
-				} else if (rdLocal > 0.4) {
-					v1 = randInt(3, 13);
-					expr = `\\( \\sqrt{${v1 * v1}} = \\)`;
-					solution = grade <= 7 ? `\\( \\sqrt{${v1 * v1}} = ${v1} \\)` : `\\( \\sqrt{${v1 * v1}} = \\pm ${v1} \\)`;
-				} else if (rdLocal > 0.2) {
-					v1 = randInt(0, 9);
-					expr = `\\( 2^${v1} = \\)`;
-					solution = `\\( 2^${v1} = ${Math.pow(2, v1)} \\)`;
-				} else {
-					const staticTasks = [
-						{ t: `\\( 3^3 = \\)`, s: `\\( 3^3 = ${Math.pow(3, 3)} \\)` },
-						{ t: `\\( (-3)^3 = \\)`, s: `\\( (-3)^3 = ${Math.pow(-3, 3)} \\)` },
-						{ t: `\\( 3^4 = \\)`, s: `\\( 3^4 = ${Math.pow(3, 4)} \\)` },
-						{ t: `\\( (-3)^4 = \\)`, s: `\\( (-3)^4 = ${Math.pow(-3, 4)} \\)` },
-						{ t: `\\( 4^3 = \\)`, s: `\\( 4^3 = ${Math.pow(4, 3)} \\)` },
-						{ t: `\\( (-4)^3 = \\)`, s: `\\( (-4)^3 = ${Math.pow(-4, 3)} \\)` },
-						{ t: `\\( 5^3 = \\)`, s: `\\( 5^3 = ${Math.pow(5, 3)} \\)` },
-						{ t: `\\( (-5)^3 = \\)`, s: `\\( (-5)^3 = ${Math.pow(-5, 3)} \\)` },
-						{ t: `\\( 5^4 = \\)`, s: `\\( 5^4 = ${Math.pow(5, 4)} \\)` }
-					];
-					const randomIndex = Math.floor(Math.random() * staticTasks.length);
-					expr = staticTasks[randomIndex].t;
-					solution = staticTasks[randomIndex].s;
-				}
-
-				return { expr, solution };
-			};
-
-			if (isSingleTask) {
-				const entry = createPotenzenEntry();
-				textDisplay = entry.expr;
-				s = entry.solution;
-			} else {
-				const firstEntry = createPotenzenEntry();
-				let secondEntry;
-				let attempt = 0;
-				do {
-					secondEntry = createPotenzenEntry();
-					attempt += 1;
-				} while (attempt < 10 && secondEntry.expr === firstEntry.expr);
-
-				const entries = [firstEntry, secondEntry];
-				textDisplay = buildTwoColumnTaskTable(entries.map(item => item.expr));
-				s = buildTwoColumnTaskTable(entries.map(item => item.solution));
+		const createPotenzenEntry = () => {
+			const rdLocal = Math.random() + (grade <= 7 ? 0.21 : 0);
+			if (rdLocal > 0.6) {
+				const value = grade <= 7 ? randInt(0, 13) : randInt(-13, 13);
+				const result = value * value;
+				const expr = isQuizMode
+					? (value < 0 ? `\\[ (${value})^2 = \\]` : `\\[ ${value}^2 = \\]`)
+					: (value < 0 ? `\\( (${value})^2 = \\)` : `\\( ${value}^2 = \\)`);
+				return {
+					expr,
+					solution: isQuizMode
+						? (value < 0 ? `\\[ (${value})^2 = ${result} \\]` : `\\[ ${value}^2 = ${result} \\]`)
+						: (value < 0 ? `\\( (${value})^2 = ${result} \\)` : `\\( ${value}^2 = ${result} \\)`),
+					answer: numericAnswer(result)
+				};
 			}
-
-		}
+			if (rdLocal > 0.40) {
+				const value = randInt(3, 13);
+				return {
+					expr: isQuizMode
+						? `\\[ \\sqrt{${value * value}} = \\]`
+						: `\\( \\sqrt{${value * value}} = \\)`,
+					solution: isQuizMode
+						? (grade <= 7
+							? `\\[ \\sqrt{${value * value}} = ${value} \\]`
+							: `\\[ \\sqrt{${value * value}} = \\pm ${value} \\]`)
+						: (grade <= 7
+							? `\\( \\sqrt{${value * value}} = ${value} \\)`
+							: `\\( \\sqrt{${value * value}} = \\pm ${value} \\)`),
+					answer: grade <= 7
+						? numericAnswer(value)
+						: { kind: 'either', options: [value, -value] }
+				};
+			}
+			if (rdLocal > 0.2) {
+				const value = randInt(0, 9);
+				const result = Math.pow(2, value);
+				return {
+					expr: isQuizMode ? `\\[ 2^${value} = \\]` : `\\( 2^${value} = \\)`,
+					solution: isQuizMode
+						? `\\[ 2^${value} = ${result} \\]`
+						: `\\( 2^${value} = ${result} \\)`,
+					answer: numericAnswer(result)
+				};
+			}
+			const staticTasks = [
+				{ expr: `3^3`, result: Math.pow(3, 3) },
+				{ expr: `(-3)^3`, result: Math.pow(-3, 3) },
+				{ expr: `3^4`, result: Math.pow(3, 4) },
+				{ expr: `(-3)^4`, result: Math.pow(-3, 4) },
+				{ expr: `4^3`, result: Math.pow(4, 3) },
+				{ expr: `(-4)^3`, result: Math.pow(-4, 3) },
+				{ expr: `5^3`, result: Math.pow(5, 3) },
+				{ expr: `(-5)^3`, result: Math.pow(-5, 3) },
+				{ expr: `5^4`, result: Math.pow(5, 4) }
+			];
+			const randomTask = staticTasks[Math.floor(Math.random() * staticTasks.length)];
+			const expr = isQuizMode
+				? `\\[ ${randomTask.expr} = \\]`
+				: `\\( ${randomTask.expr} = \\)`;
+			const solution = isQuizMode
+				? `\\[ ${randomTask.expr} = ${randomTask.result} \\]`
+				: `\\( ${randomTask.expr} = ${randomTask.result} \\)`;
+			return {
+				expr,
+				solution,
+				answer: numericAnswer(randomTask.result)
+			};
+		};
+		const entry = createPotenzenEntry();
+		textDisplay = entry.expr;
+		s = entry.solution;
+		answer = entry.answer;
 		break;
 	}
 	case 'teiler': {
@@ -4139,167 +3806,73 @@ const fromUnit = displayUnits[unitIndex];
 		break;
 	}
 	case 'runden': {
-		if (isQuizMode) {
-			const useNaturalNumberRound = grade <= 5 || (grade >= 6 && Math.random() < 0.25);
-			if (useNaturalNumberRound) {
-				const unitNames = ['Zehner', 'Hunderter', 'Tausender'];
-				const unit = unitNames[randInt(0, unitNames.length - 1)];
-				const factor = unit === 'Zehner' ? 10 : unit === 'Hunderter' ? 100 : 1000;
-				const value = randInt(10, 9999);
-				const result = Math.round(value / factor) * factor;
-				const decisionDigit = factor === 10
-					? value % 10
-					: factor === 100
-						? Math.floor(value / 10) % 10
-						: Math.floor(value / 100) % 10;
-				const decisionPlace = factor === 10 ? 'Einer' : factor === 100 ? 'Zehner' : 'Hunderter';
-				const roundingAction = decisionDigit >= 5 ? 'aufrunden' : 'abrunden';
-
-				textDisplay = `Runde auf ${unit}: \\( \\quad ${comma(value)} \\approx \\) ${blank(2)}`;
-				s = `\\[
-					${comma(value)} \\approx ${comma(result)}
-					\\quad(\\text{${decisionDigit} ${decisionPlace}}
-					\\;\\rightarrow\\; \\text{${roundingAction}})
-				\\]`;
-				answer = { kind: 'number', value: result };
-				break;
-			}
-
-			const carryBias = 0.4; // Wahrscheinlichkeit für Übertrag (9 an der Rundungsstelle)
-			
-			rd = Math.random();
-			
-			let intPart = randInt(0, 9);
-			let d1, d2, d3;
-			
-			const useCarryCase = Math.random() < carryBias;
-			
-			if (rd > 0.8) {
-				d1 = randInt(2, 9); // Entscheidungsziffer (keine 0)
-				d2 = randInt(0, 9);
-				d3 = randInt(0, 9);
-				
-			} else if (rd > 0.4) {
-				// Rundung auf Zehntel → Rundungsstelle = d1
-				useCarryCase ? d1 = 9 : d1 = randInt(0, 9);
-				d2 = randInt(2, 9); // Entscheidungsziffer (keine 0)
-				d3 = randInt(1, 9);
-				
-			} else {
-				// Rundung auf Hundertstel → Rundungsstelle = d2
-				d1 = randInt(0, 9);
-				useCarryCase ? d2 = 9 : d2 = randInt(0, 9);
-				d3 = randInt(2, 9); // Entscheidungsziffer (keine 0)
-			}
-
-			let v1 = intPart + (d1 * 100 + d2 * 10 + d3) / 1000;
-			
-			let target, result, digits;
-			
-			if (rd > 0.8) {
-				target = "Ganze";
-				result = Math.round(v1);
-				digits = 0;
-			} else if (rd > 0.4) {
-				target = "Zehntel";
-				result = Math.round(v1 * 10) / 10;
-				digits = 1;
-			} else {
-				target = "Hundertstel";
-				result = Math.round(v1 * 100) / 100;
-				digits = 2;
-			}
-			const decisionDigit = rd > 0.8 ? d1 : rd > 0.4 ? d2 : d3;
-			const decisionPlace = rd > 0.8 ? 'Zehntel' : rd > 0.4 ? 'Hundertstel' : 'Tausendstel';
+		const useNaturalNumberRound = grade <= 5 || (grade >= 6 && Math.random() < 0.25);
+		if (useNaturalNumberRound) {
+			const unitNames = ['Zehner', 'Hunderter', 'Tausender'];
+			const unit = unitNames[randInt(0, unitNames.length - 1)];
+			const factor = unit === 'Zehner' ? 10 : unit === 'Hunderter' ? 100 : 1000;
+			const value = randInt(10, 9999);
+			const result = Math.round(value / factor) * factor;
+			const decisionDigit = factor === 10
+				? value % 10
+				: factor === 100
+					? Math.floor(value / 10) % 10
+					: Math.floor(value / 100) % 10;
+			const decisionPlace = factor === 10 ? 'Einer' : factor === 100 ? 'Zehner' : 'Hunderter';
 			const roundingAction = decisionDigit >= 5 ? 'aufrunden' : 'abrunden';
-
-			textDisplay = `Runde auf ${target}: \\( \\quad ${comma(v1.toFixed(3))} \\approx \\) ${blank(2)}`;
+			textDisplay = `Runde auf ${unit}: \\( \\quad ${comma(value)} \\approx \\) ${blank(2)}`;
 			s = `\\[
-				${comma(v1.toFixed(3))} \\approx ${comma(result.toFixed(digits))}
+				${comma(value)} \\approx ${comma(result)}
 				\\quad(\\text{${decisionDigit} ${decisionPlace}}
 				\\;\\rightarrow\\; \\text{${roundingAction}})
 			\\]`;
 			answer = { kind: 'number', value: result };
-		} else {
-			const useNaturalNumberRound = grade <= 5 || (grade >= 6 && Math.random() < 0.25);
-			if (useNaturalNumberRound) {
-				const unitNames = ['Zehner', 'Hunderter', 'Tausender'];
-				const unit = unitNames[randInt(0, unitNames.length - 1)];
-				const factor = unit === 'Zehner' ? 10 : unit === 'Hunderter' ? 100 : 1000;
-				const value = randInt(10, 9999);
-				const result = Math.round(value / factor) * factor;
-				const decisionDigit = factor === 10
-					? value % 10
-					: factor === 100
-						? Math.floor(value / 10) % 10
-						: Math.floor(value / 100) % 10;
-				const decisionPlace = factor === 10 ? 'Einer' : factor === 100 ? 'Zehner' : 'Hunderter';
-				const roundingAction = decisionDigit >= 5 ? 'aufrunden' : 'abrunden';
-
-				textDisplay = `Runde auf ${unit}: \\( \\quad ${comma(value)} \\approx \\) ${blank(2)}`;
-				s = `\\[
-					${comma(value)} \\approx ${comma(result)}
-					\\quad(\\text{${decisionDigit} ${decisionPlace}}
-					\\;\\rightarrow\\; \\text{${roundingAction}})
-				\\]`;
-				break;
-			}
-
-			const carryBias = 0.4; // Wahrscheinlichkeit für Übertrag (9 an der Rundungsstelle)
-			
-			rd = Math.random();
-			
-			let intPart = randInt(0, 9);
-			let d1, d2, d3;
-			
-			const useCarryCase = Math.random() < carryBias;
-			
-			if (rd > 0.8) {
-				d1 = randInt(2, 9); // Entscheidungsziffer (keine 0)
-				d2 = randInt(0, 9);
-				d3 = randInt(0, 9);
-				
-			} else if (rd > 0.4) {
-				// Rundung auf Zehntel → Rundungsstelle = d1
-				useCarryCase ? d1 = 9 : d1 = randInt(0, 9);
-				d2 = randInt(2, 9); // Entscheidungsziffer (keine 0)
-				d3 = randInt(1, 9);
-				
-			} else {
-				// Rundung auf Hundertstel → Rundungsstelle = d2
-				d1 = randInt(0, 9);
-				useCarryCase ? d2 = 9 : d2 = randInt(0, 9);
-				d3 = randInt(2, 9); // Entscheidungsziffer (keine 0)
-			}
-
-			let v1 = intPart + (d1 * 100 + d2 * 10 + d3) / 1000;
-			
-			let target, result, digits;
-			
-			if (rd > 0.8) {
-				target = "Ganze";
-				result = Math.round(v1);
-				digits = 0;
-			} else if (rd > 0.4) {
-				target = "Zehntel";
-				result = Math.round(v1 * 10) / 10;
-				digits = 1;
-			} else {
-				target = "Hundertstel";
-				result = Math.round(v1 * 100) / 100;
-				digits = 2;
-			}
-			const decisionDigit = rd > 0.8 ? d1 : rd > 0.4 ? d2 : d3;
-			const decisionPlace = rd > 0.8 ? 'Zehntel' : rd > 0.4 ? 'Hundertstel' : 'Tausendstel';
-			const roundingAction = decisionDigit >= 5 ? 'aufrunden' : 'abrunden';
-
-			textDisplay = `Runde auf ${target}: \\( \\quad ${comma(v1.toFixed(3))} \\approx \\) ${blank(2)}`;
-			s = `\\[
-				${comma(v1.toFixed(3))} \\approx ${comma(result.toFixed(digits))}
-				\\quad(\\text{${decisionDigit} ${decisionPlace}}
-				\\;\\rightarrow\\; \\text{${roundingAction}})
-			\\]`;
+			break;
 		}
+
+		const carryBias = 0.4;
+		rd = Math.random();
+		const intPart = randInt(0, 9);
+		let d1, d2, d3;
+		const useCarryCase = Math.random() < carryBias;
+		if (rd > 0.8) {
+			d1 = randInt(2, 9);
+			d2 = randInt(0, 9);
+			d3 = randInt(0, 9);
+		} else if (rd > 0.4) {
+			useCarryCase ? d1 = 9 : d1 = randInt(0, 9);
+			d2 = randInt(2, 9);
+			d3 = randInt(1, 9);
+		} else {
+			d1 = randInt(0, 9);
+			useCarryCase ? d2 = 9 : d2 = randInt(0, 9);
+			d3 = randInt(2, 9);
+		}
+		const v1 = intPart + (d1 * 100 + d2 * 10 + d3) / 1000;
+		let target, result, digits;
+		if (rd > 0.8) {
+			target = 'Ganze';
+			result = Math.round(v1);
+			digits = 0;
+		} else if (rd > 0.4) {
+			target = 'Zehntel';
+			result = Math.round(v1 * 10) / 10;
+			digits = 1;
+	} else {
+			target = 'Hundertstel';
+			result = Math.round(v1 * 100) / 100;
+			digits = 2;
+		}
+		const decisionDigit = rd > 0.8 ? d1 : rd > 0.4 ? d2 : d3;
+		const decisionPlace = rd > 0.8 ? 'Zehntel' : rd > 0.4 ? 'Hundertstel' : 'Tausendstel';
+		const roundingAction = decisionDigit >= 5 ? 'aufrunden' : 'abrunden';
+		textDisplay = `Runde auf ${target}: \\( \\quad ${comma(v1.toFixed(3))} \\approx \\) ${blank(2)}`;
+		s = `\\[
+			${comma(v1.toFixed(3))} \\approx ${comma(result.toFixed(digits))}
+			\\quad(\\text{${decisionDigit} ${decisionPlace}}
+			\\;\\rightarrow\\; \\text{${roundingAction}})
+		\\]`;
+		answer = { kind: 'number', value: result };
 		break;
 	}
 		case 'ueberschlag': {
@@ -4392,135 +3965,46 @@ const fromUnit = displayUnits[unitIndex];
 		}
 		
 	case 'lineare_gleichungen': {
-		if (isQuizMode) {
-			// 1. Bestimme die Lösung x (ein Vielfaches von 0,5)
-			// rnd(-20, 20) / 2 ergibt Werte wie -5, -4.5, -4, ..., 4.5, 5
-			const x = rnd(-12, 12);
-			
-			// 2. Bestimme Koeffizienten a und b (ganze Zahlen, a != 0)
-			let a = rnd(-12, 12);
-			const b = rnd(-20, 20);
-			
-			// 3. Berechne c (ax + b = c)
-			const c = a * x + b;
-			
-			// Formatierung für die Ausgabe (Vorzeichen von b beachten)
-			const bPart = b >= 0 ? `+ ${b}` : `- ${Math.abs(b)}`;
-			
-			textDisplay = `Löse die Gleichung schrittweise: <br> \\( ${a}x ${bPart} = ${c} \\)`;
-			textPrint = `Löse die Gleichung schrittweise: \\(\\quad ${a}x ${bPart} = ${c} \\qquad |\\)${space(1.5)}`;
-			s = `\\[ \\begin{aligned} 
-			${a}x ${bPart} &= ${c} &&| \\, ${b >= 0 ? '-' : '+'} ${Math.abs(b)} \\\\ 
-			${a}x &= ${c - b} &&| \\, : ${a >= 0 ? a : '(' + a + ')'} \\\\
-			x &= ${comma(x)} 
-			\\end{aligned} \\]`;
-			answer = numericAnswer(x);
-		} else {
-			// 1. Bestimme die Lösung x (ein Vielfaches von 0,5)
-			// rnd(-20, 20) / 2 ergibt Werte wie -5, -4.5, -4, ..., 4.5, 5
-			const x = rnd(-12, 12);
-			
-			// 2. Bestimme Koeffizienten a und b (ganze Zahlen, a != 0)
-			let a = rnd(-12, 12);
-			const b = rnd(-20, 20);
-			
-			// 3. Berechne c (ax + b = c)
-			const c = a * x + b;
-			
-			// Formatierung für die Ausgabe (Vorzeichen von b beachten)
-			const bPart = b >= 0 ? `+ ${b}` : `- ${Math.abs(b)}`;
-			
-			textDisplay = `Löse die Gleichung schrittweise: <br> \\( ${a}x ${bPart} = ${c} \\)`;
-			textPrint = `Löse die Gleichung schrittweise: \\(\\quad ${a}x ${bPart} = ${c} \\qquad |\\)${space(1.5)}`;
-			s = `\\[ \\begin{aligned} 
-			${a}x ${bPart} &= ${c} &&| \\, ${b >= 0 ? '-' : '+'} ${Math.abs(b)} \\\\ 
-			${a}x &= ${c - b} &&| \\, : ${a >= 0 ? a : '(' + a + ')'} \\\\
-			x &= ${comma(x)} 
-			\\end{aligned} \\]`;
-		}
+		const x = rnd(-12, 12);
+		const a = rnd(-12, 12);
+		const b = rnd(-20, 20);
+		const c = a * x + b;
+		const bPart = b >= 0 ? `+ ${b}` : `- ${Math.abs(b)}`;
+		textDisplay = `Löse die Gleichung schrittweise: <br> \\( ${a}x ${bPart} = ${c} \\)`;
+		textPrint = `Löse die Gleichung schrittweise: \\(\\quad ${a}x ${bPart} = ${c} \\qquad |\\)${space(1.5)}`;
+		s = `\\[ \\begin{aligned}
+		${a}x ${bPart} &= ${c} &&| \\, ${b >= 0 ? '-' : '+'} ${Math.abs(b)} \\\\
+		${a}x &= ${c - b} &&| \\, : ${a >= 0 ? a : '(' + a + ')'} \\\\
+		x &= ${comma(x)}
+		\\end{aligned} \\]`;
+		answer = numericAnswer(x);
 		break;
 	}
 	case 'lineare_gleichungen_beidseitig': {
-		if (isQuizMode) {
-			// 1. Bestimme die Lösung x (als ganze Zahl)
-			const x = rnd(-13, 13);
-			
-			// 2. Bestimme Koeffizient a
-			let a = rnd(-10, 10);
-			
-			// 3. Bestimme Koeffizient c so, dass |a - c| >= 2
-			let c;
-			do {
-				c = rnd(-10, 10);
-			} while (Math.abs(a - c) < 2 || c === 0);
-			// Die Schleife läuft, solange der Abstand zu klein ist oder c selbst 0 ist
-			
-			// 4. Bestimme Konstante b und berechne d
-			// Rechnung: ax + b = cx + d  => d = (a - c) * x + b
-			const b = rnd(-30, 30);
-			const d = (a - c) * x + b;
-			
-			// 5. Formatierung für die Ausgabe
-			const bPart = b >= 0 ? `+ ${b}` : `- ${Math.abs(b)}`;
-			const dPart = d >= 0 ? `+ ${d}` : `- ${Math.abs(d)}`;
-			
-			// 6. Bausteine für den Rechenweg
-			const op1 = c >= 0 ? `- ${c}x` : `+ ${Math.abs(c)}x`;
-			const aMinusC = a - c;
-			const op2 = b >= 0 ? `- ${b}` : `+ ${Math.abs(b)}`;
-			const dMinusB = d - b;
-			const divOp = fmt(aMinusC);
-			
-			textDisplay = `Löse die Gleichung schrittweise:<br>\\( ${a}x ${bPart} = ${c}x ${dPart} \\)`;
-			textPrint = `Löse die Gleichung schrittweise: \\(\\quad ${a}x ${bPart} = ${c}x ${dPart} \\qquad | \\)${space(2)}`;
-
-			s = `\\[ \\begin{aligned} 
-			${a}x ${bPart} &= ${c}x ${dPart} &&| \\, ${op1} \\\\ 
-			${aMinusC}x ${bPart} &= ${d} &&| \\, ${op2} \\\\ 
-			${aMinusC}x &= ${dMinusB} &&| \\, : ${divOp} \\\\
-			x &= ${comma(x)} 
-			\\end{aligned} \\]`;
-			answer = numericAnswer(x);
-		} else {
-			// 1. Bestimme die Lösung x (als ganze Zahl)
-			const x = rnd(-13, 13);
-			
-			// 2. Bestimme Koeffizient a
-			let a = rnd(-10, 10);
-			
-			// 3. Bestimme Koeffizient c so, dass |a - c| >= 2
-			let c;
-			do {
-				c = rnd(-10, 10);
-			} while (Math.abs(a - c) < 2 || c === 0);
-			// Die Schleife läuft, solange der Abstand zu klein ist oder c selbst 0 ist
-			
-			// 4. Bestimme Konstante b und berechne d
-			// Rechnung: ax + b = cx + d  => d = (a - c) * x + b
-			const b = rnd(-30, 30);
-			const d = (a - c) * x + b;
-			
-			// 5. Formatierung für die Ausgabe
-			const bPart = b >= 0 ? `+ ${b}` : `- ${Math.abs(b)}`;
-			const dPart = d >= 0 ? `+ ${d}` : `- ${Math.abs(d)}`;
-			
-			// 6. Bausteine für den Rechenweg
-			const op1 = c >= 0 ? `- ${c}x` : `+ ${Math.abs(c)}x`;
-			const aMinusC = a - c;
-			const op2 = b >= 0 ? `- ${b}` : `+ ${Math.abs(b)}`;
-			const dMinusB = d - b;
-			const divOp = fmt(aMinusC);
-			
-			textDisplay = `Löse die Gleichung schrittweise:<br>\\( ${a}x ${bPart} = ${c}x ${dPart} \\)`;
-			textPrint = `Löse die Gleichung schrittweise: \\(\\quad ${a}x ${bPart} = ${c}x ${dPart} \\qquad | \\)${space(2)}`;
-
-			s = `\\[ \\begin{aligned} 
-			${a}x ${bPart} &= ${c}x ${dPart} &&| \\, ${op1} \\\\ 
-			${aMinusC}x ${bPart} &= ${d} &&| \\, ${op2} \\\\ 
-			${aMinusC}x &= ${dMinusB} &&| \\, : ${divOp} \\\\
-			x &= ${comma(x)} 
-			\\end{aligned} \\]`;
-		}
+		const x = rnd(-13, 13);
+		const a = rnd(-10, 10);
+		let c;
+		do {
+			c = rnd(-10, 10);
+		} while (Math.abs(a - c) < 2 || c === 0);
+		const b = rnd(-30, 30);
+		const d = (a - c) * x + b;
+		const bPart = b >= 0 ? `+ ${b}` : `- ${Math.abs(b)}`;
+		const dPart = d >= 0 ? `+ ${d}` : `- ${Math.abs(d)}`;
+		const op1 = c >= 0 ? `- ${c}x` : `+ ${Math.abs(c)}x`;
+		const aMinusC = a - c;
+		const op2 = b >= 0 ? `- ${b}` : `+ ${Math.abs(b)}`;
+		const dMinusB = d - b;
+		const divOp = fmt(aMinusC);
+		textDisplay = `Löse die Gleichung schrittweise:<br>\\( ${a}x ${bPart} = ${c}x ${dPart} \\)`;
+		textPrint = `Löse die Gleichung schrittweise: \\(\\quad ${a}x ${bPart} = ${c}x ${dPart} \\qquad | \\)${space(2)}`;
+		s = `\\[ \\begin{aligned}
+		${a}x ${bPart} &= ${c}x ${dPart} &&| \\, ${op1} \\\\
+		${aMinusC}x ${bPart} &= ${d} &&| \\, ${op2} \\\\
+		${aMinusC}x &= ${dMinusB} &&| \\, : ${divOp} \\\\
+		x &= ${comma(x)}
+		\\end{aligned} \\]`;
+		answer = numericAnswer(x);
 		break;
 	}
 	case 'lineare_gleichungen_umstellen': {
@@ -5495,35 +4979,15 @@ const fromUnit = displayUnits[unitIndex];
 		break;
 	}
 	case 'primzahlen': {
-		if (isQuizMode) {
-			const isPrim = mathUtils.isPrime;
-
-			// --- TYP: BEREICH ABSUCHEN ---
-			let start = randInt(0, 8) * 5; // Start bei 0, 5, 10, ..., 40
-			
-			let prims = [];
-			for (let i = start; i <= start + 10; i++) {
-				if (isPrim(i)) prims.push(i);
-			}
-
-			textDisplay = `Nenne alle Primzahlen von ${start} bis ${start + 10}.`;
-			s = `Primzahlen ${start} - ${start + 10}: \\( \\quad ${prims.join(', ')}\\)`;
-			answer = listAnswer(prims);
-		} else {
-			const isPrim = mathUtils.isPrime;
-
-			// --- TYP: BEREICH ABSUCHEN ---
-			let start = randInt(0, 8) * 5; // Start bei 0, 5, 10, ..., 40
-			
-			let prims = [];
-			for (let i = start; i <= start + 10; i++) {
-				if (isPrim(i)) prims.push(i);
-			}
-
-			textDisplay = `Nenne alle Primzahlen von ${start} bis ${start + 10}.`;
-			s = `Primzahlen ${start} - ${start + 10}: \\( \\quad ${prims.join(', ')}\\)`;
-			
+		const isPrim = mathUtils.isPrime;
+		const start = randInt(0, 8) * 5;
+		const prims = [];
+		for (let i = start; i <= start + 10; i++) {
+			if (isPrim(i)) prims.push(i);
 		}
+		textDisplay = `Nenne alle Primzahlen von ${start} bis ${start + 10}.`;
+		s = `Primzahlen ${start} - ${start + 10}: \\( \\quad ${prims.join(', ')}\\)`;
+		answer = listAnswer(prims);
 		break;
 	}
 	case 'lineare_funktionen_zeichnen': {
@@ -6293,386 +5757,148 @@ const fromUnit = displayUnits[unitIndex];
 		break;
 	}
 	case 'funktionen': {
-		if (isQuizMode) {
-			let subType = randInt(0,2);
-		
-			// Hilfsvariablen für die Funktionserstellung
-			let isLinear = randInt(0, 1) === 0;
-			let m = rnd(-8, 8) / 2;
-			let b = rnd(-5, 5);
-			const fmtFunctionNumber = (value) => comma(value);
-			
-			let funcStr = "";
-			let calcF = (x) => 0;
-			
-			// Funktion generieren (Linear oder Quadratisch)
-			if (isLinear) {
-				calcF = (x) => m * x + b;
-				let mStr = m === 1 ? "" : (m === -1 ? "-" : fmtFunctionNumber(m));
-				let bStr = b > 0 ? ` + ${fmtFunctionNumber(b)}` : (b < 0 ? ` - ${fmtFunctionNumber(Math.abs(b))}` : "");
-				funcStr = `f(x) = ${mStr}x${bStr}`;
-			} else {
-				let quadType = randInt(0, 1);
-				if (quadType === 0) {
-					// Normalparabel verschoben: x^2 + c
-					calcF = (x) => x * x + b;
-					let bStr = b > 0 ? ` + ${fmtFunctionNumber(b)}` : (b < 0 ? ` - ${fmtFunctionNumber(Math.abs(b))}` : "");
-					funcStr = `f(x) = x^2${bStr}`;
-				} else {
-					// Gestreckte/Gestauchte Parabel: a*x^2
-					let a = randInt(2, 4) * (randInt(0, 1) === 0 ? 1 : -1);
-					calcF = (x) => a * x * x;
-					funcStr = `f(x) = ${fmtFunctionNumber(a)}x^2`;
-				}
-			}
-			
-			// Verfügbare Teilaufgabentypen: 0, 3, 4, 5
-			switch (subType) {
-				case 0: // Funktionswert berechnen
-					let xVal = randInt(-4, 4);
-					const rhsCase0 = funcStr.replace('f(x) = ', '');
-					textDisplay = `Berechne bei der Funktion \\( ${funcStr} \\) den Funktionswert zum Argument \\( ${fmtFunctionNumber(xVal)} \\).`;
-					s = `\\( f(${fmtFunctionNumber(xVal)}) = ${rhsCase0.replace(/x/g, `(${fmtFunctionNumber(xVal)})`)} = ${fmtFunctionNumber(calcF(xVal))} \\)`;
-					break;
-					
-				case 1: // Fehlende Koordinate
-					let px = randInt(-4, 4);
-					let py = calcF(px);
-					const rhsCase3 = funcStr.replace('f(x) = ', '');
-					textDisplay = `\\( P(\\;${fmtFunctionNumber(px)} \\;|\\; y\\;) \\) liegt auf \\( ${funcStr} \\).<br>Bestimme \\( y \\).`;
-					s = `\\( y = f(${fmtFunctionNumber(px)}) = ${rhsCase3.replace(/x/g, `(${fmtFunctionNumber(px)})`)} = ${fmtFunctionNumber(py)} \\)`;
-					break;
-
-				case 2: // Wertetabelle 
-					const xValues = [-2, -1, 0, 1, 2];
-					const buildValueTable = (isFilled, isCentered = true) => {
-							const xRow = xValues.map((x, idx) => `<td style="padding:6px 10px; text-align:center; min-width:40px; border-bottom:1px solid #333; ${idx < xValues.length - 1 ? 'border-right:1px solid #333;' : ''}">${fmtFunctionNumber(x)}</td>`).join('');
-						const yRow = xValues.map(x => {
-								const value = isFilled ? `${fmtFunctionNumber(calcF(x))}` : '&nbsp;';
-							return `<td style="padding:6px 10px; text-align:center; min-width:34px; ${x < xValues[xValues.length - 1] ? 'border-right:1px solid #333;' : ''}">${value}</td>`;
-						}).join('');
-
-						return `<table style="border-collapse:separate; border-spacing:0; margin:${isCentered ? '8px auto 0 auto' : '8px 0 0 0'};">` +
-							`<tr><th style="padding:6px 10px; min-width:30px; font-weight:400; border-right:1px solid #333; border-bottom:1px solid #333;">x</th>${xRow}</tr>` +
-							`<tr><th style="padding:6px 10px; min-width:30px; font-weight:400; border-right:1px solid #333;">y</th>${yRow}</tr>` +
-						`</table>`;
-					};
-
-					textDisplay = `Fülle die Wertetabelle für \\( ${funcStr} \\) aus.<br>${buildValueTable(false)}`;
-					textPrint = `Fülle die Wertetabelle für \\( ${funcStr} \\) aus.<br>${buildValueTable(false, false)}`;
-					s = `${buildValueTable(true)}<br>Kontrolle: Trage z. B. die Punkte \\( P(-1|${fmtFunctionNumber(calcF(-1))}) \\), \\( Q(0|${fmtFunctionNumber(calcF(0))}) \\) und \\( R(1|${fmtFunctionNumber(calcF(1))}) \\) in das Koordinatensystem ein.`;
-					break;
-					
-					case 5: // Punktprobe
-					let testX = randInt(-3, 3);
-					let isTrue = randInt(0, 1) === 0;
-					// Wenn isTrue false ist, addiere einen kleinen Störwert auf das echte y
-					let testY = isTrue ? calcF(testX) : calcF(testX) + randInt(1, 3) * (Math.random() < 0.5 ? 1 : -1);
-					
-						textDisplay = `Punktprobe: Prüfe, ob der Punkt \\( P(\\,${fmtFunctionNumber(testX)} \\, | ${fmtFunctionNumber(testY)}\\,) \\) auf dem Graphen von \\( ${funcStr} \\) liegt.`;
-					if (isTrue) {
-								s = `\\( f(${fmtFunctionNumber(testX)}) = ${fmtFunctionNumber(calcF(testX))} \\rightarrow\\) Ja, P liegt auf dem Graphen.`;
-					} else {
-								s = `\\( f(${fmtFunctionNumber(testX)}) = ${fmtFunctionNumber(calcF(testX))} \\neq ${fmtFunctionNumber(testY)} \\rightarrow\\) Nein, P liegt nicht auf dem Graphen.`;
-					}
-					break;
-			}
+		const subType = randInt(0, 2);
+		const isLinear = randInt(0, 1) === 0;
+		const m = rnd(-8, 8) / 2;
+		const b = rnd(-5, 5);
+		const fmtFunctionNumber = value => comma(value);
+		let funcStr;
+		let calcF;
+		if (isLinear) {
+			calcF = x => m * x + b;
+			const mStr = m === 1 ? '' : (m === -1 ? '-' : fmtFunctionNumber(m));
+			const bStr = b > 0 ? ` + ${fmtFunctionNumber(b)}` : (b < 0 ? ` - ${fmtFunctionNumber(Math.abs(b))}` : '');
+			funcStr = `f(x) = ${mStr}x${bStr}`;
 		} else {
-			let subType = randInt(0,2);
-		
-			// Hilfsvariablen für die Funktionserstellung
-			let isLinear = randInt(0, 1) === 0;
-			let m = rnd(-8, 8) / 2;
-			let b = rnd(-5, 5);
-			const fmtFunctionNumber = (value) => comma(value);
-			
-			let funcStr = "";
-			let calcF = (x) => 0;
-			
-			// Funktion generieren (Linear oder Quadratisch)
-			if (isLinear) {
-				calcF = (x) => m * x + b;
-				let mStr = m === 1 ? "" : (m === -1 ? "-" : fmtFunctionNumber(m));
-				let bStr = b > 0 ? ` + ${fmtFunctionNumber(b)}` : (b < 0 ? ` - ${fmtFunctionNumber(Math.abs(b))}` : "");
-				funcStr = `f(x) = ${mStr}x${bStr}`;
+			const quadType = randInt(0, 1);
+			if (quadType === 0) {
+				calcF = x => x * x + b;
+				const bStr = b > 0 ? ` + ${fmtFunctionNumber(b)}` : (b < 0 ? ` - ${fmtFunctionNumber(Math.abs(b))}` : '');
+				funcStr = `f(x) = x^2${bStr}`;
 			} else {
-				let quadType = randInt(0, 1);
-				if (quadType === 0) {
-					// Normalparabel verschoben: x^2 + c
-					calcF = (x) => x * x + b;
-					let bStr = b > 0 ? ` + ${fmtFunctionNumber(b)}` : (b < 0 ? ` - ${fmtFunctionNumber(Math.abs(b))}` : "");
-					funcStr = `f(x) = x^2${bStr}`;
-				} else {
-					// Gestreckte/Gestauchte Parabel: a*x^2
-					let a = randInt(2, 4) * (randInt(0, 1) === 0 ? 1 : -1);
-					calcF = (x) => a * x * x;
-					funcStr = `f(x) = ${fmtFunctionNumber(a)}x^2`;
-				}
+				const a = randInt(2, 4) * (randInt(0, 1) === 0 ? 1 : -1);
+				calcF = x => a * x * x;
+				funcStr = `f(x) = ${fmtFunctionNumber(a)}x^2`;
 			}
-			
-			// Verfügbare Teilaufgabentypen: 0, 3, 4, 5
-			switch (subType) {
-				case 0: // Funktionswert berechnen
-					let xVal = randInt(-4, 4);
-					const rhsCase0 = funcStr.replace('f(x) = ', '');
-					textDisplay = `Berechne bei der Funktion \\( ${funcStr} \\) den Funktionswert zum Argument \\( ${fmtFunctionNumber(xVal)} \\).`;
-					s = `\\( f(${fmtFunctionNumber(xVal)}) = ${rhsCase0.replace(/x/g, `(${fmtFunctionNumber(xVal)})`)} = ${fmtFunctionNumber(calcF(xVal))} \\)`;
-					break;
-					
-				case 1: // Fehlende Koordinate
-					let px = randInt(-4, 4);
-					let py = calcF(px);
-					const rhsCase3 = funcStr.replace('f(x) = ', '');
-					textDisplay = `\\( P(\\;${fmtFunctionNumber(px)} \\;|\\; y\\;) \\) liegt auf \\( ${funcStr} \\).<br>Bestimme \\( y \\).`;
-					s = `\\( y = f(${fmtFunctionNumber(px)}) = ${rhsCase3.replace(/x/g, `(${fmtFunctionNumber(px)})`)} = ${fmtFunctionNumber(py)} \\)`;
-					break;
-
-				case 2: // Wertetabelle 
-					const xValues = [-2, -1, 0, 1, 2];
-					const buildValueTable = (isFilled, isCentered = true) => {
-							const xRow = xValues.map((x, idx) => `<td style="padding:6px 10px; text-align:center; min-width:40px; border-bottom:1px solid #333; ${idx < xValues.length - 1 ? 'border-right:1px solid #333;' : ''}">${fmtFunctionNumber(x)}</td>`).join('');
-						const yRow = xValues.map(x => {
-								const value = isFilled ? `${fmtFunctionNumber(calcF(x))}` : '&nbsp;';
-							return `<td style="padding:6px 10px; text-align:center; min-width:34px; ${x < xValues[xValues.length - 1] ? 'border-right:1px solid #333;' : ''}">${value}</td>`;
-						}).join('');
-
-						return `<table style="border-collapse:separate; border-spacing:0; margin:${isCentered ? '8px auto 0 auto' : '8px 0 0 0'};">` +
-							`<tr><th style="padding:6px 10px; min-width:30px; font-weight:400; border-right:1px solid #333; border-bottom:1px solid #333;">x</th>${xRow}</tr>` +
-							`<tr><th style="padding:6px 10px; min-width:30px; font-weight:400; border-right:1px solid #333;">y</th>${yRow}</tr>` +
-						`</table>`;
-					};
-
-					textDisplay = `Fülle die Wertetabelle für \\( ${funcStr} \\) aus.<br>${buildValueTable(false)}`;
-					textPrint = `Fülle die Wertetabelle für \\( ${funcStr} \\) aus.<br>${buildValueTable(false, false)}`;
-					s = `${buildValueTable(true)}<br>Kontrolle: Trage z. B. die Punkte \\( P(-1|${fmtFunctionNumber(calcF(-1))}) \\), \\( Q(0|${fmtFunctionNumber(calcF(0))}) \\) und \\( R(1|${fmtFunctionNumber(calcF(1))}) \\) in das Koordinatensystem ein.`;
-					break;
-					
-					case 5: // Punktprobe
-					let testX = randInt(-3, 3);
-					let isTrue = randInt(0, 1) === 0;
-					// Wenn isTrue false ist, addiere einen kleinen Störwert auf das echte y
-					let testY = isTrue ? calcF(testX) : calcF(testX) + randInt(1, 3) * (Math.random() < 0.5 ? 1 : -1);
-					
-						textDisplay = `Punktprobe: Prüfe, ob der Punkt \\( P(\\,${fmtFunctionNumber(testX)} \\, | ${fmtFunctionNumber(testY)}\\,) \\) auf dem Graphen von \\( ${funcStr} \\) liegt.`;
-					if (isTrue) {
-								s = `\\( f(${fmtFunctionNumber(testX)}) = ${fmtFunctionNumber(calcF(testX))} \\rightarrow\\) Ja, P liegt auf dem Graphen.`;
-					} else {
-								s = `\\( f(${fmtFunctionNumber(testX)}) = ${fmtFunctionNumber(calcF(testX))} \\neq ${fmtFunctionNumber(testY)} \\rightarrow\\) Nein, P liegt nicht auf dem Graphen.`;
-					}
-					break;
+		}
+		switch (subType) {
+			case 0: {
+				const xVal = randInt(-4, 4);
+				const rhs = funcStr.replace('f(x) = ', '');
+				textDisplay = `Berechne bei der Funktion \\( ${funcStr} \\) den Funktionswert zum Argument \\( ${fmtFunctionNumber(xVal)} \\).`;
+				s = `\\( f(${fmtFunctionNumber(xVal)}) = ${rhs.replace(/x/g, `(${fmtFunctionNumber(xVal)})`)} = ${fmtFunctionNumber(calcF(xVal))} \\)`;
+				break;
+			}
+			case 1: {
+				const px = randInt(-4, 4);
+				const py = calcF(px);
+				const rhs = funcStr.replace('f(x) = ', '');
+				textDisplay = `\\( P(\\;${fmtFunctionNumber(px)} \\;|\\; y\\;) \\) liegt auf \\( ${funcStr} \\).<br>Bestimme \\( y \\).`;
+				s = `\\( y = f(${fmtFunctionNumber(px)}) = ${rhs.replace(/x/g, `(${fmtFunctionNumber(px)})`)} = ${fmtFunctionNumber(py)} \\)`;
+				break;
+			}
+			default: {
+				const xValues = [-2, -1, 0, 1, 2];
+				const buildValueTable = (isFilled, isCentered = true) => {
+					const xRow = xValues.map((x, idx) =>
+						`<td style="padding:6px 10px; text-align:center; min-width:40px; border-bottom:1px solid #333; ${idx < xValues.length - 1 ? 'border-right:1px solid #333;' : ''}">${fmtFunctionNumber(x)}</td>`
+					).join('');
+					const yRow = xValues.map(x => {
+						const value = isFilled ? `${fmtFunctionNumber(calcF(x))}` : '&nbsp;';
+						return `<td style="padding:6px 10px; text-align:center; min-width:34px; ${x < xValues[xValues.length - 1] ? 'border-right:1px solid #333;' : ''}">${value}</td>`;
+					}).join('');
+					return `<table style="border-collapse:separate; border-spacing:0; margin:${isCentered ? '8px auto 0 auto' : '8px 0 0 0'};">`
+						+ `<tr><th style="padding:6px 10px; min-width:30px; font-weight:400; border-right:1px solid #333; border-bottom:1px solid #333;">x</th>${xRow}</tr>`
+						+ `<tr><th style="padding:6px 10px; min-width:30px; font-weight:400; border-right:1px solid #333;">y</th>${yRow}</tr>`
+						+ `</table>`;
+				};
+				textDisplay = `Fülle die Wertetabelle für \\( ${funcStr} \\) aus.<br>${buildValueTable(false)}`;
+				textPrint = `Fülle die Wertetabelle für \\( ${funcStr} \\) aus.<br>${buildValueTable(false, false)}`;
+				s = `${buildValueTable(true)}<br>Kontrolle: Trage z. B. die Punkte \\( P(-1|${fmtFunctionNumber(calcF(-1))}) \\), \\( Q(0|${fmtFunctionNumber(calcF(0))}) \\) und \\( R(1|${fmtFunctionNumber(calcF(1))}) \\) in das Koordinatensystem ein.`;
+				break;
 			}
 		}
 		break;
 	}
 	case 'statistik': {
-		if (isQuizMode) {
-			let n = randInt(5, 6); // Anzahl der Datenpunkte
-			let data, sum, mean, modeVal;
-			
-			// Hocheffiziente Generierung ohne langes Würfeln
-			do {
-				data = [];
-				let used = new Set();
-				
-				// 1. Modalwert festlegen (kommt genau 2x vor)
-				modeVal = randInt(1, 9);
-				data.push(modeVal, modeVal);
-				used.add(modeVal);
-				
-				// 2. n-3 eindeutige Zufallszahlen hinzufügen
-				while (data.length < n - 1) {
-					let num = randInt(1, 12);
-					if (!used.has(num)) {
-						data.push(num);
-						used.add(num);
-					}
+		let n = randInt(5, 6);
+		let data, sum, mean, modeVal;
+		do {
+			data = [];
+			const used = new Set();
+			modeVal = randInt(1, 9);
+			data.push(modeVal, modeVal);
+			used.add(modeVal);
+			while (data.length < n - 1) {
+				const num = randInt(1, 12);
+				if (!used.has(num)) {
+					data.push(num);
+					used.add(num);
 				}
-
-				// 3. Den letzten Wert berechnen (Ziel: Rest 0 oder bei n=6 auch Rest 3)
-				let currentSum = data.reduce((a, b) => a + b, 0);
-				let targetRemainder = (n === 6 && Math.random() < 0.5) ? 3 : 0;
-				
-				// Diff berechnen, um auf den targetRemainder zu kommen
-				let diff = (targetRemainder - (currentSum % n) + n) % n;
-				let lastVal = diff;
-				
-				// lastVal erhöhen, bis er nicht mehr in 'used' ist und > 0
-				while (used.has(lastVal) || lastVal === 0) {
-					lastVal += n;
-				}
-				
-				// Wichtig: Erst hier wird das Array auf die volle Länge n gebracht!
-				data.push(lastVal);
-				sum = currentSum + lastVal;
-				mean = (sum / n).toString().replace('.', ',');
-				
-				if (lastVal <= 13) {
-					sum = currentSum + lastVal;
-					// Prüfe: Entweder glatt teilbar ODER (bei n=6) Rest ist 3
-					if (sum % n === 0 || (n === 6 && sum % n === 3)) {
-						mean = (sum / n).toString().replace('.', ',');
-						break;
-					}
-				}
-			} while (true);
-
-			// 4. Liste zufällig durchmischen (Fisher-Yates Shuffle)
-			for (let i = data.length - 1; i > 0; i--) {
-				let j = Math.floor(Math.random() * (i + 1));
-				[data[i], data[j]] = [data[j], data[i]];
 			}
-
-			let sortedData = [...data].sort((a, b) => a - b);
-			if (data.every((value, index) => value === sortedData[index])) {
-				const swapIndex = sortedData.findIndex((value, index) => index > 0 && value !== sortedData[index - 1]);
-				[data[swapIndex - 1], data[swapIndex]] = [data[swapIndex], data[swapIndex - 1]];
+			const currentSum = data.reduce((a, b) => a + b, 0);
+			const targetRemainder = (n === 6 && Math.random() < 0.5) ? 3 : 0;
+			const diff = (targetRemainder - (currentSum % n) + n) % n;
+			let lastVal = diff;
+			while (used.has(lastVal) || lastVal === 0) {
+				lastVal += n;
 			}
-			let displayData = data;
-
-			// Bestimmung der einen gesuchten Kenngröße
-			let taskType = randInt(0, 3);
-			let taskName, loesung, resultValue;
-			
-			switch (taskType) {
-				case 0:
-					taskName = "das arithmetische Mittel";
-					resultValue = sum / n;
-					loesung = `Summe = ${sum}<br>arithmetisches Mittel = ${sum} : ${n} = ${mean}`;
-					break;
-				case 1:
-					taskName = "den Zentralwert (Median)";
-					if (n === 5) {
-						resultValue = sortedData[2];
-						let median = sortedData[2];
-						loesung = `geordnete Liste: ${sortedData.join(', ')}<br>Zentralwert (Median) = ${median}`;
-					} else {
-						resultValue = (sortedData[2] + sortedData[3]) / 2;
-						let m1 = sortedData[2];
-						let m2 = sortedData[3];
-						let median = (m1 + m2) / 2;
-						let medianStr = median.toString().replace('.', ',');
-						
-						loesung = `geordnete Liste: ${sortedData.join(', ')}<br>Zentralwert = (${m1} + ${m2}) : 2 = ${medianStr}`;
-					}
-					break;
-				case 2:
-					taskName = "den Modalwert";
-					resultValue = modeVal;
-					loesung = `Modalwert = ${modeVal}`;
-					break;
-				case 3:
-					taskName = "die Spannweite";
-					resultValue = sortedData[n - 1] - sortedData[0];
-					let spannweite = sortedData[n - 1] - sortedData[0];
-					loesung = `Spannweite = ${sortedData[n - 1]} - ${sortedData[0]} = ${spannweite}`;
-					break;
+			data.push(lastVal);
+			sum = currentSum + lastVal;
+			mean = (sum / n).toString().replace('.', ',');
+			if (lastVal <= 13 && (sum % n === 0 || (n === 6 && sum % n === 3))) {
+				break;
 			}
-
-			textPrint = `Bestimme ${taskName}: \\( \\quad ${displayData.join(', ')} \\)`;
-			textDisplay = `Bestimme ${taskName}: <br>${displayData.join(', ')}`;
-			s = loesung;
-			answer = { kind: 'number', value: resultValue };
-		} else {
-			let n = randInt(5, 6); // Anzahl der Datenpunkte
-			let data, sum, mean, modeVal;
-			
-			// Hocheffiziente Generierung ohne langes Würfeln
-			do {
-				data = [];
-				let used = new Set();
-				
-				// 1. Modalwert festlegen (kommt genau 2x vor)
-				modeVal = randInt(1, 9);
-				data.push(modeVal, modeVal);
-				used.add(modeVal);
-				
-				// 2. n-3 eindeutige Zufallszahlen hinzufügen
-				while (data.length < n - 1) {
-					let num = randInt(1, 12);
-					if (!used.has(num)) {
-						data.push(num);
-						used.add(num);
-					}
-				}
-
-				// 3. Den letzten Wert berechnen (Ziel: Rest 0 oder bei n=6 auch Rest 3)
-				let currentSum = data.reduce((a, b) => a + b, 0);
-				let targetRemainder = (n === 6 && Math.random() < 0.5) ? 3 : 0;
-				
-				// Diff berechnen, um auf den targetRemainder zu kommen
-				let diff = (targetRemainder - (currentSum % n) + n) % n;
-				let lastVal = diff;
-				
-				// lastVal erhöhen, bis er nicht mehr in 'used' ist und > 0
-				while (used.has(lastVal) || lastVal === 0) {
-					lastVal += n;
-				}
-				
-				// Wichtig: Erst hier wird das Array auf die volle Länge n gebracht!
-				data.push(lastVal);
-				sum = currentSum + lastVal;
-				mean = (sum / n).toString().replace('.', ',');
-				
-				if (lastVal <= 13) {
-					sum = currentSum + lastVal;
-					// Prüfe: Entweder glatt teilbar ODER (bei n=6) Rest ist 3
-					if (sum % n === 0 || (n === 6 && sum % n === 3)) {
-						mean = (sum / n).toString().replace('.', ',');
-						break;
-					}
-				}
-			} while (true);
-
-			// 4. Liste zufällig durchmischen (Fisher-Yates Shuffle)
-			for (let i = data.length - 1; i > 0; i--) {
-				let j = Math.floor(Math.random() * (i + 1));
-				[data[i], data[j]] = [data[j], data[i]];
-			}
-
-			let sortedData = [...data].sort((a, b) => a - b);
-			let displayData = data;
-
-			// Bestimmung der einen gesuchten Kenngröße
-			let taskType = randInt(0, 3);
-			let taskName, loesung;
-			
-			switch (taskType) {
-				case 0:
-					taskName = "das arithmetische Mittel";
-					// Nutze hier das oben formatierte mean
-					loesung = `${sortedData.join(' + ')} = ${sum}<br>arithmetische Mittel = ${sum} : ${n} = ${mean}`;
-					break;
-					case 1:
-						taskName = "den Zentralwert (Median)";
-					if (n === 5) {
-						// Bei 5 Daten: Genau der 3. Wert
-						let median = sortedData[2];
-						loesung = `geordnete Liste: ${sortedData.join(', ')}<br>Zentralwert (Median) = ${median}`;
-					} else {
-						// Bei 6 Daten: Mittelwert aus dem 3. und 4. Wert
-						let m1 = sortedData[2];
-						let m2 = sortedData[3];
-						let median = (m1 + m2) / 2;
-						let medianStr = median.toString().replace('.', ',');
-						
-						loesung = `geordnete Liste: ${sortedData.join(', ')}<br>Zentralwert = (${m1} + ${m2}) : 2 = ${medianStr}`;
-						}
-					break;
-				case 2:
-					taskName = "den Modalwert";
-					loesung = `${displayData.join(', ')}<br>Modalwert = ${modeVal}`;
-					break;
-					case 3:
-						taskName = "die Spannweite";
-					let spannweite = sortedData[n - 1] - sortedData[0];
-					loesung = `${displayData.join(', ')}<br>Spannweite = ${sortedData[n - 1]} - ${sortedData[0]} = ${spannweite}`;
-					break;
-			}
-
-			textPrint = `Bestimme ${taskName}: \\( \\quad ${displayData.join(', ')} \\)`;
-			textDisplay = `Bestimme ${taskName}: <br>${displayData.join(', ')}`;
-			s = loesung;
+		} while (true);
+		for (let i = data.length - 1; i > 0; i--) {
+			const j = Math.floor(Math.random() * (i + 1));
+			[data[i], data[j]] = [data[j], data[i]];
 		}
+		const sortedData = [...data].sort((a, b) => a - b);
+		if (data.every((value, index) => value === sortedData[index])) {
+			const swapIndex = sortedData.findIndex((value, index) => index > 0 && value !== sortedData[index - 1]);
+			[data[swapIndex - 1], data[swapIndex]] = [data[swapIndex], data[swapIndex - 1]];
+		}
+		const displayData = data;
+		const taskType = randInt(0, 3);
+		let taskName, loesung, resultValue;
+		switch (taskType) {
+			case 0:
+				taskName = "das arithmetische Mittel";
+				resultValue = sum / n;
+				loesung = isQuizMode
+					? `Summe = ${sum}<br>arithmetisches Mittel = ${sum} : ${n} = ${mean}`
+					: `${sortedData.join(' + ')} = ${sum}<br>arithmetische Mittel = ${sum} : ${n} = ${mean}`;
+				break;
+			case 1:
+				taskName = "den Zentralwert (Median)";
+				if (n === 5) {
+					resultValue = sortedData[2];
+					loesung = `geordnete Liste: ${sortedData.join(', ')}<br>Zentralwert (Median) = ${resultValue}`;
+				} else {
+					resultValue = (sortedData[2] + sortedData[3]) / 2;
+					loesung = `geordnete Liste: ${sortedData.join(', ')}<br>Zentralwert = (${sortedData[2]} + ${sortedData[3]}) : 2 = ${resultValue.toString().replace('.', ',')}`;
+				}
+				break;
+			case 2:
+				taskName = "den Modalwert";
+				resultValue = modeVal;
+				loesung = isQuizMode
+					? `Modalwert = ${modeVal}`
+					: `${displayData.join(', ')}<br>Modalwert = ${modeVal}`;
+				break;
+			default:
+				taskName = "die Spannweite";
+				resultValue = sortedData[n - 1] - sortedData[0];
+				loesung = isQuizMode
+					? `Spannweite = ${sortedData[n - 1]} - ${sortedData[0]} = ${resultValue}`
+					: `${displayData.join(', ')}<br>Spannweite = ${sortedData[n - 1]} - ${sortedData[0]} = ${resultValue}`;
+				break;
+		}
+		textPrint = `Bestimme ${taskName}: \\( \\quad ${displayData.join(', ')} \\)`;
+		textDisplay = `Bestimme ${taskName}: <br>${displayData.join(', ')}`;
+		s = loesung;
+		answer = { kind: 'number', value: resultValue };
 		break;
 	}
 	case 'winkel': {
@@ -7404,6 +6630,8 @@ const fromUnit = displayUnits[unitIndex];
 		}
 		break;
 	}
+
+	/*
 	case 'einheiten_umrechnen': {
 		if (isQuizMode) {
 			const groups = [
@@ -7553,7 +6781,10 @@ const fromUnit = displayUnits[unitIndex];
 			s = '';
 		}
 		break;
-	}
+	} 
+	*/
+
+
 	case 'terme_einsetzen': {
 		if (isQuizMode) {
 			// Ein Term aus den Vorrangregeln mit einer Variablen anstelle einer Zahl.
