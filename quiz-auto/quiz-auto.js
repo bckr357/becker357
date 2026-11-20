@@ -14,7 +14,7 @@ const app = createApp({
 		const selectedTypes = ref([]);
 		const shareLink = window.MTGShareLinkModule.createCodec(window.MTGShareLinkTypeRegistry);
 		const quizTypeLabels = Object.fromEntries(
-			Object.entries(window.taskTypeDefinitions).map(([key, definition]) => [
+			Object.entries(window.MTGTaskTypes.definitions).map(([key, definition]) => [
 				key,
 				definition.quizLabel ?? definition.label
 			])
@@ -49,9 +49,7 @@ const app = createApp({
 		// Verfügbare Typen je nach Stufe: alle für die Klasse definierten Aufgabentypen anzeigen
 		const availableTypes = computed(() => {
 			const gradeKey = grade.value === 'GS' ? 'grundschule' : `klasse${grade.value}`;
-			const configured = quizAutoTaskTypesByGrade[gradeKey] || [];
-			const quizTypes = new Set(window.QUIZ_AUTO_TYPES || []);
-			return [...new Set(configured)].filter(type => quizTypes.has(type));
+			return window.MTGTaskTypes.forGrade('quiz', gradeKey);
 		});
 
 		if (initialShareConfig.types && initialShareConfig.types.length > 0) {

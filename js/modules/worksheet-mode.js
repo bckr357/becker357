@@ -1,25 +1,11 @@
 window.MTGWorksheetModeModule = {
-    createWorksheetMode({ state, taskGeneration, nextTick, typesetMathJax, selectedGrade, typeLabels, taskTypesByGrade, createJsonImportHandler, onTasksGenerated }) {
+    createWorksheetMode({ state, taskGeneration, nextTick, typesetMathJax, selectedGrade, createJsonImportHandler, onTasksGenerated }) {
         const getVisibleTypeKeys = () => {
-            const allTypes = Object.keys(typeLabels || {});
-            const classConfig = state.taskMode.value === 'calculator'
-                && typeof window.calculatorTaskTypesByGrade === 'object'
-                && window.calculatorTaskTypesByGrade
-                ? window.calculatorTaskTypesByGrade
-                : ((typeof taskTypesByGrade === 'object' && taskTypesByGrade)
-                    ? taskTypesByGrade
-                    : {});
             const gradeKey = selectedGrade?.value === 'GS'
                 ? 'grundschule'
                 : `klasse${selectedGrade?.value}`;
-            const configured = classConfig[gradeKey];
-
-            if (!Array.isArray(configured)) {
-                return allTypes;
-            }
-
-            const validKeys = configured.filter(type => Object.prototype.hasOwnProperty.call(typeLabels, type));
-            return validKeys.length > 0 ? validKeys : allTypes;
+            const mode = state.taskMode.value === 'calculator' ? 'calculator' : 'default';
+            return window.MTGTaskTypes.forGrade(mode, gradeKey);
         };
 
         const toggleWorksheetSolutions = async () => {

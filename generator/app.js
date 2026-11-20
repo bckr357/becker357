@@ -36,6 +36,7 @@ const typesetMathJax = async () => {
 const quizEnabledByPage = window.MTG_DISABLE_QUIZ !== true;
 
 const requiredModules = [
+    'MTGTaskTypes',
     'MTGStateModule',
     'MTGTaskGenerationModule',
     'MTGPresentationModeModule',
@@ -51,6 +52,10 @@ if (missingModules.length > 0) {
 
 createApp({
     setup() {
+        const taskCatalog = window.MTGTaskTypes;
+        const typeLabels = taskCatalog ? Object.fromEntries(
+            Object.entries(taskCatalog.definitions).map(([type, definition]) => [type, definition.label])
+        ) : {};
         const state = window.MTGStateModule.createState(Vue, typeLabels);
         const shareLink = window.MTGShareLinkModule.createCodec(window.MTGShareLinkTypeRegistry);
         const initialShareConfig = shareLink.read(window.location.href);
@@ -61,7 +66,7 @@ createApp({
             : (isQuizEnabled
                 ? state.viewTabs
                 : state.viewTabs.filter(tab => tab.key !== 'quiz'));
-        const allTypes = Object.keys(typeLabels);
+        const allTypes = taskCatalog ? taskCatalog.forMode(state.taskMode.value === 'calculator' ? 'calculator' : 'default') : Object.keys(typeLabels);
         const selectedGrade = ref(10);
         const gradeOptions = ['GS', 5, 6, 7, 8, 9, 10];
         const randomSelectionConfig = ref(window.MTG_RANDOM_SELECTION_CONFIG ?? null);
@@ -91,25 +96,11 @@ createApp({
             state.weights.value = true;
         }
 
-        const standardClassConfig = (typeof taskTypesByGrade === 'object' && taskTypesByGrade)
-            ? taskTypesByGrade
-            : {};
-        const calculatorClassConfig = (typeof window.calculatorTaskTypesByGrade === 'object' && window.calculatorTaskTypesByGrade)
-            ? window.calculatorTaskTypesByGrade
-            : {};
-        const classConfig = computed(() => state.taskMode.value === 'calculator'
-            ? calculatorClassConfig
-            : standardClassConfig);
         const visibleTypeKeys = computed(() => {
             const gradeKey = selectedGrade.value === 'GS' ? 'grundschule' : `klasse${selectedGrade.value}`;
-            const configured = classConfig.value[gradeKey];
-
-            if (!Array.isArray(configured)) {
-                return state.taskMode.value === 'calculator' ? [] : allTypes;
-            }
-
-            const validKeys = configured.filter(type => Object.prototype.hasOwnProperty.call(typeLabels, type));
-            return validKeys;
+            return taskCatalog
+                ? taskCatalog.forGrade(state.taskMode.value === 'calculator' ? 'calculator' : 'default', gradeKey)
+                : allTypes;
         });
 
         const visibleTypeEntries = computed(() => visibleTypeKeys.value.map(key => [key, typeLabels[key]]));
@@ -118,17 +109,7 @@ createApp({
             if (state.taskMode.value === 'calculator') {
                 return [];
             }
-            const quizClassConfig = (typeof quizAutoTaskTypesByGrade === 'object' && quizAutoTaskTypesByGrade)
-                ? quizAutoTaskTypesByGrade
-                : standardClassConfig;
-            const configured = quizClassConfig[gradeKey];
-
-            if (!Array.isArray(configured)) {
-                return [];
-            }
-
-            const validKeys = configured.filter(type => Object.prototype.hasOwnProperty.call(typeLabels, type));
-            return validKeys;
+            return taskCatalog ? taskCatalog.forGrade('quiz', gradeKey) : [];
         });
 
         const quizVisibleTypeEntries = computed(() => quizVisibleTypeKeys.value.map(key => [key, typeLabels[key]]));
@@ -343,10 +324,6 @@ createApp({
             nextTick,
             typesetMathJax,
             selectedGrade,
-            typeLabels,
-            taskTypesByGrade: state.taskMode.value === 'calculator'
-                ? window.calculatorTaskTypesByGrade
-                : taskTypesByGrade,
             createJsonImportHandler,
             onTasksGenerated: syncShareUrl
         });

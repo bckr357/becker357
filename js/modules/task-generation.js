@@ -484,8 +484,8 @@ window.MTGTaskGenerationModule = {
 
             if (arrangementMode === 'ordered' || arrangementMode === 'random-ordered') {
                 const typeCounts = getTypeCounts();
-                const typeLabelMap = (typeof window !== 'undefined' && window.typeLabels && typeof window.typeLabels === 'object')
-                    ? window.typeLabels
+                const typeLabelMap = (typeof window !== 'undefined' && window.MTGTaskTypes?.definitions)
+                    ? window.MTGTaskTypes.definitions
                     : {};
                 const labelOrder = Object.keys(typeLabelMap);
                 const selectedSet = new Set(config.selectedTypes);

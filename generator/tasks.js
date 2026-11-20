@@ -6645,3 +6645,11 @@ const fromUnit = displayUnits[unitIndex];
 	if (isQuizMode) taskResult.answer = answer;
 	return taskResult;
 };
+
+if (typeof window !== 'undefined' && window.MTGTaskTypes?.validateCases) {
+	const taskCases = new Set(
+		[...createTask.toString().matchAll(/\bcase\s+(['"])([^'"]+)\1\s*:/g)]
+			.map(match => match[2])
+	);
+	window.MTGTaskTypes.validateCases(taskCases);
+}

@@ -1,264 +1,226 @@
 // ==============================================================
 // AUFGABEN-TYP-DEFINITIONEN
 // ==============================================================
+//
+// Einzige Quelle der Wahrheit für alle Aufgabentypen.
+//
+// - Die Reihenfolge der Einträge ist die Anzeigereihenfolge (Dropdown usw.).
+// - shareLinkId: eindeutige Nummer für Share-Links. Neue Typen bekommen eine
+//   neue, unbenutzte ID. Bestehende IDs nie ändern oder wiederverwenden.
+// - label: Anzeigename.
+// - from: erste Klassenstufe, ab der der Typ angeboten wird (gilt für alle
+//   Modi, bis einschließlich Klasse 10).
+// - modes: Modi, in denen der Typ angeboten wird.
+//     default    = ohne Taschenrechner
+//     calculator = mit Taschenrechner
+//     quiz       = automatisches Quiz
+//   Leeres modes = Typ ist (noch) nirgends registriert; from darf dann null sein.
+// - 'grundschule' ist eine eigene Stufe vor Klasse 5: Ein Typ mit
+//   from: 'grundschule' gilt nur dort, und Typen mit from: 'klasse5' oder höher
+//   erscheinen nie in der Grundschule.
 
-// Sichtbare Aufgabentypen je Klassenstufe (wird vom UI-Dropdown genutzt)
-const taskTypesByGrade = {
-	grundschule: [
-		'einmaleins_2', 'geteilt_durch_2', 'einmaleins_3', 'geteilt_durch_3',
-		'einmaleins_4', 'geteilt_durch_4', 'einmaleins_5', 'geteilt_durch_5',
-		'einmaleins_6', 'geteilt_durch_6', 'einmaleins_7', 'geteilt_durch_7',
-		'einmaleins_8', 'geteilt_durch_8', 'einmaleins_9', 'geteilt_durch_9',
-		'einmaleins_10', 'geteilt_durch_10',
-		'addition_bis_10', 'subtraktion_bis_10', 'addition_bis_20', 'subtraktion_bis_20',
-		'addition_bis_50', 'subtraktion_bis_50', 'addition_bis_100', 'subtraktion_bis_100',
-		'addition_bis_1000', 'subtraktion_bis_1000',
-		'kleines_1x1_multiplikation', 'kleines_1x1_division', 'kleines_1x1_komplett',
-		'addition_subtraktion_bis_20', 'addition_subtraktion_bis_100', 'addition_subtraktion_bis_1000'
-	],
-	klasse5: [
-		'teiler', 'primzahlen', 'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'schriftliche_addition_subtraktion', 'schriftliche_multiplikation_division', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
-		'additionstabellen', 'subtraktionstabellen', 'multiplikationstabellen',
-		'runden', 'ueberschlag', 'zahlengerade',
-		'wortterme',
-		'geometrie', 'winkel'
-	],
-	klasse6: [
-		'teiler', 'primzahlen', 'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'schriftliche_addition_subtraktion', 'schriftliche_multiplikation_division', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
-		'additionstabellen', 'subtraktionstabellen', 'multiplikationstabellen',
-		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen', 'runden', 'ueberschlag', 'zahlengerade',
-		'wortterme',
-		'geometrie', 'winkel'
-	],
-	klasse7: [
-		'teiler', 'primzahlen', 'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'schriftliche_addition_subtraktion', 'schriftliche_multiplikation_division', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
-		'additionstabellen', 'subtraktionstabellen', 'multiplikationstabellen', 'termtabellen',
-		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen', 'runden', 'ueberschlag', 'zahlengerade',
-		'anteile', 'proportionalitaet',
-		'wortterme',
-		'geometrie', 'winkel', 'kongruenz'
-	],
-	klasse8: [
-		'teiler', 'primzahlen', 'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'schriftliche_addition_subtraktion', 'schriftliche_multiplikation_division', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
-		'additionstabellen', 'subtraktionstabellen', 'multiplikationstabellen', 'termtabellen',
-		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen', 'runden', 'ueberschlag', 'zahlengerade',
-		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen',
-		'terme_zusammenfassen', 'terme_umformen', 'wortterme',
-		'geometrie', 'winkel', 'kongruenz'
-	],
-	klasse9: [
-		'teiler', 'primzahlen', 'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'schriftliche_addition_subtraktion', 'schriftliche_multiplikation_division', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
-		'additionstabellen', 'subtraktionstabellen', 'multiplikationstabellen', 'termtabellen',
-		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen', 'runden', 'ueberschlag', 'zahlengerade',
-		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen',
-		'terme_zusammenfassen', 'terme_umformen', 'wortterme', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig', 'lineare_gleichungen_umstellen', 'formel_umstellen',
-		'geometrie', 'winkel', 'kongruenz',
-		'wahrscheinlichkeiten', 'lineare_funktionen_zeichnen', 'funktionen'
-	],
-	klasse10: [
-		'teiler', 'primzahlen', 'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'schriftliche_addition_subtraktion', 'schriftliche_multiplikation_division', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
-		'additionstabellen', 'subtraktionstabellen', 'multiplikationstabellen', 'termtabellen',
-		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen', 'runden', 'ueberschlag', 'zahlengerade',
-		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen',
-		'terme_zusammenfassen', 'terme_umformen', 'wortterme', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig', 'lineare_gleichungen_umstellen', 'formel_umstellen',
-		'geometrie', 'winkel', 'kongruenz',
-		'statistik', 'wahrscheinlichkeiten', 'lineare_funktionen_zeichnen', 'funktionen'
-	]
-};
-
-// Separate registrations for work with calculator and formula collection.
-// These task types are only available in calculator mode.
-const calculatorTaskTypesByGrade = {
-	grundschule: [],
-	klasse5: [
-		'einheiten', 'runden', 'ueberschlag', 'geometrie',
-		'dreiecksberechnungen_zeichnung', 'statistik', 'wahrscheinlichkeiten'
-	],
-	klasse6: [
-		'einheiten', 'runden', 'ueberschlag', 'anteile', 'prozentrechnung',
-		'geometrie', 'dreiecksberechnungen_zeichnung', 'statistik', 'wahrscheinlichkeiten'
-	],
-	klasse7: [
-		'einheiten', 'runden', 'anteile', 'proportionalitaet', 'prozentrechnung',
-		'prozentuale_veraenderung', 'zinsen', 'geometrie',
-		'dreiecksberechnungen_zeichnung', 'kongruenz', 'statistik', 'wahrscheinlichkeiten'
-	],
-	klasse8: [
-		'einheiten', 'runden', 'anteile', 'proportionalitaet', 'prozentrechnung',
-		'prozentuale_veraenderung', 'zinsen', 'lineare_gleichungen',
-		'lineare_gleichungen_beidseitig', 'geometrie',
-		'dreiecksberechnungen_zeichnung', 'kongruenz', 'statistik', 'wahrscheinlichkeiten'
-	],
-	klasse9: [
-		'einheiten', 'runden', 'prozentrechnung', 'prozentuale_veraenderung',
-		'zinsen', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig',
-		'lineare_gleichungen_umstellen', 'formel_umstellen',
-		'dreiecksberechnungen_zeichnung', 'geometrie', 'kongruenz',
-		'statistik', 'wahrscheinlichkeiten', 'lineare_funktionen_zeichnen', 'funktionen'
-	],
-	klasse10: [
-		'einheiten', 'runden', 'prozentrechnung', 'prozentuale_veraenderung',
-		'zinsen', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig',
-		'lineare_gleichungen_umstellen', 'formel_umstellen',
-		'dreiecksberechnungen_zeichnung', 'geometrie', 'kongruenz',
-		'statistik', 'wahrscheinlichkeiten', 'lineare_funktionen_zeichnen', 'funktionen'
-	]
-};
-
-const quizAutoTaskTypesByGrade = {
-	grundschule: [
-		'einmaleins_2', 'einmaleins_3', 'einmaleins_4', 'einmaleins_5', 'einmaleins_6',
-		'einmaleins_7', 'einmaleins_8', 'einmaleins_9', 'einmaleins_10',
-		'geteilt_durch_2', 'geteilt_durch_3', 'geteilt_durch_4', 'geteilt_durch_5',
-		'geteilt_durch_6', 'geteilt_durch_7', 'geteilt_durch_8', 'geteilt_durch_9', 'geteilt_durch_10',
-		'addition_bis_10', 'addition_bis_20', 'addition_bis_50', 'addition_bis_100', 'addition_bis_1000',
-		'subtraktion_bis_10', 'subtraktion_bis_20', 'subtraktion_bis_50', 'subtraktion_bis_100', 'subtraktion_bis_1000',
-		'kleines_1x1_multiplikation', 'kleines_1x1_division', 'kleines_1x1_komplett',
-		'addition_subtraktion_bis_20', 'addition_subtraktion_bis_100', 'addition_subtraktion_bis_1000'
-	],
-	klasse5: [
-		'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
-		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen', 'runden', 'zahlengerade',
-		'geometrie', 'statistik'
-	],
-	klasse6: [
-		'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
-		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen', 'runden', 'zahlengerade',
-		'anteile', 'prozentrechnung', 'geometrie', 'statistik', 'wahrscheinlichkeiten'
-	],
-	klasse7: [
-		'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
-		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen',
-		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen',
-		'terme_zusammenfassen', 'terme_umformen', 'terme_einsetzen', 'lineare_gleichungen',
-		'runden', 'zahlengerade', 'geometrie', 'statistik', 'wahrscheinlichkeiten'
-	],
-	klasse8: [
-		'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
-		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen',
-		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen',
-		'terme_zusammenfassen', 'terme_umformen', 'terme_einsetzen', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig',
-		'runden', 'zahlengerade', 'geometrie', 'statistik', 'wahrscheinlichkeiten'
-	],
-	klasse9: [
-		'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
-		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen',
-		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen',
-		'terme_zusammenfassen', 'terme_umformen', 'terme_einsetzen', 'lineare_gleichungen', 'lineare_gleichungen_beidseitig',
-		'runden', 'zahlengerade', 'geometrie', 'statistik', 'wahrscheinlichkeiten'
-	],
-	klasse10: [
-		'einheiten', 'potenzen', 'natuerliche_zahlen_addieren_subtrahieren', 'natuerliche_zahlen_multiplizieren_dividieren', 'ganze_zahlen_addieren_subtrahieren', 'ganze_zahlen_multiplizieren_dividieren', 'dezimalbrueche_addieren_subtrahieren', 'dezimalbrueche_multiplizieren_dividieren', 'zehnerpotenzen_multiplizieren_dividieren', 'vorrang',
-		'brueche_kuerzen', 'brueche_umwandeln', 'brueche_addieren_subtrahieren', 'brueche_multiplizieren_dividieren', 'brueche_ordnen',
-		'anteile', 'proportionalitaet', 'prozentrechnung', 'prozentuale_veraenderung', 'zinsen',
-		'terme_zusammenfassen', 'terme_umformen', 'terme_einsetzen', 'lineare_gleichungen',
-		'runden', 'zahlengerade', 'geometrie', 'statistik', 'wahrscheinlichkeiten'
-	]
-};
-
-const QUIZ_AUTO_TYPES = [...new Set(
-	Object.values(quizAutoTaskTypesByGrade).flat()
-)];
+const TASK_GRADES = Object.freeze(['grundschule', 'klasse5', 'klasse6', 'klasse7', 'klasse8', 'klasse9', 'klasse10']);
+const TASK_MODES = Object.freeze(['default', 'calculator', 'quiz']);
 
 const taskTypeDefinitions = {
-	teiler: { shareLinkId: 0, label: 'Teiler' },
-	primzahlen: { shareLinkId: 1, label: 'Primzahlen' },
-	einheiten: { shareLinkId: 2, label: 'Einheiten' },
-	runden: { shareLinkId: 3, label: 'Zahlen runden' },
-	natuerliche_zahlen_addieren_subtrahieren: { shareLinkId: 4, label: 'Natürliche Zahlen +/-' },
-	natuerliche_zahlen_multiplizieren_dividieren: { shareLinkId: 5, label: 'Natürliche Zahlen ×/÷' },
-	ganze_zahlen_addieren_subtrahieren: { shareLinkId: 6, label: 'Ganze Zahlen +/-' },
-	ganze_zahlen_multiplizieren_dividieren: { shareLinkId: 7, label: 'Ganze Zahlen ×/÷' },
-	dezimalbrueche_addieren_subtrahieren: { shareLinkId: 8, label: 'Dezimalbrüche +/-' },
-	dezimalbrueche_multiplizieren_dividieren: { shareLinkId: 9, label: 'Dezimalbrüche ×/÷' },
-	schriftliche_addition_subtraktion: { shareLinkId: 10, label: 'schriftlich rechnen +/-' },
-	schriftliche_multiplikation_division: { shareLinkId: 11, label: 'schriftlich rechnen ×/÷' },
-	potenzen: { shareLinkId: 12, label: 'Potenzen und Wurzeln' },
-	zehnerpotenzen_multiplizieren_dividieren: { shareLinkId: 13, label: 'Zehnerpotenzen ×/÷' },
-	vorrang: { shareLinkId: 14, label: 'Vorrangregeln' },
-	ueberschlag: { shareLinkId: 15, label: 'Überschlag' },
-	additionstabellen: { shareLinkId: 16, label: 'Additionstabelle' },
-	subtraktionstabellen: { shareLinkId: 17, label: 'Subtraktionstabelle' },
-	multiplikationstabellen: { shareLinkId: 18, label: 'Multiplikationstabelle' },
-	termtabellen: { shareLinkId: 19, label: 'Termtabelle' },
-	brueche_umwandeln: { shareLinkId: 20, label: 'Brüche umwandeln' },
-	brueche_kuerzen: { shareLinkId: 21, label: 'Brüche kürzen' },
-	brueche_addieren_subtrahieren: { shareLinkId: 22, label: 'Brüche +/-' },
-	brueche_multiplizieren_dividieren: { shareLinkId: 23, label: 'Brüche ×/÷' },
-	brueche_ordnen: { shareLinkId: 24, label: 'Brüche ordnen' },
-	zahlengerade: { shareLinkId: 25, label: 'Zahlenstrahl' },
-	anteile: { shareLinkId: 26, label: 'Anteile berechnen' },
-	proportionalitaet: { shareLinkId: 27, label: 'Proportionalitäten' },
-	prozentrechnung: { shareLinkId: 28, label: 'Prozentrechnung' },
-	prozentuale_veraenderung: { shareLinkId: 29, label: 'Prozentuale Veränderung' },
-	zinsen: { shareLinkId: 30, label: 'Zinsrechnung' },
-	terme_zusammenfassen: { shareLinkId: 81, label: 'Terme zusammenfassen' },
-	terme_umformen: { shareLinkId: 82, label: 'Terme umformen' },
-	terme_einsetzen: { shareLinkId: 84, label: 'Terme einsetzen' },
-	wortterme: { shareLinkId: 32, label: 'Wortterme' },
-	lineare_gleichungen: { shareLinkId: 33, label: 'lin. Gl. ax+b = c' },
-	lineare_gleichungen_beidseitig: { shareLinkId: 34, label: 'lin. Gl. ax+b = cx+d' },
-	lineare_gleichungen_umstellen: { shareLinkId: 35, label: 'lin. Gl. umstellen' },
-	formel_umstellen: { shareLinkId: 36, label: 'Formeln umstellen' },
-	geometrie: { shareLinkId: 37, label: 'A und u ebener Figuren' },
-	dreiecksberechnungen_zeichnung: { shareLinkId: 38, label: 'Dreiecksberechnungen (Zeichnung)' },
-	winkel: { shareLinkId: 39, label: 'Winkel' },
-	schraegbild: { shareLinkId: 40, label: 'Schrägbilder' },
-	kongruenz: { shareLinkId: 41, label: 'Kongruenzsätze' },
-	wahrscheinlichkeiten: { shareLinkId: 42, label: 'Wahrscheinlichkeiten' },
-	lineare_funktionen_zeichnen: { shareLinkId: 43, label: 'Lineare Funktionen zeichnen' },
-	funktionen: { shareLinkId: 44, label: 'Funktionen' },
-	statistik: { shareLinkId: 45, label: 'Statistik' },
-	einmaleins_2: { shareLinkId: 46, label: '2er-Reihe' },
-	geteilt_durch_2: { shareLinkId: 56, label: 'Geteilt durch 2', quizLabel: 'geteilt durch 2' },
-	einmaleins_3: { shareLinkId: 47, label: '3er-Reihe' },
-	geteilt_durch_3: { shareLinkId: 57, label: 'Geteilt durch 3', quizLabel: 'geteilt durch 3' },
-	einmaleins_4: { shareLinkId: 48, label: '4er-Reihe' },
-	geteilt_durch_4: { shareLinkId: 58, label: 'Geteilt durch 4', quizLabel: 'geteilt durch 4' },
-	einmaleins_5: { shareLinkId: 49, label: '5er-Reihe' },
-	geteilt_durch_5: { shareLinkId: 59, label: 'Geteilt durch 5', quizLabel: 'geteilt durch 5' },
-	einmaleins_6: { shareLinkId: 50, label: '6er-Reihe' },
-	geteilt_durch_6: { shareLinkId: 60, label: 'Geteilt durch 6', quizLabel: 'geteilt durch 6' },
-	einmaleins_7: { shareLinkId: 51, label: '7er-Reihe' },
-	geteilt_durch_7: { shareLinkId: 61, label: 'Geteilt durch 7', quizLabel: 'geteilt durch 7' },
-	einmaleins_8: { shareLinkId: 52, label: '8er-Reihe' },
-	geteilt_durch_8: { shareLinkId: 62, label: 'Geteilt durch 8', quizLabel: 'geteilt durch 8' },
-	einmaleins_9: { shareLinkId: 53, label: '9er-Reihe' },
-	geteilt_durch_9: { shareLinkId: 63, label: 'Geteilt durch 9', quizLabel: 'geteilt durch 9' },
-	einmaleins_10: { shareLinkId: 54, label: '10er-Reihe' },
-	geteilt_durch_10: { shareLinkId: 64, label: 'Geteilt durch 10', quizLabel: 'geteilt durch 10' },
-	addition_bis_10: { shareLinkId: 65, label: 'Addition bis 10' },
-	subtraktion_bis_10: { shareLinkId: 70, label: 'Subtraktion bis 10' },
-	addition_bis_20: { shareLinkId: 66, label: 'Addition bis 20' },
-	subtraktion_bis_20: { shareLinkId: 71, label: 'Subtraktion bis 20' },
-	addition_bis_50: { shareLinkId: 67, label: 'Addition bis 50' },
-	subtraktion_bis_50: { shareLinkId: 72, label: 'Subtraktion bis 50' },
-	addition_bis_100: { shareLinkId: 68, label: 'Addition bis 100' },
-	subtraktion_bis_100: { shareLinkId: 73, label: 'Subtraktion bis 100' },
-	addition_bis_1000: { shareLinkId: 69, label: 'Addition bis 1000' },
-	subtraktion_bis_1000: { shareLinkId: 74, label: 'Subtraktion bis 1000' },
-	kleines_1x1_multiplikation: { shareLinkId: 75, label: 'Kleines 1×1 Multiplikation' },
-	kleines_1x1_division: { shareLinkId: 76, label: 'Kleines 1×1 Division' },
-	kleines_1x1_komplett: { shareLinkId: 77, label: 'Kleines 1×1 komplett' },
-	addition_subtraktion_bis_20: { shareLinkId: 78, label: 'Addition und Subtraktion bis 20', quizLabel: '+ und - bis 20' },
-	addition_subtraktion_bis_100: { shareLinkId: 79, label: 'Addition und Subtraktion bis 100', quizLabel: '+ und - bis 100' },
-	addition_subtraktion_bis_1000: { shareLinkId: 80, label: 'Addition und Subtraktion bis 1000', quizLabel: '+ und - bis 1000' },
-	terme: { shareLinkId: 31, label: 'Terme' },
+	einmaleins_2: { shareLinkId: 0, label: '2er-Reihe', from: 'grundschule', modes: ['default', 'quiz'] },
+	geteilt_durch_2: { shareLinkId: 1, label: 'geteilt durch 2', from: 'grundschule', modes: ['default', 'quiz'] },
+	einmaleins_3: { shareLinkId: 2, label: '3er-Reihe', from: 'grundschule', modes: ['default', 'quiz'] },
+	geteilt_durch_3: { shareLinkId: 3, label: 'geteilt durch 3', from: 'grundschule', modes: ['default', 'quiz'] },
+	einmaleins_4: { shareLinkId: 4, label: '4er-Reihe', from: 'grundschule', modes: ['default', 'quiz'] },
+	geteilt_durch_4: { shareLinkId: 5, label: 'geteilt durch 4', from: 'grundschule', modes: ['default', 'quiz'] },
+	einmaleins_5: { shareLinkId: 6, label: '5er-Reihe', from: 'grundschule', modes: ['default', 'quiz'] },
+	geteilt_durch_5: { shareLinkId: 7, label: 'geteilt durch 5', from: 'grundschule', modes: ['default', 'quiz'] },
+	einmaleins_6: { shareLinkId: 8, label: '6er-Reihe', from: 'grundschule', modes: ['default', 'quiz'] },
+	geteilt_durch_6: { shareLinkId: 9, label: 'geteilt durch 6', from: 'grundschule', modes: ['default', 'quiz'] },
+	einmaleins_7: { shareLinkId: 10, label: '7er-Reihe', from: 'grundschule', modes: ['default', 'quiz'] },
+	geteilt_durch_7: { shareLinkId: 11, label: 'geteilt durch 7', from: 'grundschule', modes: ['default', 'quiz'] },
+	einmaleins_8: { shareLinkId: 12, label: '8er-Reihe', from: 'grundschule', modes: ['default', 'quiz'] },
+	geteilt_durch_8: { shareLinkId: 13, label: 'geteilt durch 8', from: 'grundschule', modes: ['default', 'quiz'] },
+	einmaleins_9: { shareLinkId: 14, label: '9er-Reihe', from: 'grundschule', modes: ['default', 'quiz'] },
+	geteilt_durch_9: { shareLinkId: 15, label: 'geteilt durch 9', from: 'grundschule', modes: ['default', 'quiz'] },
+	einmaleins_10: { shareLinkId: 16, label: '10er-Reihe', from: 'grundschule', modes: ['default', 'quiz'] },
+	geteilt_durch_10: { shareLinkId: 17, label: 'geteilt durch 10', from: 'grundschule', modes: ['default', 'quiz'] },
+	addition_bis_10: { shareLinkId: 18, label: 'Addition bis 10', from: 'grundschule', modes: ['default', 'quiz'] },
+	subtraktion_bis_10: { shareLinkId: 19, label: 'Subtraktion bis 10', from: 'grundschule', modes: ['default', 'quiz'] },
+	addition_bis_20: { shareLinkId: 20, label: 'Addition bis 20', from: 'grundschule', modes: ['default', 'quiz'] },
+	subtraktion_bis_20: { shareLinkId: 21, label: 'Subtraktion bis 20', from: 'grundschule', modes: ['default', 'quiz'] },
+	addition_bis_50: { shareLinkId: 22, label: 'Addition bis 50', from: 'grundschule', modes: ['default', 'quiz'] },
+	subtraktion_bis_50: { shareLinkId: 23, label: 'Subtraktion bis 50', from: 'grundschule', modes: ['default', 'quiz'] },
+	addition_bis_100: { shareLinkId: 24, label: 'Addition bis 100', from: 'grundschule', modes: ['default', 'quiz'] },
+	subtraktion_bis_100: { shareLinkId: 25, label: 'Subtraktion bis 100', from: 'grundschule', modes: ['default', 'quiz'] },
+	addition_bis_1000: { shareLinkId: 26, label: 'Addition bis 1000', from: 'grundschule', modes: ['default', 'quiz'] },
+	subtraktion_bis_1000: { shareLinkId: 27, label: 'Subtraktion bis 1000', from: 'grundschule', modes: ['default', 'quiz'] },
+	kleines_1x1_multiplikation: { shareLinkId: 28, label: 'Kleines 1×1 Multiplikation', from: 'grundschule', modes: ['default', 'quiz'] },
+	kleines_1x1_division: { shareLinkId: 29, label: 'Kleines 1×1 Division', from: 'grundschule', modes: ['default', 'quiz'] },
+	kleines_1x1_komplett: { shareLinkId: 30, label: 'Kleines 1×1 komplett', from: 'grundschule', modes: ['default', 'quiz'] },
+	addition_subtraktion_bis_20: { shareLinkId: 31, label: '+ und - bis 20', from: 'grundschule', modes: ['default', 'quiz'] },
+	addition_subtraktion_bis_100: { shareLinkId: 32, label: '+ und - bis 100', from: 'grundschule', modes: ['default', 'quiz'] },
+	addition_subtraktion_bis_1000: { shareLinkId: 33, label: '+ und - bis 1000', from: 'grundschule', modes: ['default', 'quiz'] },
+	teiler: { shareLinkId: 34, label: 'Teiler', from: 'klasse5', modes: ['default'] },
+	primzahlen: { shareLinkId: 35, label: 'Primzahlen', from: 'klasse5', modes: ['default'] },
+	einheiten: { shareLinkId: 36, label: 'Einheiten', from: 'klasse5', modes: ['default', 'calculator', 'quiz'] },
+	potenzen: { shareLinkId: 37, label: 'Potenzen und Wurzeln', from: 'klasse5', modes: ['default', 'quiz'] },
+	natuerliche_zahlen_addieren_subtrahieren: { shareLinkId: 38, label: 'Natürliche Zahlen +/-', from: 'klasse5', modes: ['default', 'quiz'] },
+	natuerliche_zahlen_multiplizieren_dividieren: { shareLinkId: 39, label: 'Natürliche Zahlen ×/÷', from: 'klasse5', modes: ['default', 'quiz'] },
+	schriftliche_addition_subtraktion: { shareLinkId: 40, label: 'schriftlich rechnen +/-', from: 'klasse5', modes: ['default'] },
+	schriftliche_multiplikation_division: { shareLinkId: 41, label: 'schriftlich rechnen ×/÷', from: 'klasse5', modes: ['default'] },
+	ganze_zahlen_addieren_subtrahieren: { shareLinkId: 42, label: 'Ganze Zahlen +/-', from: 'klasse7', modes: ['default', 'quiz'] },
+	ganze_zahlen_multiplizieren_dividieren: { shareLinkId: 43, label: 'Ganze Zahlen ×/÷', from: 'klasse7', modes: ['default', 'quiz'] },
+	dezimalbrueche_addieren_subtrahieren: { shareLinkId: 44, label: 'Dezimalbrüche +/-', from: 'klasse5', modes: ['default', 'quiz'] },
+	dezimalbrueche_multiplizieren_dividieren: { shareLinkId: 45, label: 'Dezimalbrüche ×/÷', from: 'klasse5', modes: ['default', 'quiz'] },
+	zehnerpotenzen_multiplizieren_dividieren: { shareLinkId: 46, label: 'Zehnerpotenzen ×/÷', from: 'klasse5', modes: ['default', 'quiz'] },
+	vorrang: { shareLinkId: 47, label: 'Vorrangregeln', from: 'klasse5', modes: ['default', 'quiz'] },
+	additionstabellen: { shareLinkId: 48, label: 'Additionstabelle', from: 'klasse5', modes: ['default'] },
+	subtraktionstabellen: { shareLinkId: 49, label: 'Subtraktionstabelle', from: 'klasse5', modes: ['default'] },
+	multiplikationstabellen: { shareLinkId: 50, label: 'Multiplikationstabelle', from: 'klasse5', modes: ['default'] },
+	termtabellen: { shareLinkId: 51, label: 'Termtabelle', from: 'klasse7', modes: ['default'] },
+	brueche_kuerzen: { shareLinkId: 52, label: 'Brüche kürzen', from: 'klasse6', modes: ['default', 'quiz'] },
+	brueche_umwandeln: { shareLinkId: 53, label: 'Brüche umwandeln', from: 'klasse6', modes: ['default', 'quiz'] },
+	brueche_addieren_subtrahieren: { shareLinkId: 54, label: 'Brüche +/-', from: 'klasse6', modes: ['default', 'quiz'] },
+	brueche_multiplizieren_dividieren: { shareLinkId: 55, label: 'Brüche ×/÷', from: 'klasse6', modes: ['default', 'quiz'] },
+	brueche_ordnen: { shareLinkId: 56, label: 'Brüche ordnen', from: 'klasse6', modes: ['default', 'quiz'] },
+	runden: { shareLinkId: 57, label: 'Zahlen runden', from: 'klasse5', modes: ['default', 'calculator', 'quiz'] },
+	ueberschlag: { shareLinkId: 58, label: 'Überschlag', from: 'klasse5', modes: ['default', 'calculator'] },
+	zahlengerade: { shareLinkId: 59, label: 'Zahlenstrahl', from: 'klasse5', modes: ['default', 'quiz'] },
+	anteile: { shareLinkId: 60, label: 'Anteile berechnen', from: 'klasse6', modes: ['default', 'calculator', 'quiz'] },
+	proportionalitaet: { shareLinkId: 61, label: 'Proportionalitäten', from: 'klasse6', modes: ['default', 'calculator', 'quiz'] },
+	prozentrechnung: { shareLinkId: 62, label: 'Prozentrechnung', from: 'klasse7', modes: ['default', 'calculator', 'quiz'] },
+	prozentuale_veraenderung: { shareLinkId: 63, label: 'Prozentuale Veränderung', from: 'klasse7', modes: ['default', 'calculator', 'quiz'] },
+	zinsen: { shareLinkId: 64, label: 'Zinsrechnung', from: 'klasse7', modes: ['default', 'calculator', 'quiz'] },
+	terme: { shareLinkId: 65, label: 'Terme', from: null, modes: [] },
+	terme_zusammenfassen: { shareLinkId: 66, label: 'Terme zusammenfassen', from: 'klasse7', modes: ['default', 'quiz'] },
+	terme_umformen: { shareLinkId: 67, label: 'Terme umformen', from: 'klasse8', modes: ['default', 'quiz'] },
+	terme_einsetzen: { shareLinkId: 68, label: 'Terme einsetzen', from: 'klasse7', modes: ['quiz'] },
+	wortterme: { shareLinkId: 69, label: 'Wortterme', from: 'klasse5', modes: ['default'] },
+	lineare_gleichungen: { shareLinkId: 70, label: 'lin. Gl. ax+b = c', from: 'klasse7', modes: ['default', 'calculator', 'quiz'] },
+	lineare_gleichungen_beidseitig: { shareLinkId: 71, label: 'lin. Gl. ax+b = cx+d', from: 'klasse8', modes: ['default', 'calculator', 'quiz'] },
+	lineare_gleichungen_umstellen: { shareLinkId: 72, label: 'lin. Gl. umstellen', from: 'klasse9', modes: ['default', 'calculator'] },
+	formel_umstellen: { shareLinkId: 73, label: 'Formeln umstellen', from: 'klasse8', modes: ['default', 'calculator'] },
+	geometrie: { shareLinkId: 74, label: 'A und u ebener Figuren', from: 'klasse5', modes: ['default', 'calculator', 'quiz'] },
+	dreiecksberechnungen_zeichnung: { shareLinkId: 75, label: 'Dreiecksberechnungen (Zeichnung)', from: 'klasse5', modes: ['calculator'] },
+	winkel: { shareLinkId: 76, label: 'Winkel', from: 'klasse5', modes: ['default'] },
+	schraegbild: { shareLinkId: 77, label: 'Schrägbilder', from: null, modes: [] },
+	kongruenz: { shareLinkId: 78, label: 'Kongruenzsätze', from: 'klasse7', modes: ['default', 'calculator'] },
+	statistik: { shareLinkId: 79, label: 'Statistik', from: 'klasse9', modes: ['default', 'calculator', 'quiz'] },
+	wahrscheinlichkeiten: { shareLinkId: 80, label: 'Wahrscheinlichkeiten', from: 'klasse7', modes: ['default', 'calculator', 'quiz'] },
+	lineare_funktionen_zeichnen: { shareLinkId: 81, label: 'Lineare Funktionen zeichnen', from: 'klasse8', modes: ['default', 'calculator'] },
+	funktionen: { shareLinkId: 82, label: 'Funktionen', from: 'klasse8', modes: ['default', 'calculator'] },
 };
 
-const typeLabels = Object.fromEntries(
-	Object.entries(taskTypeDefinitions).map(([key, definition]) => [key, definition.label])
-);
+// --------------------------------------------------------------
+// Validierung (schlägt beim Laden fehl, wenn die Daten inkonsistent sind)
+// --------------------------------------------------------------
+(function validateTaskTypeDefinitions() {
+	const seenIds = new Map();
+	for (const [typeId, definition] of Object.entries(taskTypeDefinitions)) {
+		if (!Number.isInteger(definition.shareLinkId)) {
+			throw new Error(`taskTypeDefinitions.${typeId}: shareLinkId fehlt oder ist keine ganze Zahl`);
+		}
+		if (seenIds.has(definition.shareLinkId)) {
+			throw new Error(`taskTypeDefinitions: shareLinkId ${definition.shareLinkId} doppelt vergeben (${seenIds.get(definition.shareLinkId)}, ${typeId})`);
+		}
+		seenIds.set(definition.shareLinkId, typeId);
+		if (typeof definition.label !== 'string' || !definition.label) {
+			throw new Error(`taskTypeDefinitions.${typeId}: label fehlt`);
+		}
+		if (!Array.isArray(definition.modes)) {
+			throw new Error(`taskTypeDefinitions.${typeId}: modes muss ein Array sein`);
+		}
+		const seenModes = new Set();
+		for (const mode of definition.modes) {
+			if (!TASK_MODES.includes(mode)) {
+				throw new Error(`taskTypeDefinitions.${typeId}: unbekannter Modus '${mode}'`);
+			}
+			if (seenModes.has(mode)) {
+				throw new Error(`taskTypeDefinitions.${typeId}: Modus '${mode}' doppelt vergeben`);
+			}
+			seenModes.add(mode);
+		}
+		if (definition.modes.length > 0) {
+			if (!TASK_GRADES.includes(definition.from)) {
+				throw new Error(`taskTypeDefinitions.${typeId}: ungültiges from '${definition.from}'`);
+			}
+		} else if (definition.from !== null) {
+			throw new Error(`taskTypeDefinitions.${typeId}: from muss bei leeren modes null sein`);
+		}
+	}
+})();
 
-// Neue Typen erhalten eine neue shareLinkId. Bestehende IDs nie aendern oder wiederverwenden.
-const shareLinkTypeRegistry = Object.fromEntries(
-	Object.entries(taskTypeDefinitions).map(([key, definition]) => [key, definition.shareLinkId])
-);
+function validateTaskCases(taskCases) {
+	const cases = taskCases instanceof Set ? taskCases : new Set(taskCases);
+	const missing = Object.keys(taskTypeDefinitions).filter(typeId => {
+		const definition = taskTypeDefinitions[typeId];
+		return definition.modes.length > 0 && !cases.has(typeId);
+	});
+	if (missing.length > 0) {
+		throw new Error(`taskTypeDefinitions: keine createTask-Faelle fuer ${missing.join(', ')}`);
+	}
+}
+
+// --------------------------------------------------------------
+// Abfragefunktionen
+// --------------------------------------------------------------
+
+// Ist der Typ im Modus für die Klassenstufe verfügbar?
+function isTaskTypeAvailable(typeId, mode, grade) {
+	const definition = taskTypeDefinitions[typeId];
+	if (!definition || !definition.modes.includes(mode)) return false;
+	const gradeIndex = TASK_GRADES.indexOf(grade);
+	const fromIndex = TASK_GRADES.indexOf(definition.from);
+	if (gradeIndex < 0 || fromIndex < 0) return false;
+	if (fromIndex === 0) return gradeIndex === 0; // Grundschule: eigene Stufe
+	return gradeIndex >= fromIndex;               // Klasse 5+: Grundschule zählt nie mit
+}
+
+// Typ-IDs für Modus + Klassenstufe, in Definitionsreihenfolge
+function getTaskTypesForGrade(mode, grade) {
+	return Object.keys(taskTypeDefinitions).filter(typeId => isTaskTypeAvailable(typeId, mode, grade));
+}
+
+// Typ-IDs, die in einem Modus in mindestens einer Klassenstufe vorkommen
+function getTaskTypesForMode(mode) {
+	return Object.keys(taskTypeDefinitions).filter(typeId => taskTypeDefinitions[typeId].modes.includes(mode));
+}
+
+function getTaskTypeLabel(typeId) {
+	return taskTypeDefinitions[typeId]?.label ?? typeId;
+}
+
+function getShareLinkId(typeId) {
+	return taskTypeDefinitions[typeId]?.shareLinkId;
+}
+
+function getTaskTypeByShareLinkId(shareLinkId) {
+	return Object.keys(taskTypeDefinitions).find(typeId => taskTypeDefinitions[typeId].shareLinkId === shareLinkId);
+}
+
+for (const definition of Object.values(taskTypeDefinitions)) {
+	Object.freeze(definition.modes);
+	Object.freeze(definition);
+}
+Object.freeze(taskTypeDefinitions);
+
+const MTGTaskTypes = {
+	GRADES: TASK_GRADES,
+	MODES: TASK_MODES,
+	definitions: taskTypeDefinitions,
+	isAvailable: isTaskTypeAvailable,
+	forGrade: getTaskTypesForGrade,
+	forMode: getTaskTypesForMode,
+	label: getTaskTypeLabel,
+	shareLinkId: getShareLinkId,
+	byShareLinkId: getTaskTypeByShareLinkId,
+	validateCases: validateTaskCases
+};
+Object.freeze(MTGTaskTypes);
 
 if (typeof window !== 'undefined') {
-	window.taskTypeDefinitions = taskTypeDefinitions;
-	window.typeLabels = typeLabels;
-	window.calculatorTaskTypesByGrade = calculatorTaskTypesByGrade;
-	window.MTGShareLinkTypeRegistry = shareLinkTypeRegistry;
-	window.QUIZ_AUTO_TYPES = QUIZ_AUTO_TYPES;
+	window.MTGTaskTypes = MTGTaskTypes;
+	window.MTGShareLinkTypeRegistry = Object.freeze(Object.fromEntries(
+		Object.entries(taskTypeDefinitions).map(([typeId, definition]) => [typeId, definition.shareLinkId])
+	));
+}
+if (typeof module !== 'undefined' && module.exports) {
+	module.exports = MTGTaskTypes;
 }
