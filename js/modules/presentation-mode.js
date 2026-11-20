@@ -1,5 +1,5 @@
 window.MTGPresentationModeModule = {
-    createPresentationMode({ state, taskGeneration, nextTick, typesetMathJax, createJsonImportHandler, onTasksGenerated }) {
+    createPresentationMode({ state, taskGeneration, nextTick, typesetMathJax, createJsonImportHandler, getVisibleTypeKeys, onTasksGenerated }) {
         const toggleSolutions = async () => {
             state.showSolutions.value = !state.showSolutions.value;
             await nextTick();
@@ -36,6 +36,10 @@ window.MTGPresentationModeModule = {
 
         const importPresentationJSON = createJsonImportHandler({
             loadTasks: taskGeneration.loadTasksFromJSON,
+            getVisibleKeys: getVisibleTypeKeys,
+            setSelectedTypes: types => {
+                state.selectedTypes.value = types;
+            },
             onAfterLoad: async () => {
                 state.currentView.value = 'presentation';
                 state.isSettingsSidebarOpen.value = false;

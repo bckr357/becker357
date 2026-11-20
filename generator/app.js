@@ -169,13 +169,58 @@ createApp({
                 return null;
             }
 
-            const rawGrade = data.grade ?? data.klasse ?? data.class;
+            const metadata = data.metadata && typeof data.metadata === 'object'
+                ? data.metadata
+                : {};
+            const rawGrade = metadata.grade ?? data.grade ?? data.klasse ?? data.class;
             if (rawGrade === 'GS' || rawGrade === 'grundschule') {
                 return 'GS';
             }
 
             const numericGrade = Number(rawGrade);
             return gradeOptions.includes(numericGrade) ? numericGrade : null;
+        };
+
+        const getImportMetadata = data => data && !Array.isArray(data) && data.metadata && typeof data.metadata === 'object'
+            ? data.metadata
+            : {};
+
+        const applyImportedShareMetadata = data => {
+            const metadata = getImportMetadata(data);
+            if (metadata.taskMode === 'standard' || metadata.taskMode === 'calculator') {
+                state.taskMode.value = metadata.taskMode;
+            }
+
+            const taskCount = Number(metadata.taskCount);
+            if (Number.isInteger(taskCount) && taskCount >= 1 && taskCount <= 300) {
+                state.taskCount.value = taskCount;
+            }
+
+            if (['ordered', 'random', 'random-ordered'].includes(metadata.arrangement)) {
+                state.taskArrangementMode.value = metadata.arrangement;
+            }
+
+            if ([1, 2].includes(metadata.pages)) {
+                state.worksheetA5Pages.value = metadata.pages;
+            }
+
+            if ([1, 2].includes(metadata.presentationColumns)) {
+                state.presentationColumns.value = metadata.presentationColumns;
+            }
+
+            if (typeof metadata.worksheetTitle === 'string') {
+                state.worksheetTitle.value = metadata.worksheetTitle;
+            }
+
+            const weights = metadata.weights && typeof metadata.weights === 'object'
+                ? metadata.weights
+                : data && typeof data.weights === 'object' ? data.weights : null;
+            if (weights) {
+                Object.assign(state.taskWeights.value, weights);
+                state.weights.value = metadata.weightsEnabled !== undefined
+                    ? metadata.weightsEnabled !== false
+                    : data.weightsEnabled !== false;
+            }
         };
 
         const createJsonImportHandler = ({ loadTasks, getVisibleKeys, setSelectedTypes, onAfterLoad }) => async event => {
@@ -196,21 +241,26 @@ createApp({
                     if (importedGrade !== null) {
                         selectedGrade.value = importedGrade;
                     }
-                    if (data && !Array.isArray(data) && typeof data.weights === 'object' && data.weights !== null) {
-                        Object.assign(state.taskWeights.value, data.weights);
-                        state.weights.value = data.weightsEnabled !== false;
-                    }
+                    applyImportedShareMetadata(data);
                     const loaded = loadTasks(data);
                     if (!loaded) {
                         window.alert('Die JSON-Datei enthält keine gültigen Aufgaben.');
                         return;
                     }
+                    applyImportedShareMetadata(data);
 
+                    const metadata = getImportMetadata(data);
                     if (setSelectedTypes && getVisibleKeys) {
                         const rawTasks = parseRawTaskArray(data);
                         const importedTypes = extractImportedTypes(rawTasks);
                         const visibleKeys = new Set(getVisibleKeys());
-                        setSelectedTypes(importedTypes.filter(type => visibleKeys.has(type)));
+                        const metadataTypes = Array.isArray(metadata.types)
+                            ? metadata.types.filter(type => typeof type === 'string')
+                            : [];
+                        const typesToSelect = metadataTypes.length > 0
+                            ? metadataTypes
+                            : importedTypes;
+                        setSelectedTypes(typesToSelect.filter(type => visibleKeys.has(type)));
                     }
 
                     if (typeof onAfterLoad === 'function') {
@@ -283,6 +333,7 @@ createApp({
             nextTick,
             typesetMathJax,
             createJsonImportHandler,
+            getVisibleTypeKeys: () => visibleTypeKeys.value,
             onTasksGenerated: syncShareUrl
         });
 

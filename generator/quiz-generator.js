@@ -98,10 +98,12 @@ window.MTGQuizModeModule = {
             taskGeneration.downloadJSONFile(
                 `becker357-quiz-${date}-${state.quizNumber.value}.json`,
                 {
+                    pageUrl: exportDocument.pageUrl,
+                    metadata: exportDocument.metadata,
+                    grade: exportDocument.grade,
                     weights: exportDocument.weights,
                     weightsEnabled: exportDocument.weightsEnabled,
                     quizNumber: state.quizNumber.value,
-                    grade: exportDocument.grade,
                     tasks: exportDocument.tasks
                 }
             );

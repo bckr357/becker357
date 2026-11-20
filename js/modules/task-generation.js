@@ -111,12 +111,33 @@ window.MTGTaskGenerationModule = {
             loesung: task.solution
         }));
 
-        const getTaskExportDocument = () => ({
-            grade: selectedGrade?.value ?? null,
-            weights: { ...state.taskWeights.value },
-            weightsEnabled: state.weights.value,
-            tasks: getTaskExportData()
-        });
+        const getTaskExportDocument = () => {
+            const activeTypes = state.currentView.value === 'quiz'
+                ? state.quizSelectedTypes.value
+                : state.selectedTypes.value;
+
+            const metadata = {
+                grade: selectedGrade?.value ?? null,
+                types: [...activeTypes],
+                taskCount: state.taskCount.value,
+                arrangement: state.taskArrangementMode.value,
+                pages: state.worksheetA5Pages.value,
+                presentationColumns: state.presentationColumns.value,
+                worksheetTitle: state.worksheetTitle.value,
+                weights: { ...state.taskWeights.value },
+                weightsEnabled: state.weights.value,
+                taskMode: state.taskMode.value
+            };
+
+            return {
+                pageUrl: window.location.href,
+                metadata,
+                grade: metadata.grade,
+                weights: metadata.weights,
+                weightsEnabled: metadata.weightsEnabled,
+                tasks: getTaskExportData()
+            };
+        };
 
         const parseTaskImportData = (data) => {
             const rawArray = Array.isArray(data)
