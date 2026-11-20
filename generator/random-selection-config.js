@@ -8,9 +8,9 @@ window.MTG_RANDOM_SELECTION_CONFIG = {
             'prozentrechnung',
             'zehnerpotenzen_multiplizieren_dividieren',
             'kongruenz',
-            'schriftliche_addition_subtraktion',
-            'schriftliche_multiplikation_division',
-            'termtabellen'
+            'termtabellen', 
+            'natuerliche_zahlen_addieren_subtrahieren',
+            'natuerliche_zahlen_multiplizieren_dividieren'
         ],
         exactOneGroups: [
             [
@@ -22,8 +22,8 @@ window.MTG_RANDOM_SELECTION_CONFIG = {
                 'dezimalbrueche_multiplizieren_dividieren'
             ], 
             [
-                'natuerliche_zahlen_addieren_subtrahieren',
-                'natuerliche_zahlen_multiplizieren_dividieren'
+                'schriftliche_addition_subtraktion',
+                'schriftliche_multiplikation_division'
             ]
         ],
         atMostOneGroups: [
