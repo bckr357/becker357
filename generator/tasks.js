@@ -724,17 +724,17 @@ function createTask(type, grade = 5, options = {}) {
 		}
 
 	case 'dezimalbrueche_addieren_subtrahieren': {
-		const allowNegativeDecimals = grade >= 8;
 		const createDbAsEntry = () => {
-			const a = allowNegativeDecimals ? trueDec(-15, 15) : trueDec(0, 15);
-			const b = allowNegativeDecimals ? trueDec(-15, 15) : trueDec(0, 13);
+			const a = trueDec(0, 15);
+			let b = grade >= 7 ? trueDec(0, 13) : trueDec(0, a - 0.1);
+			b = Math.random() < 0.3 ? b - (b < 4 ? 0 : trueDec(b-3, b-1)) - trueDec(0, 1)/10 : b;
 			const isAddition = Math.random() > 0.5;
 			const result = isAddition ? a + b : a - b;
 			const operator = isAddition ? '+' : '-';
 			return {
-				expr: `\\[ ${comma(a)} ${operator} ${comma(fmt(b))} = \\]`,
-				solution: `\\[ ${comma(a)} ${operator} ${comma(fmt(b))} = ${comma(result.toFixed(1))} \\]`,
-				answer: numericAnswer(Number(result.toFixed(1)))
+				expr: `\\[ ${formatDecimal(a,2)} ${operator} ${formatDecimal(b,2)} = \\]`,
+				solution: `\\[ ${formatDecimal(a,2)} ${operator} ${formatDecimal(b,2)} = ${formatDecimal(result,2)} \\]`,
+				answer: numericAnswer(Number(result.toFixed(2)))
 			};
 		};
 		const entry = createDbAsEntry();
@@ -744,7 +744,7 @@ function createTask(type, grade = 5, options = {}) {
 		break;
 	}
 	case 'dezimalbrueche_multiplizieren_dividieren': {
-		const allowNegativeDecimals = grade >= 8;
+		const allowNegativeDecimals = grade >= 7;
 		const createDbMdEntry = () => {
 			const rdLocal = Math.random();
 			if (rdLocal > 0.7) {

@@ -9,10 +9,11 @@ window.MTGTaskGenerationModule = {
         };
 
         const twoColumnTaskTypes = new Set([
+            'dezimalbrueche_addieren_subtrahieren',
             'dezimalbrueche_multiplizieren_dividieren',
             'natuerliche_zahlen_addieren_subtrahieren',
-            'ganze_zahlen_addieren_subtrahieren',
             'natuerliche_zahlen_multiplizieren_dividieren',
+            'ganze_zahlen_addieren_subtrahieren',
             'ganze_zahlen_multiplizieren_dividieren',
             'zehnerpotenzen_multiplizieren_dividieren',
             'potenzen'
