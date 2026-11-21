@@ -121,8 +121,7 @@ window.MTGTaskGenerationModule = {
                     const url = new URL(pageUrl, window.location.href);
                     url.searchParams.set('p', '1');
                     pageUrl = url.href;
-                } catch (error) {
-                    console.warn('MTG Export: Arbeitsblatt-URL konnte nicht auf A4-Format angepasst werden.', error);
+                } catch {
                 }
             }
 
