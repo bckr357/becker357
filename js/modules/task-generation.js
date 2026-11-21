@@ -115,6 +115,16 @@ window.MTGTaskGenerationModule = {
             const activeTypes = state.currentView.value === 'quiz'
                 ? state.quizSelectedTypes.value
                 : state.selectedTypes.value;
+            let pageUrl = window.location.href;
+            if (state.currentView.value === 'worksheet') {
+                try {
+                    const url = new URL(pageUrl, window.location.href);
+                    url.searchParams.set('p', '1');
+                    pageUrl = url.href;
+                } catch (error) {
+                    console.warn('MTG Export: Arbeitsblatt-URL konnte nicht auf A4-Format angepasst werden.', error);
+                }
+            }
 
             const metadata = {
                 grade: selectedGrade?.value ?? null,
@@ -130,7 +140,7 @@ window.MTGTaskGenerationModule = {
             };
 
             return {
-                pageUrl: window.location.href,
+                pageUrl,
                 metadata,
                 grade: metadata.grade,
                 weights: metadata.weights,

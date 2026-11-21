@@ -69,6 +69,10 @@ input[type=range]{width:90px}
 .rainbow-pick{width:22px;height:22px;padding:0;border-radius:50%;border:2px solid var(--bd);background:conic-gradient(#ff3b30,#ffcc00,#34c759,#00c7be,#007aff,#af52de,#ff2d55,#ff3b30);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;position:relative;overflow:hidden;flex:0 0 auto}
 .rainbow-pick input[type=color]{position:absolute;inset:-6px;width:34px;height:34px;opacity:0;cursor:pointer;border:0;padding:0}
 select{font:inherit;background:var(--btn);color:var(--fg);border:1px solid var(--bd);border-radius:5px;padding:2px 5px}
+.pop-wrap{position:relative;display:inline-block}
+.pop-menu{position:absolute;top:calc(100% + 4px);left:0;min-width:165px;background:var(--bar);color:var(--fg);border:1px solid var(--bd);border-radius:8px;padding:8px 10px;z-index:20;box-shadow:0 6px 20px rgba(0,0,0,.22);display:none;flex-direction:column;gap:6px}
+.pop-menu.open{display:flex}
+.pop-menu .pop-all{width:100%;padding:3px 7px;font-size:12px;margin-top:2px}
 #w{flex:1;position:relative;min-height:0;overflow:hidden}
 canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 #inpBox{position:absolute;display:none;align-items:center;gap:4px;background:var(--bar);border:1px solid var(--bd);border-radius:6px;padding:3px;z-index:5;box-shadow:0 2px 8px rgba(0,0,0,.18)}
@@ -95,10 +99,21 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
    <label><input type="checkbox" id="ras" checked> am Raster fangen</label>
    <label><input type="checkbox" id="fix" > freie Längen</label>
    <label><input type="checkbox" id="auto" checked> Punkte benennen</label>
-   <label><input type="checkbox" id="autol" checked> Strecken benennen</label>
+   <label><input type="checkbox" id="autol" checked> Strecken/Geraden benennen</label>
+   <label><input type="checkbox" id="autoa" checked> Winkel benennen</label>
    <label><input type="checkbox" id="autof" checked> Flächen benennen</label></div>
   <div class="grp"><b>Anzeige</b>
-   <label><input type="checkbox" id="lab" checked> Bezeichnungen</label>
+   <div class="pop-wrap" id="labPopWrap">
+    <button type="button" id="labBtn">Bezeichnungen ▾</button>
+    <div class="pop-menu" id="labMenu">
+     <label><input type="checkbox" id="labP" checked> Punkte</label>
+     <label><input type="checkbox" id="labS" checked> Strecken</label>
+     <label><input type="checkbox" id="labG" checked> Geraden</label>
+     <label><input type="checkbox" id="labA" checked> Winkel</label>
+     <label><input type="checkbox" id="labF" checked> Flächen</label>
+     <button type="button" id="labAll" class="pop-all">Alle</button>
+    </div>
+   </div>
    <label><input type="checkbox" id="leg" checked> Legende</label>
    <label><input type="checkbox" id="legpts"> Punkte in Legende</label>
    <label><input type="checkbox" id="geo"> Geodreieck anzeigen</label>
@@ -106,7 +121,12 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   <div class="grp"><b>Darstellung</b>
    <label>Schriftgröße <input type="range" id="fs" min="12" max="36" value="20"></label>
    <label>Einheit <select id="unit"><option value="mm">mm</option><option value="cm" selected>cm</option><option value="dm">dm</option><option value="m">m</option><option value="km">km</option></select></label>
-   <b>Punkte</b><div class="g" id="ptypes"></div>
+   <label>Punkte <select id="ptStyleSel">
+    <option value="cross" selected>Kreuz</option>
+    <option value="circle">Kreis</option>
+    <option value="plus">Strich</option>
+    <option value="none">Ausblenden</option>
+   </select></label>
    <div class="pal-row"><span>Farbe</span><span id="mainSwatches" class="pal-row"></span><span class="rainbow-pick" title="Eigene Farbe wählen"><input type="color" id="fc" value="#1a1a1a"></span></div></div>
   <div class="grp"><b>Berechnungen</b>
    <label><input type="checkbox" id="d3"> Winkel und Längen in 3D</label>
@@ -128,7 +148,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 <div id="hint"></div>
 <script>
 const $=id=>document.getElementById(id),cv=$('c'),ctx=cv.getContext('2d'),inp=$('inp'),inpBox=$('inpBox'),inpOk=$('inpOk'),ctxMenu=$('ctxMenu');
-let P=[],L=[],K=[],A=[],F=[],BD=[],Q=[],nid=1,hist=[],start=null,sel=[],multiSel=[],bsel=null,mode='line',grid='dots',showGrid=true,ptStyle='cross',hover=null,hl=-1,hk=-1,W=0,H=0,k=100,ox=0,oy=0,fs=16,mouse={x:0,y:0},drag=null,space=false,M=new Map(),crossKey='',crossCache=[],legPos=null,legR=null,legRows=[],rec=false,snaps=[],manualStep=-1,playing=false,live=null,pi=0,pt=null,touchPointers=new Map(),pinch=null,touchTap=null,touchGesture=false,touchHoldTimer=null,touchLongPressed=false,touchMoved=false,lastTouchTapTime=0,lastTouchTapPos=null,lastTwoFingerTapTime=0,twoFingerMoved=false,isTouch=false,geoPos=null,geoDrag=null,geoSize=100,geoAngle=0,compass=null,ctxTargets=null,rmbDown=null;
+let P=[],L=[],K=[],A=[],F=[],BD=[],Q=[],nid=1,hist=[],start=null,sel=[],multiSel=[],bsel=null,mode='line',grid='dots',showGrid=true,ptStyle='cross',hover=null,hl=-1,hk=-1,W=0,H=0,k=100,ox=0,oy=0,fs=16,mouse={x:0,y:0},drag=null,space=false,M=new Map(),crossKey='',crossCache=[],legPos=null,legR=null,legRows=[],rec=false,snaps=[],manualStep=-1,playing=false,live=null,pi=0,pt=null,touchPointers=new Map(),pinch=null,touchTap=null,touchGesture=false,touchHoldTimer=null,touchLongPressed=false,touchMoved=false,lastTouchTapTime=0,lastTouchTapPos=null,lastTwoFingerTapTime=0,twoFingerMoved=false,isTouch=false,geoPos=null,geoDrag=null,geoSize=100,geoAngle=0,compass=null,ctxTargets=null,rmbDown=null,angDraft=null;
 const STD_COLORS=['#1a1a1a','#d92626','#1c64f2','#0e9f6e','#e3a008'];
 const geoImg=new Image();
 geoImg.src='Geodreieck.png';
@@ -137,9 +157,9 @@ geoImg.onload=()=>{const c=document.createElement('canvas');c.width=geoImg.natur
 const GR='αβγδεζηθικλμνξπρστφχψω',LC='abcdefghijklmnopqrstuvwxyz';
 const MODES=[
   ['line','Strecke (S)','cat-draw'],
+  ['infline','Gerade (G)','cat-draw'],
   ['point','Punkt (P)','cat-draw'],
   ['arc','Kreis (K)','cat-draw'],
-  ['style','Stil (G)','cat-edit'],
   ['label','Beschriften (B)','cat-edit'],
   ['text','Text (T)','cat-edit'],
   ['angle','Winkel (W)','cat-const'],
@@ -147,18 +167,18 @@ const MODES=[
   ['select','Zeiger (Z)','cat-ctrl'],
   ['del','Löschen (L)','cat-ctrl']
 ];
-const KEYS={z:'select',s:'line',p:'point',k:'arc',g:'style',b:'label',t:'text',w:'angle',f:'face',l:'del'};
+const KEYS={z:'select',s:'line',g:'infline',p:'point',k:'arc',b:'label',t:'text',w:'angle',f:'face',l:'del'};
 const HINTS={
  select:'Objekt anklicken und ziehen zum Verschieben. Strg+Klick wählt mehrere Objekte für gemeinsames Verschieben oder Formatieren per Rechtsklick.',
  line:'Punkt anklicken/antippen, Maus bewegen und erneut klicken (Touch: ziehen & loslassen oder zweimal tippen). Rechtsklick ziehen: Zeichenfläche verschieben.',
+ infline:'Zwei Punkte auf der Geraden festlegen (wie bei einer Strecke – die Gerade verläuft über die gesamte Zeichenfläche).',
  point:'Klick oder Tippen setzt einen Punkt (rastet an Schnittpunkten ein und bleibt verankert). Rechtsklick ziehen: Zeichenfläche verschieben.',
  arc:'Zirkel: Mittelpunkt anklicken/antippen, Radius aufziehen/klicken zum Sperren, dann um den Mittelpunkt kreisen.',
- label:'Punkt, Strecke, Kreis, Winkelbogen oder Fläche anklicken/antippen, Namen eingeben (tiefgestellt: F_1 oder k_1), Enter.',
+ label:'Punkt, Strecke, Gerade, Kreis, Winkelbogen oder Fläche anklicken/antippen, Namen eingeben (tiefgestellt: F_1 oder k_1), Enter.',
  text:'Klick oder Tippen an die gewünschte Stelle, Text eingeben und Enter drücken. Esc bricht ab.',
- style:'Strecke oder Kreisbogen anklicken/antippen: normal → gestrichelt → Hilfslinie.',
- angle:'Nacheinander anklicken/antippen: Punkt auf Schenkel 1, Scheitelpunkt, Punkt auf Schenkel 2 (gegen den Uhrzeigersinn für > 180°).',
+ angle:'Drei Punkte wählen (Schenkel 1 → Scheitel → Schenkel 2) oder auf die freie Fläche klicken, um zwei Schenkel direkt nacheinander zu zeichnen.',
  face:'Vieleck: Punkte der Reihe nach wählen, ersten Punkt erneut wählen, Enter oder Doppeltipp schließt. Kreisfläche: Mittelpunkt, dann Punkt auf Kreislinie wählen.',
- del:'Punkt, Strecke, Kreisbogen, Winkelbogen, Fläche oder Text anklicken/antippen zum Löschen.'
+ del:'Punkt, Strecke, Gerade, Kreisbogen, Winkelbogen, Fläche oder Text anklicken/antippen zum Löschen.'
 };
 const sp=()=>start===null?null:start.id!==undefined?M.get(start.id):start;
 const fmt=(n,d=2)=>(+n.toFixed(d)).toString().replace('.',',');
@@ -204,10 +224,9 @@ function btns(el,arr,cur,fn){el.innerHTML='';arr.forEach(([key,t,cls])=>{const b
 function ui(){
  btns($('modes'),MODES,()=>mode,setMode);
  btns($('grids'),[['dots','Punkte'],['karo','Karo'],['off','Aus']],()=>showGrid?grid:'off',key=>{if(key=='off')showGrid=false;else{showGrid=true;grid=key}});
- btns($('ptypes'),[['cross','Kreuz'],['circle','Kreis'],['plus','Strich']],()=>ptStyle,key=>{ptStyle=key;draw()});
 }
 function hideCtx(){ctxMenu.style.display='none';ctxTargets=null}
-function cancelActive(){start=null;sel=[];multiSel=[];bsel=null;compass=null;drag=null;pinch=null;rmbDown=null;hideCtx();$('hint').textContent=HINTS[mode]}
+function cancelActive(){start=null;sel=[];angDraft=null;multiSel=[];bsel=null;compass=null;drag=null;pinch=null;rmbDown=null;hideCtx();$('hint').textContent=HINTS[mode]}
 function setMode(m){mode=m;cancelActive();inpBox.style.display='none';cv.style.cursor=m=='select'?'default':'crosshair';ui();draw()}
 function resize(){const r=cv.parentNode.getBoundingClientRect(),d=devicePixelRatio||1;W=r.width;H=r.height;cv.width=W*d;cv.height=H*d;ctx.setTransform(d,0,0,d,0,0);if(!ox&&!oy){ox=Math.round(W/2);oy=Math.round(H/2)}draw()}
 new ResizeObserver(()=>resize()).observe($('w'));
@@ -216,6 +235,37 @@ const push=()=>{hist.push(snap());if(hist.length>100)hist.shift();if(rec&&!drag)
 function undo(){if(playing)return;if(hist.length){if(rec&&snaps.length>1)snaps.pop();load(JSON.parse(hist.pop()));cancelActive();rebuild();draw()}}
 $('undo').onclick=e=>{e.target.blur();undo()};
 $('clr').onclick=e=>{e.target.blur();if(playing)return;if(P.length||Q.length||K.length||F.length){push();P=[];L=[];K=[];A=[];F=[];BD=[];Q=[];cancelActive();rebuild();draw()}};
+
+/* Bezeichnungen-Menü */
+const labBtn=$('labBtn'),labMenu=$('labMenu'),labPopWrap=$('labPopWrap');
+function updateLabAllBtn(){
+ const boxes=[$('labP'),$('labS'),$('labG'),$('labA'),$('labF')];
+ const allOn=boxes.every(b=>b.checked);
+ $('labAll').textContent=allOn?'Keine':'Alle';
+}
+labBtn.onclick=e=>{
+ e.stopPropagation();
+ labMenu.classList.toggle('open');
+ updateLabAllBtn();
+};
+$('labAll').onclick=e=>{
+ e.stopPropagation();
+ const boxes=[$('labP'),$('labS'),$('labG'),$('labA'),$('labF')];
+ const target=!boxes.every(b=>b.checked);
+ boxes.forEach(b=>{b.checked=target});
+ updateLabAllBtn();
+ draw();
+};
+[$('labP'),$('labS'),$('labG'),$('labA'),$('labF')].forEach(cb=>{
+ cb.onchange=()=>{updateLabAllBtn();draw()};
+});
+document.addEventListener('pointerdown',e=>{
+ if(!labPopWrap.contains(e.target))labMenu.classList.remove('open');
+});
+
+/* Punkte-Stil Dropdown */
+$('ptStyleSel').onchange=e=>{ptStyle=e.target.value;e.target.blur();draw()};
+
 /* Rekorder */
 function capture(){if(!rec)return;const s=snap();if(snaps[snaps.length-1]!==s)snaps.push(s);recUI()}
 function show(i){load(JSON.parse(snaps[i]));cancelActive();rebuild();draw();const total=Math.max(1,snaps.length-1);$('rinfo').textContent=i?'Schritt '+Math.min(total,i)+' von '+total:'Grundzustand'}
@@ -223,7 +273,7 @@ function recUI(){$('brec').innerHTML=rec?'<span class="rec-dot" aria-hidden="tru
  $('bprev').disabled=snaps.length<2||rec||playing;$('bnext').disabled=snaps.length<2||rec||playing;$('bsave').disabled=snaps.length<2;
  if(rec)$('rinfo').textContent='Aufnahme läuft: '+(snaps.length-1)+' Schritte';else if(!playing)$('rinfo').textContent=snaps.length>1?(snaps.length-1)+' Schritte aufgenommen':''}
 function toggleRec(){if(playing)stop();rec=!rec;if(rec)snaps=[snap()];manualStep=-1;recUI()}
-function play(){if(snaps.length<2){$('rinfo').textContent='Erst aufnehmen: mindestens ein Schritt nötig';return}rec=false;live=snap();playing=true;pi=0;start=null;sel=[];recUI();playStep()}
+function play(){if(snaps.length<2){$('rinfo').textContent='Erst aufnehmen: mindestens ein Schritt nötig';return}rec=false;live=snap();playing=true;pi=0;start=null;sel=[];angDraft=null;recUI();playStep()}
 function playStep(){if(!playing)return;show(pi);const last=pi==snaps.length-1;pi=last?0:pi+1;const speed=+$('speed').value||1;pt=setTimeout(playStep,(last?2.5:1)/speed*1000)}
 function moveStep(direction){if(snaps.length<2||rec||playing)return;manualStep=(manualStep+direction+snaps.length)%snaps.length;show(manualStep)}
 function stop(){playing=false;clearTimeout(pt);if(live){load(JSON.parse(live));live=null;rebuild();draw()}recUI()}
@@ -235,7 +285,7 @@ $('bsave').onclick=async e=>{e.target.blur();if(snaps.length<2)return;const data
 $('bload').onclick=e=>{e.target.blur();$('bfile').click()};
 $('bfile').onchange=e=>{const f=e.target.files[0];e.target.value='';if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.steps||d.steps.length<2||!d.steps.every(s=>Array.isArray(s)&&(s.length==7||s.length==8)))throw 0;if(playing)stop();rec=false;snaps=d.steps.map(s=>JSON.stringify(s));recUI();play()}catch(x){$('rinfo').textContent='Datei konnte nicht gelesen werden'}};r.readAsText(f)};
 function sync(){$('fix').disabled=!$('ras').checked;$('step').disabled=!$('ras').checked||$('fix').checked;$('legpts').disabled=!$('leg').checked}
-document.querySelectorAll('input[type=checkbox]').forEach(c=>c.onchange=()=>{
+document.querySelectorAll('#opts input[type=checkbox]:not(#labMenu input)').forEach(c=>c.onchange=()=>{
  c.blur();
  if(c.id==='leg'&&c.checked)legPos=null;
  sync();draw();
@@ -253,8 +303,14 @@ cv.addEventListener('wheel',e=>{e.preventDefault();const p=pos(e);zoom(k*(e.delt
 
 function nextP(){const u=new Set(P.map(q=>q.l));let n=0,l;do{l=String.fromCharCode(65+n%26)+(n>=26?Math.floor(n/26):'');n++}while(u.has(l));return l}
 function nextL(){const u=new Set(L.map(q=>q.l));let n=0,l;do{l=LC[n%26]+(n>=26?Math.floor(n/26):'');n++}while(u.has(l));return l}
+function nextG(){const u=new Set(L.map(q=>q.l));const base=['g','h','f','k','l','m','n','p','q','r'];for(const b of base)if(!u.has(b))return b;let n=1;while(u.has('g_'+n))n++;return 'g_'+n}
 function nextK(){const u=new Set(K.map(q=>q.l).filter(Boolean));let n=0,l;do{l='k'+(n>0?'_'+(n+1):'');n++}while(u.has(l));return l}
 function nextF(){const u=new Set(F.map(q=>q.l).filter(Boolean));let n=1;while(u.has('F_'+n))n++;return 'F_'+n}
+function nextA(){
+ const u=new Set(A.map(x=>x.l).filter(Boolean));
+ for(const g of GR)if(!u.has(g))return g;
+ let n=1;while(u.has('α_'+n))n++;return 'α_'+n;
+}
 function nextIndexedLabel(base,arr){
  if(!base)return '';
  const m=base.match(/^(.*?)(\d+)$/);
@@ -267,6 +323,7 @@ function nextIndexedLabel(base,arr){
  if(arr===P)return nextP();
  if(arr===L)return nextL();
  if(arr===K)return nextK();
+ if(arr===A)return nextA();
  const greek=[...GR];const idx=greek.indexOf(base);
  const used=new Set(arr.map(x=>x.l).filter(Boolean));
  if(idx>=0){for(let d=1;d<=greek.length;d++){const cand=greek[(idx+d)%greek.length];if(!used.has(cand))return cand}}
@@ -296,8 +353,9 @@ function evalAnchor(cx){
   const d1x=b.x-a.x,d1y=b.y-a.y,d2x=d.x-c.x,d2y=d.y-c.y,den=d1x*d2y-d1y*d2x;
   if(Math.abs(den)<1e-9)return null;
   const dx=c.x-a.x,dy=c.y-a.y,t=(dx*d2y-dy*d2x)/den,u=(dx*d1y-dy*d1x)/den,eps=1e-7;
-  if(t<-eps||t>1+eps||u<-eps||u>1+eps)return null;
-  const nt=Math.max(0,Math.min(1,t));
+  if(!l1.inf&&(t<-eps||t>1+eps))return null;
+  if(!l2.inf&&(u<-eps||u>1+eps))return null;
+  const nt=l1.inf?t:Math.max(0,Math.min(1,t));
   return{x:a.x+nt*d1x,y:a.y+nt*d1y};
  }
  if(cx[0]==='circleSeg'){
@@ -305,7 +363,7 @@ function evalAnchor(cx){
   if(!o||!l)return null;
   const c=circleCenterWorld(o),r=circleRadiusWorld(o),a=M.get(l.a),b=M.get(l.b);
   if(!c||!a||!b||!(r>1e-9))return null;
-  const pts=intersectCircleSeg(c.x,c.y,r,a.x,a.y,b.x,b.y);
+  const pts=intersectCircleSeg(c.x,c.y,r,a.x,a.y,b.x,b.y,!!l.inf);
   if(!pts.length)return null;
   let best=pts[0],bd=Math.hypot(pts[0].x-cx[3],pts[0].y-cx[4]);
   for(const q of pts){const d=Math.hypot(q.x-cx[3],q.y-cx[4]);if(d<bd){bd=d;best=q}}
@@ -349,14 +407,14 @@ function rebuild(){const ok=new Set(P.map(p=>p.id));let removed=0;
   }
   return Number.isFinite(o.r)&&o.r>0;
  });removed+=oldK-K.length;
- const oldA=A.length;A=A.filter(a=>ok.has(a.a)&&ok.has(a.b)&&ok.has(a.c));removed+=oldA-A.length;
+ const oldA=A.length;A=A.filter(a=>ok.has(a.a)&&ok.has(a.b)&&ok.has(a.c)&&a.a!==a.b&&a.b!==a.c);removed+=oldA-A.length;
  const oldF=F.length;F=F.filter(f=>f.kind=='circle'?(ok.has(f.center)&&ok.has(f.pt)):f.p.every(i=>ok.has(i)));removed+=oldF-F.length;
  const oldBD=BD.length;BD=BD.filter(b=>ok.has(b.top)&&(b.base.k=='c'?ok.has(b.base.a)&&ok.has(b.base.b):b.base.p.every(i=>ok.has(i))));removed+=oldBD-BD.length;
  multiSel=multiSel.filter(it=>it&&it.obj&&(P.includes(it.obj)||L.includes(it.obj)||K.includes(it.obj)||A.includes(it.obj)||F.includes(it.obj)||Q.includes(it.obj)));
  crossKey='';crossCache=[];anchor();capturePointAngles();
  if(removed)$('hint').textContent=removed+' ungültige oder abhängige Objekte entfernt.'}
 
-function intersectCircleSeg(cx,cy,r,x1,y1,x2,y2){
+function intersectCircleSeg(cx,cy,r,x1,y1,x2,y2,inf=false){
  const dx=x2-x1,dy=y2-y1,fx=x1-cx,fy=y1-cy;
  const a=dx*dx+dy*dy;if(a<1e-12)return[];
  const b=2*(fx*dx+fy*dy),c=fx*fx+fy*fy-r*r;
@@ -364,8 +422,8 @@ function intersectCircleSeg(cx,cy,r,x1,y1,x2,y2){
  disc=Math.sqrt(disc);
  const out=[];
  for(const t of [(-b-disc)/(2*a),(-b+disc)/(2*a)]){
-  if(t>=-1e-6&&t<=1+1e-6){
-   const nt=Math.max(0,Math.min(1,t));
+  if(inf||(t>=-1e-6&&t<=1+1e-6)){
+   const nt=inf?t:Math.max(0,Math.min(1,t));
    out.push({x:x1+nt*dx,y:y1+nt*dy});
   }
  }
@@ -384,7 +442,7 @@ function intersectCircleCircle(x1,y1,r1,x2,y2,r2){
 
 function crossings(){
  const visL=L.filter(vis),visK=K.filter(o=>vis(o)&&o.s=='circle'&&circleCenterWorld(o)&&circleRadiusWorld(o)>1e-9);
- const key=visL.map(l=>{const a=M.get(l.a),b=M.get(l.b);return 'L'+l.id+':'+a.x+','+a.y+','+b.x+','+b.y}).join('|')+'#'+
+ const key=visL.map(l=>{const a=M.get(l.a),b=M.get(l.b);return 'L'+l.id+(l.inf?'I':'')+':'+a.x+','+a.y+','+b.x+','+b.y}).join('|')+'#'+
   visK.map(o=>{const c=circleCenterWorld(o);return 'K'+o.id+':'+c.x+','+c.y+','+circleRadiusWorld(o)}).join('|');
  if(key==crossKey)return crossCache;
  const r=[];
@@ -392,13 +450,14 @@ function crossings(){
   const p=M.get(visL[i].a),q=M.get(visL[i].b),a=M.get(visL[j].a),b=M.get(visL[j].b),
   d1x=q.x-p.x,d1y=q.y-p.y,d2x=b.x-a.x,d2y=b.y-a.y,den=d1x*d2y-d1y*d2x;if(Math.abs(den)<1e-9)continue;
   const t=((a.x-p.x)*d2y-(a.y-p.y)*d2x)/den,v=((a.x-p.x)*d1y-(a.y-p.y)*d1x)/den;
-  if(t>=0&&t<=1&&v>=0&&v<=1)r.push({x:p.x+t*d1x,y:p.y+t*d1y,cx:['seg',visL[i].id,visL[j].id]});
+  const ok1=visL[i].inf||(t>=0&&t<=1),ok2=visL[j].inf||(v>=0&&v<=1);
+  if(ok1&&ok2)r.push({x:p.x+t*d1x,y:p.y+t*d1y,cx:['seg',visL[i].id,visL[j].id]});
  }
  for(const o of visK){
   const c=circleCenterWorld(o),rad=circleRadiusWorld(o);
   for(const l of visL){
    const a=M.get(l.a),b=M.get(l.b);
-   for(const pt of intersectCircleSeg(c.x,c.y,rad,a.x,a.y,b.x,b.y)){
+   for(const pt of intersectCircleSeg(c.x,c.y,rad,a.x,a.y,b.x,b.y,!!l.inf)){
     r.push({x:pt.x,y:pt.y,cx:['circleSeg',o.id,l.id,pt.x,pt.y]});
    }
   }
@@ -412,11 +471,24 @@ function crossings(){
  crossKey=key;crossCache=r;return r;
 }
 
+/* Clipping einer unendlichen Geraden (Screen-Koordinaten) an die Zeichenfläche [0..W, 0..H] */
+function clipInfLineScreen(x1,y1,x2,y2,pad=20){
+ const dx=x2-x1,dy=y2-y1,len=Math.hypot(dx,dy);
+ if(len<1e-6)return null;
+ const ux=dx/len,uy=dy/len;
+ const span=Math.hypot(W,H)+pad*2;
+ const mx=(x1+x2)/2,my=(y1+y2)/2;
+ return{x1:mx-ux*span,y1:my-uy*span,x2:mx+ux*span,y2:my+uy*span};
+}
+
 const hitRad=(base)=>isTouch?Math.max(base,20):base;
 function nearCross(x,y){let b=null,bd=hitRad(11);crossings().forEach(c=>{const d=Math.hypot(X(c.x)-x,Y(c.y)-y);if(d<bd){bd=d;b=c}});return b}
 function hit(x,y,ex){let b=null,bd=hitRad(11);P.forEach(p=>{if(!vis(p))return;const d=Math.hypot(X(p.x)-x,Y(p.y)-y);if(p.id!==ex&&d<bd){bd=d;b=p}});return b}
-function lineHit(x,y){const tol=hitRad(7);for(let i=L.length-1;i>=0;i--){if(!vis(L[i]))continue;const p=M.get(L[i].a),q=M.get(L[i].b),px=X(p.x),py=Y(p.y),dx=X(q.x)-px,dy=Y(q.y)-py,
- t=Math.max(0,Math.min(1,((x-px)*dx+(y-py)*dy)/(dx*dx+dy*dy)));if(Math.hypot(px+t*dx-x,py+t*dy-y)<tol)return i}return -1}
+function lineHit(x,y){const tol=hitRad(7);for(let i=L.length-1;i>=0;i--){if(!vis(L[i]))continue;const p=M.get(L[i].a),q=M.get(L[i].b),px=X(p.x),py=Y(p.y),dx=X(q.x)-px,dy=Y(q.y)-py,len2=dx*dx+dy*dy;
+ if(len2<1e-9)continue;
+ let t=((x-px)*dx+(y-py)*dy)/len2;
+ if(!L[i].inf)t=Math.max(0,Math.min(1,t));
+ if(Math.hypot(px+t*dx-x,py+t*dy-y)<tol)return i}return -1}
 function arcData(a,b,x,y){const ax=X(a.x),ay=Y(a.y),bx=X(b.x),by=Y(b.y),dx=bx-ax,dy=by-ay,d=Math.hypot(dx,dy)||1,cx=(ax+bx)/2,cy=(ay+by)/2,r=d/2;
  const mx=x===undefined?cx:x,my=y===undefined?cy:y,ang=Math.atan2(dy,dx),upNormal={x:Math.sin(ang),y:-Math.cos(ang)},side=(mx-cx)*upNormal.x+(my-cy)*upNormal.y;
  const full=Math.hypot(mx-cx,my-cy)>r*1.15;
@@ -429,7 +501,7 @@ function arcHit(x,y){const tol=hitRad(7);for(let i=K.length-1;i>=0;i--){const o=
  if(o.s=='c'){const q=arcData(a,b);if(Math.abs(Math.hypot(x-q.cx,y-q.cy)-q.r)<tol)return i}
  else{const q=arcData(a,b);for(let n=0;n<=40;n++){const p=(o.s=='u'?Math.PI:0)+Math.PI*n/40,px=q.cx+q.r*Math.cos(p)*Math.cos(q.ang)-q.r*.5*Math.sin(p)*Math.sin(q.ang),py=q.cy+q.r*Math.cos(p)*Math.sin(q.ang)+q.r*.5*Math.sin(p)*Math.cos(q.ang);if(Math.hypot(px-x,py-y)<tol)return i}}}return -1}
 function textHit(x,y){const pad=isTouch?12:5;for(let i=Q.length-1;i>=0;i--){const q=Q[i],w=halo(q.t,0,0,'','','left','','',fs,true);if(x>=X(q.x)-pad&&x<=X(q.x)+w+pad&&y>=Y(q.y)-fs-pad&&y<=Y(q.y)+pad)return i}return -1}
-const angHit=(x,y)=>A.findIndex(a=>{if(!vis(a))return false;const B=M.get(a.b);return Math.abs(Math.hypot(X(B.x)-x,Y(B.y)-y)-26)<hitRad(8)});
+const angHit=(x,y)=>A.findIndex(a=>{if(!vis(a))return false;const B=M.get(a.b);return B&&Math.abs(Math.hypot(X(B.x)-x,Y(B.y)-y)-26)<hitRad(8)});
 function circleRadiusWorld(o){
  if(o.s=='circle'){
   const a=M.get(o.a);if(!a)return 0;
@@ -474,9 +546,10 @@ function duplicateTarget(target){
    const p1={id:nid++,x:a.x+0.5,y:a.y-0.5,vis:a.vis!==false,c:a.c||curColor()};
    const p2={id:nid++,x:b.x+0.5,y:b.y-0.5,vis:b.vis!==false,c:b.c||curColor()};
    P.push(p1,p2);
-   const nl={id:nid++,a:p1.id,b:p2.id,d:o.d||0,w:o.w||2,ar:o.ar||0,vis:o.vis!==false,c:o.c||curColor(),l:o.l?nextIndexedLabel(o.l,L):''};
+   const nl={id:nid++,a:p1.id,b:p2.id,inf:!!o.inf,d:o.d||0,w:o.w||2,ar:o.ar||0,vis:o.vis!==false,c:o.c||curColor(),l:o.l?nextIndexedLabel(o.l,L):''};
    L.push(nl);
-   newSel=[{kind:'l',obj:nl,idx:L.length-1,name:nl.l?`Strecke ${nl.l}`:'Strecke'}];
+   const kindLbl=nl.inf?'Gerade':'Strecke';
+   newSel=[{kind:'l',obj:nl,idx:L.length-1,name:nl.l?`${kindLbl} ${nl.l}`:kindLbl}];
   }
  }else if(target.kind==='k'){
   const a=M.get(o.a);
@@ -541,7 +614,7 @@ function hitAnyObject(sx,sy){
  const h=hit(sx,sy);if(h)return{kind:'p',obj:h,id:h.id,name:h.l?`Punkt ${h.l}`:'Punkt'};
  const ai=angHit(sx,sy);if(ai>=0)return{kind:'a',obj:A[ai],idx:ai,name:A[ai].l?`Winkel ${A[ai].l}`:'Winkel'};
  const ki=arcHit(sx,sy);if(ki>=0)return{kind:'k',obj:K[ki],idx:ki,name:K[ki].l?`Kreis ${K[ki].l}`:'Kreis'};
- const li=lineHit(sx,sy);if(li>=0)return{kind:'l',obj:L[li],idx:li,name:L[li].l?`Strecke ${L[li].l}`:'Strecke'};
+ const li=lineHit(sx,sy);if(li>=0){const kl=L[li].inf?'Gerade':'Strecke';return{kind:'l',obj:L[li],idx:li,name:L[li].l?`${kl} ${L[li].l}`:kl}}
  const ti=textHit(sx,sy);if(ti>=0)return{kind:'t',obj:Q[ti],idx:ti,name:'Text'};
  const fi=faceAt(sx,sy);if(fi>=0)return{kind:'f',obj:F[fi],idx:fi,name:F[fi].l?`Fläche ${F[fi].l}`:'Fläche'};
  return null;
@@ -561,7 +634,7 @@ function openCtxMenu(sx,sy,targets){
  const hasColor=true;
  const hasStyle=onlyKind==='l'||onlyKind==='k';
  const hasWidth=onlyKind==='l'||onlyKind==='k';
- const hasArrow=onlyKind==='l';
+ const hasArrow=onlyKind==='l'&&list.every(t=>!t.obj.inf);
  const hasLabel=single&&['p','l','k','a','f'].includes(first.kind);
  const hasText=single&&first.kind==='t';
  const hasVis=true;
@@ -624,25 +697,26 @@ function solve3d(){const q=.5,T=new Map(),e=.02;let comp=0;
  T.bad=new Set();
  const axis=(a,b)=>{const dx=b.x-a.x,dy=b.y-a.y;if(Math.abs(dy)<e)return{x:dx,y:0,z:0};if(Math.abs(dx)<e)return{x:0,y:0,z:-dy};
   if(Math.abs(Math.abs(dx)-Math.abs(dy))<e&&dx*dy<0)return{x:0,y:Math.abs(dx)/q*Math.sign(dx),z:0};return null};
- const ps=P.filter(p=>L.some(l=>l.a==p.id||l.b==p.id));
+ const segs3d=L.filter(l=>!l.inf);
+ const ps=P.filter(p=>segs3d.some(l=>l.a==p.id||l.b==p.id));
  const run=()=>{let ch=true,n=0;while(ch&&n++<60){ch=false;
-  L.forEach(l=>{const a=M.get(l.a),b=M.get(l.b),ta=T.get(a.id),tb=T.get(b.id);
+  segs3d.forEach(l=>{const a=M.get(l.a),b=M.get(l.b),ta=T.get(a.id),tb=T.get(b.id);
    if(ta&&!tb){const v=axis(a,b);if(v){T.set(b.id,{x:ta.x+v.x,y:ta.y+v.y,z:ta.z+v.z,c:ta.c});ch=true}else T.bad.add(l.id)}
    else if(tb&&!ta){const v=axis(b,a);if(v){T.set(a.id,{x:tb.x+v.x,y:tb.y+v.y,z:tb.z+v.z,c:tb.c});ch=true}else T.bad.add(l.id)}});
-  P.forEach(p=>{for(const l of L){if(l.a==p.id||l.b==p.id)continue;const a=M.get(l.a),b=M.get(l.b),ta=T.get(a.id),tb=T.get(b.id);if(!ta||!tb||ta.c!=tb.c)continue;
+  P.forEach(p=>{for(const l of segs3d){if(l.a==p.id||l.b==p.id)continue;const a=M.get(l.a),b=M.get(l.b),ta=T.get(a.id),tb=T.get(b.id);if(!ta||!tb||ta.c!=tb.c)continue;
    const dx=b.x-a.x,dy=b.y-a.y,t=((p.x-a.x)*dx+(p.y-a.y)*dy)/(dx*dx+dy*dy);if(t<-e||t>1+e||Math.hypot(a.x+t*dx-p.x,a.y+t*dy-p.y)>e)continue;
    const v={x:ta.x+t*(tb.x-ta.x),y:ta.y+t*(tb.y-ta.y),z:ta.z+t*(tb.z-ta.z),c:ta.c},o=T.get(p.id);
    if(!o){T.set(p.id,v);ch=true;break}
    if(o.c!=ta.c){const ddx=v.x-o.x,ddy=v.y-o.y,ddz=v.z-o.z,oc=o.c;for(const w of T.values())if(w.c==oc){w.x+=ddx;w.y+=ddy;w.z+=ddz;w.c=ta.c}ch=true;break}}})}};
  for(const p of ps)if(!T.has(p.id)){T.set(p.id,{x:0,y:0,z:0,c:comp++});run()}
- L.forEach(l=>{if(!T.has(M.get(l.a).id)||!T.has(M.get(l.b).id)||!axis(M.get(l.a),M.get(l.b)))T.bad.add(l.id)});
+ segs3d.forEach(l=>{if(!T.has(M.get(l.a).id)||!T.has(M.get(l.b).id)||!axis(M.get(l.a),M.get(l.b)))T.bad.add(l.id)});
  return T}
-function componentExpr(value,axis,T,ignore){for(const m of L){if(m.id==ignore)continue;const a=M.get(m.a),b=M.get(m.b),ta=T.get(a.id),tb=T.get(b.id);if(!ta||!tb||ta.c!=tb.c||T.bad.has(m.id))continue;
+function componentExpr(value,axis,T,ignore){for(const m of L){if(m.inf||m.id==ignore)continue;const a=M.get(m.a),b=M.get(m.b),ta=T.get(a.id),tb=T.get(b.id);if(!ta||!tb||ta.c!=tb.c||T.bad.has(m.id))continue;
  const v=[tb.x-ta.x,tb.y-ta.y,tb.z-ta.z],other=v.filter((x,i)=>i!=axis&&Math.abs(x)>1e-6);if(!other.length&&Math.abs(Math.abs(v[axis])-Math.abs(value))<1e-6)return m.l||fmt(Math.abs(v[axis]))}return null}
 function vectorSolution(c,T,ignore){const nz=c.map((x,i)=>({x:Math.abs(x),i})).filter(v=>v.x>1e-6);if(nz.length<2)return '';
  const parts=nz.map(v=>componentExpr(v.x,v.i,T,ignore));if(parts.some(v=>!v))return '';
  return '√('+parts.map(v=>v+'²').join('+')+')'}
-function triangleSolution(l){const a=M.get(l.a),b=M.get(l.b),find=(x,y)=>L.find(m=>(m.a==x&&m.b==y)||(m.a==y&&m.b==x));for(const c of P){if(c.id==a.id||c.id==b.id)continue;const ab=find(a.id,b.id),ac=find(a.id,c.id),bc=find(b.id,c.id);if(!ab||!ac||!bc)continue;
+function triangleSolution(l){const a=M.get(l.a),b=M.get(l.b),find=(x,y)=>L.find(m=>!m.inf&&((m.a==x&&m.b==y)||(m.a==y&&m.b==x)));for(const c of P){if(c.id==a.id||c.id==b.id)continue;const ab=find(a.id,b.id),ac=find(a.id,c.id),bc=find(b.id,c.id);if(!ab||!ac||!bc)continue;
   const vAB=[b.x-a.x,b.y-a.y],acv=[c.x-a.x,c.y-a.y],bcv=[c.x-b.x,c.y-b.y],rightA=Math.abs(vAB[0]*acv[0]+vAB[1]*acv[1])<1e-6,rightB=Math.abs((-vAB[0])*bcv[0]+(-vAB[1])*bcv[1])<1e-6,rightC=Math.abs((-acv[0])*(-bcv[0])+(-acv[1])*(-bcv[1]))<1e-6;
   const name=m=>m.l||fmt(Math.hypot(M.get(m.a).x-M.get(m.b).x,M.get(m.a).y-M.get(m.b).y)),nAB=name(ab),nAC=name(ac),nBC=name(bc);
   if(rightA)return bc.id==l.id?'√('+nAB+'² + '+nAC+'²)':l.id==ac.id?'√('+nBC+'² - '+nAB+'²)':'√('+nBC+'² - '+nAC+'²)';
@@ -651,14 +725,14 @@ function triangleSolution(l){const a=M.get(l.a),b=M.get(l.b),find=(x,y)=>L.find(
   const angleC=Math.acos(Math.max(-1,Math.min(1,((-acv[0])*(-bcv[0])+(-acv[1])*(-bcv[1]))/(Math.hypot(...acv)*Math.hypot(...bcv)))))*180/Math.PI;
   return'√('+nAC+'² + '+nBC+'² - 2·'+nAC+'·'+nBC+'·cos('+fmt(angleC,1)+'°))';
  }return''}
-function lenInfo(l,T){const a=M.get(l.a),b=M.get(l.b),ta=T&&T.get(a.id),tb=T&&T.get(b.id);
+function lenInfo(l,T){if(l.inf)return{v:null,s:''};const a=M.get(l.a),b=M.get(l.b),ta=T&&T.get(a.id),tb=T&&T.get(b.id);
  if(T&&T.bad.has(l.id))return{v:null,s:triangleSolution(l)||'3D nicht eindeutig'};
  if(T&&(!ta||!tb||ta.c!=tb.c))return{v:null,s:triangleSolution(l)||'3D nicht eindeutig'};
  const c=T?[tb.x-ta.x,tb.y-ta.y,tb.z-ta.z]:[b.x-a.x,b.y-a.y,0];
  return{v:Math.hypot(...c),s:T?vectorSolution(c,T,l.id)||triangleSolution(l):triangleSolution(l)}}
 function radiusExprForCircle(centerId,ptId,r){
  if(centerId&&ptId){
-  const seg=L.find(m=>(m.a==centerId&&m.b==ptId)||(m.a==ptId&&m.b==centerId));
+  const seg=L.find(m=>!m.inf&&((m.a==centerId&&m.b==ptId)||(m.a==ptId&&m.b==centerId)));
   if(seg&&seg.l)return seg.l;
   const q=M.get(ptId);
   if(q&&q.l)return q.l;
@@ -712,12 +786,19 @@ function angleInfo(a,T,a1,a2){const tb=T&&T.get(a.b),tp=T&&T.get(a.a),tc=T&&T.ge
  return{v:deg,s:fmt(deg,1)+'°'};
 }
 
-function target(){const s=sp();if(!s)return null;const h=hit(mouse.x,mouse.y,start.id);if(h)return{x:h.x,y:h.y,id:h.id};
+function snapWorldFrom(origin){
+ const h=hit(mouse.x,mouse.y,origin&&origin.id);if(h)return{x:h.x,y:h.y,id:h.id};
  const c=nearCross(mouse.x,mouse.y);if(c)return{x:c.x,y:c.y,cx:c.cx};
  const mx=wx(mouse.x),my=wy(mouse.y);if(!$('ras').checked)return{x:mx,y:my};
- const dx=mx-s.x,dy=my-s.y,n=Math.round(Math.atan2(dy,dx)/(Math.PI/4)),a=n*Math.PI/4,ux=Math.cos(a),uy=Math.sin(a),p=dx*ux+dy*uy;
- const unit=+$('step').value||.1,stepSize=Math.abs(n)%2?unit*Math.SQRT2:unit,len=!$('fix').checked?Math.round(p/stepSize)*stepSize:p;if(len<=0)return null;
- return{x:Math.round((s.x+ux*len)*1e6)/1e6,y:Math.round((s.y+uy*len)*1e6)/1e6}}
+ if(origin){
+  const dx=mx-origin.x,dy=my-origin.y,n=Math.round(Math.atan2(dy,dx)/(Math.PI/4)),a=n*Math.PI/4,ux=Math.cos(a),uy=Math.sin(a),p=dx*ux+dy*uy;
+  const unit=+$('step').value||.1,stepSize=Math.abs(n)%2?unit*Math.SQRT2:unit,len=!$('fix').checked?Math.round(p/stepSize)*stepSize:p;if(len<=0)return null;
+  return{x:Math.round((origin.x+ux*len)*1e6)/1e6,y:Math.round((origin.y+uy*len)*1e6)/1e6};
+ }
+ const step=!$('fix').checked?+$('step').value||.1:0;
+ return{x:step?Math.round(mx/step)*step:mx,y:step?Math.round(my/step)*step:my};
+}
+function target(){const s=sp();if(!s)return null;return snapWorldFrom(s)}
 function pos(e){const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
 function compassTarget(){
  if(!compass)return null;
@@ -734,7 +815,7 @@ function lockCompassRadius(){
  if(!compass||compass.locked)return;
  const center=M.get(compass.centerId),li=lineHit(mouse.x,mouse.y);
  let t=compassTarget();if(!center)return;
- if(li>=0){
+ if(li>=0&&!L[li].inf){
   const l=L[li],a=M.get(l.a),b=M.get(l.b),radius=Math.hypot(b.x-a.x,b.y-a.y),angle=Math.atan2(wy(mouse.y)-center.y,wx(mouse.x)-center.x);
   t={x:center.x+Math.cos(angle)*radius,y:center.y+Math.sin(angle)*radius};
  }
@@ -771,7 +852,7 @@ function closeFace(){push();F.push({kind:'poly',p:sel.slice(),c:curColor(),vis:t
 function closeCircleFace(centerId,ptId){push();F.push({kind:'circle',center:centerId,pt:ptId,c:curColor(),vis:true,l:$('autof').checked?nextF():''});sel=[];draw()}
 function openInp(kind,i,x,y){inpBox.style.display='flex';inpBox.style.left=Math.min(W-135,Math.max(8,x+8))+'px';inpBox.style.top=Math.min(H-42,Math.max(8,y-30))+'px';inp.dataset.k=kind;inp.dataset.i=i;
  const arr=kind=='p'?P:kind=='l'?L:kind=='k'?K:kind=='a'?A:F;let v=(kind=='p'?M.get(i):arr[i]).l;
- if(!v){const u=new Set(arr.map(o=>o.l).filter(Boolean));if(kind=='p')v=nextP();else if(kind=='k')v=nextK();else if(kind=='f')v=nextF();else v=[...(kind=='l'?LC:GR)].find(c=>!u.has(c))||''}
+ if(!v){if(kind=='p')v=nextP();else if(kind=='k')v=nextK();else if(kind=='f')v=nextF();else if(kind=='a')v=nextA();else v=(L[i]&&L[i].inf)?nextG():nextL()}
  inp.value=v||'';setTimeout(()=>{inp.focus();inp.select()},0)}
 function nameUsed(kind,index,value){if(!value)return false;const arr=kind=='p'?P:kind=='l'?L:kind=='k'?K:kind=='a'?A:F;return arr.some((o,i)=>(kind=='p'?o.id!==index:i!==index)&&o.l===value)}
 function openText(x,y){inpBox.style.display='flex';inpBox.style.left=Math.min(W-135,Math.max(8,x+8))+'px';inpBox.style.top=Math.min(H-42,Math.max(8,y-30))+'px';inp.dataset.k='t';inp.dataset.x=wx(x);inp.dataset.y=wy(y);inp.value='';setTimeout(()=>{inp.focus()},0)}
@@ -832,24 +913,31 @@ function collectPtsFromTargets(targets){
  return pts;
 }
 
-function buildMovePts(basePts){
- const pts=basePts.slice();
- const ids=new Set(pts.map(p=>p.id));
- K.forEach(o=>{
-  if(o.s=='circle'&&o.b!=null&&ids.has(o.a)&&!ids.has(o.b)){
-   const ep=M.get(o.b);
-   if(ep){pts.push(ep);ids.add(ep.id)}
-  }
- });
- return pts;
-}
-
 function handleClick(e){
  hideCtx();
  $('hint').textContent=HINTS[mode];
  const h=hit(mouse.x,mouse.y),ras=$('ras').checked,fix=$('fix').checked,mx=wx(mouse.x),my=wy(mouse.y),step=ras&&!fix?+$('step').value||.1:0,pgx=step?Math.round(mx/step)*step:mx,pgy=step?Math.round(my/step)*step:my,li=lineHit(mouse.x,mouse.y),ki=arcHit(mouse.x,mouse.y),ti=textHit(mouse.x,mouse.y),cr=nearCross(mouse.x,mouse.y);
- if(mode=='line'){if(!start)start=h?{id:h.id}:cr?{x:cr.x,y:cr.y,cx:cr.cx}:{x:pgx,y:pgy};else{const t=target();if(t){push();const a=start.id!==undefined?start.id:add(start.x,start.y,start.cx),b=t.id!==undefined?t.id:add(t.x,t.y,t.cx),ax=start.id!==undefined?M.get(a).x:start.x,ay=start.id!==undefined?M.get(a).y:start.y,bx=t.id!==undefined?M.get(b).x:t.x,by=t.id!==undefined?M.get(b).y:t.y;
-   if(a!==b&&Math.hypot(ax-bx,ay-by)>1e-9&&!L.some(l=>(l.a==a&&l.b==b)||(l.a==b&&l.b==a)))L.push({id:nid++,a,b,d:0,w:2,ar:0,vis:true,c:curColor(),l:$('autol').checked?nextL():''});rebuild();start=null}}}
+ if(mode=='line'||mode=='infline'){
+  const isInf=(mode=='infline');
+  if(!start)start=h?{id:h.id}:cr?{x:cr.x,y:cr.y,cx:cr.cx}:{x:pgx,y:pgy};
+  else{
+   const t=target();
+   if(t){
+    push();
+    const a=start.id!==undefined?start.id:add(start.x,start.y,start.cx),
+          b=t.id!==undefined?t.id:add(t.x,t.y,t.cx),
+          ax=start.id!==undefined?M.get(a).x:start.x,
+          ay=start.id!==undefined?M.get(a).y:start.y,
+          bx=t.id!==undefined?M.get(b).x:t.x,
+          by=t.id!==undefined?M.get(b).y:t.y;
+    if(a!==b&&Math.hypot(ax-bx,ay-by)>1e-9&&!L.some(l=>!!l.inf===isInf&&((l.a==a&&l.b==b)||(l.a==b&&l.b==a)))){
+     const lbl=$('autol').checked?(isInf?nextG():nextL()):'';
+     L.push({id:nid++,a,b,inf:isInf,d:0,w:2,ar:0,vis:true,c:curColor(),l:lbl});
+    }
+    rebuild();start=null;
+   }
+  }
+ }
  else if(mode=='point'){push();if(!h)add(cr?cr.x:pgx,cr?cr.y:pgy,cr?cr.cx:null);rebuild()}
  else if(mode=='arc'){
   if(!compass){
@@ -862,7 +950,6 @@ function handleClick(e){
   else if(li>=0){const p=M.get(L[li].a),q=M.get(L[li].b);openInp('l',li,X((p.x+q.x)/2),Y((p.y+q.y)/2))}
   else if(ki>=0){const o=K[ki],c=circleCenterWorld(o);openInp('k',ki,c?X(c.x):mouse.x,c?Y(c.y)-circleRadiusWorld(o)*k:mouse.y)}
   else{const fi=faceAt(mouse.x,mouse.y);if(fi>=0)openInp('f',fi,mouse.x,mouse.y)}}
- else if(mode=='style'){if(ki>=0){push();K[ki].d=((+K[ki].d||0)+1)%3}else if(li>=0){push();L[li].d=((+L[li].d||0)+1)%3}}
  else if(mode=='select'){
   const objHit=hitAnyObject(mouse.x,mouse.y);
   if(e&&(e.ctrlKey||e.metaKey)){
@@ -874,7 +961,47 @@ function handleClick(e){
    multiSel=objHit?[objHit]:[];
   }
  }
- else if(mode=='angle'){if(h&&!sel.includes(h.id)){sel.push(h.id);if(sel.length==3){push();A.push({a:sel[0],b:sel[1],c:sel[2],vis:true,c:curColor(),l:[...GR].find(g=>!A.some(x=>x.l==g))});sel=[]}}}
+ else if(mode=='angle'){
+  const pt = h ? {id: h.id} : cr ? {x: cr.x, y: cr.y, cx: cr.cx} : {x: pgx, y: pgy};
+  if(sel.length === 0){
+   sel = [pt];
+   $('hint').textContent = 'Scheitelpunkt des Winkels anklicken/antippen.';
+  } else if(sel.length === 1){
+   const p1 = sel[0];
+   const p1x = p1.id !== undefined ? M.get(p1.id).x : p1.x;
+   const p1y = p1.id !== undefined ? M.get(p1.id).y : p1.y;
+   const p2x = pt.id !== undefined ? M.get(pt.id).x : pt.x;
+   const p2y = pt.id !== undefined ? M.get(pt.id).y : pt.y;
+   if(Math.hypot(p2x - p1x, p2y - p1y) > 1e-9){
+    sel.push(pt);
+    $('hint').textContent = 'Endpunkt des zweiten Schenkels anklicken/antippen.';
+   }
+  } else if(sel.length === 2){
+   const p2 = sel[1];
+   const p2x = p2.id !== undefined ? M.get(p2.id).x : p2.x;
+   const p2y = p2.id !== undefined ? M.get(p2.id).y : p2.y;
+   const p3x = pt.id !== undefined ? M.get(pt.id).x : pt.x;
+   const p3y = pt.id !== undefined ? M.get(pt.id).y : pt.y;
+   if(Math.hypot(p3x - p2x, p3y - p2y) > 1e-9){
+    push();
+    const id1 = sel[0].id !== undefined ? sel[0].id : add(sel[0].x, sel[0].y, sel[0].cx);
+    const id2 = sel[1].id !== undefined ? sel[1].id : add(sel[1].x, sel[1].y, sel[1].cx);
+    const id3 = pt.id !== undefined ? pt.id : add(pt.x, pt.y, pt.cx);
+    if(id1 !== id2 && id2 !== id3){
+     if(!L.some(l => !l.inf && ((l.a == id1 && l.b == id2) || (l.a == id2 && l.b == id1)))){
+      L.push({id: nid++, a: id1, b: id2, inf: false, d: 0, w: 2, ar: 0, vis: true, c: curColor(), l: $('autol').checked ? nextL() : ''});
+     }
+     if(!L.some(l => !l.inf && ((l.a == id2 && l.b == id3) || (l.a == id3 && l.b == id2)))){
+      L.push({id: nid++, a: id2, b: id3, inf: false, d: 0, w: 2, ar: 0, vis: true, c: curColor(), l: $('autol').checked ? nextL() : ''});
+     }
+     A.push({a: id1, b: id2, c: id3, vis: true, c: curColor(), l: $('autoa').checked ? nextA() : ''});
+    }
+    sel = [];
+    rebuild();
+    $('hint').textContent = HINTS.angle;
+   }
+  }
+ }
  else if(mode=='face'){
   if(h){
    if(sel.length==1){
@@ -922,7 +1049,7 @@ cv.addEventListener('pointerdown',e=>{
    const p=[...touchPointers.values()],mid={x:(p[0].x+p[1].x)/2,y:(p[0].y+p[1].y)/2};
    const r=cv.getBoundingClientRect(),mx=mid.x-r.left,my=mid.y-r.top;
    if(touchHoldTimer){clearTimeout(touchHoldTimer);touchHoldTimer=null}
-   const hadActiveOp=!!(start||sel.length||compass||touchLongPressed||(drag&&drag.t=='lineDrag'));
+   const hadActiveOp=!!(start||sel.length||angDraft||compass||touchLongPressed||(drag&&drag.t=='lineDrag'));
    pinch={d:Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y),k,wx:(mx-ox)/k,wy:(my-oy)/k,hadActiveOp};
    twoFingerMoved=false;
    touchGesture=true;touchTap=null;touchLongPressed=false;touchMoved=false;drag=null;
@@ -945,12 +1072,11 @@ cv.addEventListener('pointerdown',e=>{
    if(center)compass.lastAngle=Math.atan2(mouse.y-Y(center.y),mouse.x-X(center.x));
    drag={t:'arcTrace'};touchTap=null;cv.setPointerCapture(e.pointerId);draw();return;
   }
-  if(mode=='line'){
+  if(mode=='line'||mode=='infline'){
    drag={t:'lineDrag',px:e.clientX,py:e.clientY,moved:false,hadStart:!!start};
    cv.setPointerCapture(e.pointerId);
   }
   if(mode=='select'){
-   const h=hit(mouse.x,mouse.y),li=lineHit(mouse.x,mouse.y),ti=textHit(mouse.x,mouse.y),ki=arcHit(mouse.x,mouse.y),fi=faceAt(mouse.x,mouse.y);
    const objHit=hitAnyObject(mouse.x,mouse.y);
    if(objHit){
     const inMulti=multiSel.some(t=>t.obj===objHit.obj);
@@ -1081,7 +1207,7 @@ cv.addEventListener('pointermove',e=>{mouse=pos(e);
    let dx=wx(mouse.x)-drag.mx,dy=wy(mouse.y)-drag.my;if($('ras').checked&&!$('fix').checked){const step=+$('step').value||.1;dx=Math.round((drag.o[0].x+dx)/step)*step-drag.o[0].x;dy=Math.round((drag.o[0].y+dy)/step)*step-drag.o[0].y}
    if(!drag.moved&&(dx||dy)){push();drag.moved=1;drag.pts.forEach(p=>{p.cx=null})}
    drag.pts.forEach((p,i)=>{p.x=drag.o[i].x+dx;p.y=drag.o[i].y+dy});rebuild()}}
- hover=hit(mouse.x,mouse.y);const lm=['style','label','select','del','arc'].includes(mode)&&(!hover||mode=='arc');hk=lm?arcHit(mouse.x,mouse.y):-1;hl=lm&&hk<0?lineHit(mouse.x,mouse.y):-1;draw()});
+ hover=hit(mouse.x,mouse.y);const lm=['label','select','del','arc'].includes(mode)&&(!hover||mode=='arc');hk=lm?arcHit(mouse.x,mouse.y):-1;hl=lm&&hk<0?lineHit(mouse.x,mouse.y):-1;draw()});
 
 const up=e=>{
  if(rmbDown&&e.button==2){
@@ -1099,11 +1225,11 @@ const up=e=>{
   if(pinch||touchGesture){
    if(touchPointers.size==0){
     const now=Date.now();
-    if(!twoFingerMoved&&(start||sel.length||compass)){
+    if(!twoFingerMoved&&(start||sel.length||angDraft||compass)){
      if(now-lastTwoFingerTapTime<450){cancelActive();lastTwoFingerTapTime=0;draw()}
      else lastTwoFingerTapTime=now;
     }else if(pinch&&pinch.hadActiveOp&&twoFingerMoved){
-     start=null;sel=[];compass=null;draw();
+     start=null;sel=[];angDraft=null;compass=null;draw();
     }
     pinch=null;touchGesture=false;twoFingerMoved=false;
    }
@@ -1127,7 +1253,7 @@ const up=e=>{
     mouse=pos(e);handleClick(e);touchTap=null;touchMoved=false;touchLongPressed=false;return;
    }
   }
-  if(touchLongPressed&&mode=='line'){
+  if(touchLongPressed&&(mode=='line'||mode=='infline')){
    mouse=pos(e);handleClick(e);touchLongPressed=false;touchTap=null;touchMoved=false;return;
   }
   if(touchLongPressed){touchLongPressed=false;touchTap=null;touchMoved=false;return}
@@ -1239,7 +1365,8 @@ function drawCoordSystem(fg,gc,bg){
 }
 
 function draw(){const cs=getComputedStyle(document.documentElement),fg=cs.getPropertyValue('--fg'),gc=cs.getPropertyValue('--grid'),ac=cs.getPropertyValue('--acc'),bg=cs.getPropertyValue('--bg'),hp=cs.getPropertyValue('--help'),onCol=cs.getPropertyValue('--on'),
- sl=$('lab').checked,sol=$('sol').checked,ss=$('siz').checked;fs=+$('fs').value;const T=$('d3').checked?solve3d():null;
+ slP=$('labP').checked,slS=$('labS').checked,slG=$('labG').checked,slA=$('labA').checked,slF=$('labF').checked,
+ sol=$('sol').checked,ss=$('siz').checked;fs=+$('fs').value;const T=$('d3').checked?solve3d():null;
  const multiObjs=new Set(multiSel.map(t=>t.obj));
  ctx.clearRect(0,0,W,H);
  if(showGrid){ctx.fillStyle=ctx.strokeStyle=gc;const x0=((ox%k)+k)%k,y0=((oy%k)+k)%k;
@@ -1265,20 +1392,33 @@ function draw(){const cs=getComputedStyle(document.documentElement),fg=cs.getPro
  L.forEach((l,i)=>{if(!vis(l))return;const p=M.get(l.a),q=M.get(l.b),x1=X(p.x),y1=Y(p.y),x2=X(q.x),y2=Y(q.y),hlp=l.d==2,baseW=l.w||2,baseCol=l.c||curColor(),isMS=multiObjs.has(l);
   const strokeCol=(i==hl||isMS)?ac:hlp?hp:baseCol;
   ctx.strokeStyle=strokeCol;ctx.lineWidth=(i==hl||isMS)?baseW+1.5:hlp?Math.max(1.2,baseW*.75):baseW;ctx.setLineDash(l.d==1?[8,6]:[]);
-  ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.setLineDash([]);
+  ctx.beginPath();
+  if(l.inf){
+   const cl=clipInfLineScreen(x1,y1,x2,y2);
+   if(cl){ctx.moveTo(cl.x1,cl.y1);ctx.lineTo(cl.x2,cl.y2)}
+  }else{
+   ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);
+  }
+  ctx.stroke();ctx.setLineDash([]);
   const ar=+l.ar||0;
-  if(ar>0){
+  if(!l.inf&&ar>0){
    const ang=Math.atan2(y2-y1,x2-x1),sz=8+baseW*1.6;
    if(ar===1||ar===3)drawArrowHead(x2,y2,ang,sz);
    if(ar===2||ar===3)drawArrowHead(x1,y1,ang+Math.PI,sz);
   }
-  const r=lenInfo(l,T),t=txt(l.l,r.v===null?r.s:fmt(r.v),sl,ss&&($('onlyn').checked||!!l.l));
+  let t='';
+  if(l.inf){
+   t=(slG&&l.l)?l.l:'';
+  }else{
+   const r=lenInfo(l,T);
+   t=txt(l.l,r.v===null?r.s:fmt(r.v),slS,ss&&($('onlyn').checked||!!l.l));
+  }
   if(t){const dx=x2-x1,dy=y2-y1,n=Math.hypot(dx,dy)||1;let nx=-dy/n,ny=dx/n;if(ny>0){nx=-nx;ny=-ny}halo(t,(x1+x2)/2+nx*(fs*.8),(y1+y2)/2+ny*(fs*.8)+fs*.3,fg,bg,'center')}});
  K.forEach((o,i)=>{if(!vis(o))return;const a=M.get(o.a),b=M.get(o.b),hlp=o.d==2,baseW=o.w||2,baseCol=o.c||curColor(),isMS=multiObjs.has(o);
   ctx.strokeStyle=(i==hk||isMS)?ac:hlp?hp:baseCol;ctx.lineWidth=(i==hk||isMS)?baseW+1.5:hlp?Math.max(1.2,baseW*.75):baseW;ctx.setLineDash(o.d==1?[8,6]:[]);ctx.beginPath();
   if(o.s=='circle'){ctx.arc(X(a.x),Y(a.y),circleRadiusWorld(o)*k,0,Math.PI*2)}
   else{arcPath(a,b,o.s)}ctx.stroke();ctx.setLineDash([]);
-  if(sl&&o.l){
+  if(slS&&o.l){
    if(o.s=='circle'&&a){const radius=circleRadiusWorld(o),ang=-Math.PI/4,lx=X(a.x)+Math.cos(ang)*radius*k+6,ly=Y(a.y)+Math.sin(ang)*radius*k-4;halo(o.l,lx,ly,fg,bg,'left')}
    else if(a&&b){const q=arcData(a,b);halo(o.l,q.cx,q.cy-q.r-6,fg,bg,'center')}
   }
@@ -1300,37 +1440,65 @@ function draw(){const cs=getComputedStyle(document.documentElement),fg=cs.getPro
  }
  F.forEach(f=>{
   if(!vis(f))return;
-  if(sl&&f.l){
+  if(slF&&f.l){
    if(f.kind=='circle'){const c=M.get(f.center);if(c)halo(f.l,X(c.x),Y(c.y)+fs*.3,fg,bg,'center')}
    else{let cx=0,cy=0;f.p.forEach(i=>{const p=M.get(i);cx+=X(p.x);cy+=Y(p.y)});halo(f.l,cx/f.p.length,cy/f.p.length+fs*.3,fg,bg,'center')}
   }
  });
- A.forEach(a=>{if(!vis(a))return;const B=M.get(a.b),p=M.get(a.a),c=M.get(a.c),a1=Math.atan2(p.y-B.y,p.x-B.x),a2=Math.atan2(c.y-B.y,c.x-B.x),ai=angleInfo(a,T,a1,a2),deg=ai.v,isMS=multiObjs.has(a);
+ A.forEach(a=>{if(!vis(a))return;const B=M.get(a.b),p=M.get(a.a),c=M.get(a.c);if(!B||!p||!c)return;const a1=Math.atan2(p.y-B.y,p.x-B.x),a2=Math.atan2(c.y-B.y,c.x-B.x),ai=angleInfo(a,T,a1,a2),deg=ai.v,isMS=multiObjs.has(a);
   const ccw=ccwAngleRad(a1,a2),bx=X(B.x),by=Y(B.y),r=26,acol=isMS?ac:(a.c||ac);
   ctx.strokeStyle=acol;ctx.lineWidth=isMS?2.8:1.8;ctx.beginPath();
   ctx.arc(bx,by,r,a1,a1+ccw,false);
   ctx.stroke();
   if(deg!==null&&Math.abs(deg-90)<.5){const m0=a1+ccw/2;ctx.fillStyle=acol;ctx.beginPath();ctx.arc(bx+Math.cos(m0)*r*.55,by+Math.sin(m0)*r*.55,2.6,0,7);ctx.fill()}
-  const av=deg===null?ai.s:sol&&ss&&ai.s?ai.s+' = '+fmt(deg,1)+'°':fmt(deg,1)+'°',t=txt(a.l,av,sl,ss);
+  const av=deg===null?ai.s:sol&&ss&&ai.s?ai.s+' = '+fmt(deg,1)+'°':fmt(deg,1)+'°',t=txt(a.l,av,slS,ss);
   if(t){const m=a1+ccw/2;halo(t,bx+Math.cos(m)*(r+fs+4),by+Math.sin(m)*(r+fs+4)+fs*.3,acol,bg,'center','','sans-serif',fs-2)}
  });
  Q.forEach(q=>{if(q.vis===false)return;const isMS=multiObjs.has(q);halo(q.t,X(q.x),Y(q.y),isMS?ac:(q.c||fg),bg,'left')});
- const s=sp(),t=mode=='line'?target():null;
- if(s&&t){ctx.strokeStyle=ac;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(X(s.x),Y(s.y));ctx.lineTo(X(t.x),Y(t.y));ctx.stroke();ctx.fillStyle=ac;ctx.beginPath();ctx.arc(X(t.x),Y(t.y),5,0,7);ctx.fill();
-  halo(fmt(Math.hypot(t.x-s.x,t.y-s.y)),X(t.x)+12,Y(t.y)-12,ac,bg,'left','','sans-serif',14)}
+ const s=sp(),t=(mode=='line'||mode=='infline')?target():null;
+ if(s&&t){
+  ctx.strokeStyle=ac;ctx.lineWidth=2;ctx.beginPath();
+  if(mode=='infline'){
+   const cl=clipInfLineScreen(X(s.x),Y(s.y),X(t.x),Y(t.y));
+   if(cl){ctx.moveTo(cl.x1,cl.y1);ctx.lineTo(cl.x2,cl.y2)}
+  }else{
+   ctx.moveTo(X(s.x),Y(s.y));ctx.lineTo(X(t.x),Y(t.y));
+  }
+  ctx.stroke();ctx.fillStyle=ac;ctx.beginPath();ctx.arc(X(t.x),Y(t.y),5,0,7);ctx.fill();
+  if(mode=='line')halo(fmt(Math.hypot(t.x-s.x,t.y-s.y)),X(t.x)+12,Y(t.y)-12,ac,bg,'left','','sans-serif',14);
+ }
  if(s){ctx.strokeStyle=ac;ctx.lineWidth=2;ctx.beginPath();ctx.arc(X(s.x),Y(s.y),7,0,7);ctx.stroke()}
+ if(mode=='angle'&&angDraft){
+  const q1=angDraft.p1;
+  ctx.fillStyle=ac;ctx.beginPath();ctx.arc(X(q1.x),Y(q1.y),5,0,7);ctx.fill();
+  if(!angDraft.p2){
+   const cur=snapWorldFrom(q1)||{x:wx(mouse.x),y:wy(mouse.y)};
+   ctx.strokeStyle=ac;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(X(q1.x),Y(q1.y));ctx.lineTo(X(cur.x),Y(cur.y));ctx.stroke();
+   ctx.beginPath();ctx.arc(X(cur.x),Y(cur.y),4.5,0,7);ctx.fill();
+  }else{
+   const q2=angDraft.p2;
+   const cur=snapWorldFrom(q2)||{x:wx(mouse.x),y:wy(mouse.y)};
+   ctx.strokeStyle=ac;ctx.lineWidth=2;ctx.beginPath();
+   ctx.moveTo(X(q1.x),Y(q1.y));ctx.lineTo(X(q2.x),Y(q2.y));ctx.lineTo(X(cur.x),Y(cur.y));ctx.stroke();
+   ctx.beginPath();ctx.arc(X(q2.x),Y(q2.y),5,0,7);ctx.fill();
+   ctx.beginPath();ctx.arc(X(cur.x),Y(cur.y),4.5,0,7);ctx.fill();
+   const a1=Math.atan2(q1.y-q2.y,q1.x-q2.x),a2=Math.atan2(cur.y-q2.y,cur.x-q2.x),ccw=ccwAngleRad(a1,a2);
+   ctx.beginPath();ctx.arc(X(q2.x),Y(q2.y),26,a1,a1+ccw,false);ctx.stroke();
+   halo(fmt(ccw*180/Math.PI,1)+'°',X(cur.x)+12,Y(cur.y)-12,ac,bg,'left','','sans-serif',14);
+  }
+ }
  if(mode=='face'&&sel.length){ctx.strokeStyle=ac;ctx.lineWidth=2;ctx.setLineDash([5,4]);ctx.beginPath();sel.forEach((i,n)=>{const p=M.get(i);n?ctx.lineTo(X(p.x),Y(p.y)):ctx.moveTo(X(p.x),Y(p.y))});ctx.lineTo(mouse.x,mouse.y);ctx.stroke();ctx.setLineDash([])}
  sel.forEach(i=>{const p=M.get(i);if(p&&vis(p)){ctx.strokeStyle=ac;ctx.lineWidth=2;ctx.beginPath();ctx.arc(X(p.x),Y(p.y),8,0,7);ctx.stroke()}});
- if((mode=='line'||mode=='point'||mode=='arc')&&!hover){const c=nearCross(mouse.x,mouse.y);if(c){ctx.strokeStyle=ac;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(X(c.x),Y(c.y),7,0,7);ctx.stroke()}}
+ if((mode=='line'||mode=='infline'||mode=='point'||mode=='arc'||mode=='angle')&&!hover){const c=nearCross(mouse.x,mouse.y);if(c){ctx.strokeStyle=ac;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(X(c.x),Y(c.y),7,0,7);ctx.stroke()}}
  P.forEach(p=>{if(!vis(p))return;const isMS=multiObjs.has(p),on=p===hover||isMS,x=X(p.x),y=Y(p.y),pcol=p.c||fg;ctx.fillStyle=ctx.strokeStyle=on?ac:pcol;
   if(ptStyle=='cross'){const z=on?6:4.5;ctx.lineWidth=1.8;ctx.beginPath();ctx.moveTo(x-z,y-z);ctx.lineTo(x+z,y+z);ctx.moveTo(x+z,y-z);ctx.lineTo(x-z,y+z);ctx.stroke()}
   else if(ptStyle=='plus'){
    const z=on?7:5.5,ang=p.ang||0,c1=Math.cos(ang)*z,s1=Math.sin(ang)*z,c2=Math.cos(ang+Math.PI/2)*z,s2=Math.sin(ang+Math.PI/2)*z;
    ctx.lineWidth=1.8;ctx.beginPath();ctx.moveTo(x-c1,y-s1);ctx.lineTo(x+c1,y+s1);ctx.moveTo(x-c2,y-s2);ctx.lineTo(x+c2,y+s2);ctx.stroke();
   }
-  else{ctx.beginPath();ctx.arc(x,y,on?5:3.5,0,7);ctx.fill()}
+  else if(ptStyle=='circle'){ctx.beginPath();ctx.arc(x,y,on?5:3.5,0,7);ctx.fill()}
   if(isMS){ctx.strokeStyle=ac;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(x,y,8.5,0,7);ctx.stroke()}
-  if(sl&&p.l)halo(p.l,x+7,y-7,fg,bg,'left')});
+  if(slP&&p.l)halo(p.l,x+7,y-7,fg,bg,'left')});
  if($('geo').checked&&geoPos&&geoImg.complete&&geoImg.naturalWidth){
   const w=520*(geoSize/100),h=w*(geoImg.naturalHeight/geoImg.naturalWidth);
   const angle=geoAngle*Math.PI/180;
@@ -1399,9 +1567,9 @@ function draw(){const cs=getComputedStyle(document.documentElement),fg=cs.getPro
  /* Legende */
  legR=null;legRows=[];const lg=$('leg').checked||sol;
  if(lg){const items=[],u=$('unit').value;
-  L.forEach(l=>{if(l.l){const r=lenInfo(l,T);if(sol&&!$('leg').checked&&!r.s)return;const v=r.v===null?r.s:sol&&r.s?r.s+(ss||$('leg').checked?' = '+fmt(r.v)+' '+u:''):fmt(r.v)+' '+u;items.push({text:l.l+' = '+v,obj:l,isFace:false})}});
+  L.forEach(l=>{if(l.l&&!l.inf){const r=lenInfo(l,T);if(sol&&!$('leg').checked&&!r.s)return;const v=r.v===null?r.s:sol&&r.s?r.s+(ss||$('leg').checked?' = '+fmt(r.v)+' '+u:''):fmt(r.v)+' '+u;items.push({text:l.l+' = '+v,obj:l,isFace:false})}});
   K.forEach(o=>{if(o.l&&o.s=='circle'){const r=circleCircumInfo(o);if(r.v===null)return;const v=sol&&r.s?r.s+(ss||$('leg').checked?' = '+fmt(r.v)+' '+u:''):fmt(r.v)+' '+u;items.push({text:'u_'+o.l+' = '+v,obj:o,isFace:false})}});
-  A.forEach(a=>{if(a.l){const B=M.get(a.b),p=M.get(a.a),c=M.get(a.c),a1=Math.atan2(p.y-B.y,p.x-B.x),a2=Math.atan2(c.y-B.y,c.x-B.x),r=angleInfo(a,T,a1,a2);if(sol&&!$('leg').checked&&!r.s)return;const v=r.v===null?r.s:sol&&r.s?r.s+(ss||$('leg').checked?' = '+fmt(r.v,1)+'°':''):fmt(r.v,1)+'°';items.push({text:a.l+' = '+v,obj:a,isFace:false})}});
+  A.forEach(a=>{if(a.l){const B=M.get(a.b),p=M.get(a.a),c=M.get(a.c);if(!B||!p||!c)return;const a1=Math.atan2(p.y-B.y,p.x-B.x),a2=Math.atan2(c.y-B.y,c.x-B.x),r=angleInfo(a,T,a1,a2);if(sol&&!$('leg').checked&&!r.s)return;const v=r.v===null?r.s:sol&&r.s?r.s+(ss||$('leg').checked?' = '+fmt(r.v,1)+'°':''):fmt(r.v,1)+'°';items.push({text:a.l+' = '+v,obj:a,isFace:false})}});
   F.forEach(f=>{if(f.l){const r=areaInfo(f,T);if(sol&&!$('leg').checked&&!r.s)return;const v=r.v===null?r.s:sol&&r.s?r.s+(ss||$('leg').checked?' = '+fmt(r.v)+' '+u+'²':''):fmt(r.v)+' '+u+'²';items.push({text:f.l+' = '+v,obj:f,isFace:true})}});
   if($('leg').checked&&$('legpts').checked){
    P.forEach(p=>{if(p.l)items.push({text:p.l+' ('+fmt(p.x)+' | '+fmt(-p.y)+')',obj:p,isFace:false})});

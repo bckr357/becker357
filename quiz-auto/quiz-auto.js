@@ -104,13 +104,12 @@ const app = createApp({
 		};
 
 		const selectRandomTypes = () => {
-			const pool = [...availableTypes.value];
-			const selected = [...pool];
-			for (let i = selected.length - 1; i > 0; i--) {
-				const j = Math.floor(Math.random() * (i + 1));
-				[selected[i], selected[j]] = [selected[j], selected[i]];
-			}
-			selectedTypes.value = selected.slice(0, Math.min(7, selected.length));
+			const result = window.MTGRandomSelection?.select({
+				mode: 'quiz',
+				grade,
+				availableTypes: availableTypes.value
+			});
+			selectedTypes.value = result?.selectedTypes ?? [];
 			if (selectedTypes.value.length === 0) {
 				selectedTypes.value = [...availableTypes.value];
 			}

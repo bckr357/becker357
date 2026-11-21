@@ -922,8 +922,7 @@ createApp({
         };
 
         const randomizeTypeSelection = () => {
-            const selectionConfig = randomSelectionConfig.value;
-            if (!selectionConfig?.default) {
+            if (!window.MTGRandomSelection) {
                 window.alert('Die Zufallsauswahl-Konfiguration konnte nicht geladen werden.');
                 return false;
             }
@@ -935,127 +934,24 @@ createApp({
             const classTypes = activeVisibleTypeKeys.value;
             const selectedTypesRef = getActiveSelectedTypesRef();
             const taskWeightsRef = getActiveTaskWeightsRef();
-            const availableTypes = new Set(classTypes);
-            const gradeConfig = selectionConfig.grades?.[String(selectedGrade.value)] ?? {};
-            const config = {
-                ...selectionConfig.default,
-                ...gradeConfig,
-                requiredTypes: gradeConfig.requiredTypes ?? selectionConfig.default.requiredTypes ?? [],
-                exactOneGroups: gradeConfig.exactOneGroups ?? selectionConfig.default.exactOneGroups ?? [],
-                atMostOneGroups: gradeConfig.atMostOneGroups ?? selectionConfig.default.atMostOneGroups ?? [],
-                weights: {
-                    ...(selectionConfig.default.weights ?? {}),
-                    ...(gradeConfig.weights ?? {})
-                }
-            };
-            const configuredTaskCount = Number(config.taskCount);
-            if (Number.isFinite(configuredTaskCount)) {
-                state.taskCount.value = Math.min(200, Math.max(1, Math.floor(configuredTaskCount)));
+            const mode = state.currentView.value === 'quiz'
+                ? 'quiz'
+                : (state.taskMode.value === 'calculator' ? 'calculator' : 'default');
+            const result = window.MTGRandomSelection.select({
+                mode,
+                grade: selectedGrade.value,
+                availableTypes: classTypes
+            });
+            if (!result) {
+                window.alert('Die Zufallsauswahl-Konfiguration konnte nicht geladen werden.');
+                return false;
             }
-            const targetTypeCount = Math.min(
-                Math.max(0, Math.floor(Number(config.targetTypeCount) || 0)),
-                classTypes.length
-            );
-
-            if (targetTypeCount === 0) {
-                selectedTypesRef.value = [];
-                classTypes.forEach(type => {
-                    taskWeightsRef.value[type] = 0;
-                });
-                return true;
+            if (result.taskCount !== null) {
+                state.taskCount.value = result.taskCount;
             }
-
-            const pickOneFrom = keys => {
-                const candidates = keys.filter(type => availableTypes.has(type));
-                if (candidates.length === 0) {
-                    return [];
-                }
-                return [candidates[Math.floor(Math.random() * candidates.length)]];
-            };
-
-            const pickAtMostOneFrom = keys => {
-                const candidates = keys.filter(type => availableTypes.has(type));
-                const pickChance = Number(config.atMostOnePickChance);
-                if (candidates.length === 0 || Math.random() >= (Number.isFinite(pickChance) ? pickChance : 0.5)) {
-                    return [];
-                }
-                return [candidates[Math.floor(Math.random() * candidates.length)]];
-            };
-
-            const selected = new Set();
-
-            for (const type of config.requiredTypes) {
-                if (availableTypes.has(type)) {
-                    selected.add(type);
-                }
-            }
-
-            for (const group of config.exactOneGroups) {
-                for (const type of pickOneFrom(group)) {
-                    selected.add(type);
-                }
-            }
-
-            for (const group of config.atMostOneGroups) {
-                for (const type of pickAtMostOneFrom(group)) {
-                    selected.add(type);
-                }
-            }
-
-            const isConflictingWithGroup = type => {
-                return config.exactOneGroups.some(group => group.includes(type) && group.some(member => selected.has(member) && member !== type)) ||
-                    config.atMostOneGroups.some(group => group.includes(type) && group.some(member => selected.has(member) && member !== type));
-            };
-
-            const restrictedGroupTypes = new Set([
-                ...config.exactOneGroups.flat(),
-                ...config.atMostOneGroups.flat()
-            ]);
-            const addableTypes = classTypes.filter(type =>
-                !selected.has(type) &&
-                !isConflictingWithGroup(type) &&
-                !restrictedGroupTypes.has(type)
-            );
-            const shuffledAddable = [...addableTypes];
-            for (let i = shuffledAddable.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [shuffledAddable[i], shuffledAddable[j]] = [shuffledAddable[j], shuffledAddable[i]];
-            }
-
-            while (selected.size < targetTypeCount && shuffledAddable.length > 0) {
-                const type = shuffledAddable.shift();
-                if (!type) {
-                    break;
-                }
-                selected.add(type);
-            }
-
-            if (selected.size < targetTypeCount) {
-                const backupPool = classTypes.filter(type =>
-                    !selected.has(type) && !restrictedGroupTypes.has(type)
-                );
-                for (let i = backupPool.length - 1; i > 0 && selected.size < targetTypeCount; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [backupPool[i], backupPool[j]] = [backupPool[j], backupPool[i]];
-                }
-
-                for (const type of backupPool) {
-                    if (selected.size >= targetTypeCount) {
-                        break;
-                    }
-                    selected.add(type);
-                }
-            }
-
-            selectedTypesRef.value = classTypes.filter(type => selected.has(type));
-
+            selectedTypesRef.value = result.selectedTypes;
             classTypes.forEach(type => {
-                const configuredWeight = Number(config.weights[type]);
-                const defaultWeight = Number(config.defaultWeight);
-                const weight = Number.isFinite(configuredWeight)
-                    ? configuredWeight
-                    : (Number.isFinite(defaultWeight) ? defaultWeight : 1);
-                taskWeightsRef.value[type] = Math.max(0, Math.floor(weight));
+                taskWeightsRef.value[type] = result.weights[type] ?? 1;
             });
             return true;
         };
