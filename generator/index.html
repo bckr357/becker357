@@ -214,11 +214,10 @@
             <template v-if="worksheetLayoutMode === 'worksheet'">
                 <template v-if="!showWorksheetSolutions">
                     <div
-                        v-if="worksheetA5Pages !== 1 || worksheetTitle.trim()"
                         class="worksheet-sheet-header"
                     >
                         <div class="worksheet-header-copy">
-                            <span v-if="worksheetA5Pages !== 1" class="worksheet-name-copy">Name:</span>
+                            <span class="worksheet-name-copy">Name:</span>
                             <span v-if="worksheetTitle.trim()" class="worksheet-title-copy">{{ worksheetTitle }}</span>
                         </div>
                         <div v-if="worksheetA5Pages !== 1" class="worksheet-header-copy">
@@ -249,12 +248,12 @@
                 </template>
 
                 <template v-else>
-                    <div v-if="worksheetA5Pages !== 1" class="worksheet-sheet-header">
+                    <div class="worksheet-sheet-header">
                         <div class="worksheet-header-copy">
-                            <span>Lösungen</span>
+                            <span class="worksheet-name-copy">Lösungen</span>
                         </div>
                         <div class="worksheet-header-copy">
-                            <span>Lösungen</span>
+                            <span class="worksheet-name-copy">Lösungen</span>
                         </div>
                     </div>
 
