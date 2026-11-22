@@ -130,8 +130,14 @@
 					});
 				}
 			},
-			enableSystemKeyboard() {
+			enableSystemKeyboard(event) {
 				if (this.disabled || !this.keyboardOpen) return;
+				const input = event?.currentTarget || this.$refs.input;
+				if (input) {
+					input.removeAttribute('readonly');
+					input.setAttribute('inputmode', 'text');
+					input.focus();
+				}
 				this.inputKeyboardEnabled = true;
 			},
 			focusInput() {
@@ -152,6 +158,8 @@
 						@input="onInput"
 						@keydown="onKeydown"
 						@pointerdown="enableSystemKeyboard"
+						@touchstart="enableSystemKeyboard"
+						@mousedown="enableSystemKeyboard"
 						placeholder="Ergebnis"
 						autocomplete="off"
 					>
