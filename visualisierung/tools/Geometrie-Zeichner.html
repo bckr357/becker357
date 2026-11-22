@@ -419,7 +419,7 @@ function applyDoc(d){
    if(num(g.size))geoSize=Math.max(25,Math.min(200,g.size));
    if(num(g.angle))geoAngle=g.angle;
   }
-  if($('geo').checked&&!geoPos)geoPos={x:wx(W/2),y:wy(H/2)};
+  if($('geo').checked&&!geoPos)geoPos=snapGeodreieckZero(wx(W/2),wy(H/2));
   $('georeset').style.display=$('geo').checked?'':'none';
   if(Array.isArray(d.recorder)&&d.recorder.length>1){
    try{snaps=d.recorder.map(s=>JSON.stringify(cleanState(s)))}catch(err){snaps=[]}
@@ -602,7 +602,7 @@ $('fc').oninput=()=>{refreshMainSwatches();draw()};
 $('unit').onchange=()=>draw();
 $('step').onchange=()=>draw();
 $('georeset').onclick=()=>{geoAngle=0;draw()};
-$('geo').onchange=()=>{$('geo').blur();$('georeset').style.display=$('geo').checked?'':'none';if($('geo').checked&&!geoPos)geoPos={x:wx(W/2),y:wy(H/2)};draw()};
+$('geo').onchange=()=>{$('geo').blur();$('georeset').style.display=$('geo').checked?'':'none';if($('geo').checked&&!geoPos)geoPos=snapGeodreieckZero(wx(W/2),wy(H/2));draw()};
 $('georeset').style.display='none';
 function zoom(k2,mx,my){k2=Math.max(20,Math.min(150,k2));ox=mx-(mx-ox)*k2/k;oy=my-(my-oy)*k2/k;k=k2;$('sz').value=k;draw()}
 cv.addEventListener('wheel',e=>{e.preventDefault();const p=pos(e);zoom(k*(e.deltaY<0?1.1:1/1.1),p.x,p.y)},{passive:false});
@@ -1514,9 +1514,12 @@ cv.addEventListener('pointermove',e=>{
  if(rmbDown&&Math.hypot(e.clientX-rmbDown.x,e.clientY-rmbDown.y)>=5){rmbDown.moved=true}
  if(geoDrag){
   if(geoDrag.type=='move'){
-   const rawX=geoDrag.px+(wx(mouse.x)-geoDrag.mx);
-   const rawY=geoDrag.py+(wy(mouse.y)-geoDrag.my);
-   geoPos=snapGeodreieckZero(rawX,rawY);
+    const rawX=geoDrag.px+(wx(mouse.x)-geoDrag.mx);
+    const rawY=geoDrag.py+(wy(mouse.y)-geoDrag.my);
+    if(isSnapActive()){
+      const step=+$('step').value||0.5;
+      geoPos={x:Math.round(rawX/step)*step,y:Math.round(rawY/step)*step};
+    }else geoPos={x:rawX,y:rawY};
   }else if(geoDrag.type=='rotate'){
    const cx=X(geoPos.x),cy=Y(geoPos.y);
    let angle=Math.atan2(mouse.y-cy,mouse.x-cx)*180/Math.PI+90;
@@ -1526,7 +1529,7 @@ cv.addEventListener('pointermove',e=>{
   }else if(geoDrag.type=='scale'){
     const cx=X(geoPos.x),cy=Y(geoPos.y);
     const distance=Math.hypot(mouse.x-cx,mouse.y-cy);
-   const size=Math.round(Math.max(25,Math.min(200,geoDrag.size*distance/geoDrag.distance)));
+    const size=Math.round(Math.max(25,Math.min(200,geoDrag.size*distance/geoDrag.distance))*5)/5;
    geoSize=size;
   }
   draw();return;

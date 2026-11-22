@@ -908,9 +908,6 @@ case 'kleines_1x1_komplett':
 case 'addition_subtraktion_bis_20':
 case 'addition_subtraktion_bis_100':
 case 'addition_subtraktion_bis_1000': {
-		let expr;
-		let solution;
-		let answer;
 		if (type.startsWith('einmaleins_')) {
 			const row = Number(type.slice('einmaleins_'.length));
 			const otherFactor = randInt(1, 10);
@@ -976,14 +973,10 @@ case 'addition_subtraktion_bis_1000': {
 		}
 		textDisplay = expr;
 		s = solution;
-		answer = answer;
 		break;
 	}
 	case 'ganze_zahlen_multiplizieren_dividieren': {
 		if (isQuizMode) {
-			let expr;
-			let solution;
-			let answer;
 			if (Math.random() > 0.5) {
 				do {
 					v1 = rnd(-15, 15);
@@ -1007,7 +1000,6 @@ case 'addition_subtraktion_bis_1000': {
 			}
 			textDisplay = expr;
 			s = solution;
-			answer = answer;
 		} else {
 			let expr;
 			let solution;
