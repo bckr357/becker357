@@ -101,7 +101,7 @@ const taskTypeDefinitions = {
 	dreiecksberechnungen_zeichnung: { shareLinkId: 75, label: 'Dreiecksberechnungen (Zeichnung)', from: 'klasse5', modes: ['calculator'] },
 	winkel: { shareLinkId: 76, label: 'Winkel', from: 'klasse5', modes: ['default'] },
 	schraegbild: { shareLinkId: 77, label: 'Schrägbilder', from: null, modes: [] },
-	kongruenz: { shareLinkId: 78, label: 'Kongruenzsätze', from: 'klasse7', modes: ['default', 'calculator'] },
+	kongruenz: { shareLinkId: 78, label: 'Kongruenzsätze', from: 'klasse6', modes: ['default', 'calculator'] },
 	statistik: { shareLinkId: 79, label: 'Statistik', from: 'klasse9', modes: ['default', 'calculator', 'quiz'] },
 	wahrscheinlichkeiten: { shareLinkId: 80, label: 'Wahrscheinlichkeiten', from: 'klasse7', modes: ['default', 'calculator', 'quiz'] },
 	lineare_funktionen_zeichnen: { shareLinkId: 81, label: 'Lineare Funktionen zeichnen', from: 'klasse8', modes: ['default', 'calculator'] },

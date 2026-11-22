@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="de"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Grundrechenarten am Zahlenstrahl und an der Zahlengeraden</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f4f6f9;--card:#fff;--ink:#1d2433;--mute:#667085;--line:#c9d0dc;--pos:#1a6fd1;--neg:#d9531e;--ok:#1e8e4f;--rest:#8a93a3;--warn:#fff3d1;--warnink:#6b4a00;--field:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#11151c;--card:#1a202b;--ink:#e8ecf3;--mute:#9aa4b5;--line:#3a4354;--pos:#5aa2ff;--neg:#ff8a5c;--ok:#4cc585;--rest:#9aa4b5;--warn:#3a2f10;--warnink:#f3d98a;--field:#222a38}}
+:root[data-theme="dark"]{--bg:#11151c;--card:#1a202b;--ink:#e8ecf3;--mute:#9aa4b5;--line:#3a4354;--pos:#5aa2ff;--neg:#ff8a5c;--ok:#4cc585;--rest:#9aa4b5;--warn:#3a2f10;--warnink:#f3d98a;--field:#222a38}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:1100px;margin:0 auto;padding:14px}
+h1{font-size:1.25rem;margin:0 0 10px}
+.card{position:relative;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:12px}
+.row{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:flex-end}
+label{display:flex;flex-direction:column;font-size:.8rem;color:var(--mute);gap:3px}
+.chk{flex-direction:row;align-items:center;gap:6px;font-size:.95rem;color:var(--ink)}
+input[type=text],select{font:inherit;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+input[type=text]{width:90px;text-align:right}
+select{min-width:190px}
+button{font:inherit;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer}
+button:hover{border-color:var(--pos)}
+button.pri{background:var(--pos);border-color:var(--pos);color:#fff}
+.seg{display:flex}.seg button{border-radius:0}.seg button:first-child{border-radius:8px 0 0 8px}.seg button:last-child{border-radius:0 8px 8px 0}
+.seg button.on{background:var(--pos);border-color:var(--pos);color:#fff}
+.task{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.task span{font-size:1.4rem;font-weight:600}
+#eq{font-size:1.9rem;font-weight:650;margin:2px 0;text-align:center}
+#eq .q{color:var(--ok)}
+.mute{color:var(--mute);font-size:.9rem}
+#warn{background:var(--warn);color:var(--warnink);border-radius:8px;padding:6px 12px;display:none;position:absolute;left:14px;right:14px;top:10px;z-index:2;pointer-events:none;font-size:.9rem;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.svgw{overflow-x:auto}
+svg{width:100%;height:auto;min-width:640px;display:block;touch-action:pan-y;user-select:none}
+.t{fill:var(--mute);font-size:var(--tf,18px);text-anchor:middle}
+.lab{font-size:var(--lf,18px);font-weight:600;text-anchor:middle}
+body.pres h1,body.pres main>div:nth-of-type(1),body.pres main>div:nth-of-type(4){display:none}
+body.pres main{max-width:none}
+#terms,#explain{text-align:center}
+body.free main>div:nth-of-type(2){display:none}
+:root[data-theme="dark"]{--cn:#ff6b6b;--cp:#6db3ff}
+:root[data-theme="dark"] button.hl{color:#04210f}
+:root{--cn:#d62828;--cp:#1a56db}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--cn:#ff6b6b;--cp:#6db3ff}}
+:root[data-cs="1"]{--pos:var(--cp);--neg:var(--cn)}
+button.hl{background:var(--ok);border-color:var(--ok);color:#fff;font-weight:650;padding:8px 18px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) button.hl{color:#04210f}}
+</style></head><body><main>
+<h1>Grundrechenarten am Zahlenstrahl und an der Zahlengeraden</h1>
+
+<div class="card"><div class="row">
+ <label>Betriebsart<div class="seg"><button id="mA" class="on">Aufgaben</button><button id="mF">Frei zoomen</button></div></label>
+ <label>Darstellung<div class="seg"><button id="mS" class="on">Zahlenstrahl</button><button id="mG">Zahlengerade</button></div></label>
+ <label id="lmn">Kleinster Wert<input type="text" id="mn" inputmode="decimal" value="0"></label>
+ <label>Größter Wert<input type="text" id="mx" inputmode="decimal" value="10"></label>
+ <label>Rechenart<select id="op"><option value="add">Addition (+)</option><option value="sub">Subtraktion (−)</option><option value="mul">Multiplikation (·)</option><option value="div">Division (:)</option><option value="mixAS">Addition und Subtraktion gemischt</option><option value="mixMD">Multiplikation und Division gemischt</option><option value="mixAll">Alle Rechenarten gemischt</option></select></label>
+ <label id="lfmt" style="display:none">Beschriftung<div class="seg"><button id="fD" class="on">Dezimal</button><button id="fB">Brüche</button></div></label>
+ <label class="chk"><input type="checkbox" id="dec"> Dezimalzahlen</label>
+ <label class="chk"><input type="checkbox" id="dk"> Dunkelmodus</label>
+ <label class="chk"><input type="checkbox" id="cs"> Farbschema (rot/blau)</label>
+ <label>Schriftgröße Skala<input type="range" id="tf" min="16" max="72" value="24"></label>
+ <label>Tick-Abstand (min.)<input type="range" id="tk" min="6" max="120" value="24"></label>
+ <label>Beschriftungs-Abstand (min.)<input type="range" id="lb" min="10" max="200" value="40"></label>
+ <label>Zoom (5 %, auch Strg + Mausrad)<span class="seg"><button id="zo">−</button><button id="zi">+</button></span></label>
+ <label id="lpan">Verschieben<span class="seg"><button id="pl">◀</button><button id="pr">▶</button><button id="pc">0 zentrieren</button></span></label>
+ <button id="fit2">Ansicht an Aufgabe anpassen</button>
+ <button id="rst">Standardeinstellungen</button>
+</div></div>
+
+<div class="card">
+ <div class="row">
+  <div class="task"><input type="text" id="a" inputmode="decimal" value="3"><span id="sym">+</span><input type="text" id="b" inputmode="decimal" value="4"></div>
+  <button id="rnd" class="hl">Zufällige Aufgabe (Leertaste)</button>
+  <button id="pres">Präsentationsmodus</button>
+  <span style="display:flex;gap:6px;align-items:center"><input type="text" id="guess" placeholder="Dein Ergebnis" style="width:130px;text-align:left"><button id="chk">Prüfen</button><span id="fb" style="font-weight:600"></span></span>
+  <label class="chk"><input type="checkbox" id="solve"> Lösung anzeigen</label>
+  
+  <label class="chk" id="lsplit"><input type="checkbox" id="split"> Über die Null zerlegen</label>
+  <label class="chk" id="lsingle" style="display:none"><input type="checkbox" id="single"> Einzelschritt</label>
+ </div>
+ <div class="row" style="margin-top:10px">
+  <button id="prev">◀ Schritt zurück</button><button id="next">Nächster Schritt ▶</button><span class="mute" id="stepinfo"></span>
+ </div>
+</div>
+
+<div class="card">
+ <div id="warn"></div>
+ <div class="svgw"><svg id="svg" viewBox="0 0 1000 350" role="img" aria-label="Zahlenstrahl bzw. Zahlengerade mit Rechenpfeilen"></svg></div>
+ <div id="eq"></div>
+ <div class="mute" id="terms"></div>
+ <div id="explain" style="margin-top:6px"></div>
+ 
+</div>
+
+<div class="card mute" style="font-size:.85rem">
+ Didaktische Grundlage: Addition und Subtraktion als Pfeile nach rechts bzw. links (Zustandsänderung), Multiplikation als wiederholte Addition (Sprünge gleicher Länge ab 0), Division als Messen bzw. Umkehrung der Multiplikation, Subtraktion als Umkehrung der Addition. Negative Zahlen gibt es nur an der Zahlengeraden. Tastenkürzel: Leertaste oder N neue Aufgabe, → nächster Schritt, ← zurück, L Lösung, P Präsentationsmodus, Esc beenden.
+</div>
+
+<script>
+const $=id=>document.getElementById(id), MINUS="\u2212", SYM={add:"+",sub:MINUS,mul:"\u00b7",div:":"};
+const TERMS={add:"Summand + Summand = Summe",sub:"Minuend \u2212 Subtrahend = Differenz",mul:"Faktor \u00b7 Faktor = Produkt",div:"Dividend : Divisor = Quotient"};
+const store={strahl:[0,10],gerade:[-10,10]};
+let mode="strahl",L=0,T=0,fitVals=null,V=[0,10],LB=[],K=1,CS=false,FREE=false,FMT="dec",OPC="add",SG=false;
+const curOp=()=>/^mix/.test($("op").value)?OPC:$("op").value;
+const cc=v=>CS?(v<-1e-9?"var(--cn)":v>1e-9?"var(--cp)":"var(--ink)"):null;
+const fmt=v=>(Math.round(v*1e6)/1e6).toString().replace(".",",").replace("-",MINUS);
+const sg=v=>(v<0?MINUS:"+")+fmt(Math.abs(v));
+const par=v=>v<0?"("+fmt(v)+")":fmt(v);
+const num=s=>parseFloat(String(s).trim().replace(MINUS,"-").replace(",","."));
+const ri=(x,y)=>x+Math.floor(Math.random()*(y-x+1));
+const niceUp=x=>{if(x<=0)return 0;const p=Math.pow(10,Math.floor(Math.log10(x)));for(const m of [1,2,2.5,5,10])if(m*p>=x-1e-9)return m*p};
+
+function model(){
+ const a=num($("a").value),b=num($("b").value),op=curOp(),eps=1e-9;
+ if(isNaN(a)||isNaN(b))return{err:"Bitte zwei gültige Zahlen eingeben."};
+ if(!$("dec").checked&&(!Number.isInteger(a)||!Number.isInteger(b)))return{err:"Dezimalzahlen sind ausgeschaltet. Schalte „Dezimalzahlen“ ein oder gib ganze Zahlen ein."};
+ const J=[];let res,start=a,rt=null,qs=null;
+ if(op==="add"||op==="sub"){
+  const v=op==="add"?b:-b;res=a+v;let parts=[v];
+  if($("split").checked&&a*res<0)parts=[-a,res];
+  if(v!==0){let c=a;parts.forEach(p=>{J.push({f:c,t:c+p,l:sg(p),c:p>=0?"pos":"neg"});c+=p})}
+ }else if(op==="mul"){
+  res=a*b;start=0;const s=b*(a<0?-1:1),n=Math.floor(Math.abs(a)+eps),fr=Math.abs(a)-n;
+  if(n>60)return{err:"Zu viele Sprünge ("+n+"). Wähle einen kleineren ersten Faktor."};
+  if(a!==0&&b!==0){let c=0;for(let i=0;i<n;i++){J.push({f:c,t:c+s,l:sg(s),c:s>=0?"pos":"neg"});c+=s}
+   if(fr>eps)J.push({f:c,t:c+s*fr,l:sg(s*fr),c:s>=0?"pos":"neg"})}
+ }else{
+  if(b===0)return{err:"Durch 0 darf man nicht teilen."};
+  res=a/b;start=0;const d=a<0?-1:1,n=Math.floor(Math.abs(a)/Math.abs(b)+eps);let r=Math.abs(a)-n*Math.abs(b);if(r<1e-7)r=0;
+  if(n>60)return{err:"Zu viele Sprünge ("+n+"). Wähle einen größeren Divisor."};
+  let c=0;for(let i=0;i<n;i++){J.push({f:c,t:c+d*Math.abs(b),l:sg(d*Math.abs(b)),c:d>0?"pos":"neg"});c+=d*Math.abs(b)}
+  if(r>0)J.push({f:c,t:a,l:"Rest "+fmt(r),c:"rest"});
+  if(Number.isInteger(a)&&Number.isInteger(b)&&r>0){qs=((a<0)!==(b<0)?-n:n);rt=fmt(qs)+" Rest "+fmt(r)}
+ }
+ return{a,b,op,J,start,res,rt,qs};
+}
+
+function rnd(){
+ if(FREE)return;const v=$("op").value,S=mode==="strahl",pool=v==="mixAS"?["add","sub"]:v==="mixMD"?["mul","div"]:v==="mixAll"?["add","sub","mul","div"]:[v];
+ let op,a,b;
+ for(let t=0;t<300;t++){op=pool[ri(0,pool.length-1)];[a,b]=rnd1(op);
+  if(a===0||b===0||b===1||(op==="mul"&&Math.abs(a)<2))continue;
+  if(!S&&a>0&&b>0&&(op!=="sub"||a>=b))continue;
+  break}
+ OPC=op;$("a").value=fmt(a).replace(MINUS,"-");$("b").value=fmt(b).replace(MINUS,"-");chg();
+}
+function rnd1(op){
+ const S=mode==="strahl",D=$("dec").checked,lo=V[0],hi=V[1],u=D?(hi-lo<=2?.01:.1):1,r9=x=>Math.round(x*1e9)/1e9,I=(x,y)=>r9(ri(Math.ceil(x/u-1e-9),Math.floor(y/u+1e-9))*u);
+ let a,b;
+ if(op==="add"||op==="sub"){let x=I(lo,hi),y=I(lo,hi);if(S&&x>y)[x,y]=[y,x];if(op==="add"){a=x;b=r9(y-x)}else{a=y;b=r9(y-x)}}
+ else{const Lm=Math.max(S?hi:Math.min(hi,Math.abs(lo)),4*u);
+  if(op==="mul"){a=ri(2,D?5:Math.min(9,Math.max(2,Math.floor(Lm))));b=r9(ri(1,Math.max(1,Math.floor(Lm/a/u)))*u)}
+  else{const q=ri(2,D?5:Math.min(9,Math.max(2,Math.floor(Lm/2)))),m=D?1:2;b=r9(ri(m,Math.max(m,Math.floor(Lm/q/u)))*u);a=r9(q*b)}
+  if(!S){if(Math.random()<.5)a=-a;if(Math.random()<.5)b=-b}}
+ $("a").value=fmt(a).replace(MINUS,"-");$("b").value=fmt(b).replace(MINUS,"-");chg();
+}
+
+function arc(x1,x2,y,h,cls,lab,dash){
+ const m=(x1+x2)/2,col="var(--"+cls+")",d=x2>x1?1:-1,u=9*K;
+ return `<path d="M${x1} ${y} Q${m} ${y-2*h} ${x2} ${y}" fill="none" stroke="${col}" stroke-width="${3*K}" ${dash?'stroke-dasharray="7 6"':""} marker-end="url(#m-${cls})"/>`+
+  (lab&&LB.push({x:m,y:y-h-10-8*K,t:lab,c:col}),"")+(Math.abs(x2-x1)>u*3?`<polygon points="${m+d*u},${y-h} ${m-d*u*.6},${y-h-u*.85} ${m-d*u*.6},${y-h+u*.85}" fill="${col}"/>`:"");
+}
+
+function render(){
+ if(FREE){renderFree();return}const M=model(),sv=$("svg"),warn=$("warn");
+ $("sym").textContent=SYM[curOp()];$("lpan").style.display=mode==="strahl"?"none":"flex";$("lsplit").style.display=/add|sub/.test(curOp())?"flex":"none";$("lsingle").style.display=/mul|div/.test(curOp())?"flex":"none";
+ const S=mode==="strahl",lo=V[0],hi=V[1],tf=+$("tf").value;K=Math.max(.8,tf/24);document.documentElement.dataset.theme=$("dk").checked?"dark":"light";SG=$("single").checked;CS=$("cs").checked;document.documentElement.dataset.cs=CS?"1":"";
+ let W="";fitVals=null;
+ const show=()=>{warn.style.display=W?"block":"none";warn.innerHTML=W};
+ const clear=msg=>{sv.innerHTML="";$("eq").innerHTML="";$("terms").textContent="";$("explain").textContent="";$("stepinfo").textContent="";W=msg;show()};
+ if(isNaN(lo)||isNaN(hi)||!(hi>lo))return clear("Der größte Wert muss größer als der kleinste Wert sein.");
+ if(M.err)return clear(M.err);
+ const {a,b,op,J,start,res,rt,qs}=M;T=((op==="mul"||op==="div")&&!SG)?Math.min(1,J.length):J.length;
+ const pts=[start,res].concat(J.map(j=>j.t),J.map(j=>j.f));if(op==="div")pts.push(a);
+ const mn=Math.min(...pts),mx=Math.max(...pts);
+ if(S&&mn<-1e-9){return clear("Am Zahlenstrahl gibt es keine negativen Zahlen. Wechsle zur Zahlengeraden.")}
+ if(mn<lo-1e-9||mx>hi+1e-9)W="Ein Teil der Aufgabe liegt außerhalb der Ansicht. Verschiebe oder verkleinere die Ansicht oder nutze „Ansicht an Aufgabe anpassen“.";
+ show();
+ const total=T+1;if(L>total)L=total;const solved=L>T,vis=Math.min(L,T);
+ $("solve").checked=solved;
+ const AY=250,X=v=>60+(v-lo)/(hi-lo)*880,R=hi-lo;
+ let step=1;const D=$("dec").checked;
+ outer:for(let p=D?-5:0;p<=9;p++)for(const m of [1,2,5]){const st=m*Math.pow(10,p);if(880*st/R>=+$("tk").value){step=st;break outer}}
+ const minor=step,lk=Math.max(1,Math.ceil(+$("lb").value/(880*step/R)));
+ sv.setAttribute("viewBox","0 0 1000 "+Math.ceil(AY+tf*1.3+34));sv.style.setProperty("--tf",tf+"px");sv.style.setProperty("--lf",(tf+1)+"px");let s=`<defs>`+["pos","neg","rest","ok"].map(c=>`<marker id="m-${c}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="${13*K}" markerHeight="${13*K}" orient="auto" markerUnits="userSpaceOnUse" style="overflow:visible"><path d="M0 0L10 5L0 10z" fill="var(--${c})"/></marker>`).join("")+`<clipPath id="cp"><rect x="24" y="0" width="960" height="2000"/></clipPath></defs>`;
+ const x0=S?X(0):24;
+ const zc=Math.min(976,Math.max(x0,X(0))),cL=CS?"var(--cn)":"var(--ink)",cR=CS?"var(--cp)":"var(--ink)",cE=CS&&zc>=976?"var(--cn)":cR;
+ s+=CS?`<line x1="${x0}" y1="${AY}" x2="${zc}" y2="${AY}" stroke="${cL}" stroke-width="${2.5*K}"/><line x1="${zc}" y1="${AY}" x2="976" y2="${AY}" stroke="${cR}" stroke-width="${2.5*K}"/>`:`<line x1="${x0}" y1="${AY}" x2="976" y2="${AY}" stroke="var(--ink)" stroke-width="${2.5*K}"/>`;
+ s+=`<polygon points="${976+8*K},${AY} ${976-6*K},${AY-6*K} ${976-6*K},${AY+6*K}" fill="${cE}"/>`;
+ s+=S?`<line x1="${x0}" y1="${AY-14*K}" x2="${x0}" y2="${AY+14*K}" stroke="var(--ink)" stroke-width="${3*K}"/>`:"";
+ const i0=Math.ceil(lo/minor-1e-9),i1=Math.floor(hi/minor+1e-9);
+ for(let i=i0;i<=i1;i++){const v=Math.round(i*minor*1e9)/1e9,x=X(v),maj=Math.abs(v/step-Math.round(v/step))<1e-7;
+  if(!maj&&880/(R/minor)<4)continue;
+  s+=`<line x1="${x}" y1="${AY-(maj?8:4)*K}" x2="${x}" y2="${AY+(maj?8:4)*K}" stroke="${cc(v)||"var(--ink)"}" stroke-width="${(maj?2:1)*K}"/>`;
+  if(maj&&Math.abs(Math.round(v/step))%lk===0)s+=`<text class="t" x="${x}" y="${AY+10+tf}" ${v===0?'style="font-weight:700;fill:var(--ink)"':(cc(v)?`style="fill:${cc(v)}"`:"")}>${fmt(v)}</text>`}
+ LB=[];s+='<g clip-path="url(#cp)">';const used=[];const dot=(v,fill,lab,col,force,nc)=>{const x=X(v),cv=CS&&!nc?cc(v):null;if(cv){col=cv;if(fill!=="var(--card)")fill=cv}let o=`<circle cx="${x}" cy="${AY}" r="${6.5*K}" fill="${fill}" stroke="${col}" stroke-width="${2.5*K}"/>`;
+  if(force||used.every(u=>Math.abs(u-x)>tf*2)){used.push(x);LB.push({x,y:AY-16*K-8,t:lab,c:col,bg:1})}return o};
+ const vj=((op==="mul"||op==="div")&&!SG)?(vis>0?J:[]):J.slice(0,vis);
+ vj.forEach(j=>{const dx=Math.abs(X(j.t)-X(j.f)),h=Math.max(18,Math.min(120,dx*.32));s+=arc(X(j.f),X(j.t),AY,h,j.c,dx>tf*1.4?j.l:"",j.c==="rest")});
+ const last=vj.length?vj[vj.length-1].t:start;
+ 
+ // Punkte
+ let pd="";
+ if(op==="div")pd+=dot(a,"var(--card)",fmt(a),"var(--ok)",true);
+ else if(vis===T&&!solved)pd+=dot(last,"var(--card)","?","var(--ok)",true,true);
+ else if(vis===T&&solved)pd+=dot(res,"var(--ok)",fmt(res),"var(--ok)",true);
+ pd+=dot(start,"var(--ink)",fmt(start),"var(--ink)",true);
+ vj.forEach((j,i)=>{if(i<vj.length-1&&(op==="add"||op==="sub"||SG))pd+=dot(j.t,"var(--card)",fmt(j.t),"var(--mute)",false)});
+ 
+ if(op==="div"){const cnt=vj.filter(j=>j.c!=="rest").length;
+  s+=pd+`<text class="lab" x="500" y="${tf+14}" fill="var(--ink)">${solved?(rt?rt.replace("Rest","Rest"):fmt(res))+" Sprünge der Länge "+fmt(Math.abs(b)):(vis>0?cnt:"?")+" Sprünge der Länge "+fmt(Math.abs(b))}</text>`}
+ else s+=pd;
+ LB.forEach(l=>{const w=l.t.length*tf*.62+14;s+=(l.bg?`<rect x="${l.x-w/2}" y="${l.y-tf-1}" width="${w}" height="${tf+9}" rx="6" fill="var(--card)" fill-opacity=".72"/>`:"")+`<text class="lab" x="${l.x}" y="${l.y}" fill="${l.c}">${l.t}</text>`});sv.innerHTML=s+"</g>";
+ // Texte
+ const parts=[fmt(a),SYM[op],par(b)];
+ $("eq").innerHTML=parts.join(" ")+" = "+(solved?`<span class="q">${rt||fmt(res)}</span>`:"?");
+ $("eq").style.fontSize=Math.max(22,tf)+"px";$("terms").textContent="Fachbegriffe: "+TERMS[op];
+ let ex="";
+ if(op==="add")ex=b>=0?`Start bei ${fmt(a)}. Addieren heißt: ${fmt(b)} nach rechts gehen (Pfeil nach rechts).`:`Start bei ${fmt(a)}. Eine negative Zahl addieren heißt: ${fmt(-b)} nach links gehen.`;
+ if(op==="sub")ex=b>=0?`Start bei ${fmt(a)}. Subtrahieren heißt: ${fmt(b)} nach links gehen (Pfeil nach links).`:`Start bei ${fmt(a)}. Eine negative Zahl subtrahieren heißt: ${fmt(-b)} nach rechts gehen, denn ${MINUS}(${fmt(b)}) = +${fmt(-b)}.`;
+ if(op==="mul")ex=`Multiplikation als wiederholte Addition: ${fmt(Math.abs(a))} Sprünge der Länge ${fmt(b)} von der 0 aus.`+(a<0?" Der erste Faktor ist negativ, deshalb wird die Richtung umgekehrt.":"");
+ if(op==="div")ex=`Division als Messen: Wie oft passt ${fmt(Math.abs(b))} in ${fmt(Math.abs(a))}? Sprünge der Länge ${fmt(Math.abs(b))} von der 0 bis ${fmt(a)}.`+((a<0)!==(b<0)&&a!==0?" Vorzeichen verschieden, also ist der Quotient negativ.":" Vorzeichen gleich, also ist der Quotient positiv.");
+ $("explain").textContent=ex;
+ 
+ $("stepinfo").textContent=T?`Schritt ${vis} von ${T}`:"";
+ $("prev").disabled=L===0;$("next").disabled=L===total;
+}
+function chg(){L=0;$("solve").checked=false;$("guess").value="";$("fb").textContent="";render()}
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){const t=a%b;a=b;b=t}return a}
+const nd=x=>String(Math.floor(Math.abs(x))).length;
+const FST=(()=>{const r=[[1,1000],[1,500],[1,250],[1,200],[1,100],[1,50],[1,25],[1,20],[1,10],[1,8],[1,5],[1,4],[1,2]];for(let p=0;p<=9;p++)[1,2,5].forEach(m=>r.push([m*Math.pow(10,p),1]));return r})();
+const DST=(()=>{const r=[];for(let p=-3;p<=9;p++)[1,2,5].forEach(m=>r.push([m,p]));return r})();
+function renderFree(){
+ const sv=$("svg"),S=mode==="strahl",lo=V[0],hi=V[1],R=hi-lo,tf=+$("tf").value,fr=FMT==="frac",AY=140,X=v=>60+(v-lo)/R*880,tk=+$("tk").value;
+ K=Math.max(.8,tf/24);document.documentElement.dataset.theme=$("dk").checked?"dark":"light";CS=$("cs").checked;document.documentElement.dataset.cs=CS?"1":"";
+ $("warn").style.display="none";["eq","terms","explain","stepinfo"].forEach(i=>{$(i).textContent=""});
+ const mxa=Math.max(Math.abs(lo),Math.abs(hi)),neg=lo<0;let n=1,d=1,dd=0,st=1;
+ if(fr){let f=FST[FST.length-1];for(const c of FST){const w=c[1]===1?(nd(mxa)+(neg?1:0))*tf*.62:Math.max(nd(mxa*c[1]),String(c[1]).length)*tf*.55+(neg?tf*.7:0);if(880*c[0]/c[1]/R>=Math.max(tk,w+16)){f=c;break}}n=f[0];d=f[1];st=n/d}
+ else{let f=DST[DST.length-1];for(const c of DST){const sz=c[0]*Math.pow(10,c[1]),g=Math.max(0,-c[1]),w=(nd(mxa)+(g?g+1:0)+(neg?1:0))*tf*.62;if(880*sz/R>=Math.max(tk,w+16)){f=c;break}}st=f[0]*Math.pow(10,f[1]);dd=Math.max(0,-f[1])}
+ sv.setAttribute("viewBox","0 0 1000 "+Math.ceil(AY+tf*(fr?1.75:1.3)+40));sv.style.setProperty("--tf",tf+"px");sv.style.setProperty("--lf",(tf+1)+"px");
+ const x0=S?X(0):24,zc=Math.min(976,Math.max(x0,X(0))),cE=CS?(zc>=976?"var(--cn)":"var(--cp)"):"var(--ink)",sw=2.5*K;
+ let s=CS?`<line x1="${x0}" y1="${AY}" x2="${zc}" y2="${AY}" stroke="var(--cn)" stroke-width="${sw}"/><line x1="${zc}" y1="${AY}" x2="976" y2="${AY}" stroke="var(--cp)" stroke-width="${sw}"/>`:`<line x1="${x0}" y1="${AY}" x2="976" y2="${AY}" stroke="var(--ink)" stroke-width="${sw}"/>`;
+ s+=`<polygon points="${976+8*K},${AY} ${976-6*K},${AY-6*K} ${976-6*K},${AY+6*K}" fill="${cE}"/>`;
+ if(S)s+=`<line x1="${x0}" y1="${AY-14*K}" x2="${x0}" y2="${AY+14*K}" stroke="var(--ink)" stroke-width="${3*K}"/>`;
+ const i0=Math.ceil(lo/st-1e-9),i1=Math.floor(hi/st+1e-9);
+ for(let i=i0;i<=i1;i++){
+  const v=fr?i*n/d:Math.round(i*st*1e9)/1e9,x=X(v),z=Math.abs(v)<1e-12,tc=CS?cc(v):"var(--ink)",lc=CS?cc(v):(z?"var(--ink)":"var(--mute)");
+  s+=`<line x1="${x}" y1="${AY-8*K}" x2="${x}" y2="${AY+8*K}" stroke="${tc}" stroke-width="${2*K}"/>`;
+  const nn=i*n,g=fr?(gcd(nn,d)||1):1,pn=Math.abs(nn)/g,pd=d/g;
+  if(fr&&pd>1){const fs=tf*.85,bw=Math.max(String(pn).length,String(pd).length)*fs*.62+8,by=AY+14+fs;
+   s+=`<text class="t" style="font-size:${fs}px;fill:${lc}" x="${x}" y="${by-3}">${pn}</text><line x1="${x-bw/2}" y1="${by}" x2="${x+bw/2}" y2="${by}" stroke="${lc}" stroke-width="1.6"/><text class="t" style="font-size:${fs}px;fill:${lc}" x="${x}" y="${by+fs+1}">${pd}</text>`+(nn<0?`<text class="t" style="fill:${lc}" x="${x-bw/2-tf*.4}" y="${by+tf*.32}">${MINUS}</text>`:"")}
+  else{const t=z?"0":fr?String(nn/d).replace("-",MINUS):v.toFixed(dd).replace(".",",").replace("-",MINUS);s+=`<text class="t" x="${x}" y="${AY+10+tf}" style="fill:${lc};${z?"font-weight:700":""}">${t}</text>`}
+ }
+ sv.innerHTML=s;
+}
+function clampV(lo,hi){const mw=FREE?.01:($("dec").checked?.02:2),w=Math.min(1e6,Math.max(mw,hi-lo)),c=(lo+hi)/2;return mode==="strahl"?[0,w]:[c-w/2,c+w/2]}
+function syncF(){$("mn").value=fmt(Math.round(V[0]*1e4)/1e4);$("mx").value=fmt(Math.round(V[1]*1e4)/1e4)}
+function setV(lo,hi){V=clampV(lo,hi);syncF();render()}
+function adapt(){const lo=mode==="strahl"?0:num($("mn").value),hi=num($("mx").value);if(isNaN(lo)||isNaN(hi)||!(hi>lo)){syncF();render();return}V=clampV(lo,hi);syncF();FREE?render():rnd()}
+function zoom(f){const c=(V[0]+V[1])/2,w=(V[1]-V[0])*f;setV(mode==="strahl"?0:c-w/2,mode==="strahl"?w:c+w/2)}
+function pan(d){if(mode==="strahl")return;const w=V[1]-V[0];setV(V[0]+d*w,V[1]+d*w)}
+function fitView(){const M=model();if(M.err)return;const p=[0,M.start,M.res].concat(M.J.map(j=>j.t),M.J.map(j=>j.f));if(M.op==="div")p.push(M.a);const mn=Math.min(...p),mx=Math.max(...p),pd=(mx-mn||1)*.1;setV(mode==="strahl"?0:mn-pd,mx+pd)}
+function hold(id,fn){const b=$(id);let t;const stop=()=>clearInterval(t);b.addEventListener("pointerdown",e=>{e.preventDefault();fn();stop();t=setInterval(fn,110)});["pointerup","pointerleave","pointercancel"].forEach(ev=>b.addEventListener(ev,stop))}
+hold("zi",()=>zoom(1/1.05));hold("zo",()=>zoom(1.05));hold("pl",()=>pan(-.1));hold("pr",()=>pan(.1));
+$("pc").onclick=()=>{const w=V[1]-V[0];setV(-w/2,w/2)};$("fit2").onclick=fitView;$("dec").onchange=adapt;const LS="zs-settings";
+function saveS(){try{localStorage.setItem(LS,JSON.stringify({tf:$("tf").value,tk:$("tk").value,lb:$("lb").value,dk:$("dk").checked,cs:$("cs").checked}))}catch(e){}}
+function loadS(){try{const s=JSON.parse(localStorage.getItem(LS)||"null");if(s){["tf","tk","lb"].forEach(k=>{if(s[k])$(k).value=s[k]});$("dk").checked=!!s.dk;$("cs").checked=!!s.cs}}catch(e){}}
+const sr=()=>{saveS();render()};$("tf").oninput=sr;$("tk").oninput=sr;$("lb").oninput=sr;$("dk").onchange=sr;$("cs").onchange=sr;
+function togglePres(){const on=document.body.classList.toggle("pres");$("pres").textContent=on?"Präsentation beenden":"Präsentationsmodus";try{if(on)document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen().catch(()=>{});else if(document.fullscreenElement)document.exitFullscreen()}catch(e){}}
+$("pres").onclick=togglePres;
+function setFree(f){FREE=f;document.body.classList.toggle("free",f);$("mA").classList.toggle("on",!f);$("mF").classList.toggle("on",f);$("lfmt").style.display=f?"flex":"none";[$("op").parentNode,$("dec").parentNode].forEach(e=>{e.style.display=f?"none":""});$("fit2").style.display=f?"none":"";if(f){V=clampV(V[0],V[1]);syncF();chg()}else adapt()}
+$("mA").onclick=()=>setFree(false);$("mF").onclick=()=>setFree(true);
+const setF=m=>{FMT=m;$("fD").classList.toggle("on",m==="dec");$("fB").classList.toggle("on",m==="frac");render()};
+$("fD").onclick=()=>setF("dec");$("fB").onclick=()=>setF("frac");
+document.addEventListener("fullscreenchange",()=>{if(!document.fullscreenElement&&document.body.classList.contains("pres"))togglePres()});
+document.addEventListener("keydown",e=>{const t=e.target,tg=t.tagName;if(tg==="SELECT"||tg==="TEXTAREA"||(tg==="INPUT"&&(t.type==="text"||t.type==="range"))||e.ctrlKey||e.metaKey||e.altKey)return;
+ const k=e.key.toLowerCase();let h=true;
+ if(k==="arrowright")$("next").click();else if(k===" "||k==="n")rnd();else if(k==="arrowleft"||k==="backspace")$("prev").click();else if(k==="l"){$("solve").checked=!$("solve").checked;$("solve").onchange()}else if(k==="p")togglePres();else if(k==="escape"&&document.body.classList.contains("pres"))togglePres();else h=false;
+ if(h){e.preventDefault();if(tg==="BUTTON")t.blur()}});
+document.addEventListener("keyup",e=>{if(e.key===" "&&e.target.tagName==="BUTTON")e.preventDefault()});
+$("rst").onclick=()=>{store.strahl=[0,10];store.gerade=[-10,10];$("dec").checked=false;$("tf").value=24;$("tk").value=24;$("lb").value=40;$("dk").checked=matchMedia("(prefers-color-scheme:dark)").matches;$("cs").checked=false;V=store[mode].slice();syncF();adapt();saveS()};
+let drag=null;const sv0=$("svg");
+sv0.addEventListener("pointerdown",e=>{if(mode==="strahl")return;drag={x:e.clientX,v:V.slice()};sv0.setPointerCapture(e.pointerId)});
+sv0.addEventListener("pointermove",e=>{if(!drag)return;const w=drag.v[1]-drag.v[0],d=-(e.clientX-drag.x)/(sv0.getBoundingClientRect().width*.88)*w;setV(drag.v[0]+d,drag.v[1]+d)});
+["pointerup","pointercancel"].forEach(ev=>sv0.addEventListener(ev,()=>{drag=null}));
+sv0.addEventListener("wheel",e=>{if(!(e.ctrlKey||e.metaKey))return;e.preventDefault();const n=Math.max(1,Math.min(3,Math.round(Math.abs(e.deltaY)/100))),f=Math.pow(1.05,e.deltaY>0?n:-n),w=V[1]-V[0],nw=w*f;
+ if(mode==="strahl"){setV(0,nw);return}
+ const r=sv0.getBoundingClientRect(),k=((e.clientX-r.left)/r.width*1000-60)/880,lo=V[0]+k*w-k*nw;setV(lo,lo+nw)},{passive:false});
+["a","b","split","single"].forEach(i=>$(i).addEventListener("input",chg));
+["mn","mx"].forEach(i=>$(i).addEventListener("change",adapt));
+$("op").onchange=()=>{/^mix/.test($("op").value)?rnd():chg()};$("rnd").onclick=rnd;
+$("chk").onclick=()=>{const M=model();if(M.err)return;const g=num($("guess").value),ok=!isNaN(g)&&(Math.abs(g-M.res)<1e-6||(M.qs!==null&&g===M.qs));$("fb").textContent=isNaN(g)?"Bitte eine Zahl eingeben.":ok?"Richtig!":"Noch nicht richtig. Versuche es noch einmal.";$("fb").style.color=ok?"var(--ok)":"var(--neg)"};
+$("guess").addEventListener("keydown",e=>{if(e.key==="Enter")$("chk").click()});
+$("solve").onchange=()=>{L=$("solve").checked?T+1:0;render()};
+$("prev").onclick=()=>{L=Math.max(0,L-1);render()};
+$("next").onclick=()=>{L=Math.min(T+1,L+1);render()};
+function setMode(m){store[mode]=V.slice();mode=m;
+ $("mS").classList.toggle("on",m==="strahl");$("mG").classList.toggle("on",m==="gerade");
+ $("lmn").style.display=m==="strahl"?"none":"flex";V=store[m].slice();syncF();adapt()}
+$("mS").onclick=()=>setMode("strahl");$("mG").onclick=()=>setMode("gerade");
+$("dk").checked=matchMedia("(prefers-color-scheme:dark)").matches;loadS();$("lmn").style.display="none";syncF();render();
+</script></main></body></html>

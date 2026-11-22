@@ -96,6 +96,8 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 #rot{display:none;align-items:center;justify-content:center;gap:10px;padding:5px 10px;background:var(--c-ctrl);color:var(--fg);border-bottom:1px solid var(--c-ctrl-bd);font-size:13px}
 #rot.gone{display:none!important}
 @media (orientation:portrait) and (max-width:700px){#rot{display:flex}}
+#side.compact .lb,#side.compact .sh{display:none}
+#side.compact button{padding:6px;justify-content:center;min-width:40px;min-height:40px}
 @media (max-height:820px){#side{gap:4px}#side .g{gap:3px}#side button{padding:4px 8px;min-height:28px}}
 @media (max-width:820px),(max-height:560px){
  #side{padding:6px 4px}
@@ -103,10 +105,23 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
  #side .g{display:grid;grid-template-columns:repeat(2,auto)}
  #side button{padding:6px;justify-content:center;min-width:40px;min-height:40px}
 }
+@media (max-width:820px),(max-height:560px){#sideMin{display:none}}
 @media (max-height:430px){#side .g{grid-template-columns:repeat(3,auto)}}
-</style></head><body>
+</style>
+<script>
+/* Lösungswege: MathJax 4 mit STIX-Two-Schrift (SVG-Ausgabe); ohne Internet greift die einfache Textdarstellung */
+window.MathJax={startup:{typeset:false,ready(){MathJax.startup.defaultReady();MathJax.startup.promise.then(()=>{window.__mathReady=true;if(typeof draw==='function')draw()})}},
+ svg:{fontCache:'none',linebreaks:{inline:false}},output:{font:'mathjax-stix2'},options:{enableMenu:false,enableAssistiveMml:false}};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-svg.js"></script>
+</head><body>
 <div id="app">
 <nav id="side" aria-label="Werkzeuge">
+ <div class="g" id="sidetop">
+  <button id="tog" class="cat-act" title="Kartenleiste oben ausblenden"><span class="ic">▲</span><span class="lb">Karten ausblenden</span></button>
+  <button id="sideMin" class="cat-act" title="Menü auf Symbole reduzieren"><span class="ic">«</span><span class="lb">Menü verkleinern</span></button>
+ </div>
+ <hr>
  <span class="sh">Werkzeuge</span>
  <div class="g" id="modes"></div>
  <hr>
@@ -119,9 +134,12 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   <button id="docSave" class="cat-act" title="Konstruktion samt allen Einstellungen als Datei speichern"><span class="ic">💾</span><span class="lb">Speichern</span></button>
   <button id="docLoad" class="cat-act" title="Konstruktion aus Datei öffnen"><span class="ic">📂</span><span class="lb">Öffnen</span></button>
   <input type="file" id="docFile" accept=".json,application/json" style="display:none">
+  <!-- vorerst deaktiviert: Link-Export
   <button id="docLink" class="cat-act" title="Link zur Konstruktion kopieren"><span class="ic">🔗</span><span class="lb">Link</span></button>
+  -->
+  <!-- vorerst deaktiviert: PNG-Export
   <button id="docPng" class="cat-act" title="Zeichenfläche als Bild (PNG) speichern"><span class="ic">🖼</span><span class="lb">PNG</span></button>
-  <button id="tog" class="cat-act" title="Kartenleiste oben ausblenden"><span class="ic">▲</span><span class="lb">Karten ausblenden</span></button>
+  -->
   <button id="themeBtn" class="cat-act" type="button" title="Hell/Dunkel wechseln" aria-label="Hell/Dunkel wechseln"><span class="ic">☾</span><span class="lb">Dunkelmodus</span></button>
  </div>
 </nav>
@@ -133,10 +151,21 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   <div class="grp"><b>Zeichnen</b>
    <label><input type="checkbox" id="ras" checked> am Raster fangen</label>
    <label><input type="checkbox" id="fix" > freie Längen</label>
-   <label><input type="checkbox" id="auto" checked> Punkte benennen</label>
-   <label><input type="checkbox" id="autol" checked> Strecken/Geraden benennen</label>
-   <label><input type="checkbox" id="autoa" checked> Winkel benennen</label>
-   <label><input type="checkbox" id="autof" checked> Flächen benennen</label></div>
+   <div class="pop-wrap" id="namPopWrap">
+    <button type="button" id="namBtn">Benennen ▾</button>
+    <div class="pop-menu" id="namMenu">
+     <label><input type="checkbox" id="auto" checked> Punkte</label>
+     <label><input type="checkbox" id="autol" checked> Strecken/Geraden</label>
+     <label><input type="checkbox" id="autoa" checked> Winkel</label>
+     <label><input type="checkbox" id="autof" checked> Flächen</label>
+    </div>
+   </div>
+   <label>Punkte <select id="ptStyleSel">
+    <option value="cross" selected>Kreuz</option>
+    <option value="circle">Kreis</option>
+    <option value="plus">Strich</option>
+    <option value="none">Ausblenden</option>
+   </select></label></div>
   <div class="grp"><b>Anzeige</b>
    <div class="pop-wrap" id="labPopWrap">
     <button type="button" id="labBtn">Bezeichnungen ▾</button>
@@ -156,18 +185,12 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   <div class="grp"><b>Darstellung</b>
    <label>Schriftgröße <input type="range" id="fs" min="12" max="36" value="20"></label>
    <label>Einheit <select id="unit"><option value="mm">mm</option><option value="cm" selected>cm</option><option value="dm">dm</option><option value="m">m</option><option value="km">km</option></select></label>
-   <label>Punkte <select id="ptStyleSel">
-    <option value="cross" selected>Kreuz</option>
-    <option value="circle">Kreis</option>
-    <option value="plus">Strich</option>
-    <option value="none">Ausblenden</option>
-   </select></label>
    <div class="pal-row"><span>Farbe</span><span id="mainSwatches" class="pal-row"></span><span class="rainbow-pick" title="Eigene Farbe wählen"><input type="color" id="fc" value="#1a1a1a"></span></div></div>
   <div class="grp"><b>Berechnungen</b>
-   <label><input type="checkbox" id="d3"> in 3D (verzerrt)</label>
+   <label><input type="checkbox" id="d3"> Winkel und Längen in 3D</label>
    <label><input type="checkbox" id="siz"> Größen anzeigen</label>
    <label><input type="checkbox" id="onlyn"> ... an allen Strecken</label>
-   <label><input type="checkbox" id="sol"> Lösungswege</label></div>
+   <label title="Nur mit eingeschalteter Legende"><input type="checkbox" id="sol"> Lösungswege</label></div>
   <div class="grp"><b>Rekorder</b>
    <div class="g"><button id="brec">● Aufnahme starten</button><button id="bplay">▶ Abspielen</button></div>
    <div class="g"><button id="bsave">💾 Aufnahme</button><button id="bload">📂 Aufnahme</button><input type="file" id="bfile" accept=".json,application/json" style="display:none"></div>
@@ -184,7 +207,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 </div></div>
 <script>
 const $=id=>document.getElementById(id),cv=$('c'),ctx=cv.getContext('2d'),inp=$('inp'),inpBox=$('inpBox'),inpOk=$('inpOk'),ctxMenu=$('ctxMenu');
-let P=[],L=[],K=[],A=[],F=[],BD=[],Q=[],nid=1,hist=[],redoSt=[],start=null,sel=[],faceWithEdges=false,multiSel=[],bsel=null,mode='line',grid='dots',showGrid=true,ptStyle='cross',hover=null,hl=-1,hk=-1,W=0,H=0,k=100,ox=0,oy=0,fs=16,mouse={x:0,y:0},drag=null,space=false,shiftDown=false,M=new Map(),crossKey='',crossCache=[],legPos=null,legR=null,legRows=[],rec=false,snaps=[],manualStep=-1,playing=false,live=null,pi=0,pt=null,touchPointers=new Map(),pinch=null,touchTap=null,touchGesture=false,touchHoldTimer=null,touchLongPressed=false,touchMoved=false,lastTouchTapTime=0,lastTouchTapPos=null,lastTwoFingerTapTime=0,twoFingerMoved=false,isTouch=false,geoPos=null,geoDrag=null,geoSize=100,geoAngle=0,compass=null,ctxTargets=null,rmbDown=null;
+let P=[],L=[],K=[],A=[],F=[],BD=[],Q=[],nid=1,hist=[],redoSt=[],actSnap=null,actLen=0,start=null,sel=[],faceWithEdges=false,multiSel=[],bsel=null,mode='line',grid='dots',showGrid=true,ptStyle='cross',hover=null,hl=-1,hk=-1,W=0,H=0,k=100,ox=0,oy=0,fs=16,mouse={x:0,y:0},drag=null,space=false,shiftDown=false,M=new Map(),crossKey='',crossCache=[],legPos=null,legR=null,legRows=[],rec=false,snaps=[],manualStep=-1,playing=false,live=null,pi=0,pt=null,touchPointers=new Map(),pinch=null,touchTap=null,touchGesture=false,touchHoldTimer=null,touchLongPressed=false,touchMoved=false,lastTouchTapTime=0,lastTouchTapPos=null,lastTwoFingerTapTime=0,twoFingerMoved=false,isTouch=false,geoPos=null,geoDrag=null,geoSize=100,geoAngle=0,compass=null,ctxTargets=null,rmbDown=null;
 const STD_COLORS=['#1a1a1a','#d92626','#1c64f2','#0e9f6e','#e3a008'];
 const geoImg=new Image();
 geoImg.src='Geodreieck.png';
@@ -266,19 +289,34 @@ function ui(){
 }
 function hideCtx(){ctxMenu.style.display='none';ctxTargets=null}
 function cancelActive(){start=null;sel=[];faceWithEdges=false;multiSel=[];bsel=null;compass=null;drag=null;pinch=null;rmbDown=null;hideCtx();$('hint').textContent=HINTS[mode]}
-function setMode(m){mode=m;cancelActive();inpBox.style.display='none';cv.style.cursor=m=='select'?'default':'crosshair';ui();draw()}
+function setMode(m){abortAction();mode=m;cancelActive();inpBox.style.display='none';cv.style.cursor=m=='select'?'default':'crosshair';ui();draw()}
 function resize(){const r=cv.parentNode.getBoundingClientRect(),d=devicePixelRatio||1;W=r.width;H=r.height;cv.width=W*d;cv.height=H*d;ctx.setTransform(d,0,0,d,0,0);if(!ox&&!oy){ox=Math.round(W/2);oy=Math.round(H/2)}draw()}
 new ResizeObserver(()=>resize()).observe($('w'));
+function setSideCompact(c){
+ $('side').classList.toggle('compact',c);
+ $('sideMin').innerHTML='<span class="ic">'+(c?'»':'«')+'</span><span class="lb">Menü verkleinern</span>';
+ $('sideMin').title=c?'Menü mit Beschriftung anzeigen':'Menü auf Symbole reduzieren';
+}
+$('sideMin').onclick=e=>{setSideCompact(!$('side').classList.contains('compact'));e.currentTarget.blur()};
 function setOpts(open){
  $('opts').style.display=open?'flex':'none';
  $('tog').innerHTML='<span class="ic">'+(open?'▲':'▼')+'</span><span class="lb">Karten '+(open?'ausblenden':'einblenden')+'</span>';
  $('tog').title=open?'Kartenleiste oben ausblenden':'Kartenleiste oben einblenden';
- labMenu.classList.remove('open');
+ labMenu.classList.remove('open');namMenu.classList.remove('open');
 }
 $('tog').onclick=e=>{setOpts($('opts').style.display==='none');e.currentTarget.blur()};
 $('rotX').onclick=()=>$('rot').classList.add('gone');
 const push=()=>{hist.push(snap());if(hist.length>100)hist.shift();redoSt.length=0;if(rec&&!drag)setTimeout(capture,0)};
-function undo(){if(playing)return;if(hist.length){redoSt.push(snap());if(rec&&snaps.length>1)snaps.pop();load(JSON.parse(hist.pop()));cancelActive();rebuild();draw()}}
+function undo(){if(playing)return;if(abortAction()){cancelActive();draw();return}if(hist.length){redoSt.push(snap());if(rec&&snaps.length>1)snaps.pop();load(JSON.parse(hist.pop()));cancelActive();rebuild();draw()}}
+/* Laufende Winkel-/Flächenaktion abbrechen: alles, was sie angelegt hat, wird zurückgenommen */
+function abortAction(){
+ const s=actSnap;actSnap=null;
+ if(!s||!sel.length||(mode!=='angle'&&mode!=='face'))return false;
+ load(JSON.parse(s));hist.length=Math.min(hist.length,actLen);redoSt.length=0;
+ start=null;sel=[];faceWithEdges=false;rebuild();
+ if(rec)setTimeout(capture,0);
+ return true;
+}
 function redo(){if(playing||!redoSt.length)return;hist.push(snap());load(JSON.parse(redoSt.pop()));cancelActive();rebuild();if(rec)capture();draw()}
 function deleteSelection(){
  if(playing||!multiSel.length)return;
@@ -331,6 +369,59 @@ const num=v=>typeof v==='number'&&Number.isFinite(v);
 const okCol=c=>typeof c==='string'&&/^#[0-9a-f]{6}$/i.test(c)?c.toLowerCase():null;
 const strL=l=>typeof l==='string'?l.slice(0,100):'';
 /* Farbe eines Objekts (Winkel speichern sie in "col", alles andere in "c") */
+/* Objekte lassen sich nur ausblenden, wenn sie in der Legende stehen (dort kann man sie wieder einblenden) */
+function legendable(t){
+ const o=t.obj;if(!$('leg').checked)return false;
+ switch(t.kind){
+  case 'p':return !!o.l&&$('legpts').checked;
+  case 'l':return !o.inf&&!!o.l;
+  case 'k':return o.s==='circle'&&!!o.l;
+  case 'a':return true;
+  case 'f':return !!o.l;
+  default:return false;
+ }
+}
+function revealUnreachable(){
+ let n=0;
+ const chk=(arr,kind)=>arr.forEach(o=>{if(o.vis===false&&!legendable({kind,obj:o})){o.vis=true;n++}});
+ chk(P,'p');chk(L,'l');chk(K,'k');chk(A,'a');chk(F,'f');chk(Q,'t');
+ if(n)$('hint').textContent=n+' ausgeblendete(s) Objekt(e) wieder eingeblendet, da ohne Legende nicht mehr erreichbar.';
+ return n;
+}
+const mathCache=new Map();
+const okSol=r=>!!r.s&&!/nicht|bestimmbar/.test(r.s);
+function toTex(s){
+ s=String(s).replace(/[\\{}$&#%~^`]/g,'');
+ const sq=t=>{let out='',i=0;
+  while(i<t.length){
+   if(t[i]==='√'&&t[i+1]==='('){let d=1,j=i+2;while(j<t.length&&d>0){if(t[j]==='(')d++;else if(t[j]===')')d--;j++}out+='\\sqrt{'+sq(t.slice(i+2,d?j:j-1))+'}';i=j}
+   else out+=t[i++];
+  }return out};
+ return sq(s).replace(/(\d),(\d)/g,'$1{,}$2').replace(/\b(sin|cos)\(/g,'\\$1(')
+  .replace(/_([A-Za-z0-9]+)/g,'_{$1}').replace(/²/g,'^{2}').replace(/·/g,'\\cdot ').replace(/½/g,'\\tfrac{1}{2}')
+  .replace(/π/g,'\\pi ').replace(/°/g,'^{\\circ}').replace(/\s(mm|cm|dm|m|km)(\^\{2\})?$/,'\\,\\mathrm{$1}$2');
+}
+/* liefert ein fertiges Bild (STIX Two, SVG) oder null, solange MathJax fehlt/lädt → dann Textdarstellung */
+function mathImg(tex,col,fz){
+ if(!window.__mathReady||!window.MathJax||!MathJax.tex2svgPromise)return null;
+ const key=tex+'|'+col+'|'+fz;let e=mathCache.get(key);
+ if(e)return e.ready?e:null;
+ if(mathCache.size>300)mathCache.clear();
+ e={ready:false};mathCache.set(key,e);
+ MathJax.tex2svgPromise(tex,{display:false}).then(node=>{
+  if(node.querySelector('[data-mjx-error]'))throw new Error('tex');
+  const host=document.createElement('div');
+  host.style.cssText='position:absolute;left:-9999px;top:0;font-size:'+fz+'px';
+  host.appendChild(node);document.body.appendChild(host);
+  const svg=node.querySelector('svg'),r=svg.getBoundingClientRect();
+  host.remove();
+  svg.setAttribute('width',r.width);svg.setAttribute('height',r.height);svg.setAttribute('style','color:'+col);
+  const img=new Image();
+  img.onload=()=>{e.img=img;e.w=r.width;e.h=r.height;e.ready=true;draw()};
+  img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(new XMLSerializer().serializeToString(svg));
+ }).catch(()=>{});
+ return null;
+}
 const inkOf=o=>o?(typeof o.col==='string'?o.col:(typeof o.c==='string'?o.c:'')):'';
 
 /* Dateien und Links sind fremde Daten: Struktur prüfen und bereinigen */
@@ -380,7 +471,7 @@ function applyUI(o){
 function collectDoc(){
  return{typ:'geometrie-konstruktion',v:2,
   state:JSON.parse(snap()),
-  view:{cx:wx(W/2),cy:wy(H/2),k,grid,showGrid,ptStyle,mode},
+  view:{cx:wx(W/2),cy:wy(H/2),k,grid,showGrid,ptStyle,mode,sideCompact:$('side').classList.contains('compact')},
   ui:collectUI(),
   legend:legPos&&W&&H?{fx:legPos.x/W,fy:legPos.y/H}:null,
   geodreieck:{pos:geoPos,size:geoSize,angle:geoAngle},
@@ -392,14 +483,17 @@ function applyDoc(d){
  if(!d||typeof d!=='object')throw new Error('format');
  if(d.typ==='geometrie-konstruktion'&&Array.isArray(d.state)){
   const st=cleanState(d.state);
+  actSnap=null;
   if(playing)stop();
   rec=false;snaps=[];manualStep=-1;
   push();
   load(st);
   applyUI(d.ui);
+  if(!$('leg').checked)$('sol').checked=false;
   const v=d.view&&typeof d.view==='object'?d.view:{};
   if(v.grid==='dots'||v.grid==='karo')grid=v.grid;
   if(typeof v.showGrid==='boolean')showGrid=v.showGrid;
+  if(typeof v.sideCompact==='boolean')setSideCompact(v.sideCompact);
   if(['cross','circle','plus','none'].includes(v.ptStyle))$('ptStyleSel').value=v.ptStyle;
   ptStyle=$('ptStyleSel').value;
   if(typeof v.coords==='boolean')$('coords').checked=v.coords;
@@ -424,6 +518,7 @@ function applyDoc(d){
   if(Array.isArray(d.recorder)&&d.recorder.length>1){
    try{snaps=d.recorder.map(s=>JSON.stringify(cleanState(s)))}catch(err){snaps=[]}
   }
+  revealUnreachable();
   sync();rebuild();
   setMode(MODES.some(m=>m[0]===v.mode)?v.mode:mode);
   if(needFit||!fitsOnScreen())fitView();
@@ -484,6 +579,7 @@ async function unpackDoc(code){
  if(bytes.length>4e6)throw new Error('zu groß');
  return JSON.parse(new TextDecoder().decode(bytes));
 }
+/* vorerst deaktiviert: Link-Export
 $('docLink').onclick=async e=>{
  e.currentTarget.blur();
  try{
@@ -496,6 +592,7 @@ $('docLink').onclick=async e=>{
   $('hint').textContent=(copied?'Link in die Zwischenablage kopiert':'Link erzeugt')+' ('+url.length+' Zeichen)'+(url.length>6000?' – sehr lang; für Messenger besser die Datei ablegen und per ?src=Adresse aufrufen.':'.');
  }catch(err){$('hint').textContent='Link konnte nicht erzeugt werden.'}
 };
+*/
 async function bootFromUrl(){
  try{
   const mk=/(?:^|[#&])k=([^&]+)/.exec(location.hash);
@@ -524,6 +621,7 @@ async function bootFromUrl(){
 }
 addEventListener('hashchange',()=>{if(/(?:^|[#&])k=/.test(location.hash))bootFromUrl()});
 
+/* vorerst deaktiviert: PNG-Export
 $('docPng').onclick=e=>{
  e.currentTarget.blur();
  try{
@@ -539,6 +637,7 @@ $('docPng').onclick=e=>{
   },'image/png');
  }catch(err){$('hint').textContent='PNG-Export nicht möglich (das Geodreieck-Bild blockiert ihn). Geodreieck ausblenden und erneut versuchen.'}
 };
+*/
 
 /* Bezeichnungen-Menü */
 const labBtn=$('labBtn'),labMenu=$('labMenu'),labPopWrap=$('labPopWrap');
@@ -550,12 +649,21 @@ function updateLabAllBtn(){
 labBtn.onclick=e=>{
  e.stopPropagation();
  const open=!labMenu.classList.contains('open');
+ namMenu.classList.remove('open');
  labMenu.classList.toggle('open',open);
  if(open){const r=labBtn.getBoundingClientRect();labMenu.style.left=Math.max(4,Math.min(r.left,innerWidth-190))+'px';labMenu.style.top=(r.bottom+4)+'px'}
  updateLabAllBtn();
 };
-$('opts').addEventListener('scroll',()=>labMenu.classList.remove('open'));
-addEventListener('resize',()=>labMenu.classList.remove('open'));
+const namBtn=$('namBtn'),namMenu=$('namMenu'),namPopWrap=$('namPopWrap');
+namBtn.onclick=e=>{
+ e.stopPropagation();
+ const open=!namMenu.classList.contains('open');
+ labMenu.classList.remove('open');
+ namMenu.classList.toggle('open',open);
+ if(open){const r=namBtn.getBoundingClientRect();namMenu.style.left=Math.max(4,Math.min(r.left,innerWidth-190))+'px';namMenu.style.top=(r.bottom+4)+'px'}
+};
+$('opts').addEventListener('scroll',()=>{labMenu.classList.remove('open');namMenu.classList.remove('open')});
+addEventListener('resize',()=>{labMenu.classList.remove('open');namMenu.classList.remove('open')});
 $('labAll').onclick=e=>{
  e.stopPropagation();
  const boxes=[$('labP'),$('labS'),$('labG'),$('labA'),$('labF')];
@@ -569,6 +677,7 @@ $('labAll').onclick=e=>{
 });
 document.addEventListener('pointerdown',e=>{
  if(!labPopWrap.contains(e.target))labMenu.classList.remove('open');
+ if(!namPopWrap.contains(e.target))namMenu.classList.remove('open');
 });
 
 /* Punkte-Stil Dropdown */
@@ -590,10 +699,11 @@ $('bsave').onclick=async e=>{e.target.blur();if(snaps.length<2)return;const data
  try{await triggerJsonDownload('konstruktion-aufnahme.json',data);$('rinfo').textContent='Aufnahme gespeichert'}catch(err){if(!err||err.code!='declined')$('rinfo').textContent='Speichern nicht möglich'}};
 $('bload').onclick=e=>{e.target.blur();$('bfile').click()};
 $('bfile').onchange=e=>{const f=e.target.files[0];e.target.value='';if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.steps||d.steps.length<2||!d.steps.every(s=>Array.isArray(s)&&(s.length==7||s.length==8)))throw 0;if(playing)stop();rec=false;snaps=d.steps.map(s=>JSON.stringify(s));recUI();play()}catch(x){$('rinfo').textContent='Datei konnte nicht gelesen werden'}};r.readAsText(f)};
-function sync(){$('fix').disabled=!$('ras').checked;$('step').disabled=!$('ras').checked||$('fix').checked;$('legpts').disabled=!$('leg').checked}
+function sync(){$('fix').disabled=!$('ras').checked;$('step').disabled=!$('ras').checked||$('fix').checked;$('legpts').disabled=!$('leg').checked;$('sol').disabled=!$('leg').checked}
 document.querySelectorAll('#opts input[type=checkbox]:not(#labMenu input)').forEach(c=>c.onchange=()=>{
  c.blur();
- if(c.id==='leg'&&c.checked)legPos=null;
+ if(c.id==='leg'){if(c.checked)legPos=null;else $('sol').checked=false}
+ if(c.id==='leg'||c.id==='legpts')revealUnreachable();
  sync();draw();
 });
 $('sz').oninput=e=>{zoom(+e.target.value,W/2,H/2)};
@@ -827,8 +937,8 @@ function angGeom(a){
 function angHit(x,y){
  for(let i=A.length-1;i>=0;i--){
   const a=A[i];if(!vis(a))continue;const g=angGeom(a);if(!g)continue;
-  const dx=x-X(g.B.x),dy=y-Y(g.B.y),dist=Math.hypot(dx,dy),rr=g.right?g.r*.75:g.r;
-  if(Math.abs(dist-rr)>=hitRad(g.right?10:8))continue;
+  const dx=x-X(g.B.x),dy=y-Y(g.B.y),dist=Math.hypot(dx,dy),rr=g.r;
+  if(Math.abs(dist-rr)>=hitRad(8))continue;
   if(ccwAngleRad(g.a2,Math.atan2(dy,dx))<=g.d+.2)return i;
  }
  return -1;
@@ -979,7 +1089,7 @@ function openCtxMenu(sx,sy,targets){
  const curW=o.w||2;
  const curArrow=o.ar||0;
  const curLbl=hasText?(o.t||''):(o.l||'');
- const allVis=list.every(t=>t.obj.vis!==false);
+ const allVis=list.every(t=>t.obj.vis!==false),canHide=list.every(legendable);
 
  ctxMenu.innerHTML=`
   <div class="ctx-hdr"><span class="ctx-title">${esc(titleText)}</span><button type="button" class="ctx-close" id="ctxX" title="Schließen">✕</button></div>
@@ -988,7 +1098,7 @@ function openCtxMenu(sx,sy,targets){
   ${hasWidth?`<div class="ctx-row"><label>Linienstärke</label><select id="ctxW"><option value="1.5" ${curW==1.5?'selected':''}>Dünn</option><option value="2" ${curW==2?'selected':''}>Normal</option><option value="3.5" ${curW==3.5?'selected':''}>Stark</option><option value="5" ${curW==5?'selected':''}>Sehr stark</option></select></div>`:''}
   ${hasArrow?`<div class="ctx-row"><label>Pfeilspitzen</label><select id="ctxAr"><option value="0" ${curArrow==0?'selected':''}>Keine</option><option value="1" ${curArrow==1?'selected':''}>Rechts (→)</option><option value="2" ${curArrow==2?'selected':''}>Links (←)</option><option value="3" ${curArrow==3?'selected':''}>Beidseitig (↔)</option></select></div>`:''}
   ${(hasLabel||hasText)?`<div class="ctx-row"><label>${hasText?'Text':'Name'}</label><input type="text" id="ctxLbl" value="${esc(curLbl)}" maxlength="100"></div>`:''}
-  ${hasVis?`<div class="ctx-row"><label><input type="checkbox" id="ctxVis" ${allVis?'checked':''}> Sichtbar</label></div>`:''}
+  ${hasVis?`<div class="ctx-row"><label title="${canHide?'':'Ausblenden nur, wenn das Objekt einen Namen hat und in der Legende steht'}"><input type="checkbox" id="ctxVis" ${allVis?'checked':''} ${allVis&&!canHide?'disabled':''}> Sichtbar</label></div>`:''}
   ${single?`<div class="ctx-row"><button type="button" class="ctx-dup" id="ctxDup">⧉ Duplizieren</button></div>`:''}
   <div class="ctx-row"><button type="button" class="ctx-dup" id="ctxDel">🗑 Löschen</button></div>
  `;
@@ -1183,6 +1293,7 @@ function createCompassCircle(centerId,radius,endpointId){const center=M.get(cent
  push();K.push({id:nid++,a:centerId,b:endpointId||null,s:'circle',r:radius,d:0,w:2,vis:true,c:curColor(),l:$('autol').checked?nextK():''});sel=[];compass=null;rebuild()}
 function closeFace(){
  if(sel.length<3)return;
+ actSnap=null;
  push();
  if(faceWithEdges){
   addSegmentIfMissing(sel[sel.length-1],sel[0]);
@@ -1193,7 +1304,7 @@ function closeFace(){
  rebuild();
  draw();
 }
-function closeCircleFace(centerId,ptId){push();F.push({kind:'circle',center:centerId,pt:ptId,c:curColor(),vis:true,l:$('autof').checked?nextF():''});sel=[];faceWithEdges=false;draw()}
+function closeCircleFace(centerId,ptId){push();F.push({kind:'circle',center:centerId,pt:ptId,c:curColor(),vis:true,l:$('autof').checked?nextF():''});actSnap=null;sel=[];faceWithEdges=false;draw()}
 function openInp(kind,i,x,y){inpBox.style.display='flex';inpBox.style.left=Math.min(W-135,Math.max(8,x+8))+'px';inpBox.style.top=Math.min(H-42,Math.max(8,y-30))+'px';inp.dataset.k=kind;inp.dataset.i=i;
  const arr=kind=='p'?P:kind=='l'?L:kind=='k'?K:kind=='a'?A:F;let v=(kind=='p'?M.get(i):arr[i]).l;
  if(!v){if(kind=='p')v=nextP();else if(kind=='k')v=nextK();else if(kind=='f')v=nextF();else if(kind=='a')v=nextA();else v=(L[i]&&L[i].inf)?nextG():nextL()}
@@ -1311,6 +1422,7 @@ function handleClick(e){
   if(prevP&&Math.hypot(prevP.x-tx,prevP.y-ty)<.02){$('hint').textContent='Bitte einen anderen Punkt wählen.'}
   else if(sel.length===2&&firstP&&Math.hypot(firstP.x-tx,firstP.y-ty)<.02){$('hint').textContent='Die beiden Schenkel dürfen nicht zusammenfallen: bitte einen anderen Punkt wählen.'}
   else{
+   if(!sel.length){actSnap=snap();actLen=hist.length}
    push();
    const id=h?h.id:add(tx,ty,cr?cr.cx:null);
    rebuild();
@@ -1322,7 +1434,7 @@ function handleClick(e){
     addSegmentIfMissing(id1,id2);
     addSegmentIfMissing(id2,id);
     A.push({a:id1,b:id2,c:id,vis:true,col:curColor(),l:$('autoa').checked?nextA():''});
-    sel=[];
+    sel=[];actSnap=null;
     rebuild();
     $('hint').textContent=HINTS.angle;
    }
@@ -1331,10 +1443,12 @@ function handleClick(e){
  else if(mode=='face'){
   if(sel.length===0){
    if(h){
+    actSnap=snap();actLen=hist.length;
     faceWithEdges=false;
     sel=[h.id];
     $('hint').textContent='Flächenmodus aktiv: weitere Eckpunkte wählen, Startpunkt schließt.';
    }else{
+    actSnap=snap();actLen=hist.length;
     push();
     faceWithEdges=true;
     const newId=add(cr?cr.x:pgx,cr?cr.y:pgy,cr?cr.cx:null);
@@ -1514,7 +1628,7 @@ cv.addEventListener('pointermove',e=>{
  if(rmbDown&&Math.hypot(e.clientX-rmbDown.x,e.clientY-rmbDown.y)>=5){rmbDown.moved=true}
  if(geoDrag){
   if(geoDrag.type=='move'){
-    const rawX=geoDrag.px+(wx(mouse.x)-geoDrag.mx);
+   const rawX=geoDrag.px+(wx(mouse.x)-geoDrag.mx);
     const rawY=geoDrag.py+(wy(mouse.y)-geoDrag.my);
     if(isSnapActive()){
       const step=+$('step').value||0.5;
@@ -1529,7 +1643,7 @@ cv.addEventListener('pointermove',e=>{
   }else if(geoDrag.type=='scale'){
     const cx=X(geoPos.x),cy=Y(geoPos.y);
     const distance=Math.hypot(mouse.x-cx,mouse.y-cy);
-    const size=Math.round(Math.max(25,Math.min(200,geoDrag.size*distance/geoDrag.distance))*5)/5;
+   const size=Math.round(Math.max(25,Math.min(200,geoDrag.size*distance/geoDrag.distance))*5)/5;
    geoSize=size;
   }
   draw();return;
@@ -1590,10 +1704,10 @@ const up=e=>{
    if(touchPointers.size==0){
     const now=Date.now();
     if(!twoFingerMoved&&(start||sel.length||compass)){
-     if(now-lastTwoFingerTapTime<450){cancelActive();lastTwoFingerTapTime=0;draw()}
+     if(now-lastTwoFingerTapTime<450){abortAction();cancelActive();lastTwoFingerTapTime=0;draw()}
      else lastTwoFingerTapTime=now;
     }else if(pinch&&pinch.hadActiveOp&&twoFingerMoved){
-     start=null;sel=[];faceWithEdges=false;compass=null;draw();
+     abortAction();start=null;sel=[];faceWithEdges=false;compass=null;draw();
     }
     pinch=null;touchGesture=false;twoFingerMoved=false;
    }
@@ -1651,7 +1765,7 @@ cv.addEventListener('pointercancel',touchEnd);
 addEventListener('keydown',e=>{
  if(e.key=='Shift'&&!shiftDown){shiftDown=true;draw()}
  if(e.target===inp||e.target.type=='number'||e.target.tagName=='SELECT'||ctxMenu.contains(e.target))return;
- if(e.key=='Escape'){cancelActive();draw();return}
+ if(e.key=='Escape'){abortAction();cancelActive();draw();return}
  if((e.ctrlKey||e.metaKey)&&(e.key.toLowerCase()=='y'||(e.shiftKey&&e.key.toLowerCase()=='z'))){e.preventDefault();redo();return}
  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()=='z'){e.preventDefault();undo();return}
  if((e.key=='Delete'||e.key=='Backspace')&&mode=='select'&&multiSel.length){e.preventDefault();deleteSelection();return}
@@ -1745,7 +1859,7 @@ function resolveSelPt(item){
 
 function draw(){const cs=getComputedStyle(document.documentElement),fg=cs.getPropertyValue('--fg').trim(),gc=cs.getPropertyValue('--grid').trim(),ac=cs.getPropertyValue('--acc').trim(),bg=cs.getPropertyValue('--bg').trim(),hp=cs.getPropertyValue('--help').trim(),onCol=cs.getPropertyValue('--on').trim(),
  slP=$('labP').checked,slS=$('labS').checked,slG=$('labG').checked,slA=$('labA').checked,slF=$('labF').checked,
- sol=$('sol').checked,ss=$('siz').checked;fs=+$('fs').value;const T=$('d3').checked?solve3d():null;
+ sol=$('sol').checked&&$('leg').checked,ss=$('siz').checked;fs=+$('fs').value;const T=$('d3').checked?solve3d():null;
  const multiObjs=new Set(multiSel.map(t=>t.obj));
  ctx.clearRect(0,0,W,H);
  if(showGrid){ctx.fillStyle=ctx.strokeStyle=gc;const x0=((ox%k)+k)%k,y0=((oy%k)+k)%k;
@@ -1762,7 +1876,7 @@ function draw(){const cs=getComputedStyle(document.documentElement),fg=cs.getPro
   if(!vis(f))return;
   const isMS=multiObjs.has(f);
   const fCol=resolveInkColor(f.c,fg);
-  ctx.globalAlpha=isMS?.34:.22;ctx.fillStyle=fCol;ctx.beginPath();
+  ctx.globalAlpha=isMS?.24:.14;ctx.fillStyle=fCol;ctx.beginPath();
   if(f.kind=='circle'){const c=M.get(f.center),p=M.get(f.pt);if(c&&p)ctx.arc(X(c.x),Y(c.y),Math.hypot(p.x-c.x,p.y-c.y)*k,0,Math.PI*2)}
   else{f.p.forEach((i,n)=>{const p=M.get(i);n?ctx.lineTo(X(p.x),Y(p.y)):ctx.moveTo(X(p.x),Y(p.y))});ctx.closePath()}
   ctx.fill();ctx.globalAlpha=1;
@@ -1829,13 +1943,8 @@ function draw(){const cs=getComputedStyle(document.documentElement),fg=cs.getPro
   if(!vis(a))return;const g=angGeom(a);if(!g)return;
   const ai=angleInfo(a,T),deg=ai.v,isMS=multiObjs.has(a),bx=X(g.B.x),by=Y(g.B.y),r=g.r,acol=isMS?ac:resolveInkColor(a.col,fg),m=g.a2+g.d/2;
   ctx.strokeStyle=acol;ctx.lineWidth=isMS?3:2.2;ctx.setLineDash([]);
-  if(g.right){
-   const ux=Math.cos(g.a1),uy=Math.sin(g.a1),vx=Math.cos(g.a2),vy=Math.sin(g.a2),s=r*.62;
-   ctx.beginPath();ctx.moveTo(bx+ux*s,by+uy*s);ctx.lineTo(bx+(ux+vx)*s,by+(uy+vy)*s);ctx.lineTo(bx+vx*s,by+vy*s);ctx.stroke();
-   ctx.fillStyle=acol;ctx.beginPath();ctx.arc(bx+(ux+vx)*s*.5,by+(uy+vy)*s*.5,2.2,0,7);ctx.fill();
-  }else{
-   ctx.beginPath();ctx.arc(bx,by,r,g.a2,g.a2+g.d,false);ctx.stroke();
-  }
+  ctx.beginPath();ctx.arc(bx,by,r,g.a2,g.a2+g.d,false);ctx.stroke();
+  if(g.right){ctx.fillStyle=acol;ctx.beginPath();ctx.arc(bx+Math.cos(m)*r*.55,by+Math.sin(m)*r*.55,2.8,0,7);ctx.fill()}
   const av=deg===null?ai.s:fmt(deg,1)+'°',t=txt(a.l,av,slA,ss);
   if(t)halo(t,bx+Math.cos(m)*(r+fs+4),by+Math.sin(m)*(r+fs+4)+fs*.3,acol,bg,'center','','serif',fs-2);
  });
@@ -1979,39 +2088,48 @@ function draw(){const cs=getComputedStyle(document.documentElement),fg=cs.getPro
   ctx.restore();
  }
  /* Legende */
- legR=null;legRows=[];const lg=$('leg').checked||sol;
+ legR=null;legRows=[];const lg=$('leg').checked;
  if(lg){const items=[],u=$('unit').value;
-  L.forEach(l=>{if(l.l&&!l.inf){const r=lenInfo(l,T);if(sol&&!$('leg').checked&&!r.s)return;const v=r.v===null?r.s:sol&&r.s?r.s+(ss||$('leg').checked?' = '+fmt(r.v)+' '+u:''):fmt(r.v)+' '+u;items.push({text:l.l+' = '+v,obj:l,isFace:false})}});
-  K.forEach(o=>{if(o.l&&o.s=='circle'){const r=circleCircumInfo(o);if(r.v===null)return;const v=sol&&r.s?r.s+(ss||$('leg').checked?' = '+fmt(r.v)+' '+u:''):fmt(r.v)+' '+u;items.push({text:'u_'+o.l+' = '+v,obj:o,isFace:false})}});
+  L.forEach(l=>{if(l.l&&!l.inf){const r=lenInfo(l,T);if(sol&&!$('leg').checked&&!r.s)return;const v=r.v===null?r.s:sol&&r.s?r.s+(ss||$('leg').checked?' = '+fmt(r.v)+' '+u:''):fmt(r.v)+' '+u;items.push({text:l.l+' = '+v,obj:l,isFace:false,math:sol&&okSol(r)})}});
+  K.forEach(o=>{if(o.l&&o.s=='circle'){const r=circleCircumInfo(o);if(r.v===null)return;const v=sol&&r.s?r.s+(ss||$('leg').checked?' = '+fmt(r.v)+' '+u:''):fmt(r.v)+' '+u;items.push({text:'u_'+o.l+' = '+v,obj:o,isFace:false,math:sol&&okSol(r)})}});
   A.forEach(a=>{const B=M.get(a.b),p=M.get(a.a),c=M.get(a.c);if(!B||!p||!c)return;const a1=Math.atan2(p.y-B.y,p.x-B.x),a2=Math.atan2(c.y-B.y,c.x-B.x),r=angleInfo(a,T);if(sol&&!$('leg').checked&&!r.s)return;const v=r.v===null?r.s:fmt(r.v,1)+'°';const lbl=a.l||'∠';items.push({text:lbl+' = '+v,obj:a,isFace:false})});
-  F.forEach(f=>{if(f.l){const r=areaInfo(f,T);if(sol&&!$('leg').checked&&!r.s)return;const v=r.v===null?r.s:sol&&r.s?r.s+(ss||$('leg').checked?' = '+fmt(r.v)+' '+u+'²':''):fmt(r.v)+' '+u+'²';items.push({text:f.l+' = '+v,obj:f,isFace:true})}});
+  F.forEach(f=>{if(f.l){const r=areaInfo(f,T);if(sol&&!$('leg').checked&&!r.s)return;const v=r.v===null?r.s:sol&&r.s?r.s+(ss||$('leg').checked?' = '+fmt(r.v)+' '+u+'²':''):fmt(r.v)+' '+u+'²';items.push({text:f.l+' = '+v,obj:f,isFace:true,math:sol&&okSol(r)})}});
   if($('leg').checked&&$('legpts').checked){
    P.forEach(p=>{if(p.l)items.push({text:p.l+' ('+fmt(p.x)+' | '+fmt(-p.y)+')',obj:p,isFace:false})});
   }
   if(items.length){
    const lh=fs+6,fz=fs-2,swOff=22;
-   const w=Math.max(...items.map(it=>halo(it.text,0,0,fg,bg,'left','','sans-serif',fz,true)+swOff),halo('Legende',0,0,fg,bg,'left','bold ','sans-serif',fz,true))+22;
-   const h=(items.length+1)*lh+10;
+   items.forEach(it=>{
+    const oCol=resolveInkColor(inkOf(it.obj),fg);
+    it.textCol=it.isFace?'#1a1a1a':oCol;it.pillBg=it.isFace?oCol:null;
+    it.m=it.math?mathImg(toTex(it.text),it.textCol,fz):null;
+    it.rowH=it.m?Math.max(lh,it.m.h+8):lh;
+    it.tw=it.m?it.m.w:halo(it.text,0,0,fg,bg,'left','','sans-serif',fz,true);
+   });
+   const w=Math.max(...items.map(it=>it.tw+swOff),halo('Legende',0,0,fg,bg,'left','bold ','sans-serif',fz,true))+22;
+   const h=lh+items.reduce((s,it)=>s+it.rowH,0)+10;
    const lx=!legPos?Math.max(8,W-w-10):legPos.x;
    const ly=!legPos?10:legPos.y;
    legR={x:lx,y:ly,w,h};
    ctx.save();ctx.globalAlpha=.94;ctx.fillStyle=bg;roundRectPath(legR.x,legR.y,w,h,8);ctx.fill();ctx.globalAlpha=1;ctx.strokeStyle=gc;ctx.lineWidth=1;ctx.stroke();ctx.restore();
    halo('Legende',legR.x+10,legR.y+lh,fg,bg,'left','bold ','sans-serif',fz);
-   items.forEach((it,i)=>{
-    const yBase=legR.y+lh*(i+2),yMid=yBase-fz*.34,cx=legR.x+17,on=vis(it.obj);
-    legRows.push({obj:it.obj,y0:yBase-lh+4,y1:yBase+4});
+   let top=legR.y+lh;
+   items.forEach(it=>{
+    const H=it.rowH,yMid=top+H/2+5,yBase=yMid+fz*.34,cx=legR.x+17,on=vis(it.obj);
+    legRows.push({obj:it.obj,y0:top+4,y1:top+H+4});
     ctx.save();
     ctx.beginPath();ctx.arc(cx,yMid,6.5,0,Math.PI*2);
     if(on){ctx.fillStyle=onCol;ctx.fill();ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(cx,yMid,2.3,0,Math.PI*2);ctx.fill()}
     else{ctx.strokeStyle=gc;ctx.lineWidth=1.5;ctx.stroke()}
     ctx.restore();
-    const rawCol=inkOf(it.obj);
-    const oCol=resolveInkColor(rawCol,fg);
-    const textCol=it.isFace?'#1a1a1a':oCol;
-    const pillBg=it.isFace?oCol:null;
     ctx.save();if(!on)ctx.globalAlpha=.45;
-    halo(it.text,legR.x+10+swOff,yBase,textCol,bg,'left','','sans-serif',fz,false,pillBg);
+    if(it.m){
+     const tx=legR.x+10+swOff;
+     if(it.pillBg){ctx.save();ctx.globalAlpha*=.28;ctx.fillStyle=it.pillBg;roundRectPath(tx-4,yMid-H/2+2,it.m.w+8,H-4,6);ctx.fill();ctx.restore()}
+     ctx.drawImage(it.m.img,tx,yMid-it.m.h/2,it.m.w,it.m.h);
+    }else halo(it.text,legR.x+10+swOff,yBase,it.textCol,bg,'left','','sans-serif',fz,false,it.pillBg);
     ctx.restore();
+    top+=H;
    });
   }
  }

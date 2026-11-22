@@ -462,7 +462,7 @@ function createTask(type, grade = 5, options = {}) {
 		case 'additionstabellen':
 		case 'multiplikationstabellen': {
 			const isAdd = type === 'additionstabellen';
-			const isPositiveOnly = grade <= 7;
+			const isPositiveOnly = grade <= 6;
 			const min = isPositiveOnly ? (isAdd ? 20 : 2) : (isAdd ? -50 : -13);
 			const max = isPositiveOnly ? (isAdd ? 100 : 12) : (isAdd ? 50 : 13);
 			const allValues = pickDistinctIntegers(min, max, 7);
@@ -518,7 +518,7 @@ function createTask(type, grade = 5, options = {}) {
 		}
 
 		case 'subtraktionstabellen': {
-			const isPositiveOnly = grade <= 7;
+			const isPositiveOnly = grade <= 6;
 			let rowHeaders;
 			let colHeaders;
 
@@ -875,39 +875,39 @@ function createTask(type, grade = 5, options = {}) {
 	case 'subtraktion_bis_100':
 	case 'subtraktion_bis_1000':
 	case 'einmaleins_2':
-case 'einmaleins_3':
-case 'einmaleins_4':
-case 'einmaleins_5':
-case 'einmaleins_6':
-case 'einmaleins_7':
-case 'einmaleins_8':
-case 'einmaleins_9':
-case 'einmaleins_10':
-case 'geteilt_durch_2':
-case 'geteilt_durch_3':
-case 'geteilt_durch_4':
-case 'geteilt_durch_5':
-case 'geteilt_durch_6':
-case 'geteilt_durch_7':
-case 'geteilt_durch_8':
-case 'geteilt_durch_9':
-case 'geteilt_durch_10':
-case 'addition_bis_10':
-case 'addition_bis_20':
-case 'addition_bis_50':
-case 'addition_bis_100':
-case 'addition_bis_1000':
-case 'subtraktion_bis_10':
-case 'subtraktion_bis_20':
-case 'subtraktion_bis_50':
-case 'subtraktion_bis_100':
-case 'subtraktion_bis_1000':
-case 'kleines_1x1_multiplikation':
-case 'kleines_1x1_division':
-case 'kleines_1x1_komplett':
-case 'addition_subtraktion_bis_20':
-case 'addition_subtraktion_bis_100':
-case 'addition_subtraktion_bis_1000': {
+	case 'einmaleins_3':
+	case 'einmaleins_4':
+	case 'einmaleins_5':
+	case 'einmaleins_6':
+	case 'einmaleins_7':
+	case 'einmaleins_8':
+	case 'einmaleins_9':
+	case 'einmaleins_10':
+	case 'geteilt_durch_2':
+	case 'geteilt_durch_3':
+	case 'geteilt_durch_4':
+	case 'geteilt_durch_5':
+	case 'geteilt_durch_6':
+	case 'geteilt_durch_7':
+	case 'geteilt_durch_8':
+	case 'geteilt_durch_9':
+	case 'geteilt_durch_10':
+	case 'addition_bis_10':
+	case 'addition_bis_20':
+	case 'addition_bis_50':
+	case 'addition_bis_100':
+	case 'addition_bis_1000':
+	case 'subtraktion_bis_10':
+	case 'subtraktion_bis_20':
+	case 'subtraktion_bis_50':
+	case 'subtraktion_bis_100':
+	case 'subtraktion_bis_1000':
+	case 'kleines_1x1_multiplikation':
+	case 'kleines_1x1_division':
+	case 'kleines_1x1_komplett':
+	case 'addition_subtraktion_bis_20':
+	case 'addition_subtraktion_bis_100':
+	case 'addition_subtraktion_bis_1000': {
 		if (type.startsWith('einmaleins_')) {
 			const row = Number(type.slice('einmaleins_'.length));
 			const otherFactor = randInt(1, 10);
@@ -976,328 +976,209 @@ case 'addition_subtraktion_bis_1000': {
 		break;
 	}
 	case 'ganze_zahlen_multiplizieren_dividieren': {
-		if (isQuizMode) {
-			if (Math.random() > 0.5) {
-				do {
-					v1 = rnd(-15, 15);
-					v2 = rnd(-9, 9);
-				} while (!(v1 < 0 || v2 < 0 || (v1 * v2) < 0));
-				expr = `\\[ ${v1} \\cdot ${fmt(v2)} = \\]`;
-				const product = v1 * v2;
-				solution = `\\[ ${v1} \\cdot ${fmt(v2)} = ${product} \\]`;
-				answer = numericAnswer(product);
+		// Negative Zahlen (und negative Ergebnisse) erst ab Klasse 7.
+		const allowNegative = grade >= 7;
+
+		// Zufallsfaktor wie rnd(), für Klasse <= 6 aber nur positiv (2..max).
+		const randFactor = (max) => (allowNegative ? rnd(-max, max) : randInt(2, max));
+
+		// Quotient: rnd(-9,9) bzw. für Klasse <= 6 nur positiv (2..9).
+		const randQuotient = () => (allowNegative ? rnd(-9, 9) : randInt(2, 9));
+
+		// Divisor: Betrag 2..12, Vorzeichen nur ab Klasse 7 zufällig negativ.
+		const randDivisor = () => {
+			const d = randInt(2, 12);
+			return allowNegative && Math.random() < 0.5 ? -d : d;
+		};
+
+		// Produkt aus 3-4 Faktoren (nur Standard-Modus) – zuvor doppelt implementiert.
+		const buildFactorProduct = () => {
+			const factorCount = Math.random() < 0.5 ? 3 : 4;
+			let factors;
+			let product;
+			do {
+				factors = Array.from({ length: factorCount }, () => {
+					const factor = Math.random() < 0.05 ? 0 : randInt(0, 10);
+					return allowNegative && Math.random() < 0.5 ? -factor : factor;
+				});
+				product = factors.reduce((acc, f) => acc * f, 1);
+			} while (product < -400 || product > 400 || (allowNegative && !factors.some(f => f < 0)));
+			return { factors, product };
+		};
+
+		let expr;
+		let solution;
+
+		if (Math.random() > 0.5) {
+			// Multiplikation
+			if (!isQuizMode && Math.random() < 0.3) {
+				const { factors, product } = buildFactorProduct();
+				const factorText = factors.map(f => fmt(f)).join(' \\cdot ');
+				expr = `\\[ ${factorText} = \\]`;
+				solution = `\\[ ${factorText} = ${product} \\]`;
 			} else {
-				let res;
+				let v1;
+				let v2;
 				do {
-					res = rnd(-9, 9);
-					v2 = rnd(1, 12);
-					Math.random() < 0.5 ? v2 = -v2 : null;
-				} while (!(res < 0 || v2 < 0 || (res * v2) < 0));
-				v1 = res * v2;
-				expr = `\\[ ${v1} : ${fmt(v2)} = \\]`;
-				solution = `\\[ ${v1} : ${fmt(v2)} = ${res} \\]`;
+					v1 = randFactor(15);
+					v2 = randFactor(9);
+				} while (allowNegative && !(v1 < 0 || v2 < 0));
+				const product = v1 * v2;
+				expr = `\\[ ${v1} \\cdot ${fmt(v2)} = \\]`;
+				solution = `\\[ ${v1} \\cdot ${fmt(v2)} = ${product} \\]`;
+				if (isQuizMode) {
+					answer = numericAnswer(product);
+				}
+			}
+		} else {
+			// Division
+			let res;
+			let v2;
+			do {
+				res = randQuotient();
+				v2 = randDivisor();
+			} while (allowNegative && !(res < 0 || v2 < 0));
+			const v1 = res * v2;
+			expr = `\\[ ${v1} : ${fmt(v2)} = \\]`;
+			solution = `\\[ ${v1} : ${fmt(v2)} = ${res} \\]`;
+			if (isQuizMode) {
 				answer = numericAnswer(res);
 			}
-			textDisplay = expr;
-			s = solution;
-		} else {
-			let expr;
-			let solution;
-			if (Math.random() > 0.5) {
-				if (Math.random() < 0.3) {
-					const factorCount = Math.random() < 0.5 ? 3 : 4;
-					let factors;
-					let product;
-					do {
-						factors = Array.from({ length: factorCount }, () => {
-							const factor = Math.random() < 0.05 ? 0 : randInt(0, 10);
-							return Math.random() < 0.5 ? factor : -factor;
-						});
-						product = factors.reduce((result, factor) => result * factor, 1);
-					} while (product < -400 || product > 400 || !factors.some(factor => factor < 0));
-					const factorText = factors.map(factor => fmt(factor)).join(' \\cdot ');
-					expr = `\\[ ${factorText} = \\]`;
-					solution = `\\[ ${factorText} = ${product} \\]`;
-				} else {
-					do {
-						v1 = rnd(-15, 15);
-						v2 = rnd(-9, 9);
-					} while (!(v1 < 0 || v2 < 0 || (v1 * v2) < 0));
-					expr = `\\[ ${v1} \\cdot ${fmt(v2)} = \\]`;
-					solution = `\\[ ${v1} \\cdot ${fmt(v2)} = ${v1 * v2} \\]`;
-				}
-			} else {
-				let res;
-				do {
-					res = rnd(-9, 9);
-					v2 = rnd(1, 12);
-					Math.random() < 0.5 ? v2 = -v2 : null;
-				} while (!(res < 0 || v2 < 0 || (res * v2) < 0));
-				v1 = res * v2;
-				expr = `\\[ ${v1} : ${fmt(v2)} = \\]`;
-				solution = `\\[ ${v1} : ${fmt(v2)} = ${res} \\]`;
-			}
-			textDisplay = expr;
-			s = solution;
 		}
+
+		textDisplay = expr;
+		s = solution;
 		break;
 	}
 	case 'zehnerpotenzen_multiplizieren_dividieren': {
-		if (isQuizMode) {
-			const normalizeDecimalString = (value) => {
-				let [intPart, fracPart = ''] = value.split('.');
-				intPart = intPart.replace(/^0+(?=\d)/, '');
-				if (intPart === '') {
-					intPart = '0';
-				}
-				fracPart = fracPart.replace(/0+$/, '');
-				return fracPart ? `${intPart}.${fracPart}` : intPart;
-			};
-
-			const fromScaledInteger = (raw, decimals) => {
-				if (decimals <= 0) {
-					return String(raw) + (decimals < 0 ? '0'.repeat(-decimals) : '');
-				}
-				const sign = raw < 0 ? '-' : '';
-				const absStr = String(Math.abs(raw)).padStart(decimals + 1, '0');
-				const intPart = absStr.slice(0, -decimals);
-				const fracPart = absStr.slice(-decimals);
-				return `${sign}${normalizeDecimalString(`${intPart}.${fracPart}`)}`;
-			};
-
-			// Stufenzahl / Zehnerpotenz mit oder ohne Vorfaktor (z. B. 0.01, 0.02, 0.5, 10, 200, 3000)
-			// Vorfaktoren: 1 (reine Zehnerpotenz), 2, 3, 4 oder 5
-			// In dieser Aufgabenart werden nur Vorfaktoren von 1 oder 2 verwendet.
-			const integerOnly = grade <= 5;
-			if (integerOnly) {
-				const appendZeros = (value, count) => String(value) + '0'.repeat(count);
-				const isMult = Math.random() > 0.5;
-				const secondZeros = randInt(1, 2);
-				let firstZeros;
-				let operandStrRaw;
-				let stepStrRaw;
-				let resultStrRaw;
-
-				if (isMult) {
-					firstZeros = randInt(0, 2);
-					const firstBase = randInt(1, 12);
-					const secondBase = randInt(1, 12);
-					operandStrRaw = appendZeros(firstBase, firstZeros);
-					stepStrRaw = appendZeros(secondBase, secondZeros);
-					resultStrRaw = String(Number(operandStrRaw) * Number(stepStrRaw));
-				} else {
-					// Die erste Nullanzahl darf nicht kleiner als die zweite sein,
-					// damit die Division trotz angehängter Nullen ganzzahlig bleibt.
-					firstZeros = randInt(secondZeros, 2);
-					const quotientBase = randInt(1, 12);
-					const divisorBase = randInt(1, 12);
-					operandStrRaw = appendZeros(quotientBase * divisorBase, firstZeros);
-					stepStrRaw = appendZeros(divisorBase, secondZeros);
-					resultStrRaw = String(quotientBase * Math.pow(10, firstZeros - secondZeros));
-				}
-
-				const op = isMult ? '\\cdot' : ':';
-				const operandFormatted = comma(operandStrRaw);
-				const stepFormatted = comma(stepStrRaw);
-				const resultFormatted = comma(resultStrRaw);
-				const expr = `\\[ ${operandFormatted} ${op} ${stepFormatted} =\\]`;
-				const solution = `\\[ ${operandFormatted} ${op} ${stepFormatted} = ${resultFormatted} \\]`;
-				textDisplay = expr;
-				s = solution;
-				answer = numericAnswer(Number(resultStrRaw));
-			} else {
-				const coeff = [1, 2][randInt(0, 1)]; // Vorfaktor: 1 oder 2
-				const exponentOptions = [-2, -1, 1, 2, 3];
-				const exponent = exponentOptions[randInt(0, exponentOptions.length - 1)];
-
-				const stepStrRaw = fromScaledInteger(coeff, -exponent);
-				const isMult = Math.random() > 0.5;
-				let operandStrRaw;
-				let resultStrRaw;
-
-				if (isMult) {
-					// MULTIPLIKATION: operand * stepStrRaw = result
-					let mOperand, dOperand;
-					if (!integerOnly && Math.random() > 0.4) {
-						// Dezimalbruch mit 1 oder 2 Nachkommastellen
-						dOperand = (coeff === 1 && (exponent === 1 || exponent === 2) && Math.random() > 0.5) ? 2 : 1;
-						mOperand = dOperand === 2 ? rnd(11, 250) : rnd(2, 95);
-					} else {
-						// Natürliche Zahl
-						dOperand = 0;
-						mOperand = rnd(2, 45);
-					}
-
-					operandStrRaw = fromScaledInteger(mOperand, dOperand);
-					const rawResult = mOperand * coeff;
-					const resultDecimals = dOperand - exponent;
-					resultStrRaw = fromScaledInteger(rawResult, resultDecimals);
-				} else {
-					// DIVISION: operand : stepStrRaw = result
-					// Glatten Quotienten erzeugen, damit die Aufgabe exakt aufgeht
-					let mQuotient, dQuotient;
-					if (!integerOnly && Math.random() > 0.4) {
-						dQuotient = 1;
-						mQuotient = rnd(2, 45);
-					} else {
-						dQuotient = 0;
-						mQuotient = rnd(2, 35);
-					}
-
-					resultStrRaw = fromScaledInteger(mQuotient, dQuotient);
-					const rawDividend = mQuotient * coeff;
-					const dividendDecimals = dQuotient - exponent;
-					operandStrRaw = fromScaledInteger(rawDividend, dividendDecimals);
-				}
-
-				const op = isMult ? '\\cdot' : ':';
-				const operandFormatted = comma(operandStrRaw);
-				const stepFormatted = comma(stepStrRaw);
-				const resultFormatted = comma(resultStrRaw);
-
-				// Aufgabe
-				const expr = `\\[ ${operandFormatted} ${op} ${stepFormatted} =\\]`;
-
-				// Lösung mit Hilfestellung bei Multiplikation/Division mit Dezimalbrüchen
-				let solution;
-				if (coeff === 1 && exponent < 0 && isMult) {
-					solution = `\\[ ${operandFormatted} ${op} ${stepFormatted} = ${resultFormatted} \\quad ( : ${Math.pow(10, -exponent)} )\\]`;
-				} else if (coeff === 1 && exponent < 0 && !isMult) {
-					solution = `\\[ ${operandFormatted} ${op} ${stepFormatted} = ${resultFormatted} \\quad ( \\cdot ${Math.pow(10, -exponent)} )\\]`;
-				} else {
-					solution = `\\[ ${operandFormatted} ${op} ${stepFormatted} = ${resultFormatted} \\]`;
-				}
-
-				textDisplay = expr;
-				s = solution;
-				answer = numericAnswer(Number(resultStrRaw));
+		const normalizeDecimalString = (value) => {
+			let [intPart, fracPart = ''] = value.split('.');
+			intPart = intPart.replace(/^0+(?=\d)/, '');
+			if (intPart === '') {
+				intPart = '0';
 			}
+			fracPart = fracPart.replace(/0+$/, '');
+			return fracPart ? `${intPart}.${fracPart}` : intPart;
+		};
+
+		const fromScaledInteger = (raw, decimals) => {
+			if (decimals <= 0) {
+				return String(raw) + (decimals < 0 ? '0'.repeat(-decimals) : '');
+			}
+			const sign = raw < 0 ? '-' : '';
+			const absStr = String(Math.abs(raw)).padStart(decimals + 1, '0');
+			const intPart = absStr.slice(0, -decimals);
+			const fracPart = absStr.slice(-decimals);
+			return `${sign}${normalizeDecimalString(`${intPart}.${fracPart}`)}`;
+		};
+
+		const appendZeros = (value, count) => String(value) + '0'.repeat(count);
+
+		// Modusabhängige Parameter (Quiz vs. Standard) – halten die früheren
+		// Abweichungen zwischen beiden Zweigen an einer Stelle fest.
+		const integerOnly = grade <= 5;
+		const multProbability = 0.6;   						// Wahrscheinlichkeit für Multiplikation
+		const minBase = 2;               					// Untergrenze der Basiszahlen (nur integerOnly)
+		const naturalOperandMax = 12;   					// Obergrenze natürlicher Operand (advanced Mult)
+
+		let expr;
+		let solution;
+		let resultValue;
+
+		if (integerOnly) {
+			const isMult = Math.random() < multProbability;
+			const secondZeros = randInt(1, 2);
+			let operandStrRaw;
+			let stepStrRaw;
+
+			if (isMult) {
+				const firstZeros = randInt(0, 2);
+				const firstBase = randInt(minBase, 12);
+				const secondBase = randInt(1, 12);
+				operandStrRaw = appendZeros(firstBase, firstZeros);
+				stepStrRaw = appendZeros(secondBase, secondZeros);
+				resultValue = Number(operandStrRaw) * Number(stepStrRaw);
+			} else {
+				// Erste Nullanzahl nicht kleiner als die zweite, damit die Division ganzzahlig bleibt.
+				const firstZeros = randInt(secondZeros, 2);
+				const quotientBase = randInt(minBase, 12);
+				const divisorBase = randInt(1, 12);
+				operandStrRaw = appendZeros(quotientBase * divisorBase, firstZeros);
+				stepStrRaw = appendZeros(divisorBase, secondZeros);
+				resultValue = quotientBase * Math.pow(10, firstZeros - secondZeros);
+			}
+
+			const op = isMult ? '\\cdot' : ':';
+			const operandFormatted = comma(operandStrRaw);
+			const stepFormatted = comma(stepStrRaw);
+			const resultFormatted = comma(String(resultValue));
+			expr = `\\[ ${operandFormatted} ${op} ${stepFormatted} =\\]`;
+			solution = `\\[ ${operandFormatted} ${op} ${stepFormatted} = ${resultFormatted} \\]`;
 		} else {
-			const normalizeDecimalString = (value) => {
-				let [intPart, fracPart = ''] = value.split('.');
-				intPart = intPart.replace(/^0+(?=\d)/, '');
-				if (intPart === '') {
-					intPart = '0';
-				}
-				fracPart = fracPart.replace(/0+$/, '');
-				return fracPart ? `${intPart}.${fracPart}` : intPart;
-			};
-
-			const fromScaledInteger = (raw, decimals) => {
-				if (decimals <= 0) {
-					return String(raw) + (decimals < 0 ? '0'.repeat(-decimals) : '');
-				}
-				const sign = raw < 0 ? '-' : '';
-				const absStr = String(Math.abs(raw)).padStart(decimals + 1, '0');
-				const intPart = absStr.slice(0, -decimals);
-				const fracPart = absStr.slice(-decimals);
-				return `${sign}${normalizeDecimalString(`${intPart}.${fracPart}`)}`;
-			};
-
-			// In dieser Aufgabenart werden nur Vorfaktoren von 1 oder 2 verwendet.
+			// Stufenzahl / Zehnerpotenz mit Vorfaktor (1 oder 2), z. B. 0.01, 0.5, 10, 200, 3000
 			const coeff = [1, 2][randInt(0, 1)];
-			const integerOnly = grade <= 5;
-			if (integerOnly) {
-				const appendZeros = (value, count) => String(value) + '0'.repeat(count);
-				const isMult = Math.random() < 0.6;
-				const secondZeros = randInt(1, 2);
-				let firstZeros;
-				let operandStrRaw;
-				let stepStrRaw;
-				let resultStrRaw;
+			const exponentOptions = [-2, -1, 1, 2, 3];
+			const exponent = exponentOptions[randInt(0, exponentOptions.length - 1)];
+			const stepStrRaw = fromScaledInteger(coeff, -exponent);
+			const isMult = Math.random() < multProbability;
+			let operandStrRaw;
+			let resultStrRaw;
 
-				if (isMult) {
-					firstZeros = randInt(0, 2);
-					const firstBase = randInt(2, 12);
-					const secondBase = randInt(1, 12);
-					operandStrRaw = appendZeros(firstBase, firstZeros);
-					stepStrRaw = appendZeros(secondBase, secondZeros);
-					resultStrRaw = String(Number(operandStrRaw) * Number(stepStrRaw));
+			if (isMult) {
+				// MULTIPLIKATION: operand * step = result
+				let mOperand;
+				let dOperand;
+				if (Math.random() < 0.6) {
+					// Dezimalbruch mit 1 oder 2 Nachkommastellen
+					dOperand = (coeff === 1 && (exponent === 1 || exponent === 2) && Math.random() > 0.5) ? 2 : 1;
+					mOperand = dOperand === 2 ? rnd(11, 250) : rnd(2, 95);
 				} else {
-					// Die erste Nullanzahl darf nicht kleiner als die zweite sein,
-					// damit die Division trotz angehängter Nullen ganzzahlig bleibt.
-					firstZeros = randInt(secondZeros, 2);
-					const quotientBase = randInt(2, 12);
-					const divisorBase = randInt(1, 12);
-					operandStrRaw = appendZeros(quotientBase * divisorBase, firstZeros);
-					stepStrRaw = appendZeros(divisorBase, secondZeros);
-					resultStrRaw = String(quotientBase * Math.pow(10, firstZeros - secondZeros));
+					// Natürliche Zahl
+					dOperand = 0;
+					mOperand = rnd(2, naturalOperandMax);
 				}
 
-				const op = isMult ? '\\cdot' : ':';
-				const operandFormatted = comma(operandStrRaw);
-				const stepFormatted = comma(stepStrRaw);
-				const resultFormatted = comma(resultStrRaw);
-				const expr = `\\[ ${operandFormatted} ${op} ${stepFormatted} =\\]`;
-				const solution = `\\[ ${operandFormatted} ${op} ${stepFormatted} = ${resultFormatted} \\]`;
-				textDisplay = expr;
-				s = solution;
+				operandStrRaw = fromScaledInteger(mOperand, dOperand);
+				const rawResult = mOperand * coeff;
+				resultStrRaw = fromScaledInteger(rawResult, dOperand - exponent);
 			} else {
-				const exponentOptions = [-2, -1, 1, 2, 3];
-				const exponent = exponentOptions[randInt(0, exponentOptions.length - 1)];
-
-				const stepStrRaw = fromScaledInteger(coeff, -exponent);
-				const isMult = Math.random() < 0.6;
-				let operandStrRaw;
-				let resultStrRaw;
-
-				if (isMult) {
-					// MULTIPLIKATION: operand * stepStrRaw = result
-					let mOperand, dOperand;
-					if (!integerOnly && Math.random() < 0.6) {
-						// Dezimalbruch mit 1 oder 2 Nachkommastellen
-						dOperand = (coeff === 1 && (exponent === 1 || exponent === 2) && Math.random() > 0.5) ? 2 : 1;
-						mOperand = dOperand === 2 ? rnd(11, 250) : rnd(2, 95);
-					} else {
-						// Natürliche Zahl
-						dOperand = 0;
-						mOperand = rnd(2, 12);
-					}
-
-					operandStrRaw = fromScaledInteger(mOperand, dOperand);
-					const rawResult = mOperand * coeff;
-					const resultDecimals = dOperand - exponent;
-					resultStrRaw = fromScaledInteger(rawResult, resultDecimals);
+				// DIVISION: operand : step = result (glatter Quotient, damit exakt aufgeht)
+				let mQuotient;
+				let dQuotient;
+				if (Math.random() < 0.6) {
+					dQuotient = 1;
+					mQuotient = rnd(2, 45);
 				} else {
-					// DIVISION: operand : stepStrRaw = result
-					// Glatten Quotienten erzeugen, damit die Aufgabe exakt aufgeht
-					let mQuotient, dQuotient;
-					if (!integerOnly && Math.random() > 0.4) {
-						dQuotient = 1;
-						mQuotient = rnd(2, 45);
-					} else {
-						dQuotient = 0;
-						mQuotient = rnd(2, 35);
-					}
-
-					resultStrRaw = fromScaledInteger(mQuotient, dQuotient);
-					const rawDividend = mQuotient * coeff;
-					const dividendDecimals = dQuotient - exponent;
-					operandStrRaw = fromScaledInteger(rawDividend, dividendDecimals);
+					dQuotient = 0;
+					mQuotient = rnd(2, 35);
 				}
 
-				const op = isMult ? '\\cdot' : ':';
-				const operandFormatted = comma(operandStrRaw);
-				const stepFormatted = comma(stepStrRaw);
-				const resultFormatted = comma(resultStrRaw);
-
-				// Aufgabe
-				const expr = `\\[ ${operandFormatted} ${op} ${stepFormatted} =\\]`;
-
-				// Lösung mit Hilfestellung bei Multiplikation/Division mit Dezimalbrüchen
-				let solution;
-				if (coeff === 1 && exponent < 0 && isMult) {
-					solution = `\\[ ${operandFormatted} ${op} ${stepFormatted} = ${resultFormatted} \\quad ( : ${Math.pow(10, -exponent)} )\\]`;
-				} else if (coeff === 1 && exponent < 0 && !isMult) {
-					solution = `\\[ ${operandFormatted} ${op} ${stepFormatted} = ${resultFormatted} \\quad ( \\cdot ${Math.pow(10, -exponent)} )\\]`;
-				} else {
-					solution = `\\[ ${operandFormatted} ${op} ${stepFormatted} = ${resultFormatted} \\]`;
-				}
-
-				textDisplay = expr;
-				s = solution;
+				resultStrRaw = fromScaledInteger(mQuotient, dQuotient);
+				operandStrRaw = fromScaledInteger(mQuotient * coeff, dQuotient - exponent);
 			}
+
+			const op = isMult ? '\\cdot' : ':';
+			const operandFormatted = comma(operandStrRaw);
+			const stepFormatted = comma(stepStrRaw);
+			const resultFormatted = comma(resultStrRaw);
+			expr = `\\[ ${operandFormatted} ${op} ${stepFormatted} =\\]`;
+
+			// Lösung mit Hilfestellung bei Zehnerpotenzen < 1
+			if (coeff === 1 && exponent < 0 && isMult) {
+				solution = `\\[ ${operandFormatted} ${op} ${stepFormatted} = ${resultFormatted} \\quad ( : ${Math.pow(10, -exponent)} )\\]`;
+			} else if (coeff === 1 && exponent < 0 && !isMult) {
+				solution = `\\[ ${operandFormatted} ${op} ${stepFormatted} = ${resultFormatted} \\quad ( \\cdot ${Math.pow(10, -exponent)} )\\]`;
+			} else {
+				solution = `\\[ ${operandFormatted} ${op} ${stepFormatted} = ${resultFormatted} \\]`;
+			}
+
+			resultValue = Number(resultStrRaw);
 		}
+
+		textDisplay = expr;
+		s = solution;
+		answer = numericAnswer(resultValue);
+		
 		break;
 	}
 	case 'brueche_addieren_subtrahieren': {
@@ -1586,831 +1467,459 @@ case 'addition_subtraktion_bis_1000': {
 		break;
 	}
 	case 'brueche_kuerzen': {
-		if (isQuizMode) {
-			const factors = [3, 4, 6, 8, 9, 12, 15, 20, 25];
+		const factors = isQuizMode
+			? [3, 4, 6, 8, 9, 12, 15, 20, 25]
+			: [3, 4, 5, 6, 8, 9, 12, 15, 18, 20, 25];
 
-			const getGcd = mathUtils.getGcd;
-			const getPrimeFactors = mathUtils.getPrimeFactors;
+		const getGcd = mathUtils.getGcd;
+		const getPrimeFactors = mathUtils.getPrimeFactors;
 
-			const k = factors[Math.floor(Math.random() * factors.length)];
-			const pFactors = getPrimeFactors(k);
+		const k = factors[Math.floor(Math.random() * factors.length)];
+		const pFactors = getPrimeFactors(k);
 
-			let z_base, n_base, Z, N;
+		let z_base, n_base, Z, N;
 
-			do {
-				z_base = rnd(2, 12);
-				n_base = rnd(2, 12);
-				Z = z_base * k;
-				N = n_base * k;
-			} while (Z === N || getGcd(z_base, n_base) > 1 || Z % N === 0 || N % Z === 0);
+		do {
+			z_base = rnd(2, 12);
+			n_base = rnd(2, 12);
+			Z = z_base * k;
+			N = n_base * k;
+		} while (Z === N || getGcd(z_base, n_base) > 1 || Z % N === 0 || N % Z === 0);
 
-			textDisplay = `Kürze vollständig: \\( \\quad\\dfrac{${Z}}{${N}} = \\)`;
-			answer = fractionAnswer(z_base, n_base, true);
+		textDisplay = `Kürze vollständig: \\( \\quad\\dfrac{${Z}}{${N}} = \\)`;
+		answer = fractionAnswer(z_base, n_base, true);
 
-			// Lösungsweg mit \underset unter dem Gleichheitszeichen
-			let solutionSteps = `\\frac{${Z}}{${N}}`;
-			let currentZ = Z;
-			let currentN = N;
+		// Lösungsweg mit \underset unter dem Gleichheitszeichen
+		let solutionSteps = `\\frac{${Z}}{${N}}`;
+		let currentZ = Z;
+		let currentN = N;
 
-			pFactors.forEach(p => {
-				currentZ /= p;
-				currentN /= p;
-				// Hier wird die Zahl p unter das Gleichheitszeichen gesetzt
-				solutionSteps += ` \\underset{${p}}{=} \\frac{${currentZ}}{${currentN}}`;
-			});
+		pFactors.forEach(p => {
+			currentZ /= p;
+			currentN /= p;
+			// Hier wird die Zahl p unter das Gleichheitszeichen gesetzt
+			solutionSteps += ` \\underset{${p}}{=} \\frac{${currentZ}}{${currentN}}`;
+		});
 
-			s = `\\[ ${solutionSteps} \\]`;
-
-		} else {
-			const factors = [3, 4, 5, 6, 8, 9, 12, 15, 18, 20, 25];
-
-			const getGcd = mathUtils.getGcd;
-			const getPrimeFactors = mathUtils.getPrimeFactors;
-
-			const k = factors[Math.floor(Math.random() * factors.length)];
-			const pFactors = getPrimeFactors(k);
-
-			let z_base, n_base, Z, N;
-
-			do {
-				z_base = rnd(2, 12);
-				n_base = rnd(2, 12);
-				Z = z_base * k;
-				N = n_base * k;
-			} while (Z === N || getGcd(z_base, n_base) > 1 || Z % N === 0 || N % Z === 0);
-
-			textDisplay = `kürze vollständig: \\( \\quad\\dfrac{${Z}}{${N}} = \\)`;
-
-			// Lösungsweg mit \underset unter dem Gleichheitszeichen
-			let solutionSteps = `\\frac{${Z}}{${N}}`;
-			let currentZ = Z;
-			let currentN = N;
-
-			pFactors.forEach(p => {
-				currentZ /= p;
-				currentN /= p;
-				// Hier wird die Zahl p unter das Gleichheitszeichen gesetzt
-				solutionSteps += ` \\underset{${p}}{=} \\frac{${currentZ}}{${currentN}}`;
-			});
-
-			s = `\\[ ${solutionSteps} \\]`;
-
-		}
+		s = `\\[ ${solutionSteps} \\]`;
 		break;
 	}
+
 	case 'brueche_ordnen': {
-		if (isQuizMode) {
-			const getGcd = mathUtils.getGcd;
+		const getGcd = mathUtils.getGcd;
 
-			const mainDenominators = [12, 15, 18, 20, 24, 30, 36];
+		const mainDenominators = isQuizMode
+			? [12, 15, 18, 20, 24, 30, 36]
+			: [12, 15, 18, 20, 24, 30, 36, 40, 60];
 
-			const hn = mainDenominators[randInt(0, mainDenominators.length - 1)];
+		const hn = mainDenominators[randInt(0, mainDenominators.length - 1)];
 
-			const buildCloseExtendedSet = () => {
-				const useImproper = Math.random() < 0.35;
-				const maxImproperDelta = Math.max(1, Math.floor(hn * 0.10));
+		const buildCloseExtendedSet = () => {
+			const useImproper = Math.random() < 0.35;
+			const maxImproperDelta = Math.max(1, Math.floor(hn * 0.10));
 
-				let extNums;
-				if (useImproper) {
-					const improper = hn + randInt(1, maxImproperDelta);
-					const properHigh = hn - randInt(1, 3);
-					const properLow = properHigh - randInt(1, 2);
-					extNums = [properLow, properHigh, improper];
-				} else {
-					const high = hn - randInt(1, 3);
-					const mid = high - randInt(1, 2);
-					const low = mid - randInt(1, 2);
-					extNums = [low, mid, high];
-				}
-
-				extNums = extNums.map(value => Math.max(1, value));
-				if (new Set(extNums).size !== 3) return null;
-				if (Math.max(...extNums) - Math.min(...extNums) > 4) return null;
-
-				return extNums;
-			};
-
-			const toReducedFraction = extNum => {
-				const g = getGcd(extNum, hn);
-				return [extNum / g, hn / g];
-			};
-
-			let fracs = null;
-			let retries = 0;
-			do {
-				const extNums = buildCloseExtendedSet();
-				if (!extNums) {
-					retries += 1;
-					continue;
-				}
-
-				const candidateFracs = extNums.map(extNum => ({
-					orig: toReducedFraction(extNum),
-					ext: extNum
-				}));
-
-				const uniqueFracCount = new Set(candidateFracs.map(f => `${f.orig[0]}/${f.orig[1]}`)).size;
-				const denominatorVariety = new Set(candidateFracs.map(f => f.orig[1])).size;
-				const improperFractions = candidateFracs.filter(f => f.orig[0] > f.orig[1]);
-				const improperNearOne = improperFractions.every(f => (f.orig[0] / f.orig[1]) <= 1.15);
-
-				if (
-					uniqueFracCount === 3 &&
-					denominatorVariety >= 2 &&
-					improperFractions.length <= 1 &&
-					improperNearOne
-				) {
-					fracs = candidateFracs;
-				}
-
-				retries += 1;
-			} while (!fracs && retries < 120);
-
-			if (!fracs) {
-				const fallbackExt = [hn - 3, hn - 2, hn - 1];
-				fracs = fallbackExt.map(extNum => ({
-					orig: toReducedFraction(extNum),
-					ext: extNum
-				}));
+			let extNums;
+			if (useImproper) {
+				const improper = hn + randInt(1, maxImproperDelta);
+				const properHigh = hn - randInt(1, 3);
+				const properLow = properHigh - randInt(1, 2);
+				extNums = [properLow, properHigh, improper];
+			} else {
+				const high = hn - randInt(1, 3);
+				const mid = high - randInt(1, 2);
+				const low = mid - randInt(1, 2);
+				extNums = [low, mid, high];
 			}
 
-			// Zufällig mischen für die Aufgabenstellung
-			const displayOrder = fisherYatesShuffle(fracs);
-			// Aufsteigend sortiert für die Lösung
-			const sortedAsc = [...fracs].sort((a, b) => a.ext - b.ext);
-			const smallest = sortedAsc[0];
+			extNums = extNums.map(value => Math.max(1, value));
+			if (new Set(extNums).size !== 3) return null;
+			if (Math.max(...extNums) - Math.min(...extNums) > 4) return null;
 
-			const fmtFrac = ([n, d]) => `\\dfrac{${n}}{${d}}`;
+			return extNums;
+		};
 
-			// Aufgabe: Brüche in zufälliger Reihenfolge, Lücken zum Eintragen
-			const displayStr = displayOrder.map(f => fmtFrac(f.orig)).join(' \\quad ');
+		const toReducedFraction = extNum => {
+			const g = getGcd(extNum, hn);
+			return [extNum / g, hn / g];
+		};
 
-			// Nur der kleinste Bruch wird als Antwort bewertet.
-			const exactSmallest = smallest.orig;
-			const exactAnswer = { kind: 'fraction', num: exactSmallest[0], den: exactSmallest[1], exact: true };
-			answer = exactAnswer;
-
-			// Erweiterungsschritt in der Reihenfolge der Aufgabenstellung.
-			const extStep = displayOrder.map(f => {
-				const factor = hn / f.orig[1];
-				if (factor === 1) return fmtFrac(f.orig);
-				return `${fmtFrac(f.orig)} \\overset{${factor}}{=} \\dfrac{${f.ext}}{${hn}}`;
-			}).join(' \\quad ');
-
-			// Sortierte Lösung wie im allgemeinen Generator.
-			const sortedStr = sortedAsc.map(f => fmtFrac(f.orig)).join(' < ');
-
-			textDisplay = `Welcher Bruch ist am kleinsten? \\( \\quad ${displayStr} \\)`;
-			s = `\\[ ${sortedStr} \\quad \\left(${extStep}\\right) \\]`;
-		} else {
-			const getGcd = mathUtils.getGcd;
-
-			const mainDenominators = [12, 15, 18, 20, 24, 30, 36, 40, 60];
-
-			const hn = mainDenominators[randInt(0, mainDenominators.length - 1)];
-
-			const buildCloseExtendedSet = () => {
-				const useImproper = Math.random() < 0.35;
-				const maxImproperDelta = Math.max(1, Math.floor(hn * 0.10));
-
-				let extNums;
-				if (useImproper) {
-					const improper = hn + randInt(1, maxImproperDelta);
-					const properHigh = hn - randInt(1, 3);
-					const properLow = properHigh - randInt(1, 2);
-					extNums = [properLow, properHigh, improper];
-				} else {
-					const high = hn - randInt(1, 3);
-					const mid = high - randInt(1, 2);
-					const low = mid - randInt(1, 2);
-					extNums = [low, mid, high];
-				}
-
-				extNums = extNums.map(value => Math.max(1, value));
-				if (new Set(extNums).size !== 3) return null;
-				if (Math.max(...extNums) - Math.min(...extNums) > 4) return null;
-
-				return extNums;
-			};
-
-			const toReducedFraction = extNum => {
-				const g = getGcd(extNum, hn);
-				return [extNum / g, hn / g];
-			};
-
-			let fracs = null;
-			let retries = 0;
-			do {
-				const extNums = buildCloseExtendedSet();
-				if (!extNums) {
-					retries += 1;
-					continue;
-				}
-
-				const candidateFracs = extNums.map(extNum => ({
-					orig: toReducedFraction(extNum),
-					ext: extNum
-				}));
-
-				const uniqueFracCount = new Set(candidateFracs.map(f => `${f.orig[0]}/${f.orig[1]}`)).size;
-				const denominatorVariety = new Set(candidateFracs.map(f => f.orig[1])).size;
-				const improperFractions = candidateFracs.filter(f => f.orig[0] > f.orig[1]);
-				const improperNearOne = improperFractions.every(f => (f.orig[0] / f.orig[1]) <= 1.15);
-
-				if (
-					uniqueFracCount === 3 &&
-					denominatorVariety >= 2 &&
-					improperFractions.length <= 1 &&
-					improperNearOne
-				) {
-					fracs = candidateFracs;
-				}
-
+		let fracs = null;
+		let retries = 0;
+		do {
+			const extNums = buildCloseExtendedSet();
+			if (!extNums) {
 				retries += 1;
-			} while (!fracs && retries < 120);
-
-			if (!fracs) {
-				const fallbackExt = [hn - 3, hn - 2, hn - 1];
-				fracs = fallbackExt.map(extNum => ({
-					orig: toReducedFraction(extNum),
-					ext: extNum
-				}));
+				continue;
 			}
 
-			// Zufällig mischen für die Aufgabenstellung
-			const displayOrder = fisherYatesShuffle(fracs);
-			// Aufsteigend sortiert für die Lösung
-			const sortedAsc = [...fracs].sort((a, b) => a.ext - b.ext);
+			const candidateFracs = extNums.map(extNum => ({
+				orig: toReducedFraction(extNum),
+				ext: extNum
+			}));
 
-			const fmtFrac = ([n, d]) => `\\dfrac{${n}}{${d}}`;
+			const uniqueFracCount = new Set(candidateFracs.map(f => `${f.orig[0]}/${f.orig[1]}`)).size;
+			const denominatorVariety = new Set(candidateFracs.map(f => f.orig[1])).size;
+			const improperFractions = candidateFracs.filter(f => f.orig[0] > f.orig[1]);
+			const improperNearOne = improperFractions.every(f => (f.orig[0] / f.orig[1]) <= 1.15);
 
-			// Aufgabe: Brüche in zufälliger Reihenfolge, Lücken zum Eintragen
-			const displayStr = displayOrder.map(f => fmtFrac(f.orig)).join(' \\quad ');
+			if (
+				uniqueFracCount === 3 &&
+				denominatorVariety >= 2 &&
+				improperFractions.length <= 1 &&
+				improperNearOne
+			) {
+				fracs = candidateFracs;
+			}
 
-			// Erweiterungsschritt für jeden Bruch
-			const extStep = displayOrder.map(f => {
-				const factor = hn / f.orig[1];
-				if (factor === 1) return `\\dfrac{${f.orig[0]}}{${f.orig[1]}}`;
-				return `\\dfrac{${f.orig[0]}}{${f.orig[1]}} \\overset{${factor}}{=} \\dfrac{${f.ext}}{${hn}}`;
-			}).join(' \\quad ');
+			retries += 1;
+		} while (!fracs && retries < 120);
 
-			// Sortierte Lösung
-			const sortedStr = sortedAsc.map(f => fmtFrac(f.orig)).join(' < ');
-
-			textDisplay = `Ordne von klein nach groß: \\( \\quad ${displayStr} \\)`;
-			s = `\\[ ${sortedStr} \\quad \\left(${extStep}\\right) \\]`;
+		if (!fracs) {
+			const fallbackExt = [hn - 3, hn - 2, hn - 1];
+			fracs = fallbackExt.map(extNum => ({
+				orig: toReducedFraction(extNum),
+				ext: extNum
+			}));
 		}
+
+		// Zufällig mischen für die Aufgabenstellung
+		const displayOrder = fisherYatesShuffle(fracs);
+		// Aufsteigend sortiert für die Lösung
+		const sortedAsc = [...fracs].sort((a, b) => a.ext - b.ext);
+
+		const fmtFrac = ([n, d]) => `\\dfrac{${n}}{${d}}`;
+
+		// Aufgabe: Brüche in zufälliger Reihenfolge, Lücken zum Eintragen
+		const displayStr = displayOrder.map(f => fmtFrac(f.orig)).join(' \\quad ');
+
+		if (isQuizMode) {
+			// Nur der kleinste Bruch wird als Antwort bewertet.
+			const exactSmallest = sortedAsc[0].orig;
+			answer = { kind: 'fraction', num: exactSmallest[0], den: exactSmallest[1], exact: true };
+			textDisplay = `Welcher Bruch ist am kleinsten? \\( \\quad ${displayStr} \\)`;
+		} else {
+			textDisplay = `Ordne von klein nach groß: \\( \\quad ${displayStr} \\)`;
+		}
+
+		// Erweiterungsschritt in der Reihenfolge der Aufgabenstellung.
+		const extStep = displayOrder.map(f => {
+			const factor = hn / f.orig[1];
+			if (factor === 1) return fmtFrac(f.orig);
+			return `${fmtFrac(f.orig)} \\overset{${factor}}{=} \\dfrac{${f.ext}}{${hn}}`;
+		}).join(' \\quad ');
+
+		// Sortierte Lösung
+		const sortedStr = sortedAsc.map(f => fmtFrac(f.orig)).join(' < ');
+
+		s = `\\[ ${sortedStr} \\quad \\left(${extStep}\\right) \\]`;
 		break;
 	}
+
 	case 'brueche_umwandeln': {
-		if (isQuizMode) {
-			// Hilfsfunktionen für diesen Case
-			const getGcd = mathUtils.getGcd;
+		// Hilfsfunktionen für diesen Case
+		const getGcd = mathUtils.getGcd;
 
-			// Ermittelt den passenden Zehnerpotenz-Nenner (10 oder 100)
-			const getP10 = (n) => (10 % n === 0) ? 10 : 100;
+		// Ermittelt den passenden Zehnerpotenz-Nenner (10 oder 100)
+		const getP10 = (n) => (10 % n === 0) ? 10 : 100;
 
-			// Erlaubte Nenner (garantieren saubere Zehnerpotenzen ohne Periode)
+		// Erlaubte Nenner (garantieren saubere Zehnerpotenzen ohne Periode)
+		const allowedDenoms = [2, 4, 5, 20, 25, 50];
 
-			let allowedDenoms = [2, 4, 5, 20, 25, 50];
+		// Umwandlungspfade. Im Quiz-Modus entfällt 'frac_to_mixed',
+		// da dort keine gemischte Zahl als Antwort ausgewertet wird.
+		const paths = [
+			'frac_to_dec', 'dec_to_frac',
+			'frac_to_perc', 'perc_to_frac',
+			'mixed_to_frac',
+			'dec_to_perc', 'perc_to_dec'
+		];
+		if (!isQuizMode) {
+			paths.splice(paths.indexOf('mixed_to_frac'), 0, 'frac_to_mixed');
+		}
 
-			// Alle 9 expliziten Umwandlungspfade
-			const paths = [
-				'frac_to_dec', 'dec_to_frac',
-				'frac_to_perc', 'perc_to_frac',
-				'mixed_to_frac',
-				'dec_to_perc', 'perc_to_dec'
-			];
+		// Zufälligen Pfad auswählen
+		const path = paths[Math.floor(Math.random() * paths.length)];
+		const maxZFactor = isQuizMode ? 2 : 3;
 
-			// Zufälligen Pfad auswählen
-			let path = paths[Math.floor(Math.random() * paths.length)];
-			switch (path) {
-				// ---------------------------------------------------------
-				// 1. Bruch <> Dezimalbruch
-				// ---------------------------------------------------------
-				case 'frac_to_dec': {
-					let n, z, maxZ;
-					let isTooEasy = true;
+		switch (path) {
+			// ---------------------------------------------------------
+			// 1. Bruch <> Dezimalbruch
+			// ---------------------------------------------------------
+			case 'frac_to_dec': {
+				let n, z, maxZ;
+				let isTooEasy = true;
 
-					// Gesamte Wahl von n und z wiederholen, wenn es "zu oft" 1/2 ist
-					while (isTooEasy) {
-						n = allowedDenoms[Math.floor(Math.random() * allowedDenoms.length)];
-						maxZ = n * 2;
+				// Gesamte Wahl von n und z wiederholen, wenn es "zu oft" 1/2 ist
+				while (isTooEasy) {
+					n = allowedDenoms[Math.floor(Math.random() * allowedDenoms.length)];
+					maxZ = n * maxZFactor;
 
-						// Zähler teilerfremd zu n würfeln
-						do {
-							z = randInt(1, maxZ);
-						} while (getGcd(z, n) !== 1);
+					// Zähler teilerfremd zu n würfeln
+					do {
+						z = randInt(1, maxZ);
+					} while (getGcd(z, n) !== 1);
 
-						// Veto-Check: Wenn der Bruch 1/2 ist, würfle mit 75% Chance neu
-						if (z === 1 && n === 2) {
-							if (Math.random() > 0.25) continue; // 75% Wahrscheinlichkeit für Neustart
-						}
-
-						isTooEasy = false; // Wir haben einen akzeptablen Bruch gefunden
+					// Veto-Check: Wenn der Bruch 1/2 ist, würfle mit 75% Chance neu
+					if (z === 1 && n === 2) {
+						if (Math.random() > 0.25) continue; // 75% Wahrscheinlichkeit für Neustart
 					}
 
-					let p10 = getP10(n);
-					let mult = p10 / n;
-					let decStr = formatDecimal(z / n, 4);
-					const convertedValue = z / n;
+					isTooEasy = false; // Wir haben einen akzeptablen Bruch gefunden
+				}
 
-					textDisplay = `als Dezimalbruch: \\( \\quad \\dfrac{${z}}{${n}} = \\)`;
+				let p10 = getP10(n);
+				let mult = p10 / n;
+				let decStr = formatDecimal(z / n, 4);
+				const convertedValue = z / n;
 
-					if (n === p10) {
-						s = `\\[ \\frac{${z}}{${n}} = ${decStr} \\]`;
-					} else {
-						s = `\\[ \\frac{${z}}{${n}} \\overset{${mult}}{=} \\frac{${z * mult}}{${p10}} = ${decStr} \\]`;
-					}
+				textDisplay = `als Dezimalbruch: \\( \\quad \\dfrac{${z}}{${n}} = \\)`;
+
+				if (n === p10) {
+					s = `\\[ \\frac{${z}}{${n}} = ${decStr} \\]`;
+				} else {
+					s = `\\[ \\frac{${z}}{${n}} \\overset{${mult}}{=} \\frac{${z * mult}}{${p10}} = ${decStr} \\]`;
+				}
+				if (isQuizMode) {
 					answer = numericAnswer(convertedValue);
-					break;
 				}
-
-				case 'dec_to_frac': {
-					let n, z;
-					let isTooEasy = true;
-
-					// 1. Exakt gleiche Generierungs-Logik wie bei frac_to_dec
-					while (isTooEasy) {
-						n = allowedDenoms[Math.floor(Math.random() * allowedDenoms.length)];
-						let maxZ = n * 2;
-
-						let attempts = 0;
-						do {
-							z = randInt(1, maxZ);
-							attempts++;
-							if (attempts > 50) { z = 1; break; }
-						} while (getGcd(z, n) !== 1);
-
-						// Veto-Check für 1/2
-						if (z === 1 && n === 2) {
-							if (Math.random() > 0.25) continue;
-						}
-
-						isTooEasy = false;
-					}
-
-					// 2. Werte für den Dezimalbruch und den Zwischenschritt berechnen
-					let p10 = getP10(n);
-					let mult = p10 / n; // Das ist jetzt unser Kürzungsfaktor
-					let decStr = formatDecimal(z / n, 4);
-
-					// Der Zähler des ungekürzten Zehnerbruchs (z. B. 35 bei 0,35)
-					let z_p10 = z * mult;
-
-					// 3. Aufgabenstellung
-					textDisplay = `als max. gekürzter gem. Bruch: \\( \\quad ${decStr} = \\)`;
-
-					// 4. Lösungsweg (Rückwärts: Dezimal -> Zehnerbruch -> Kürzen -> Ergebnis)
-					if (n === p10) {
-						// Fall: Nenner ist bereits 10 oder 100, es muss nicht gekürzt werden (z. B. 0,7 = 7/10)
-						s = `\\[ ${decStr} = \\frac{${z}}{${n}} \\]`;
-					} else {
-						// Fall: Bruch muss gekürzt werden. Wir zeigen den Kürzungsfaktor explizit (z. B. : 5)
-						s = `\\[ ${decStr} = \\frac{${z_p10}}{${p10}} \\underset{${mult}}{=} \\frac{${z}}{${n}} \\]`;
-					}
-					answer = fractionAnswer(z, n, true);
-					break;
-				}
-
-				// ---------------------------------------------------------
-				// 2. Bruch <> Prozent
-				// ---------------------------------------------------------
-				case 'frac_to_perc': {
-					let n, z;
-					let isTooEasy = true;
-
-					while (isTooEasy) {
-						n = allowedDenoms[Math.floor(Math.random() * allowedDenoms.length)];
-
-						let maxZ = 2 * n - 1;
-
-						let attempts = 0;
-						do {
-							z = randInt(1, maxZ);
-							attempts++;
-							// Sicherheitsnetz: Falls z.B. n=2, ist maxZ=1. Es gibt nur z=1.
-							if (attempts > 50) { z = 1; break; }
-						} while (getGcd(z, n) !== 1);
-
-						// Veto-Check für 1/2 (kommt sonst bei n=2 zu 100% vor)
-						if (z === 1 && n === 2) {
-							if (Math.random() > 0.25) continue; // 75% Chance für Neustart
-						}
-
-						// Optionaler didaktischer Veto-Check für 1/10 (oft etwas zu leicht)
-						if (z === 1 && n === 10) {
-							if (Math.random() > 0.5) continue; // 50% Chance für Neustart
-						}
-
-						isTooEasy = false;
-					}
-
-					// Bei Prozent ist das Ziel für das Erweitern immer 100
-					let p10 = 100;
-					let mult = p10 / n; // Erweiterungsfaktor
-					const percentageValue = z * mult;
-
-					// Da wir auf 100 erweitern, ist der neue Zähler direkt die Prozentzahl
-					let percStr = percentageValue.toString() + '\\,\\%';
-
-					textDisplay = `in Prozent: \\( \\quad \\dfrac{${z}}{${n}} = \\)`;
-					s = `\\[ \\frac{${z}}{${n}} \\overset{${mult}}{=} \\frac{${z * mult}}{100} = ${percStr} \\]`;
-					answer = numericAnswer(percentageValue);
-
-					break;
-				}
-				case 'perc_to_frac': {
-					// 1. Spezialfälle: 100% und 200% (Wahrscheinlichkeit hier auf 10% = 0.1 eingestellt)
-					const probSpecial = 0.3; // 30% Chance, in die Spezialfall-Logik zu gehen (kann angepasst werden)
-
-					if (Math.random() < probSpecial) {
-						// Mit 50/50 Chance entweder 100% oder 200% wählen
-						let is200 = Math.random() < 0.5;
-						let percVal = is200 ? 200 : 100;
-						let resultVal = is200 ? 2 : 1; // Das gekürzte Ergebnis als ganze Zahl
-
-						textDisplay = `als max. gekürzter gem. Bruch: \\( \\quad ${percVal}\\,\\% = \\)`;
-						s = `\\[ ${percVal}\\,\\% = \\frac{${percVal}}{100} = ${resultVal} \\]`;
-						answer = numericAnswer(resultVal);
-
-						// Hinweis: Wenn dein System zwingend eine Bruch-Schreibweise als Lösung erwartet, 
-						// müsstest du resultVal auf "2/1" bzw. "1/1" ändern.
-						break;
-					}
-
-					// 2. Normale Generierung
-					let n, z;
-					let isTooEasy = true;
-
-					while (isTooEasy) {
-						n = allowedDenoms[Math.floor(Math.random() * allowedDenoms.length)];
-
-						// Da bis zu 200% erlaubt sind, darf der Zähler doppelt so groß wie der Nenner werden
-						let maxZ = n * 2;
-
-						let attempts = 0;
-						do {
-							z = randInt(1, maxZ);
-							attempts++;
-							if (attempts > 50) { z = 1; break; }
-						} while (getGcd(z, n) !== 1);
-
-						// Veto-Checks für zu häufige/einfache Aufgaben
-						if (z === 1 && n === 2) { // 50 %
-							if (Math.random() > 0.25) continue; // 75% Chance für Neustart
-						}
-						if (z === 1 && n === 10) { // 10 %
-							if (Math.random() > 0.5) continue; // 50% Chance für Neustart
-						}
-						// Verhindert, dass regulär nochmal 100% oder 200% generiert werden (sind ja schon im Spezialfall)
-						if (z === n || z === n * 2) {
-							continue;
-						}
-
-						isTooEasy = false;
-					}
-
-					// 3. Werte berechnen
-					let p10 = 100;
-					let mult = p10 / n; // Das ist der Kürzungsfaktor für den Lösungsweg
-
-					// Die Prozentzahl berechnet sich aus Zähler mal Erweiterungsfaktor
-					let percVal = z * mult;
-					let percStr = percVal.toString() + '\\,\\%';
-
-					// 4. Strings für Aufgabe und Lösung bauen
-					textDisplay = `als max. gekürzter gem. Bruch: \\( \\quad ${percStr} = \\)`;
-
-					if (n === p10) {
-						s = `\\[ ${percStr} = \\frac{${z}}{100} \\]`;
-					} else {
-						// Didaktischer Lösungsweg: Start bei /100, dann explizit durch den Kürzungsfaktor teilen
-						s = `\\[ ${percStr} = \\frac{${percVal}}{100} \\underset{${mult}}{=} \\frac{${z}}{${n}} \\]`;
-					}
-					answer = fractionAnswer(z, n, true);
-					break;
-				}
-
-				// ---------------------------------------------------------
-				// 3. Bruch <> Gemischte Schreibweise
-				// ---------------------------------------------------------
-
-				case 'mixed_to_frac': {
-					let n = allowedDenoms[Math.floor(Math.random() * allowedDenoms.length)];
-					let w = Math.floor(Math.random() * 3) + 2;
-					let rem = Math.floor(Math.random() * (n - 1)) + 1;
-					let z = w * n + rem;
-					let g = getGcd(z, n); z /= g; n /= g;
-
-					let w_simp = Math.floor(z / n);
-					let rem_simp = z % n;
-
-					textDisplay = `als gemeiner Bruch: \\( ${w_simp} \\dfrac{${rem_simp}}{${n}} = \\)`;
-					s = `\\[ ${w_simp} \\frac{${rem_simp}}{${n}} = \\frac{${w_simp * n}}{${n}} + \\frac{${rem_simp}}{${n}} = \\frac{${z}}{${n}} \\]`;
-					answer = fractionAnswer(z, n, false);
-					break;
-				}
-
-				// ---------------------------------------------------------
-				// 4. Dezimalbruch <> Prozent (Spezialfall)
-				// ---------------------------------------------------------
-				case 'dec_to_perc': {
-					let p = (Math.floor(Math.random() * 400) + 1) / 2; // Schritte von 0,5%
-					let decStr = formatDecimal(p / 100, 4);
-					let percStr = p.toString().replace('.', ',') + '\\,\\%';
-
-					textDisplay = ` in Prozent: \\( \\quad ${decStr} = \\)`;
-					s = `\\( ${decStr} = ${percStr} \\)`;
-					answer = numericAnswer(p);
-					break;
-				}
-				case 'perc_to_dec': {
-					let p = (Math.floor(Math.random() * 400) + 1) / 2;
-					let decStr = formatDecimal(p / 100, 4);
-					let percStr = p.toString().replace('.', ',') + '\\,\\%';
-
-					textDisplay = `als Dezimalbruch: \\( \\quad ${percStr} = \\)`;
-					s = `\\( ${percStr} = ${decStr} \\)`;
-					answer = numericAnswer(p / 100);
-					break;
-				}
+				break;
 			}
-		} else {
-			// Hilfsfunktionen für diesen Case
-			const getGcd = mathUtils.getGcd;
 
-			// Ermittelt den passenden Zehnerpotenz-Nenner (10 oder 100)
-			const getP10 = (n) => (10 % n === 0) ? 10 : 100;
+			case 'dec_to_frac': {
+				let n, z;
+				let isTooEasy = true;
 
-			// Erlaubte Nenner (garantieren saubere Zehnerpotenzen ohne Periode)
+				// 1. Exakt gleiche Generierungs-Logik wie bei frac_to_dec
+				while (isTooEasy) {
+					n = allowedDenoms[Math.floor(Math.random() * allowedDenoms.length)];
+					let maxZ = n * maxZFactor;
 
-			let allowedDenoms = [2, 4, 5, 20, 25, 50];
+					let attempts = 0;
+					do {
+						z = randInt(1, maxZ);
+						attempts++;
+						if (attempts > 50) { z = 1; break; }
+					} while (getGcd(z, n) !== 1);
 
-			// Alle 10 expliziten Umwandlungspfade
-			const paths = [
-				'frac_to_dec', 'dec_to_frac',
-				'frac_to_perc', 'perc_to_frac',
-				'frac_to_mixed', 'mixed_to_frac',
-				'dec_to_perc', 'perc_to_dec'
-			];
-
-			// Zufälligen Pfad auswählen
-			let path = paths[Math.floor(Math.random() * paths.length)];
-			switch (path) {
-				// ---------------------------------------------------------
-				// 1. Bruch <> Dezimalbruch
-				// ---------------------------------------------------------
-				case 'frac_to_dec': {
-					let n, z, maxZ;
-					let isTooEasy = true;
-
-					// Gesamte Wahl von n und z wiederholen, wenn es "zu oft" 1/2 ist
-					while (isTooEasy) {
-						n = allowedDenoms[Math.floor(Math.random() * allowedDenoms.length)];
-						maxZ = n * 3;
-
-						// Zähler teilerfremd zu n würfeln
-						do {
-							z = randInt(1, maxZ);
-						} while (getGcd(z, n) !== 1);
-
-						// Veto-Check: Wenn der Bruch 1/2 ist, würfle mit 75% Chance neu
-						if (z === 1 && n === 2) {
-							if (Math.random() > 0.25) continue; // 75% Wahrscheinlichkeit für Neustart
-						}
-
-						isTooEasy = false; // Wir haben einen akzeptablen Bruch gefunden
+					// Veto-Check für 1/2
+					if (z === 1 && n === 2) {
+						if (Math.random() > 0.25) continue;
 					}
 
-					let p10 = getP10(n);
-					let mult = p10 / n;
-					let decStr = formatDecimal(z / n, 4);
+					isTooEasy = false;
+				}
 
-					textDisplay = `als Dezimalbruch: \\( \\quad \\dfrac{${z}}{${n}} = \\)`;
+				// 2. Werte für den Dezimalbruch und den Zwischenschritt berechnen
+				let p10 = getP10(n);
+				let mult = p10 / n; // Das ist jetzt unser Kürzungsfaktor
+				let decStr = formatDecimal(z / n, 4);
 
-					if (n === p10) {
-						s = `\\[ \\frac{${z}}{${n}} = ${decStr} \\]`;
-					} else {
-						s = `\\[ \\frac{${z}}{${n}} \\overset{${mult}}{=} \\frac{${z * mult}}{${p10}} = ${decStr} \\]`;
+				// Der Zähler des ungekürzten Zehnerbruchs (z. B. 35 bei 0,35)
+				let z_p10 = z * mult;
+
+				// 3. Aufgabenstellung
+				textDisplay = `als max. gekürzter gem. Bruch: \\( \\quad ${decStr} = \\)`;
+
+				// 4. Lösungsweg (Rückwärts: Dezimal -> Zehnerbruch -> Kürzen -> Ergebnis)
+				if (n === p10) {
+					// Fall: Nenner ist bereits 10 oder 100, es muss nicht gekürzt werden (z. B. 0,7 = 7/10)
+					s = `\\[ ${decStr} = \\frac{${z}}{${n}} \\]`;
+				} else {
+					// Fall: Bruch muss gekürzt werden. Wir zeigen den Kürzungsfaktor explizit (z. B. : 5)
+					s = `\\[ ${decStr} = \\frac{${z_p10}}{${p10}} \\underset{${mult}}{=} \\frac{${z}}{${n}} \\]`;
+				}
+				if (isQuizMode) {
+					answer = fractionAnswer(z, n, true);
+				}
+				break;
+			}
+
+			// ---------------------------------------------------------
+			// 2. Bruch <> Prozent
+			// ---------------------------------------------------------
+			case 'frac_to_perc': {
+				let n, z;
+				let isTooEasy = true;
+
+				while (isTooEasy) {
+					n = allowedDenoms[Math.floor(Math.random() * allowedDenoms.length)];
+
+					let maxZ = 2 * n - 1;
+
+					let attempts = 0;
+					do {
+						z = randInt(1, maxZ);
+						attempts++;
+						// Sicherheitsnetz: Falls z.B. n=2, ist maxZ=1. Es gibt nur z=1.
+						if (attempts > 50) { z = 1; break; }
+					} while (getGcd(z, n) !== 1);
+
+					// Veto-Check für 1/2 (kommt sonst bei n=2 zu 100% vor)
+					if (z === 1 && n === 2) {
+						if (Math.random() > 0.25) continue; // 75% Chance für Neustart
 					}
+
+					// Optionaler didaktischer Veto-Check für 1/10 (oft etwas zu leicht)
+					if (z === 1 && n === 10) {
+						if (Math.random() > 0.5) continue; // 50% Chance für Neustart
+					}
+
+					isTooEasy = false;
+				}
+
+				// Bei Prozent ist das Ziel für das Erweitern immer 100
+				let p10 = 100;
+				let mult = p10 / n; // Erweiterungsfaktor
+				const percentageValue = z * mult;
+
+				// Da wir auf 100 erweitern, ist der neue Zähler direkt die Prozentzahl
+				let percStr = percentageValue.toString() + '\\,\\%';
+
+				textDisplay = `in Prozent: \\( \\quad \\dfrac{${z}}{${n}} = \\)`;
+				s = `\\[ \\frac{${z}}{${n}} \\overset{${mult}}{=} \\frac{${z * mult}}{100} = ${percStr} \\]`;
+				if (isQuizMode) {
+					answer = numericAnswer(percentageValue);
+				}
+
+				break;
+			}
+			case 'perc_to_frac': {
+				// 1. Spezialfälle: 100% und 200% (Wahrscheinlichkeit hier auf 10% = 0.1 eingestellt)
+				const probSpecial = 0.3; // 30% Chance, in die Spezialfall-Logik zu gehen (kann angepasst werden)
+
+				if (Math.random() < probSpecial) {
+					// Mit 50/50 Chance entweder 100% oder 200% wählen
+					let is200 = Math.random() < 0.5;
+					let percVal = is200 ? 200 : 100;
+					let resultVal = is200 ? 2 : 1; // Das gekürzte Ergebnis als ganze Zahl
+
+					textDisplay = `als max. gekürzter gem. Bruch: \\( \\quad ${percVal}\\,\\% = \\)`;
+					s = `\\[ ${percVal}\\,\\% = \\frac{${percVal}}{100} = ${resultVal} \\]`;
+					if (isQuizMode) {
+						answer = numericAnswer(resultVal);
+					}
+
+					// Hinweis: Wenn dein System zwingend eine Bruch-Schreibweise als Lösung erwartet,
+					// müsstest du resultVal auf "2/1" bzw. "1/1" ändern.
 					break;
 				}
 
-				case 'dec_to_frac': {
-					let n, z;
-					let isTooEasy = true;
+				// 2. Normale Generierung
+				let n, z;
+				let isTooEasy = true;
 
-					// 1. Exakt gleiche Generierungs-Logik wie bei frac_to_dec
-					while (isTooEasy) {
-						n = allowedDenoms[Math.floor(Math.random() * allowedDenoms.length)];
-						let maxZ = n * 3;
+				while (isTooEasy) {
+					n = allowedDenoms[Math.floor(Math.random() * allowedDenoms.length)];
 
-						let attempts = 0;
-						do {
-							z = randInt(1, maxZ);
-							attempts++;
-							if (attempts > 50) { z = 1; break; }
-						} while (getGcd(z, n) !== 1);
+					// Da bis zu 200% erlaubt sind, darf der Zähler doppelt so groß wie der Nenner werden
+					let maxZ = n * 2;
 
-						// Veto-Check für 1/2
-						if (z === 1 && n === 2) {
-							if (Math.random() > 0.25) continue;
-						}
+					let attempts = 0;
+					do {
+						z = randInt(1, maxZ);
+						attempts++;
+						if (attempts > 50) { z = 1; break; }
+					} while (getGcd(z, n) !== 1);
 
-						isTooEasy = false;
+					// Veto-Checks für zu häufige/einfache Aufgaben
+					if (z === 1 && n === 2) { // 50 %
+						if (Math.random() > 0.25) continue; // 75% Chance für Neustart
+					}
+					if (z === 1 && n === 10) { // 10 %
+						if (Math.random() > 0.5) continue; // 50% Chance für Neustart
+					}
+					// Verhindert, dass regulär nochmal 100% oder 200% generiert werden (sind ja schon im Spezialfall)
+					if (z === n || z === n * 2) {
+						continue;
 					}
 
-					// 2. Werte für den Dezimalbruch und den Zwischenschritt berechnen
-					let p10 = getP10(n);
-					let mult = p10 / n; // Das ist jetzt unser Kürzungsfaktor
-					let decStr = formatDecimal(z / n, 4);
-
-					// Der Zähler des ungekürzten Zehnerbruchs (z. B. 35 bei 0,35)
-					let z_p10 = z * mult;
-
-					// 3. Aufgabenstellung
-					textDisplay = `als max. gekürzter gem. Bruch: \\( \\quad ${decStr} = \\)`;
-
-					// 4. Lösungsweg (Rückwärts: Dezimal -> Zehnerbruch -> Kürzen -> Ergebnis)
-					if (n === p10) {
-						// Fall: Nenner ist bereits 10 oder 100, es muss nicht gekürzt werden (z. B. 0,7 = 7/10)
-						s = `\\[ ${decStr} = \\frac{${z}}{${n}} \\]`;
-					} else {
-						// Fall: Bruch muss gekürzt werden. Wir zeigen den Kürzungsfaktor explizit (z. B. : 5)
-						s = `\\[ ${decStr} = \\frac{${z_p10}}{${p10}} \\underset{${mult}}{=} \\frac{${z}}{${n}} \\]`;
-					}
-					break;
+					isTooEasy = false;
 				}
 
-				// ---------------------------------------------------------
-				// 2. Bruch <> Prozent
-				// ---------------------------------------------------------
-				case 'frac_to_perc': {
-					let n, z;
-					let isTooEasy = true;
+				// 3. Werte berechnen
+				let p10 = 100;
+				let mult = p10 / n; // Das ist der Kürzungsfaktor für den Lösungsweg
 
-					while (isTooEasy) {
-						n = allowedDenoms[Math.floor(Math.random() * allowedDenoms.length)];
+				// Die Prozentzahl berechnet sich aus Zähler mal Erweiterungsfaktor
+				let percVal = z * mult;
+				let percStr = percVal.toString() + '\\,\\%';
 
-						let maxZ = 2 * n - 1;
+				// 4. Strings für Aufgabe und Lösung bauen
+				textDisplay = `als max. gekürzter gem. Bruch: \\( \\quad ${percStr} = \\)`;
 
-						let attempts = 0;
-						do {
-							z = randInt(1, maxZ);
-							attempts++;
-							// Sicherheitsnetz: Falls z.B. n=2, ist maxZ=1. Es gibt nur z=1.
-							if (attempts > 50) { z = 1; break; }
-						} while (getGcd(z, n) !== 1);
-
-						// Veto-Check für 1/2 (kommt sonst bei n=2 zu 100% vor)
-						if (z === 1 && n === 2) {
-							if (Math.random() > 0.25) continue; // 75% Chance für Neustart
-						}
-
-						// Optionaler didaktischer Veto-Check für 1/10 (oft etwas zu leicht)
-						if (z === 1 && n === 10) {
-							if (Math.random() > 0.5) continue; // 50% Chance für Neustart
-						}
-
-						isTooEasy = false;
-					}
-
-					// Bei Prozent ist das Ziel für das Erweitern immer 100
-					let p10 = 100;
-					let mult = p10 / n; // Erweiterungsfaktor
-
-					// Da wir auf 100 erweitern, ist der neue Zähler direkt die Prozentzahl
-					let percStr = (z * mult).toString() + '\\,\\%';
-
-					textDisplay = `in Prozent: \\( \\quad \\dfrac{${z}}{${n}} = \\)`;
-					s = `\\[ \\frac{${z}}{${n}} \\overset{${mult}}{=} \\frac{${z * mult}}{100} = ${percStr} \\]`;
-
-					break;
+				if (n === p10) {
+					s = `\\[ ${percStr} = \\frac{${z}}{100} \\]`;
+				} else {
+					// Didaktischer Lösungsweg: Start bei /100, dann explizit durch den Kürzungsfaktor teilen
+					s = `\\[ ${percStr} = \\frac{${percVal}}{100} \\underset{${mult}}{=} \\frac{${z}}{${n}} \\]`;
 				}
-				case 'perc_to_frac': {
-					// 1. Spezialfälle: 100% und 200% (Wahrscheinlichkeit hier auf 10% = 0.1 eingestellt)
-					const probSpecial = 0.3; // 30% Chance, in die Spezialfall-Logik zu gehen (kann angepasst werden)
-
-					if (Math.random() < probSpecial) {
-						// Mit 50/50 Chance entweder 100% oder 200% wählen
-						let is200 = Math.random() < 0.5;
-						let percVal = is200 ? 200 : 100;
-						let resultVal = is200 ? 2 : 1; // Das gekürzte Ergebnis als ganze Zahl
-
-						textDisplay = `als max. gekürzter gem. Bruch: \\( \\quad ${percVal}\\,\\% = \\)`;
-						s = `\\[ ${percVal}\\,\\% = \\frac{${percVal}}{100} = ${resultVal} \\]`;
-
-						// Hinweis: Wenn dein System zwingend eine Bruch-Schreibweise als Lösung erwartet, 
-						// müsstest du resultVal auf "2/1" bzw. "1/1" ändern.
-						break;
-					}
-
-					// 2. Normale Generierung
-					let n, z;
-					let isTooEasy = true;
-
-					while (isTooEasy) {
-						n = allowedDenoms[Math.floor(Math.random() * allowedDenoms.length)];
-
-						// Da bis zu 200% erlaubt sind, darf der Zähler doppelt so groß wie der Nenner werden
-						let maxZ = n * 2;
-
-						let attempts = 0;
-						do {
-							z = randInt(1, maxZ);
-							attempts++;
-							if (attempts > 50) { z = 1; break; }
-						} while (getGcd(z, n) !== 1);
-
-						// Veto-Checks für zu häufige/einfache Aufgaben
-						if (z === 1 && n === 2) { // 50 %
-							if (Math.random() > 0.25) continue; // 75% Chance für Neustart
-						}
-						if (z === 1 && n === 10) { // 10 %
-							if (Math.random() > 0.5) continue; // 50% Chance für Neustart
-						}
-						// Verhindert, dass regulär nochmal 100% oder 200% generiert werden (sind ja schon im Spezialfall)
-						if (z === n || z === n * 2) {
-							continue;
-						}
-
-						isTooEasy = false;
-					}
-
-					// 3. Werte berechnen
-					let p10 = 100;
-					let mult = p10 / n; // Das ist der Kürzungsfaktor für den Lösungsweg
-
-					// Die Prozentzahl berechnet sich aus Zähler mal Erweiterungsfaktor
-					let percVal = z * mult;
-					let percStr = percVal.toString() + '\\,\\%';
-
-					// 4. Strings für Aufgabe und Lösung bauen
-					textDisplay = `als max. gekürzter gem. Bruch: \\( \\quad ${percStr} = \\)`;
-
-					if (n === p10) {
-						s = `\\[ ${percStr} = \\frac{${z}}{100} \\]`;
-					} else {
-						// Didaktischer Lösungsweg: Start bei /100, dann explizit durch den Kürzungsfaktor teilen
-						s = `\\[ ${percStr} = \\frac{${percVal}}{100} \\underset{${mult}}{=} \\frac{${z}}{${n}} \\]`;
-					}
-					break;
+				if (isQuizMode) {
+					answer = fractionAnswer(z, n, true);
 				}
+				break;
+			}
 
-				// ---------------------------------------------------------
-				// 3. Bruch <> Gemischte Schreibweise
-				// ---------------------------------------------------------
-				case 'frac_to_mixed': {
-					let n = allowedDenoms[Math.floor(Math.random() * allowedDenoms.length)];
-					let w = Math.floor(Math.random() * 3) + 2;
-					let rem = Math.floor(Math.random() * (n - 1)) + 1;
-					let z = w * n + rem; // Garantiert unechter Bruch (>1)
-					let g = getGcd(z, n); z /= g; n /= g;
+			// ---------------------------------------------------------
+			// 3. Bruch <> Gemischte Schreibweise
+			// ---------------------------------------------------------
+			case 'frac_to_mixed': {
+				let n = allowedDenoms[Math.floor(Math.random() * allowedDenoms.length)];
+				let w = Math.floor(Math.random() * 3) + 2;
+				let rem = Math.floor(Math.random() * (n - 1)) + 1;
+				let z = w * n + rem; // Garantiert unechter Bruch (>1)
+				let g = getGcd(z, n); z /= g; n /= g;
 
-					let w_simp = Math.floor(z / n);
-					let rem_simp = z % n;
+				let w_simp = Math.floor(z / n);
+				let rem_simp = z % n;
 
-					textDisplay = `in gemischter Schreibweise: \\( \\quad \\dfrac{${z}}{${n}} = \\)`;
-					s = `\\[ \\frac{${z}}{${n}} = \\frac{${w_simp * n}}{${n}} + \\frac{${rem_simp}}{${n}} = ${w_simp} \\frac{${rem_simp}}{${n}} \\]`;
-					break;
+				textDisplay = `in gemischter Schreibweise: \\( \\quad \\dfrac{${z}}{${n}} = \\)`;
+				s = `\\[ \\frac{${z}}{${n}} = \\frac{${w_simp * n}}{${n}} + \\frac{${rem_simp}}{${n}} = ${w_simp} \\frac{${rem_simp}}{${n}} \\]`;
+				break;
+			}
+			case 'mixed_to_frac': {
+				let n = allowedDenoms[Math.floor(Math.random() * allowedDenoms.length)];
+				let w = Math.floor(Math.random() * 3) + 2;
+				let rem = Math.floor(Math.random() * (n - 1)) + 1;
+				let z = w * n + rem;
+				let g = getGcd(z, n); z /= g; n /= g;
+
+				let w_simp = Math.floor(z / n);
+				let rem_simp = z % n;
+
+				textDisplay = `als gemeiner Bruch: \\( ${w_simp} \\dfrac{${rem_simp}}{${n}} = \\)`;
+				s = `\\[ ${w_simp} \\frac{${rem_simp}}{${n}} = \\frac{${w_simp * n}}{${n}} + \\frac{${rem_simp}}{${n}} = \\frac{${z}}{${n}} \\]`;
+				if (isQuizMode) {
+					answer = fractionAnswer(z, n, false);
 				}
-				case 'mixed_to_frac': {
-					let n = allowedDenoms[Math.floor(Math.random() * allowedDenoms.length)];
-					let w = Math.floor(Math.random() * 3) + 2;
-					let rem = Math.floor(Math.random() * (n - 1)) + 1;
-					let z = w * n + rem;
-					let g = getGcd(z, n); z /= g; n /= g;
+				break;
+			}
 
-					let w_simp = Math.floor(z / n);
-					let rem_simp = z % n;
+			// ---------------------------------------------------------
+			// 4. Dezimalbruch <> Prozent (Spezialfall)
+			// ---------------------------------------------------------
+			case 'dec_to_perc': {
+				let p = (Math.floor(Math.random() * 400) + 1) / 2; // Schritte von 0,5%
+				let decStr = formatDecimal(p / 100, 4);
+				let percStr = p.toString().replace('.', ',') + '\\,\\%';
 
-					textDisplay = `als gemeiner Bruch: \\( ${w_simp} \\dfrac{${rem_simp}}{${n}} = \\)`;
-					s = `\\[ ${w_simp} \\frac{${rem_simp}}{${n}} = \\frac{${w_simp * n}}{${n}} + \\frac{${rem_simp}}{${n}} = \\frac{${z}}{${n}} \\]`;
-					break;
+				textDisplay = `in Prozent: \\( \\quad ${decStr} = \\)`;
+				s = `\\( ${decStr} = ${percStr} \\)`;
+				if (isQuizMode) {
+					answer = numericAnswer(p);
 				}
+				break;
+			}
+			case 'perc_to_dec': {
+				let p = (Math.floor(Math.random() * 400) + 1) / 2;
+				let decStr = formatDecimal(p / 100, 4);
+				let percStr = p.toString().replace('.', ',') + '\\,\\%';
 
-				// ---------------------------------------------------------
-				// 4. Dezimalbruch <> Prozent (Spezialfall)
-				// ---------------------------------------------------------
-				case 'dec_to_perc': {
-					let p = (Math.floor(Math.random() * 400) + 1) / 2; // Schritte von 0,5%
-					let decStr = formatDecimal(p / 100, 4);
-					let percStr = p.toString().replace('.', ',') + '\\,\\%';
-
-					textDisplay = `in Prozent: \\( \\quad ${decStr} = \\)`;
-					s = `\\( ${decStr} = ${percStr} \\)`;
-					break;
+				textDisplay = `als Dezimalbruch: \\( \\quad ${percStr} = \\)`;
+				s = `\\( ${percStr} = ${decStr} \\)`;
+				if (isQuizMode) {
+					answer = numericAnswer(p / 100);
 				}
-				case 'perc_to_dec': {
-					let p = (Math.floor(Math.random() * 400) + 1) / 2;
-					let decStr = formatDecimal(p / 100, 4);
-					let percStr = p.toString().replace('.', ',') + '\\,\\%';
-
-					textDisplay = `als Dezimalbruch: \\( \\quad ${percStr} = \\)`;
-					s = `\\( ${percStr} = ${decStr} \\)`;
-					break;
-				}
+				break;
 			}
 		}
 		break;
@@ -2756,8 +2265,8 @@ case 'addition_subtraktion_bis_1000': {
 			switch (op) {
 				case 0: // ADDITION
 					if (isGrade5) {
-						v1 = randInt(111, 99999);
-						v2 = randInt(111, 99999);
+						v1 = randInt(111, 9999);
+						v2 = randInt(11111, 99999);
 						res = v1 + v2;
 						textDisplay = `Berechne schriftlich: \\( \\quad ${v1} + ${v2} \\)`;
 						textPrint = `Berechne schriftlich: \\( \\quad ${v1} + ${v2} \\)<br>${karo(4, 12)}`;
@@ -2775,10 +2284,10 @@ case 'addition_subtraktion_bis_1000': {
 
 				case 1: // SUBTRAKTION
 					if (isGrade5) {
-						const a = randInt(111, 99999);
-						let b = randInt(111, 99999);
+						const a = randInt(11111, 99999);
+						let b = randInt(111, 9999);
 						while (b === a) {
-							b = randInt(111, 99999);
+							b = randInt(111, 9999);
 						}
 						v1 = Math.max(a, b);
 						v2 = Math.min(a, b);
@@ -3048,76 +2557,43 @@ case 'einheiten': {
 		break;
 	}
 	case 'geometrie': {
+		const shapeType = randInt(0, grade >= 7 ? 2 : 1);
+		const goal = Math.random() > 0.5 ? 'A' : 'u';
+		const lengthUnits = ['cm', 'dm', 'm'];
+		const unit = lengthUnits[randInt(0, lengthUnits.length - 1)];
+		let sideA, sideB;
+
+		if (shapeType === 0) { // QUADRAT
+			sideA = rnd(3, 12);
+			if (goal === 'A') {
+				textDisplay = `Berechne den Flächeninhalt eines Quadrats mit \\( a = ${sideA} \\) ${unit}.`;
+				s = `\\( A = a \\cdot a = ${sideA} \\cdot ${sideA} = ${sideA * sideA} \\text{ ${unit}}^2 \\)`;
+			} else {
+				textDisplay = `Berechne den Umfang eines Quadrats mit \\( a = ${sideA} \\) ${unit}.`;
+				s = `\\( u = 4 \\cdot a = 4 \\cdot ${sideA} = ${sideA * 4} \\text{ ${unit}} \\)`;
+			}
+		}
+		else if (shapeType === 1) { // RECHTECK
+			sideA = rnd(2, 12); sideB = rnd(3, 7);
+			if (sideA === sideB) { sideB++ }
+			if (goal === 'A') {
+				textDisplay = `Berechne den Flächeninhalt eines Rechtecks mit <br>\\( a = ${sideA} \\) ${unit} und \\( b = ${sideB} \\) ${unit}.`;
+				s = `\\( A = a \\cdot b = ${sideA} \\cdot ${sideB} = ${sideA * sideB} \\text{ ${unit}}^2 \\)`;
+			} else {
+				textDisplay = `Berechne den Umfang eines Rechtecks mit <br>\\( a = ${sideA} \\) ${unit} und \\( b = ${sideB} \\) ${unit}.`;
+				s = `\\( u = 2 \\cdot (a+b) = 2 \\cdot (${sideA} + ${sideB}) = ${2 * (sideA + sideB)} \\text{ ${unit}} \\)`;
+			}
+		}
+		else { // DREIECK
+			sideA = rnd(2, 12); sideB = rnd(3, 7);
+			textDisplay = `Berechne den Flächeninhalt eines Dreiecks mit <br>Grundseite \\( g = ${sideA} \\) ${unit} und Höhe \\( h = ${sideB} \\) ${unit}.`;
+			s = `\\( A = \\frac{1}{2} \\cdot g \\cdot h = \\frac{1}{2} \\cdot ${sideA} \\cdot ${sideB} = ${(sideA * sideB) / 2} \\text{ ${unit}}^2 \\)`.replace('.', ',');
+		}
+		const geometryResult = shapeType === 0 ? (goal === 'A' ? sideA * sideA : sideA * 4)
+			: shapeType === 1 ? (goal === 'A' ? sideA * sideB : 2 * (sideA + sideB))
+			: (sideA * sideB) / 2;
 		if (isQuizMode) {
-			const shapeType = randInt(0, grade >= 7 ? 2 : 1);
-			const goal = Math.random() > 0.5 ? 'A' : 'u';
-			const lengthUnits = ['cm', 'dm', 'm'];
-			const unit = lengthUnits[randInt(0, lengthUnits.length - 1)];
-			let sideA, sideB;
-
-			if (shapeType === 0) { // QUADRAT
-				sideA = rnd(3, 12);
-				if (goal === 'A') {
-					textDisplay = `Berechne den Flächeninhalt eines Quadrats mit \\( a = ${sideA} \\) ${unit}.`;
-					s = `\\( A = a \\cdot a = ${sideA} \\cdot ${sideA} = ${sideA * sideA} \\text{ ${unit}}^2 \\)`;
-				} else {
-					textDisplay = `Berechne den Umfang eines Quadrats mit \\( a = ${sideA} \\) ${unit}.`;
-					s = `\\( u = 4 \\cdot a = 4 \\cdot ${sideA} = ${sideA * 4} \\text{ ${unit}} \\)`;
-				}
-			}
-			else if (shapeType === 1) { // RECHTECK
-				sideA = rnd(2, 12); sideB = rnd(3, 7);
-				if (sideA === sideB) { sideB++ }
-				if (goal === 'A') {
-					textDisplay = `Berechne den Flächeninhalt eines Rechtecks mit <br>\\( a = ${sideA} \\) ${unit} und \\( b = ${sideB} \\) ${unit}.`;
-					s = `\\( A = a \\cdot b = ${sideA} \\cdot ${sideB} = ${sideA * sideB} \\text{ ${unit}}^2 \\)`;
-				} else {
-					textDisplay = `Berechne den Umfang eines Rechtecks mit <br>\\( a = ${sideA} \\) ${unit} und \\( b = ${sideB} \\) ${unit}.`;
-					s = `\\( u = 2 \\cdot (a+b) = 2 \\cdot (${sideA} + ${sideB}) = ${2 * (sideA + sideB)} \\text{ ${unit}} \\)`;
-				}
-			}
-			else { // DREIECK
-				sideA = rnd(2, 12); sideB = rnd(3, 7);
-				textDisplay = `Berechne den Flächeninhalt eines Dreiecks mit <br>Grundseite \\( g = ${sideA} \\) ${unit} und Höhe \\( h = ${sideB} \\) ${unit}.`;
-				s = `\\( A = \\frac{1}{2} \\cdot g \\cdot h = \\frac{1}{2} \\cdot ${sideA} \\cdot ${sideB} = ${(sideA * sideB) / 2} \\text{ ${unit}}^2 \\)`.replace('.', ',');
-			}
-			const geometryResult = shapeType === 0 ? (goal === 'A' ? sideA * sideA : sideA * 4)
-				: shapeType === 1 ? (goal === 'A' ? sideA * sideB : 2 * (sideA + sideB))
-				: (sideA * sideB) / 2;
 			answer = { kind: 'number', value: geometryResult };
-		} else {
-			const shapeType = randInt(0, grade >= 7 ? 2 : 1);
-			const goal = Math.random() > 0.5 ? 'A' : 'u';
-			const lengthUnits = ['cm', 'dm', 'm'];
-			const unit = lengthUnits[randInt(0, lengthUnits.length - 1)];
-			let sideA, sideB;
-
-			if (shapeType === 0) { // QUADRAT
-				sideA = rnd(3, 12);
-				if (goal === 'A') {
-					textDisplay = `Berechne den Flächeninhalt eines Quadrats mit \\( a = ${sideA} \\) ${unit}.`;
-					s = `\\( A = a \\cdot a = ${sideA} \\cdot ${sideA} = ${sideA * sideA} \\text{ ${unit}}^2 \\)`;
-				} else {
-					textDisplay = `Berechne den Umfang eines Quadrats mit \\( a = ${sideA} \\) ${unit}.`;
-					s = `\\( u = 4 \\cdot a = 4 \\cdot ${sideA} = ${sideA * 4} \\text{ ${unit}} \\)`;
-				}
-			}
-			else if (shapeType === 1) { // RECHTECK
-				sideA = rnd(2, 12); sideB = rnd(3, 7);
-				if (sideA === sideB) { sideB++ }
-				if (goal === 'A') {
-					textDisplay = `Berechne den Flächeninhalt eines Rechtecks mit <br>\\( a = ${sideA} \\) ${unit} und \\( b = ${sideB} \\) ${unit}.`;
-					s = `\\( A = a \\cdot b = ${sideA} \\cdot ${sideB} = ${sideA * sideB} \\text{ ${unit}}^2 \\)`;
-				} else {
-					textDisplay = `Berechne den Umfang eines Rechtecks mit <br>\\( a = ${sideA} \\) ${unit} und \\( b = ${sideB} \\) ${unit}.`;
-					s = `\\( u = 2 \\cdot (a+b) = 2 \\cdot (${sideA} + ${sideB}) = ${2 * (sideA + sideB)} \\text{ ${unit}} \\)`;
-				}
-			}
-			else { // DREIECK
-				sideA = rnd(2, 12); sideB = rnd(3, 7);
-				textDisplay = `Berechne den Flächeninhalt eines Dreiecks mit <br>Grundseite \\( g = ${sideA} \\) ${unit} und Höhe \\( h = ${sideB} \\) ${unit}.`;
-				s = `\\( A = \\frac{1}{2} \\cdot g \\cdot h = \\frac{1}{2} \\cdot ${sideA} \\cdot ${sideB} = ${(sideA * sideB) / 2} \\text{ ${unit}}^2 \\)`.replace('.', ',');
-			}
 		}
 		break;
 	}
@@ -3597,35 +3073,23 @@ case 'einheiten': {
 		break;
 	}
 	case 'teiler': {
+		// 1. Pool an Zahlen mit interessanten Teilermengen 
+		const pool = isQuizMode
+			? [8, 10, 12, 13, 15, 16, 18, 19, 20, 25, 27, 28, 29, 30, 33, 35]
+			: [12, 15, 16, 18, 20, 28, 30, 32, 33, 34, 35, 37, 40, 45, 50];
+		const n = pool[randInt(0, pool.length - 1)];
+		// 2. Alle Teiler berechnen
+		let teilerArray = [];
+		for (let i = 1; i <= n; i++) {
+			if (n % i === 0) {
+				teilerArray.push(i);
+			}
+		}
+		textDisplay = `Nenne alle Teiler der Zahl ${n}.`;
+		let teilerListe = teilerArray.join(', ');
+		s = `\\[ T_{${n}} = \\{ ${teilerListe} \\} \\]`;
 		if (isQuizMode) {
-			// 1. Pool an Zahlen mit interessanten Teilermengen 
-			const pool = [8, 10, 12, 13, 15, 16, 18, 19, 20, 25, 27, 28, 29, 30, 33, 35];
-			const n = pool[randInt(0, pool.length - 1)];
-			// 2. Alle Teiler berechnen
-			let teilerArray = [];
-			for (let i = 1; i <= n; i++) {
-				if (n % i === 0) {
-					teilerArray.push(i);
-				}
-			}
-			textDisplay = `Nenne alle Teiler der Zahl ${n}.`;
-			let teilerListe = teilerArray.join(', ');
-			s = `\\[ T_{${n}} = \\{ ${teilerListe} \\} \\]`;
 			answer = listAnswer(teilerArray);
-		} else {
-			// 1. Pool an Zahlen mit interessanten Teilermengen 
-			const pool = [12, 15, 16, 18, 20, 28, 30, 32, 33, 34, 35, 37, 40, 45, 50];
-			const n = pool[randInt(0, pool.length - 1)];
-			// 2. Alle Teiler berechnen
-			let teilerArray = [];
-			for (let i = 1; i <= n; i++) {
-				if (n % i === 0) {
-					teilerArray.push(i);
-				}
-			}
-			textDisplay = `Nenne alle Teiler der Zahl ${n}.`;
-			let teilerListe = teilerArray.join(', ');
-			s = `\\[ T_{${n}} = \\{ ${teilerListe} \\} \\]`;
 		}
 		break;
 	}
@@ -3832,184 +3296,98 @@ case 'einheiten': {
 		break;
 	}
 	case 'lineare_gleichungen_umstellen': {
+		const forms = ['ax+by=c', 'ax+c=by', 'ax=by+c', 'by=ax+c'];
+		const form = forms[randInt(0, forms.length - 1)];
+
+		const formatHalf = (val) => Number.isInteger(val) ? `${val}` : comma(val.toFixed(1));
+		const cleanHalf = (val) => Math.round(val * 2) / 2;
+		const varTerm = (coef, variable, withSign = false) => {
+			const abs = Math.abs(coef);
+			const base = abs === 1 ? variable : `${abs}${variable}`;
+			if (withSign) return `${coef >= 0 ? '+' : '-'} ${base}`;
+			return coef < 0 ? `-${base}` : base;
+		};
+		const invTermOp = (coef, variable) => coef >= 0 ? `- ${varTerm(coef, variable)}` : `+ ${varTerm(-coef, variable)}`;
+		const formatLinearExpr = (m, n) => {
+			const mm = cleanHalf(m);
+			const nn = cleanHalf(n);
+			const xPart = mm === 1 ? 'x' : (mm === -1 ? '-x' : `${formatHalf(mm)}x`);
+			if (nn === 0) return xPart;
+			return `${xPart} ${nn > 0 ? '+' : '-'} ${formatHalf(Math.abs(nn))}`;
+		};
+
+		const pickValidForB = (b) => {
+			const absB = Math.abs(b);
+			const vals = [];
+			for (let n = -40; n <= 40; n++) {
+				if (n === 0) continue;
+				if ((n) % absB === 0) vals.push(n);
+			}
+			return vals;
+		};
+
+		let b_lin, a_lin, c_lin;
+		do {
+			b_lin = rnd(-12, 12);
+			const valid = pickValidForB(b_lin);
+			a_lin = valid[randInt(0, valid.length - 1)];
+			c_lin = valid[randInt(0, valid.length - 1)];
+		} while (!a_lin || !b_lin || !c_lin);
+
+		const aTerm = varTerm(a_lin, 'x');
+		const bTerm = varTerm(b_lin, 'y');
+		const absATerm = varTerm(Math.abs(a_lin), 'x');
+		const cSigned = c_lin >= 0 ? `+ ${Math.abs(c_lin)}` : `- ${Math.abs(c_lin)}`;
+		const cOppSigned = c_lin >= 0 ? `- ${Math.abs(c_lin)}` : `+ ${Math.abs(c_lin)}`;
+
+		let textEquation = '';
+		let step1 = '';
+		let step2 = '';
+		let finalStep = '';
+		let finalAnswerExpression = '';
+
+		switch (form) {
+			case 'ax+by=c': {
+				textEquation = `${aTerm} ${varTerm(b_lin, 'y', true)} = ${c_lin}`;
+				step1 = `${aTerm} ${varTerm(b_lin, 'y', true)} &= ${c_lin} &&| \\, ${invTermOp(a_lin, 'x')}`;
+				step2 = `${bTerm} &= ${c_lin} ${a_lin >= 0 ? '-' : '+'} ${absATerm} &&| \\, : ${fmt(b_lin)}`;
+				finalStep = `y &= ${formatLinearExpr(-a_lin / b_lin, c_lin / b_lin)}`;
+				finalAnswerExpression = `y = ${formatLinearExpr(-a_lin / b_lin, c_lin / b_lin)}`;
+				break;
+			}
+			case 'ax+c=by': {
+				textEquation = `${aTerm} ${cSigned} = ${bTerm}`;
+				step1 = `${aTerm} ${cSigned} &= ${bTerm} &&| \\, : ${fmt(b_lin)}`;
+				finalStep = `y &= ${formatLinearExpr(a_lin / b_lin, c_lin / b_lin)}`;
+				finalAnswerExpression = `y = ${formatLinearExpr(a_lin / b_lin, c_lin / b_lin)}`;
+				break;
+			}
+			case 'ax=by+c': {
+				textEquation = `${aTerm} = ${bTerm} ${cSigned}`;
+				step1 = `${aTerm} &= ${bTerm} ${cSigned} &&| \\, ${cOppSigned}`;
+				step2 = `${aTerm} ${cOppSigned} &= ${bTerm} &&| \\, : ${fmt(b_lin)}`;
+				finalStep = `y &= ${formatLinearExpr(a_lin / b_lin, -c_lin / b_lin)}`;
+				finalAnswerExpression = `y = ${formatLinearExpr(a_lin / b_lin, -c_lin / b_lin)}`;
+				break;
+			}
+			default: {
+				textEquation = `${bTerm} = ${aTerm} ${cSigned}`;
+				step1 = `${bTerm} &= ${aTerm} ${cSigned} &&| \\, : ${fmt(b_lin)}`;
+				finalStep = `y &= ${formatLinearExpr(a_lin / b_lin, c_lin / b_lin)}`;
+				finalAnswerExpression = `y = ${formatLinearExpr(a_lin / b_lin, c_lin / b_lin)}`;
+				break;
+			}
+		}
+
+		textDisplay = `Stelle die Gleichung nach \\( y \\) um: <br>\\( ${textEquation} \\)`;
+		textPrint = `Stelle nach \\( y \\) um: \\(\\quad ${textEquation} \\qquad |\\)${space(2)}`;
+		s = `\\[ \\begin{aligned}
+		${step1} \\\\
+		${step2 ? `${step2} \\\\` : ''}
+		${finalStep}
+		\\end{aligned} \\]`;
 		if (isQuizMode) {
-			const forms = ['ax+by=c', 'ax+c=by', 'ax=by+c', 'by=ax+c'];
-			const form = forms[randInt(0, forms.length - 1)];
-
-			const formatHalf = (val) => Number.isInteger(val) ? `${val}` : comma(val.toFixed(1));
-			const cleanHalf = (val) => Math.round(val * 2) / 2;
-			const varTerm = (coef, variable, withSign = false) => {
-				const abs = Math.abs(coef);
-				const base = abs === 1 ? variable : `${abs}${variable}`;
-				if (withSign) return `${coef >= 0 ? '+' : '-'} ${base}`;
-				return coef < 0 ? `-${base}` : base;
-			};
-			const invTermOp = (coef, variable) => coef >= 0 ? `- ${varTerm(coef, variable)}` : `+ ${varTerm(-coef, variable)}`;
-			const formatLinearExpr = (m, n) => {
-				const mm = cleanHalf(m);
-				const nn = cleanHalf(n);
-				const xPart = mm === 1 ? 'x' : (mm === -1 ? '-x' : `${formatHalf(mm)}x`);
-				if (nn === 0) return xPart;
-				return `${xPart} ${nn > 0 ? '+' : '-'} ${formatHalf(Math.abs(nn))}`;
-			};
-
-			const pickValidForB = (b) => {
-				const absB = Math.abs(b);
-				const vals = [];
-				for (let n = -40; n <= 40; n++) {
-					if (n === 0) continue;
-					if ((n) % absB === 0) vals.push(n);
-				}
-				return vals;
-			};
-
-			let b_lin, a_lin, c_lin;
-			do {
-				b_lin = rnd(-12, 12);
-				const valid = pickValidForB(b_lin);
-				a_lin = valid[randInt(0, valid.length - 1)];
-				c_lin = valid[randInt(0, valid.length - 1)];
-			} while (!a_lin || !b_lin || !c_lin);
-
-			const aTerm = varTerm(a_lin, 'x');
-			const bTerm = varTerm(b_lin, 'y');
-			const absATerm = varTerm(Math.abs(a_lin), 'x');
-			const cSigned = c_lin >= 0 ? `+ ${Math.abs(c_lin)}` : `- ${Math.abs(c_lin)}`;
-			const cOppSigned = c_lin >= 0 ? `- ${Math.abs(c_lin)}` : `+ ${Math.abs(c_lin)}`;
-
-			let textEquation = '';
-			let step1 = '';
-			let step2 = '';
-			let finalStep = '';
-			let finalAnswerExpression = '';
-
-			switch (form) {
-				case 'ax+by=c': {
-					textEquation = `${aTerm} ${varTerm(b_lin, 'y', true)} = ${c_lin}`;
-					step1 = `${aTerm} ${varTerm(b_lin, 'y', true)} &= ${c_lin} &&| \\, ${invTermOp(a_lin, 'x')}`;
-					step2 = `${bTerm} &= ${c_lin} ${a_lin >= 0 ? '-' : '+'} ${absATerm} &&| \\, : ${fmt(b_lin)}`;
-					finalStep = `y &= ${formatLinearExpr(-a_lin / b_lin, c_lin / b_lin)}`;
-					finalAnswerExpression = `y = ${formatLinearExpr(-a_lin / b_lin, c_lin / b_lin)}`;
-					break;
-				}
-				case 'ax+c=by': {
-					textEquation = `${aTerm} ${cSigned} = ${bTerm}`;
-					step1 = `${aTerm} ${cSigned} &= ${bTerm} &&| \\, : ${fmt(b_lin)}`;
-					finalStep = `y &= ${formatLinearExpr(a_lin / b_lin, c_lin / b_lin)}`;
-					finalAnswerExpression = `y = ${formatLinearExpr(a_lin / b_lin, c_lin / b_lin)}`;
-					break;
-				}
-				case 'ax=by+c': {
-					textEquation = `${aTerm} = ${bTerm} ${cSigned}`;
-					step1 = `${aTerm} &= ${bTerm} ${cSigned} &&| \\, ${cOppSigned}`;
-					step2 = `${aTerm} ${cOppSigned} &= ${bTerm} &&| \\, : ${fmt(b_lin)}`;
-					finalStep = `y &= ${formatLinearExpr(a_lin / b_lin, -c_lin / b_lin)}`;
-					finalAnswerExpression = `y = ${formatLinearExpr(a_lin / b_lin, -c_lin / b_lin)}`;
-					break;
-				}
-				default: {
-					textEquation = `${bTerm} = ${aTerm} ${cSigned}`;
-					step1 = `${bTerm} &= ${aTerm} ${cSigned} &&| \\, : ${fmt(b_lin)}`;
-					finalStep = `y &= ${formatLinearExpr(a_lin / b_lin, c_lin / b_lin)}`;
-					finalAnswerExpression = `y = ${formatLinearExpr(a_lin / b_lin, c_lin / b_lin)}`;
-					break;
-				}
-			}
-
-			textDisplay = `Stelle die Gleichung nach \\( y \\) um: <br>\\( ${textEquation} \\)`;
-			textPrint = `Stelle nach \\( y \\) um: \\(\\quad ${textEquation} \\qquad |\\)${space(2)}`;
-			s = `\\[ \\begin{aligned}
-			${step1} \\\\
-			${step2 ? `${step2} \\\\` : ''}
-			${finalStep}
-			\\end{aligned} \\]`;
 			answer = expressionAnswer(finalAnswerExpression);
-		} else {
-			const forms = ['ax+by=c', 'ax+c=by', 'ax=by+c', 'by=ax+c'];
-			const form = forms[randInt(0, forms.length - 1)];
-
-			const formatHalf = (val) => Number.isInteger(val) ? `${val}` : comma(val.toFixed(1));
-			const cleanHalf = (val) => Math.round(val * 2) / 2;
-			const varTerm = (coef, variable, withSign = false) => {
-				const abs = Math.abs(coef);
-				const base = abs === 1 ? variable : `${abs}${variable}`;
-				if (withSign) return `${coef >= 0 ? '+' : '-'} ${base}`;
-				return coef < 0 ? `-${base}` : base;
-			};
-			const invTermOp = (coef, variable) => coef >= 0 ? `- ${varTerm(coef, variable)}` : `+ ${varTerm(-coef, variable)}`;
-			const formatLinearExpr = (m, n) => {
-				const mm = cleanHalf(m);
-				const nn = cleanHalf(n);
-				const xPart = mm === 1 ? 'x' : (mm === -1 ? '-x' : `${formatHalf(mm)}x`);
-				if (nn === 0) return xPart;
-				return `${xPart} ${nn > 0 ? '+' : '-'} ${formatHalf(Math.abs(nn))}`;
-			};
-
-			const pickValidForB = (b) => {
-				const absB = Math.abs(b);
-				const vals = [];
-				for (let n = -40; n <= 40; n++) {
-					if (n === 0) continue;
-					if ((n) % absB === 0) vals.push(n);
-				}
-				return vals;
-			};
-
-			let b_lin, a_lin, c_lin;
-			do {
-				b_lin = rnd(-12, 12);
-				const valid = pickValidForB(b_lin);
-				a_lin = valid[randInt(0, valid.length - 1)];
-				c_lin = valid[randInt(0, valid.length - 1)];
-			} while (!a_lin || !b_lin || !c_lin);
-
-			const aTerm = varTerm(a_lin, 'x');
-			const bTerm = varTerm(b_lin, 'y');
-			const absATerm = varTerm(Math.abs(a_lin), 'x');
-			const cSigned = c_lin >= 0 ? `+ ${Math.abs(c_lin)}` : `- ${Math.abs(c_lin)}`;
-			const cOppSigned = c_lin >= 0 ? `- ${Math.abs(c_lin)}` : `+ ${Math.abs(c_lin)}`;
-
-			let textEquation = '';
-			let step1 = '';
-			let step2 = '';
-			let finalStep = '';
-
-			switch (form) {
-				case 'ax+by=c': {
-					textEquation = `${aTerm} ${varTerm(b_lin, 'y', true)} = ${c_lin}`;
-					step1 = `${aTerm} ${varTerm(b_lin, 'y', true)} &= ${c_lin} &&| \\, ${invTermOp(a_lin, 'x')}`;
-					step2 = `${bTerm} &= ${c_lin} ${a_lin >= 0 ? '-' : '+'} ${absATerm} &&| \\, : ${fmt(b_lin)}`;
-					finalStep = `y &= ${formatLinearExpr(-a_lin / b_lin, c_lin / b_lin)}`;
-					break;
-				}
-				case 'ax+c=by': {
-					textEquation = `${aTerm} ${cSigned} = ${bTerm}`;
-					step1 = `${aTerm} ${cSigned} &= ${bTerm} &&| \\, : ${fmt(b_lin)}`;
-					finalStep = `y &= ${formatLinearExpr(a_lin / b_lin, c_lin / b_lin)}`;
-					break;
-				}
-				case 'ax=by+c': {
-					textEquation = `${aTerm} = ${bTerm} ${cSigned}`;
-					step1 = `${aTerm} &= ${bTerm} ${cSigned} &&| \\, ${cOppSigned}`;
-					step2 = `${aTerm} ${cOppSigned} &= ${bTerm} &&| \\, : ${fmt(b_lin)}`;
-					finalStep = `y &= ${formatLinearExpr(a_lin / b_lin, -c_lin / b_lin)}`;
-					break;
-				}
-				default: {
-					textEquation = `${bTerm} = ${aTerm} ${cSigned}`;
-					step1 = `${bTerm} &= ${aTerm} ${cSigned} &&| \\, : ${fmt(b_lin)}`;
-					finalStep = `y &= ${formatLinearExpr(a_lin / b_lin, c_lin / b_lin)}`;
-					break;
-				}
-			}
-
-			textDisplay = `Stelle die Gleichung nach \\( y \\) um: <br>\\( ${textEquation} \\)`;
-			textPrint = `Stelle nach \\( y \\) um: \\(\\quad ${textEquation} \\qquad |\\)${space(2)}`;
-			s = `\\[ \\begin{aligned}
-			${step1} \\\\
-			${step2 ? `${step2} \\\\` : ''}
-			${finalStep}
-			\\end{aligned} \\]`;
 		}
 		break;
 	}
@@ -4206,7 +3584,7 @@ case 'einheiten': {
 			let mode = isSummaryTask
 				? 0
 				: isLegacyTask
-					? (grade >= 9 ? randInt(0, 3) : 0)
+					? (grade >= 8 ? randInt(0, 3) : 0)
 					: randInt(1, 3);
 			let taskStr, resStr;
 			let expandedStep = '';
@@ -4724,81 +4102,41 @@ case 'einheiten': {
 		break;
 	}
 	case 'wortterme': {
+		const templates = [
+			{ text: (a, b) => `Addiere ${a} und ${b}.`, symbol: '+', compute: (a, b) => a + b },
+			{ text: (a, b) => `Subtrahiere ${b} von ${a}.`, symbol: '-', compute: (a, b) => a - b },
+			{ text: (a, b) => `Multipliziere ${a} und ${b}.`, symbol: '\\cdot', compute: (a, b) => a * b },
+			{ text: (a, b) => `Dividiere ${a} durch ${b}.`, symbol: ':', compute: (a, b) => a / b },
+			{ text: (a, b) => `Berechne die Summe von ${a} und ${b}.`, symbol: '+', compute: (a, b) => a + b },
+			{ text: (a, b) => `Berechne die Differenz von ${a} und ${b}.`, symbol: '-', compute: (a, b) => a - b },
+			{ text: (a, b) => `Berechne das Produkt von ${a} und ${b}.`, symbol: '\\cdot', compute: (a, b) => a * b },
+			{ text: (a, b) => `Berechne den Quotienten von ${a} und ${b}.`, symbol: ':', compute: (a, b) => a / b }
+		];
+
+		const template = templates[randInt(0, templates.length - 1)];
+
+		let a = rnd(1, 15);
+		let b = rnd(1, 15);
+		if (template.symbol === ':') {
+			// Division ganzzahlig halten: a = b * q, damit a / b ohne Rest aufgeht.
+			// randInt(2, 12) garantiert einen Teiler ungleich 0 (rnd() würde 0/1 ohnehin ausschließen).
+			b = randInt(2, 12);
+			const q = randInt(2, 12);
+			a = b * q;
+		} else if (grade <= 6 && template.symbol === '-' && a < b) {
+			// Bis einschließlich Klasse 6 keine negativen Ergebnisse: Operanden so tauschen, dass a >= b.
+			[a, b] = [b, a];
+		}
+
+		const result = template.compute(a, b);
+		const prompt = template.text(a, b);
+
+		textDisplay = prompt;
+		textPrint = prompt;
+		s = `\\[ ${fmt(a)} ${template.symbol} ${fmt(b)} = ${result} \\]`;
+
 		if (isQuizMode) {
-			const templates = [
-				{ text: (a, b) => `Addiere ${a} und ${b}.`, symbol: '+' },
-				{ text: (a, b) => `Subtrahiere ${b} von ${a}.`, symbol: '-' },
-				{ text: (a, b) => `Multipliziere ${a} und ${b}.`, symbol: '\\cdot' },
-				{ text: (a, b) => `Dividiere ${a} durch ${b}.`, symbol: ':' },
-				{ text: (a, b) => `Berechne die Summe von ${a} und ${b}.`, symbol: '+' },
-				{ text: (a, b) => `Berechne die Differenz von ${a} und ${b}.`, symbol: '-' },
-				{ text: (a, b) => `Berechne das Produkt von ${a} und ${b}.`, symbol: '\\cdot' },
-				{ text: (a, b) => `Berechne den Quotienten von ${a} und ${b}.`, symbol: ':' }
-			];
-
-			const template = templates[randInt(0, templates.length - 1)];
-			const allowNegative = grade >= 8;
-
-			let a = allowNegative ? rnd(-15, 15) : rnd(1, 15);
-			let b = allowNegative ? rnd(-15, 15) : rnd(1, 15);
-			if (template.symbol === ':') {
-				b = 0;
-				while (b === 0) {
-					b = allowNegative ? rnd(-12, 12) : rnd(1, 12);
-				}
-				const q = allowNegative ? rnd(-12, 12) : rnd(1, 12);
-				a = b * q;
-			}
-
-			const result = template.symbol === '+'
-				? a + b
-				: template.symbol === '-'
-					? a - b
-					: template.symbol === '\\cdot'
-						? a * b
-						: a / b;
-
-			textDisplay = template.text(a, b);
-			textPrint = template.text(a, b);
-			s = `\\[ ${fmt(a)} ${template.symbol} ${fmt(b)} = ${result} \\]`;
 			answer = numericAnswer(result);
-		} else {
-			const templates = [
-				{ text: (a, b) => `Addiere ${a} und ${b}.`, symbol: '+' },
-				{ text: (a, b) => `Subtrahiere ${b} von ${a}.`, symbol: '-' },
-				{ text: (a, b) => `Multipliziere ${a} und ${b}.`, symbol: '\\cdot' },
-				{ text: (a, b) => `Dividiere ${a} durch ${b}.`, symbol: ':' },
-				{ text: (a, b) => `Berechne die Summe von ${a} und ${b}.`, symbol: '+' },
-				{ text: (a, b) => `Berechne die Differenz von ${a} und ${b}.`, symbol: '-' },
-				{ text: (a, b) => `Berechne das Produkt von ${a} und ${b}.`, symbol: '\\cdot' },
-				{ text: (a, b) => `Berechne den Quotienten von ${a} und ${b}.`, symbol: ':' }
-			];
-
-			const template = templates[randInt(0, templates.length - 1)];
-			const allowNegative = grade >= 8;
-
-			let a = allowNegative ? rnd(-15, 15) : rnd(1, 15);
-			let b = allowNegative ? rnd(-15, 15) : rnd(1, 15);
-			if (template.symbol === ':') {
-				b = 0;
-				while (b === 0) {
-					b = allowNegative ? rnd(-12, 12) : rnd(1, 12);
-				}
-				const q = allowNegative ? rnd(-12, 12) : rnd(1, 12);
-				a = b * q;
-			}
-
-			const result = template.symbol === '+'
-				? a + b
-				: template.symbol === '-'
-					? a - b
-					: template.symbol === '\\cdot'
-						? a * b
-						: a / b;
-
-			textDisplay = template.text(a, b);
-			textPrint = template.text(a, b);
-			s = `\\[ ${fmt(a)} ${template.symbol} ${fmt(b)} = ${result} \\]`;
 		}
 		break;
 	}
@@ -4815,280 +4153,144 @@ case 'einheiten': {
 		break;
 	}
 	case 'lineare_funktionen_zeichnen': {
-		if (isQuizMode) {
-			// Generiere eine zufällige lineare Funktion
-			let m;
-			let b = randInt(-8, 8) / 2; 
-			if (b >= 2) m = randInt(-6, -2) / 2;
-			else if (b <= -2) m = randInt(2, 6) / 2;
-			else m = randInt(-6, 6) / 2; 
+		// Generiere eine zufällige lineare Funktion
+		let m;
+		let b = randInt(-8, 8) / 2; 
+		if (b >= 2) m = randInt(-6, -2) / 2;
+		else if (b <= -2) m = randInt(2, 6) / 2;
+		else m = randInt(-6, 6) / 2; 
 
-			// Funktion
-			const f = (x) => m * x + b;
-			
-			// Markante Punkte
-			const yIntercept = b;
-			const xIntercept = b !== 0 ? -b / m : 0; // Nullstelle
-			
-			// SVG-Grafik für Koordinatensystem
-			const svgWidth = 345;
-			const svgHeight = 285;
-			const centerX = 360 / 2 - 15; 
-			const centerY = 300 / 2;
-			const scale = 30; // Pixel pro Einheit
-			
-			// Konvertiere Koordinaten von mathematisch zu SVG
-			const toSVG = (x, y) => ({
-				x: centerX + x * scale,
-				y: centerY - y * scale  // SVG y ist invertiert
-			});
-			
-			// Erstelle SVG
-			let svgContent = `<svg width="${svgWidth}" height="${svgHeight}" xmlns="http://www.w3.org/2000/svg" style="border: 1px solid #ccc; background: white;">`;
-			
-			// Gitter: kariertes Papier mit 2 Kästchen pro Einheit
-			for (let i = -11; i <= 12; i++) {
-				const posX = toSVG(i / 2, 0);
-				svgContent += `<line x1="${posX.x}" y1="${centerY - 150}" x2="${posX.x}" y2="${centerY + 150}" stroke="${i % 2 === 0 ? '#bbb' : '#bbb'}" stroke-width="0.5"/>`;
+		// Funktion
+		const f = (x) => m * x + b;
+		
+		// Markante Punkte
+		const yIntercept = b;
+		const xIntercept = b !== 0 ? -b / m : 0; // Nullstelle
+		
+		// SVG-Grafik für Koordinatensystem
+		const svgWidth = 345;
+		const svgHeight = 285;
+		const centerX = 360 / 2 - 15; 
+		const centerY = 300 / 2;
+		const scale = 30; // Pixel pro Einheit
+		
+		// Konvertiere Koordinaten von mathematisch zu SVG
+		const toSVG = (x, y) => ({
+			x: centerX + x * scale,
+			y: centerY - y * scale  // SVG y ist invertiert
+		});
+		
+		// Erstelle SVG
+		let svgContent = `<svg width="${svgWidth}" height="${svgHeight}" xmlns="http://www.w3.org/2000/svg" style="border: 1px solid #ccc; background: white;">`;
+		
+		// Gitter: kariertes Papier mit 2 Kästchen pro Einheit
+		for (let i = -11; i <= 12; i++) {
+			const posX = toSVG(i / 2, 0);
+			svgContent += `<line x1="${posX.x}" y1="${centerY - 150}" x2="${posX.x}" y2="${centerY + 150}" stroke="${i % 2 === 0 ? '#bbb' : '#bbb'}" stroke-width="0.5"/>`;
+		}
+		for (let i = -9; i <= 10; i++) {
+			const posY = toSVG(0, i / 2);
+			svgContent += `<line x1="0" y1="${posY.y}" x2="${svgWidth}" y2="${posY.y}" stroke="${i % 2 === 0 ? '#bbb' : '#bbb'}" stroke-width="0.5"/>`;
+		}
+		
+		// Achsen
+		// Zeichne die x-Achse als horizontale Linie
+		svgContent += `<line x1="0" y1="${centerY}" x2="${svgWidth}" y2="${centerY}" stroke="black" stroke-width="2"/>`;
+		// Zeichne die y-Achse als vertikale Linie
+		svgContent += `<line x1="${centerX}" y1="0" x2="${centerX}" y2="${svgHeight}" stroke="black" stroke-width="2"/>`;
+		// Pfeilspitze für die x-Achse nach rechts
+		svgContent += `<polygon points="${svgWidth - 10},${centerY - 6} ${svgWidth},${centerY} ${svgWidth - 10},${centerY + 6}" fill="black"/>`;
+		// Pfeilspitze für die y-Achse nach oben
+		svgContent += `<polygon points="${centerX - 6},10 ${centerX},0 ${centerX + 6},10" fill="black"/>`;
+		// Beschriftung für die x-Achse im Quadranten IV
+		svgContent += `<text x="${svgWidth - 5}" y="${centerY + 16}" text-anchor="end" font-size="14" fill="black">x</text>`;
+		// Beschriftung für die y-Achse im Quadranten II
+		svgContent += `<text x="${centerX - 10}" y="10" text-anchor="end" font-size="14" fill="black">y</text>`;
+		
+		// Achsenticks für ganze Zahlen auf x- und y-Achse
+		for (let i = -5; i <= 5; i++) {
+			if (i !== 0) {
+				const xPos = toSVG(i, 0);
+				svgContent += `<line x1="${xPos.x}" y1="${centerY - 4}" x2="${xPos.x}" y2="${centerY + 4}" stroke="black" stroke-width="1"/>`;
 			}
-			for (let i = -9; i <= 10; i++) {
-				const posY = toSVG(0, i / 2);
-				svgContent += `<line x1="0" y1="${posY.y}" x2="${svgWidth}" y2="${posY.y}" stroke="${i % 2 === 0 ? '#bbb' : '#bbb'}" stroke-width="0.5"/>`;
+		}
+		for (let i = -4; i <= 4; i++) {
+			if (i !== 0) {
+				const yPos = toSVG(0, i);
+				svgContent += `<line x1="${centerX - 4}" y1="${yPos.y}" x2="${centerX + 4}" y2="${yPos.y}" stroke="black" stroke-width="1"/>`;
 			}
-			
-			// Achsen
-			// Zeichne die x-Achse als horizontale Linie
-			svgContent += `<line x1="0" y1="${centerY}" x2="${svgWidth}" y2="${centerY}" stroke="black" stroke-width="2"/>`;
-			// Zeichne die y-Achse als vertikale Linie
-			svgContent += `<line x1="${centerX}" y1="0" x2="${centerX}" y2="${svgHeight}" stroke="black" stroke-width="2"/>`;
-			// Pfeilspitze für die x-Achse nach rechts
-			svgContent += `<polygon points="${svgWidth - 10},${centerY - 6} ${svgWidth},${centerY} ${svgWidth - 10},${centerY + 6}" fill="black"/>`;
-			// Pfeilspitze für die y-Achse nach oben
-			svgContent += `<polygon points="${centerX - 6},10 ${centerX},0 ${centerX + 6},10" fill="black"/>`;
-			// Beschriftung für die x-Achse im Quadranten IV
-			svgContent += `<text x="${svgWidth - 5}" y="${centerY + 16}" text-anchor="end" font-size="14" fill="black">x</text>`;
-			// Beschriftung für die y-Achse im Quadranten II
-			svgContent += `<text x="${centerX - 10}" y="10" text-anchor="end" font-size="14" fill="black">y</text>`;
-			
-			// Achsenticks für ganze Zahlen auf x- und y-Achse
-			for (let i = -5; i <= 5; i++) {
-				if (i !== 0) {
-					const xPos = toSVG(i, 0);
-					svgContent += `<line x1="${xPos.x}" y1="${centerY - 4}" x2="${xPos.x}" y2="${centerY + 4}" stroke="black" stroke-width="1"/>`;
-				}
+		}
+		
+		// Achsen-Beschriftungen (ganze Zahlen)
+		for (let i = -5; i <= 5; i++) {
+			if (i !== 0) {
+				const xPos = toSVG(i, 0);
+				svgContent += `<text x="${xPos.x}" y="${centerY + 15}" text-anchor="middle" font-size="11" fill="black">${i}</text>`;
 			}
-			for (let i = -4; i <= 4; i++) {
-				if (i !== 0) {
-					const yPos = toSVG(0, i);
-					svgContent += `<line x1="${centerX - 4}" y1="${yPos.y}" x2="${centerX + 4}" y2="${yPos.y}" stroke="black" stroke-width="1"/>`;
-				}
+		}
+		for (let i = -4; i <= 4; i++) {
+			if (i !== 0) {
+				const yPos = toSVG(0, i);
+				svgContent += `<text x="${centerX - 15}" y="${yPos.y + 4}" text-anchor="end" font-size="11" fill="black">${i}</text>`;
 			}
-			
-			// Achsen-Beschriftungen (ganze Zahlen)
-			for (let i = -5; i <= 5; i++) {
-				if (i !== 0) {
-					const xPos = toSVG(i, 0);
-					svgContent += `<text x="${xPos.x}" y="${centerY + 15}" text-anchor="middle" font-size="11" fill="black">${i}</text>`;
-				}
-			}
-			for (let i = -4; i <= 4; i++) {
-				if (i !== 0) {
-					const yPos = toSVG(0, i);
-					svgContent += `<text x="${centerX - 15}" y="${yPos.y + 4}" text-anchor="end" font-size="11" fill="black">${i}</text>`;
-				}
-			}
-			
-			// Gerade zeichnen
-			const leftPoint = toSVG(-6, f(-6));
-			const rightPoint = toSVG(6, f(6));
-			svgContent += `<line x1="${leftPoint.x}" y1="${leftPoint.y}" x2="${rightPoint.x}" y2="${rightPoint.y}" stroke="#e74c3c" stroke-width="2.5"/>`;
-			
-			// y-Achsenabschnitt markieren
-			const yIntPos = toSVG(0, yIntercept);
-			svgContent += `<circle cx="${yIntPos.x}" cy="${yIntPos.y}" r="3" fill="#3498db" stroke="#2980b9" stroke-width="2"/>`;
-			
-			// Horizontale Strecke von (0,b) nach (1,b)
-			const rightFromYAxis = toSVG(1, yIntercept);
-			svgContent += `<line x1="${yIntPos.x}" y1="${yIntPos.y}" x2="${rightFromYAxis.x}" y2="${rightFromYAxis.y}" stroke="#2980b9" stroke-width="2"/>`;
-			svgContent += `<polygon points="${rightFromYAxis.x - 6},${rightFromYAxis.y - 4} ${rightFromYAxis.x},${rightFromYAxis.y} ${rightFromYAxis.x - 6},${rightFromYAxis.y + 4}" fill="#2980b9"/>`;
-			svgContent += `<text x="${(yIntPos.x + rightFromYAxis.x) / 2}" y="${yIntPos.y - 6}" text-anchor="middle" font-size="16" fill="#2980b9">1</text>`;
-			
-			// Vertikale Strecke von (1,b) nach (1,b+m)
-			const upFromPoint = toSVG(1, yIntercept + m);
-			svgContent += `<line x1="${rightFromYAxis.x}" y1="${rightFromYAxis.y}" x2="${upFromPoint.x}" y2="${upFromPoint.y}" stroke="#2980b9" stroke-width="2"/>`;
-			if (m >= 0) {
-				svgContent += `<polygon points="${upFromPoint.x - 4},${upFromPoint.y + 6} ${upFromPoint.x},${upFromPoint.y} ${upFromPoint.x + 4},${upFromPoint.y + 6}" fill="#2980b9"/>`;
-				svgContent += `<text x="${upFromPoint.x + 12}" y="${(rightFromYAxis.y + upFromPoint.y) / 2 + 6}" text-anchor="start" font-size="16" fill="#2980b9">${m}</text>`;
-			} else {
-				svgContent += `<polygon points="${upFromPoint.x - 4},${upFromPoint.y - 6} ${upFromPoint.x},${upFromPoint.y} ${upFromPoint.x + 4},${upFromPoint.y - 6}" fill="#2980b9"/>`;
-				svgContent += `<text x="${upFromPoint.x + 12}" y="${(rightFromYAxis.y + upFromPoint.y) / 2 + 6}" text-anchor="start" font-size="16" fill="#2980b9">${m}</text>`;
-			}
-			
-			// Punkt bei x = 1 markieren (1, b + m)
-			const highlightPos = toSVG(1, f(1));
-			svgContent += `<circle cx="${highlightPos.x}" cy="${highlightPos.y}" r="3" fill="#27ae60" stroke="#229954" stroke-width="2"/>`;
-			
-			// Ursprung
-			svgContent += `<circle cx="${centerX}" cy="${centerY}" r="3" fill="black"/>`;
-			
-			svgContent += `</svg>`;
-			
-			// Funktionsgleichung
-			const mStr = m === 1 ? 'x' : (m === -1 ? '-x' : `${m}x`);
-			const funcStr = b === 0
-				? `f(x) = ${comma(mStr)}`
-				: b > 0
-					? `f(x) = ${comma(mStr)} + ${comma(b)}`
-					: `f(x) = ${comma(mStr)} - ${comma(Math.abs(b))}`;
-
-			textDisplay = `Zeichne den Graphen und gib die Nullstelle an: \\( ${funcStr} \\)`;
-			textPrint = `Zeichne und gib die Nullstelle an: \\( \\; ${funcStr} \\) ${karo(11, 20)}` ;
-
-			const x0 = comma(formatDecimal(xIntercept, 2));
-			s = `<div style="display:flex; justify-content: center; align-items:center; gap:20px;">
-				<div style="min-width:180px;">
-					<span>\\( ${funcStr} \\)</span><br><br>
-					<span>Nst. \\( \\; x_0 = ${x0} \\)</span>
-				</div>
-				<div>${svgContent}</div>
-			</div>`;
+		}
+		
+		// Gerade zeichnen
+		const leftPoint = toSVG(-6, f(-6));
+		const rightPoint = toSVG(6, f(6));
+		svgContent += `<line x1="${leftPoint.x}" y1="${leftPoint.y}" x2="${rightPoint.x}" y2="${rightPoint.y}" stroke="#e74c3c" stroke-width="2.5"/>`;
+		
+		// y-Achsenabschnitt markieren
+		const yIntPos = toSVG(0, yIntercept);
+		svgContent += `<circle cx="${yIntPos.x}" cy="${yIntPos.y}" r="3" fill="#3498db" stroke="#2980b9" stroke-width="2"/>`;
+		
+		// Horizontale Strecke von (0,b) nach (1,b)
+		const rightFromYAxis = toSVG(1, yIntercept);
+		svgContent += `<line x1="${yIntPos.x}" y1="${yIntPos.y}" x2="${rightFromYAxis.x}" y2="${rightFromYAxis.y}" stroke="#2980b9" stroke-width="2"/>`;
+		svgContent += `<polygon points="${rightFromYAxis.x - 6},${rightFromYAxis.y - 4} ${rightFromYAxis.x},${rightFromYAxis.y} ${rightFromYAxis.x - 6},${rightFromYAxis.y + 4}" fill="#2980b9"/>`;
+		svgContent += `<text x="${(yIntPos.x + rightFromYAxis.x) / 2}" y="${yIntPos.y - 6}" text-anchor="middle" font-size="16" fill="#2980b9">1</text>`;
+		
+		// Vertikale Strecke von (1,b) nach (1,b+m)
+		const upFromPoint = toSVG(1, yIntercept + m);
+		svgContent += `<line x1="${rightFromYAxis.x}" y1="${rightFromYAxis.y}" x2="${upFromPoint.x}" y2="${upFromPoint.y}" stroke="#2980b9" stroke-width="2"/>`;
+		if (m >= 0) {
+			svgContent += `<polygon points="${upFromPoint.x - 4},${upFromPoint.y + 6} ${upFromPoint.x},${upFromPoint.y} ${upFromPoint.x + 4},${upFromPoint.y + 6}" fill="#2980b9"/>`;
+			svgContent += `<text x="${upFromPoint.x + 12}" y="${(rightFromYAxis.y + upFromPoint.y) / 2 + 6}" text-anchor="start" font-size="16" fill="#2980b9">${m}</text>`;
 		} else {
-			// Generiere eine zufällige lineare Funktion
-			let m;
-			let b = randInt(-8, 8) / 2; 
-			if (b >= 2) m = randInt(-6, -2) / 2;
-			else if (b <= -2) m = randInt(2, 6) / 2;
-			else m = randInt(-6, 6) / 2; 
+			svgContent += `<polygon points="${upFromPoint.x - 4},${upFromPoint.y - 6} ${upFromPoint.x},${upFromPoint.y} ${upFromPoint.x + 4},${upFromPoint.y - 6}" fill="#2980b9"/>`;
+			svgContent += `<text x="${upFromPoint.x + 12}" y="${(rightFromYAxis.y + upFromPoint.y) / 2 + 6}" text-anchor="start" font-size="16" fill="#2980b9">${m}</text>`;
+		}
+		
+		// Punkt bei x = 1 markieren (1, b + m)
+		const highlightPos = toSVG(1, f(1));
+		svgContent += `<circle cx="${highlightPos.x}" cy="${highlightPos.y}" r="3" fill="#27ae60" stroke="#229954" stroke-width="2"/>`;
+		
+		// Ursprung
+		svgContent += `<circle cx="${centerX}" cy="${centerY}" r="3" fill="black"/>`;
+		
+		svgContent += `</svg>`;
+		
+		// Funktionsgleichung
+		const mStr = m === 1 ? 'x' : (m === -1 ? '-x' : `${m}x`);
+		const funcStr = b === 0
+			? `f(x) = ${comma(mStr)}`
+			: b > 0
+				? `f(x) = ${comma(mStr)} + ${comma(b)}`
+				: `f(x) = ${comma(mStr)} - ${comma(Math.abs(b))}`;
 
-			// Funktion
-			const f = (x) => m * x + b;
-			
-			// Markante Punkte
-			const yIntercept = b;
-			const xIntercept = b !== 0 ? -b / m : 0; // Nullstelle
-			
-			// SVG-Grafik für Koordinatensystem
-			const svgWidth = 345;
-			const svgHeight = 285;
-			const centerX = 360 / 2 - 15; 
-			const centerY = 300 / 2;
-			const scale = 30; // Pixel pro Einheit
-			
-			// Konvertiere Koordinaten von mathematisch zu SVG
-			const toSVG = (x, y) => ({
-				x: centerX + x * scale,
-				y: centerY - y * scale  // SVG y ist invertiert
-			});
-			
-			// Erstelle SVG
-			let svgContent = `<svg width="${svgWidth}" height="${svgHeight}" xmlns="http://www.w3.org/2000/svg" style="border: 1px solid #ccc; background: white;">`;
-			
-			// Gitter: kariertes Papier mit 2 Kästchen pro Einheit
-			for (let i = -11; i <= 12; i++) {
-				const posX = toSVG(i / 2, 0);
-				svgContent += `<line x1="${posX.x}" y1="${centerY - 150}" x2="${posX.x}" y2="${centerY + 150}" stroke="${i % 2 === 0 ? '#bbb' : '#bbb'}" stroke-width="0.5"/>`;
-			}
-			for (let i = -9; i <= 10; i++) {
-				const posY = toSVG(0, i / 2);
-				svgContent += `<line x1="0" y1="${posY.y}" x2="${svgWidth}" y2="${posY.y}" stroke="${i % 2 === 0 ? '#bbb' : '#bbb'}" stroke-width="0.5"/>`;
-			}
-			
-			// Achsen
-			// Zeichne die x-Achse als horizontale Linie
-			svgContent += `<line x1="0" y1="${centerY}" x2="${svgWidth}" y2="${centerY}" stroke="black" stroke-width="2"/>`;
-			// Zeichne die y-Achse als vertikale Linie
-			svgContent += `<line x1="${centerX}" y1="0" x2="${centerX}" y2="${svgHeight}" stroke="black" stroke-width="2"/>`;
-			// Pfeilspitze für die x-Achse nach rechts
-			svgContent += `<polygon points="${svgWidth - 10},${centerY - 6} ${svgWidth},${centerY} ${svgWidth - 10},${centerY + 6}" fill="black"/>`;
-			// Pfeilspitze für die y-Achse nach oben
-			svgContent += `<polygon points="${centerX - 6},10 ${centerX},0 ${centerX + 6},10" fill="black"/>`;
-			// Beschriftung für die x-Achse im Quadranten IV
-			svgContent += `<text x="${svgWidth - 5}" y="${centerY + 16}" text-anchor="end" font-size="14" fill="black">x</text>`;
-			// Beschriftung für die y-Achse im Quadranten II
-			svgContent += `<text x="${centerX - 10}" y="10" text-anchor="end" font-size="14" fill="black">y</text>`;
-			
-			// Achsenticks für ganze Zahlen auf x- und y-Achse
-			for (let i = -5; i <= 5; i++) {
-				if (i !== 0) {
-					const xPos = toSVG(i, 0);
-					svgContent += `<line x1="${xPos.x}" y1="${centerY - 4}" x2="${xPos.x}" y2="${centerY + 4}" stroke="black" stroke-width="1"/>`;
-				}
-			}
-			for (let i = -4; i <= 4; i++) {
-				if (i !== 0) {
-					const yPos = toSVG(0, i);
-					svgContent += `<line x1="${centerX - 4}" y1="${yPos.y}" x2="${centerX + 4}" y2="${yPos.y}" stroke="black" stroke-width="1"/>`;
-				}
-			}
-			
-			// Achsen-Beschriftungen (ganze Zahlen)
-			for (let i = -5; i <= 5; i++) {
-				if (i !== 0) {
-					const xPos = toSVG(i, 0);
-					svgContent += `<text x="${xPos.x}" y="${centerY + 15}" text-anchor="middle" font-size="11" fill="black">${i}</text>`;
-				}
-			}
-			for (let i = -4; i <= 4; i++) {
-				if (i !== 0) {
-					const yPos = toSVG(0, i);
-					svgContent += `<text x="${centerX - 15}" y="${yPos.y + 4}" text-anchor="end" font-size="11" fill="black">${i}</text>`;
-				}
-			}
-			
-			// Gerade zeichnen
-			const leftPoint = toSVG(-6, f(-6));
-			const rightPoint = toSVG(6, f(6));
-			svgContent += `<line x1="${leftPoint.x}" y1="${leftPoint.y}" x2="${rightPoint.x}" y2="${rightPoint.y}" stroke="#e74c3c" stroke-width="2.5"/>`;
-			
-			// y-Achsenabschnitt markieren
-			const yIntPos = toSVG(0, yIntercept);
-			svgContent += `<circle cx="${yIntPos.x}" cy="${yIntPos.y}" r="3" fill="#3498db" stroke="#2980b9" stroke-width="2"/>`;
-			
-			// Horizontale Strecke von (0,b) nach (1,b)
-			const rightFromYAxis = toSVG(1, yIntercept);
-			svgContent += `<line x1="${yIntPos.x}" y1="${yIntPos.y}" x2="${rightFromYAxis.x}" y2="${rightFromYAxis.y}" stroke="#2980b9" stroke-width="2"/>`;
-			svgContent += `<polygon points="${rightFromYAxis.x - 6},${rightFromYAxis.y - 4} ${rightFromYAxis.x},${rightFromYAxis.y} ${rightFromYAxis.x - 6},${rightFromYAxis.y + 4}" fill="#2980b9"/>`;
-			svgContent += `<text x="${(yIntPos.x + rightFromYAxis.x) / 2}" y="${yIntPos.y - 6}" text-anchor="middle" font-size="16" fill="#2980b9">1</text>`;
-			
-			// Vertikale Strecke von (1,b) nach (1,b+m)
-			const upFromPoint = toSVG(1, yIntercept + m);
-			svgContent += `<line x1="${rightFromYAxis.x}" y1="${rightFromYAxis.y}" x2="${upFromPoint.x}" y2="${upFromPoint.y}" stroke="#2980b9" stroke-width="2"/>`;
-			if (m >= 0) {
-				svgContent += `<polygon points="${upFromPoint.x - 4},${upFromPoint.y + 6} ${upFromPoint.x},${upFromPoint.y} ${upFromPoint.x + 4},${upFromPoint.y + 6}" fill="#2980b9"/>`;
-				svgContent += `<text x="${upFromPoint.x + 12}" y="${(rightFromYAxis.y + upFromPoint.y) / 2 + 6}" text-anchor="start" font-size="16" fill="#2980b9">${m}</text>`;
-			} else {
-				svgContent += `<polygon points="${upFromPoint.x - 4},${upFromPoint.y - 6} ${upFromPoint.x},${upFromPoint.y} ${upFromPoint.x + 4},${upFromPoint.y - 6}" fill="#2980b9"/>`;
-				svgContent += `<text x="${upFromPoint.x + 12}" y="${(rightFromYAxis.y + upFromPoint.y) / 2 + 6}" text-anchor="start" font-size="16" fill="#2980b9">${m}</text>`;
-			}
-			
-			// Punkt bei x = 1 markieren (1, b + m)
-			const highlightPos = toSVG(1, f(1));
-			svgContent += `<circle cx="${highlightPos.x}" cy="${highlightPos.y}" r="3" fill="#27ae60" stroke="#229954" stroke-width="2"/>`;
-			
-			// Ursprung
-			svgContent += `<circle cx="${centerX}" cy="${centerY}" r="3" fill="black"/>`;
-			
-			svgContent += `</svg>`;
-			
-			// Funktionsgleichung
-			const mStr = m === 1 ? 'x' : (m === -1 ? '-x' : `${m}x`);
-			const funcStr = b === 0
-				? `f(x) = ${comma(mStr)}`
-				: b > 0
-					? `f(x) = ${comma(mStr)} + ${comma(b)}`
-					: `f(x) = ${comma(mStr)} - ${comma(Math.abs(b))}`;
+		textDisplay = `Zeichne den Graphen und gib die Nullstelle an: \\( ${funcStr} \\)`;
+		textPrint = `Zeichne und gib die Nullstelle an: \\( \\; ${funcStr} \\) ${karo(11, 20)}` ;
 
-			textDisplay = `Zeichne den Graphen und gib die Nullstelle an: \\( ${funcStr} \\)`;
-			textPrint = `Zeichne und gib die Nullstelle an: \\( \\; ${funcStr} \\) ${karo(11, 20)}` ;
-
-			const x0 = comma(formatDecimal(xIntercept, 2));
-			s = `<div style="display:flex; justify-content: center; align-items:center; gap:20px;">
-				<div style="min-width:180px;">
-					<span>\\( ${funcStr} \\)</span><br><br>
-					<span>Nst. \\( \\; x_0 = ${x0} \\)</span>
-				</div>
-				<div>${svgContent}</div>
-			</div>`;
+		const x0 = comma(formatDecimal(xIntercept, 2));
+		s = `<div style="display:flex; justify-content: center; align-items:center; gap:20px;">
+			<div style="min-width:180px;">
+				<span>\\( ${funcStr} \\)</span><br><br>
+				<span>Nst. \\( \\; x_0 = ${x0} \\)</span>
+			</div>
+			<div>${svgContent}</div>
+		</div>`;
+		if (isQuizMode) {
+			answer = { kind: 'number', value: xIntercept };
 		}
 		break;
 	}
@@ -5343,240 +4545,127 @@ case 'einheiten': {
 		break;
 	}
 	case 'wahrscheinlichkeiten': {
+		let mode = randInt(0, 4); // 0: Urne (3 Farben), 1: Rel. Häufigkeit, 2: 12-seitiger Würfel, 3: Glücksrad, 4: Würfel 
+		let taskStr, resStr, answerValue;
+		
+		if (mode === 0) {
+			// --- TYP: LAPLACE URNE (3 FARBEN) ---
+			const farben = ['rote', 'blaue', 'grüne', 'gelbe'];
+			let w = fisherYatesShuffle(farben);
+			let n1 = randInt(3, 9);
+			let n2 = randInt(3, 9);
+			let n3 = randInt(3, 9);
+			let gesamt = n1 + n2 + n3;
+			answerValue = n1 / gesamt;
+			
+			// Grammatik-Fix: "rote" -> "Rot", "grüne" -> "Grün"
+			let farbeSubst = w[0].charAt(0).toUpperCase() + w[0].slice(1, -1);
+			
+			taskStr = `Eine Urne enthält ${n1} ${w[0]}, ${n2} ${w[1]} und ${n3} ${w[2]} Kugeln. Nenne die Wahrscheinlichkeit, eine ${w[0]} Kugel zu ziehen?`;
+			
+			// In der Lösung nutzen wir jetzt die substantivierte Form
+			resStr = `P(${farbeSubst}) = \\( \\dfrac{${n1}}{${gesamt}} \\)`;
+		} else if (mode === 1) {
+			// --- TYP: RELATIVE HÄUFIGKEIT (KONTEXT-SPEZIFISCH) ---
+			const szenarien = [
+				{ txt: 'Basketball: Von', einheit: 'Würfen wurden', e: 'getroffen' },
+				{ txt: 'Qualitätskontrolle: Von', einheit: 'Bauteilen sind', e: 'defekt' },
+				{ txt: 'Umfrage: Von', einheit: 'Personen antworten', e: 'mit "Ja"' },
+				{ txt: 'Torwart: Von', einheit: 'Schüssen werden', e: 'gehalten' }
+			];
+			const sz = szenarien[randInt(0, szenarien.length - 1)];
+			let gesamt = [10, 20, 25, 40, 50][randInt(0, 4)];
+			let treffer = Math.floor(gesamt * (randInt(2, 9) / 10));
+			answerValue = treffer / gesamt;
+			
+			taskStr = `${sz.txt} ${gesamt} ${sz.einheit} ${treffer} ${sz.e}.<br>Nenne die relative Häufigkeit in %.`;
+			let prozent = (treffer / gesamt) * 100;
+			resStr = `h = \\( \\dfrac{${treffer}}{${gesamt}} \\) = ${prozent.toFixed(0).replace('.', ',')} %`;
+			
+		} else if (mode === 2) {
+			// --- TYP: 12-SEITIGER WÜRFEL (D12) ---
+			let subMode = randInt(0, 2);
+			let ereignis, guenstige;
+			
+			if (subMode === 0) {
+				ereignis = "eine Primzahl";
+				taskStr = `Nenne die Wahrscheinlichkeit für ${ereignis} bei einem 12-seitigen Spielwürfel?`;
+				answerValue = 5 / 12;
+				resStr = `P(Primzahl) = \\( \\dfrac{5}{12} \\)`;
+			} else if (subMode === 1) {
+				let limit = randInt(7, 10);
+				ereignis = `eine Zahl größer als ${limit}`;
+				let count = 12 - limit;
+				taskStr = `Nenne die Wahrscheinlichkeit für ${ereignis} bei einem 12-seitigen Spielwürfel?`;
+				answerValue = count / 12;
+				resStr = `P(x > ${limit}) = \\( \\dfrac{${count}}{12} \\)`;
+			} else {
+				// Würfeln: Teilbarkeit durch 3, 4 oder 5
+				let auswahl = [3, 4, 5][randInt(0, 2)];
+				let treffer, gekuerzt;
+				
+				if (auswahl === 3) {
+					treffer = 4; // {3, 6, 9, 12}
+					gekuerzt = "\\dfrac{1}{3}";
+				} else if (auswahl === 4) {
+					treffer = 3; // {4, 8, 12}
+					gekuerzt = "\\dfrac{1}{4}";
+				} else {
+					treffer = 2; // {5, 10}
+					gekuerzt = "\\dfrac{1}{6}";
+				}
+
+				let ereignis = `eine durch ${auswahl} teilbare Zahl`;
+				taskStr = `Nenne die Wahrscheinlichkeit für ${ereignis} bei einem 12-seitigen Spielwürfel?`;
+				answerValue = treffer / 12;
+				resStr = `P(durch ${auswahl} teilbar) = \\( \\dfrac{${treffer}}{12} = ${gekuerzt}\\) `;
+			}
+
+		} else if (mode === 3) {
+			// --- TYP: GLÜCKSRAD (2 Farben, zweimal drehen) ---
+			const farben = ['rote', 'blaue', 'grüne', 'gelbe'];
+			let w = fisherYatesShuffle(farben);
+			let f1 = w[0]; // Die gesuchte Farbe (z.B. "rote")
+			let f2 = w[1]; // Die andere Farbe
+			
+			let n1 = randInt(2, 5); // Felder Farbe 1
+			let n2 = randInt(2, 5); // Felder Farbe 2
+			let gesamt = n1 + n2;
+			answerValue = (n1 / gesamt) * (n1 / gesamt);
+			
+			// Grammatik-Anpassung für die Farbe im Satz (Substantiviert)
+			let f1Subst = f1.charAt(0).toUpperCase() + f1.slice(1, -1); // "rote" -> "Rot"
+			
+			taskStr = `Ein Glücksrad hat ${n1} ${f1} und ${n2} ${f2} gleich große Felder. Nenne die Wahrscheinlichkeit, dass 2-mal in Folge ${f1Subst} gedreht wird.`;
+			
+			// Berechnung: (n1/gesamt) * (n1/gesamt)
+			let zaehler = n1 * n1;
+			let nenner = gesamt * gesamt;
+			
+			// Lösungsweg mit Pfadregel
+			resStr = `P(${f1Subst}, ${f1Subst}) = \\( \\dfrac{${n1}}{${gesamt}} \\cdot \\dfrac{${n1}}{${gesamt}} = \\dfrac{${zaehler}}{${nenner}} \\)`;
+			
+		} else if (mode === 4) {
+			// --- TYP: 2 WÜRFEL - AUGENSUMME ---
+			const target = randInt(2, 12);
+			let count = 0;
+			for (let a = 1; a <= 6; a++) {
+				for (let b = 1; b <= 6; b++) {
+					if (a + b === target) count++;
+				}
+			}
+
+			const num = count;
+			const den = 36;
+			answerValue = num / den;
+			const frac = den === 1 ? `${num}` : `\\dfrac{${num}}{${den}}`;
+			taskStr = `Zwei Würfel werden geworfen.<br>Nenne die Wahrscheinlichkeit für die Augensumme ${target}.`;
+			resStr = `P(Summe = ${target}) = \\( ${frac} \\)`;
+		} 
+		textDisplay = taskStr;
+		s = `${resStr}`;
 		if (isQuizMode) {
-			let mode = randInt(0, 4); // 0: Urne (3 Farben), 1: Rel. Häufigkeit, 2: 12-seitiger Würfel, 3: Glücksrad, 4: Würfel 
-			let taskStr, resStr, answerValue;
-			
-			if (mode === 0) {
-				// --- TYP: LAPLACE URNE (3 FARBEN) ---
-				const farben = ['rote', 'blaue', 'grüne', 'gelbe'];
-				let w = fisherYatesShuffle(farben);
-				let n1 = randInt(3, 9);
-				let n2 = randInt(3, 9);
-				let n3 = randInt(3, 9);
-				let gesamt = n1 + n2 + n3;
-				answerValue = n1 / gesamt;
-				
-				// Grammatik-Fix: "rote" -> "Rot", "grüne" -> "Grün"
-				let farbeSubst = w[0].charAt(0).toUpperCase() + w[0].slice(1, -1);
-				
-				taskStr = `Eine Urne enthält ${n1} ${w[0]}, ${n2} ${w[1]} und ${n3} ${w[2]} Kugeln. Nenne die Wahrscheinlichkeit, eine ${w[0]} Kugel zu ziehen?`;
-				
-				// In der Lösung nutzen wir jetzt die substantivierte Form
-				resStr = `P(${farbeSubst}) = \\( \\dfrac{${n1}}{${gesamt}} \\)`;
-			} else if (mode === 1) {
-				// --- TYP: RELATIVE HÄUFIGKEIT (KONTEXT-SPEZIFISCH) ---
-				const szenarien = [
-					{ txt: 'Basketball: Von', einheit: 'Würfen wurden', e: 'getroffen' },
-					{ txt: 'Qualitätskontrolle: Von', einheit: 'Bauteilen sind', e: 'defekt' },
-					{ txt: 'Umfrage: Von', einheit: 'Personen antworten', e: 'mit "Ja"' },
-					{ txt: 'Torwart: Von', einheit: 'Schüssen wurden', e: 'gehalten' }
-				];
-				const sz = szenarien[randInt(0, szenarien.length - 1)];
-				let gesamt = [10, 20, 25, 40, 50][randInt(0, 4)];
-				let treffer = Math.floor(gesamt * (randInt(2, 9) / 10));
-				answerValue = treffer / gesamt;
-				
-				taskStr = `${sz.txt} ${gesamt} ${sz.einheit} ${treffer} ${sz.e}.<br>Nenne die relative Häufigkeit in %.`;
-				let prozent = (treffer / gesamt) * 100;
-				resStr = `h = \\( \\dfrac{${treffer}}{${gesamt}} \\) = ${prozent.toFixed(0).replace('.', ',')} %`;
-				
-			} else if (mode === 2) {
-				// --- TYP: 12-SEITIGER WÜRFEL (D12) ---
-				let subMode = randInt(0, 2);
-				let ereignis, guenstige;
-				
-				if (subMode === 0) {
-					ereignis = "eine Primzahl";
-					taskStr = `Nenne die Wahrscheinlichkeit für ${ereignis} bei einem 12-seitigen Spielwürfel?`;
-					answerValue = 5 / 12;
-					resStr = `P(Primzahl) = \\( \\dfrac{5}{12} \\)`;
-				} else if (subMode === 1) {
-					let limit = randInt(7, 10);
-					ereignis = `eine Zahl größer als ${limit}`;
-					let count = 12 - limit;
-					taskStr = `Nenne die Wahrscheinlichkeit für ${ereignis} bei einem 12-seitigen Spielwürfel?`;
-					answerValue = count / 12;
-					resStr = `P(x > ${limit}) = \\( \\dfrac{${count}}{12} \\)`;
-				} else {
-					// Würfeln: Teilbarkeit durch 3, 4 oder 5
-					let auswahl = [3, 4, 5][randInt(0, 2)];
-					let treffer, gekuerzt;
-					
-					if (auswahl === 3) {
-						treffer = 4; // {3, 6, 9, 12}
-						gekuerzt = "\\dfrac{1}{3}";
-					} else if (auswahl === 4) {
-						treffer = 3; // {4, 8, 12}
-						gekuerzt = "\\dfrac{1}{4}";
-					} else {
-						treffer = 2; // {5, 10}
-						gekuerzt = "\\dfrac{1}{6}";
-					}
-
-					let ereignis = `eine durch ${auswahl} teilbare Zahl`;
-					taskStr = `Nenne die Wahrscheinlichkeit für ${ereignis} bei einem 12-seitigen Spielwürfel?`;
-					answerValue = treffer / 12;
-					resStr = `P(durch ${auswahl} teilbar) = \\( \\dfrac{${treffer}}{12} = ${gekuerzt}\\) `;
-				}
-
-			} else if (mode === 3) {
-				// --- TYP: GLÜCKSRAD (2 Farben, zweimal drehen) ---
-				const farben = ['rote', 'blaue', 'grüne', 'gelbe'];
-				let w = fisherYatesShuffle(farben);
-				let f1 = w[0]; // Die gesuchte Farbe (z.B. "rote")
-				let f2 = w[1]; // Die andere Farbe
-				
-				let n1 = randInt(2, 5); // Felder Farbe 1
-				let n2 = randInt(2, 5); // Felder Farbe 2
-				let gesamt = n1 + n2;
-				answerValue = (n1 / gesamt) * (n1 / gesamt);
-				
-				// Grammatik-Anpassung für die Farbe im Satz (Substantiviert)
-				let f1Subst = f1.charAt(0).toUpperCase() + f1.slice(1, -1); // "rote" -> "Rot"
-				
-				taskStr = `Ein Glücksrad hat ${n1} ${f1} und ${n2} ${f2} gleich große Felder. Nenne die Wahrscheinlichkeit, dass 2-mal in Folge ${f1Subst} gedreht wird.`;
-				
-				// Berechnung: (n1/gesamt) * (n1/gesamt)
-				let zaehler = n1 * n1;
-				let nenner = gesamt * gesamt;
-				
-				// Lösungsweg mit Pfadregel
-				resStr = `P(${f1Subst}, ${f1Subst}) = \\( \\dfrac{${n1}}{${gesamt}} \\cdot \\dfrac{${n1}}{${gesamt}} = \\dfrac{${zaehler}}{${nenner}} \\)`;
-				
-			} else if (mode === 4) {
-				// --- TYP: 2 WÜRFEL - AUGENSUMME ---
-				const target = randInt(2, 12);
-				let count = 0;
-				for (let a = 1; a <= 6; a++) {
-					for (let b = 1; b <= 6; b++) {
-						if (a + b === target) count++;
-					}
-				}
-
-				const num = count;
-				const den = 36;
-				answerValue = num / den;
-				const frac = den === 1 ? `${num}` : `\\dfrac{${num}}{${den}}`;
-				taskStr = `Zwei Würfel werden geworfen.<br>Nenne die Wahrscheinlichkeit für die Augensumme ${target}.`;
-				resStr = `P(Summe = ${target}) = \\( ${frac} \\)`;
-			} 
-			textDisplay = taskStr;
-			s = `${resStr}`;
 			answer = probabilityAnswer(answerValue);
-		} else {
-			let mode = randInt(0, 4); // 0: Urne (3 Farben), 1: Rel. Häufigkeit, 2: 12-seitiger Würfel, 3: Glücksrad, 4: Würfel 
-			let taskStr, resStr;
-			
-			if (mode === 0) {
-				// --- TYP: LAPLACE URNE (3 FARBEN) ---
-				const farben = ['rote', 'blaue', 'grüne', 'gelbe'];
-				let w = fisherYatesShuffle(farben);
-				let n1 = randInt(3, 9);
-				let n2 = randInt(3, 9);
-				let n3 = randInt(3, 9);
-				let gesamt = n1 + n2 + n3;
-				
-				// Grammatik-Fix: "rote" -> "Rot", "grüne" -> "Grün"
-				let farbeSubst = w[0].charAt(0).toUpperCase() + w[0].slice(1, -1);
-				
-				taskStr = `Eine Urne enthält ${n1} ${w[0]}, ${n2} ${w[1]} und ${n3} ${w[2]} Kugeln. Nenne die Wahrscheinlichkeit, eine ${w[0]} Kugel zu ziehen?`;
-				
-				// In der Lösung nutzen wir jetzt die substantivierte Form
-				resStr = `P(${farbeSubst}) = \\( \\dfrac{${n1}}{${gesamt}} \\)`;
-			} else if (mode === 1) {
-				// --- TYP: RELATIVE HÄUFIGKEIT (KONTEXT-SPEZIFISCH) ---
-				const szenarien = [
-					{ txt: 'Basketball: Von', einheit: 'Würfen wurden', e: 'getroffen' },
-					{ txt: 'Qualitätskontrolle: Von', einheit: 'Bauteilen sind', e: 'defekt' },
-					{ txt: 'Umfrage: Von', einheit: 'Personen antworten', e: 'mit "Ja"' },
-					{ txt: 'Torwart: Von', einheit: 'Schüssen wurden', e: 'gehalten' }
-				];
-				const sz = szenarien[randInt(0, szenarien.length - 1)];
-				let gesamt = [10, 20, 25, 40, 50][randInt(0, 4)];
-				let treffer = Math.floor(gesamt * (randInt(2, 9) / 10));
-				
-				taskStr = `${sz.txt} ${gesamt} ${sz.einheit} ${treffer} ${sz.e}.<br>Nenne die relative Häufigkeit in %.`;
-				let prozent = (treffer / gesamt) * 100;
-				resStr = `h = \\( \\dfrac{${treffer}}{${gesamt}} \\) = ${prozent.toFixed(0).replace('.', ',')} %`;
-				
-			} else if (mode === 2) {
-				// --- TYP: 12-SEITIGER WÜRFEL (D12) ---
-				let subMode = randInt(0, 2);
-				let ereignis, guenstige;
-				
-				if (subMode === 0) {
-					ereignis = "eine Primzahl";
-					taskStr = `Nenne die Wahrscheinlichkeit für ${ereignis} bei einem 12-seitigen Spielwürfel?`;
-					resStr = `P(Primzahl) = \\( \\dfrac{5}{12} \\)`;
-				} else if (subMode === 1) {
-					let limit = randInt(7, 10);
-					ereignis = `eine Zahl größer als ${limit}`;
-					let count = 12 - limit;
-					taskStr = `Nenne die Wahrscheinlichkeit für ${ereignis} bei einem 12-seitigen Spielwürfel?`;
-					resStr = `P(x > ${limit}) = \\( \\dfrac{${count}}{12} \\)`;
-				} else {
-					// Würfeln: Teilbarkeit durch 3, 4 oder 5
-					let auswahl = [3, 4, 5][randInt(0, 2)];
-					let treffer, gekuerzt;
-					
-					if (auswahl === 3) {
-						treffer = 4; // {3, 6, 9, 12}
-						gekuerzt = "\\dfrac{1}{3}";
-					} else if (auswahl === 4) {
-						treffer = 3; // {4, 8, 12}
-						gekuerzt = "\\dfrac{1}{4}";
-					} else {
-						treffer = 2; // {5, 10}
-						gekuerzt = "\\dfrac{1}{6}";
-					}
-
-					let ereignis = `eine durch ${auswahl} teilbare Zahl`;
-					taskStr = `Nenne die Wahrscheinlichkeit für ${ereignis} bei einem 12-seitigen Spielwürfel?`;
-					resStr = `P(durch ${auswahl} teilbar) = \\( \\dfrac{${treffer}}{12} = ${gekuerzt}\\) `;
-				}
-
-			} else if (mode === 3) {
-				// --- TYP: GLÜCKSRAD (2 Farben, zweimal drehen) ---
-				const farben = ['rote', 'blaue', 'grüne', 'gelbe'];
-				let w = fisherYatesShuffle(farben);
-				let f1 = w[0]; // Die gesuchte Farbe (z.B. "rote")
-				let f2 = w[1]; // Die andere Farbe
-				
-				let n1 = randInt(2, 5); // Felder Farbe 1
-				let n2 = randInt(2, 5); // Felder Farbe 2
-				let gesamt = n1 + n2;
-				
-				// Grammatik-Anpassung für die Farbe im Satz (Substantiviert)
-				let f1Subst = f1.charAt(0).toUpperCase() + f1.slice(1, -1); // "rote" -> "Rot"
-				
-				taskStr = `Ein Glücksrad hat ${n1} ${f1} und ${n2} ${f2} gleich große Felder. Nenne die Wahrscheinlichkeit, dass 2-mal in Folge ${f1Subst} gedreht wird.`;
-				
-				// Berechnung: (n1/gesamt) * (n1/gesamt)
-				let zaehler = n1 * n1;
-				let nenner = gesamt * gesamt;
-				
-				// Lösungsweg mit Pfadregel
-				resStr = `P(${f1Subst}, ${f1Subst}) = \\( \\dfrac{${n1}}{${gesamt}} \\cdot \\dfrac{${n1}}{${gesamt}} = \\dfrac{${zaehler}}{${nenner}} \\)`;
-				
-			} else if (mode === 4) {
-				// --- TYP: 2 WÜRFEL - AUGENSUMME ---
-				const target = randInt(2, 12);
-				let count = 0;
-				for (let a = 1; a <= 6; a++) {
-					for (let b = 1; b <= 6; b++) {
-						if (a + b === target) count++;
-					}
-				}
-
-				const num = count;
-				const den = 36;
-				const frac = den === 1 ? `${num}` : `\\dfrac{${num}}{${den}}`;
-				taskStr = `Zwei Würfel werden geworfen.<br>Nenne die Wahrscheinlichkeit für die Augensumme ${target}.`;
-				resStr = `P(Summe = ${target}) = \\( ${frac} \\)`;
-			} 
-			textDisplay = taskStr;
-			s = `${resStr}`;
 		}
 		break;
 	}
@@ -6036,111 +5125,69 @@ case 'einheiten': {
 		}
 
 	case 'anteile': {
+		let einheit = ['€', 'm', 'kg', 't', 'g', 'm²', 'm³', 'ha', 's', 'h', 'l', 'cm', 'mm', 'km', 'dm'][randInt(0, 14)];
+		let rd = Math.random();
+
+		// 1. Definition "schöner" Brüche (Zähler z, Nenner n)
+		const fractions = [
+			{ z: 2, n: 3 }, { z: 3, n: 4 }, { z: 2, n: 5 }, { z: 3, n: 5 }, { z: 4, n: 5 },
+			{ z: 5, n: 6 }, { z: 3, n: 8 }, { z: 3, n: 10 }, { z: 7, n: 10 }, { z: 9, n: 10 }
+		];
+
+		// Wähle einen zufälligen Bruch aus dem Pool
+		let frac = fractions[randInt(0, fractions.length - 1)];
+		let z = frac.z;
+		let n = frac.n;
+
+		// Multiplikator-Bereiche je Modus und Typ
+		let mult1, mult2, mult3;
 		if (isQuizMode) {
-			let einheit = ['€', 'm', 'kg', 't', 'g', 'm²', 'm³', 'ha', 's', 'h', 'l', 'cm', 'mm', 'km', 'dm'][randInt(0, 14)];
-			let rd = Math.random();
-
-			// 1. Definition "schöner" Brüche (Zähler z, Nenner n)
-			const fractions = [
-				{ z: 2, n: 3 }, { z: 3, n: 4 }, { z: 2, n: 5 }, { z: 3, n: 5 }, { z: 4, n: 5 },
-				{ z: 5, n: 6 }, { z: 3, n: 8 }, { z: 3, n: 10 }, { z: 7, n: 10 }, { z: 9, n: 10 }
-			];
-			
-			// Wähle einen zufälligen Bruch aus dem Pool
-			let frac = fractions[randInt(0, fractions.length - 1)];
-			let z = frac.z;
-			let n = frac.n;
-			
-			if (rd > 0.6) {
-				// TYP 1: Anteil berechnen (Bruch von Ganzem)
-				// Damit es glatt aufgeht, muss das Ganze ein Vielfaches des Nenners sein.
-				let scale = Math.random() > 0.5 ? 10 : 1; // Sorgt manchmal für Hunderter/Zehner-Werte
-				let multiplier = rnd(2, 9);
-				let G = n * multiplier * scale; // Das Ganze (Grundwert)
-				let W = (G / n) * z;            // Der Anteil (Prozentwert)
-				answer = { kind: 'number', value: W, unit: einheit };
-
-				textDisplay = `\\( \\dfrac{${z}}{${n}} \\) von ${comma(G)} ${einheit} sind ${blank(3)}`;
-				s = `\\( \\dfrac{${z}}{${n}} \\) von ${comma(G)}  ${einheit} sind <b>${comma(W)} ${einheit}</b><br>
-				\\((${comma(G)} : ${n} \\cdot ${z} = ${comma(W)})\\)`;
-
-			} else if (rd > 0.25) {
-				// TYP 2: Ganzes berechnen (Bruch sind Anteil von...)
-				// Damit es glatt aufgeht, muss der Anteil ein Vielfaches des Zählers sein.
-				let scale = Math.random() > 0.5 ? 10 : 1;
-				let multiplier = rnd(2, 9);
-				let W = z * multiplier * scale; // Der Anteil
-				let G = (W / z) * n;            // Das Ganze
-				answer = { kind: 'number', value: G, unit: einheit };
-				
-				if (Math.random() < 0.5) {textDisplay = `\\( \\frac{${z}}{${n}} \\)  sind ${comma(W)} ${einheit} von ${blank(3)}`;} 
-				else {textDisplay = `${comma(W)} ${einheit} sind \\( \\frac{${z}}{${n}} \\) von ${blank(3)}`;}
-				s = `\\( \\dfrac{${z}}{${n}} \\) sind ${comma(W)} ${einheit} von <b>${comma(G)} ${einheit}</b><br>
-				\\((${comma(W)} : ${z} \\cdot ${n} = ${comma(G)})\\)`;
-
-			} else {
-				// TYP 3: Bruch berechnen (Anteil von Ganzem sind...)
-				// Wir nehmen den generierten Bruch und erzeugen dazu passende glatte Werte.
-				let multiplier = rnd(2, 9);
-				
-				let W = z * multiplier;
-				let G = n * multiplier;
-				answer = { kind: 'fraction', num: z, den: n, requireReduced: true };
-				
-				textDisplay = `${comma(W)} ${einheit} von ${comma(G)}  ${einheit} sind ${blank(3)} (als gekürzter Bruch)`;
-				s = `${comma(W)}  ${einheit} von  ${comma(G)}  ${einheit} sind  \\(\\dfrac{${comma(W)}}{${comma(G)}} \\underset{${multiplier}}{=} \\mathbf{\\dfrac{${z}}{${n}}} \\)`;
-			}
+			mult1 = rnd(2, 9);
+			mult2 = rnd(2, 9);
+			mult3 = rnd(2, 9);
 		} else {
-			let einheit = ['€', 'm', 'kg', 't', 'g', 'm²', 'm³', 'ha', 's', 'h', 'l', 'cm', 'mm', 'km', 'dm'][randInt(0, 14)];
-			let rd = Math.random();
+			mult1 = rnd(3, 13);
+			mult2 = rnd(3, 13);
+			mult3 = rnd(2, 10);
+		}
 
-			// 1. Definition "schöner" Brüche (Zähler z, Nenner n)
-			const fractions = [
-				{ z: 2, n: 3 }, { z: 3, n: 4 }, { z: 2, n: 5 }, { z: 3, n: 5 }, { z: 4, n: 5 },
-				{ z: 5, n: 6 }, { z: 3, n: 8 }, { z: 3, n: 10 }, { z: 7, n: 10 }, { z: 9, n: 10 }
-			];
-			
-			// Wähle einen zufälligen Bruch aus dem Pool
-			let frac = fractions[randInt(0, fractions.length - 1)];
-			let z = frac.z;
-			let n = frac.n;
-			
-			if (rd > 0.6) {
-				// TYP 1: Anteil berechnen (Bruch von Ganzem)
-				// Damit es glatt aufgeht, muss das Ganze ein Vielfaches des Nenners sein.
-				let scale = Math.random() > 0.5 ? 10 : 1; // Sorgt manchmal für Hunderter/Zehner-Werte
-				let multiplier = rnd(3, 13);
-				let G = n * multiplier * scale; // Das Ganze (Grundwert)
-				let W = (G / n) * z;            // Der Anteil (Prozentwert)
+		let scale = Math.random() > 0.5 ? 10 : 1;
 
-				textDisplay = `\\( \\frac{${z}}{${n}} \\) von ${comma(G)} ${einheit} sind ${blank(3)}`;
-				s = `\\( \\frac{${z}}{${n}} \\) von ${comma(G)}  ${einheit} sind <b>${comma(W)} ${einheit}</b><br>
-				\\((${comma(G)} : ${n} \\cdot ${z} = ${comma(W)})\\)`;
+		if (rd > 0.6) {
+			// TYP 1: Anteil berechnen (Bruch von Ganzem)
+			// Damit es glatt aufgeht, muss das Ganze ein Vielfaches des Nenners sein.
+			let G = n * mult1 * scale; // Das Ganze (Grundwert)
+			let W = (G / n) * z;            // Der Anteil (Prozentwert)
+			const fracCmd = isQuizMode ? '\\dfrac' : '\\frac';
+			textDisplay = `\\( ${fracCmd}{${z}}{${n}} \\) von ${comma(G)} ${einheit} sind ${blank(3)}`;
+			s = `\\( ${fracCmd}{${z}}{${n}} \\) von ${comma(G)}  ${einheit} sind <b>${comma(W)} ${einheit}</b><br>
+			\\((${comma(G)} : ${n} \\cdot ${z} = ${comma(W)})\\)`;
+			if (isQuizMode) {
+				answer = { kind: 'number', value: W, unit: einheit };
+			}
 
-			} else if (rd > 0.25) {
-				// TYP 2: Ganzes berechnen (Bruch sind Anteil von...)
-				// Damit es glatt aufgeht, muss der Anteil ein Vielfaches des Zählers sein.
-				let scale = Math.random() > 0.5 ? 10 : 1;
-				let multiplier = rnd(3, 13);
-				let W = z * multiplier * scale; // Der Anteil
-				let G = (W / z) * n;            // Das Ganze
-				if (Math.random() < 0.5) {textDisplay = `\\( \\frac{${z}}{${n}} \\)  sind ${comma(W)} ${einheit} von ${blank(3)}`;} 
-				else {textDisplay = `${comma(W)} ${einheit} sind \\( \\frac{${z}}{${n}} \\) von ${blank(3)}`;}
-				
-				s = `\\( \\frac{${z}}{${n}} \\) sind ${comma(W)} ${einheit} von <b>${comma(G)} ${einheit}</b><br>
-				\\((${comma(W)} : ${z} \\cdot ${n} = ${comma(G)})\\)`;
+		} else if (rd > 0.25) {
+			// TYP 2: Ganzes berechnen (Bruch sind Anteil von...)
+			// Damit es glatt aufgeht, muss der Anteil ein Vielfaches des Zählers sein.
+			let W = z * mult2 * scale; // Der Anteil
+			let G = (W / z) * n;            // Das Ganze
+			if (Math.random() < 0.5) {textDisplay = `\\( \\frac{${z}}{${n}} \\)  sind ${comma(W)} ${einheit} von ${blank(3)}`;} 
+			else {textDisplay = `${comma(W)} ${einheit} sind \\( \\frac{${z}}{${n}} \\) von ${blank(3)}`;}
+			s = `\\( \\frac{${z}}{${n}} \\) sind ${comma(W)} ${einheit} von <b>${comma(G)} ${einheit}</b><br>
+			\\((${comma(W)} : ${z} \\cdot ${n} = ${comma(G)})\\)`;
+			if (isQuizMode) {
+				answer = { kind: 'number', value: G, unit: einheit };
+			}
 
-			} else {
-				// TYP 3: Bruch berechnen (Anteil von Ganzem sind...)
-				// Wir nehmen den generierten Bruch und erzeugen dazu passende glatte Werte.
-				let multiplier = rnd(2, 10);
-				
-				let W = z * multiplier;
-				let G = n * multiplier;
-				
-				textDisplay = `${comma(W)} ${einheit} von ${comma(G)}  ${einheit} sind ${blank(3)} (als gekürzter Bruch)`;
-				s = `${comma(W)}  ${einheit} von  ${comma(G)}  ${einheit} sind  \\(\\dfrac{${comma(W)}}{${comma(G)}} \\underset{${multiplier}}{=} \\mathbf{\\dfrac{${z}}{${n}}}\\)`;
-				
+		} else {
+			// TYP 3: Bruch berechnen (Anteil von Ganzem sind...)
+			// Wir nehmen den generierten Bruch und erzeugen dazu passende glatte Werte.
+			let W = z * mult3;
+			let G = n * mult3;
+			textDisplay = `${comma(W)} ${einheit} von ${comma(G)}  ${einheit} sind ${blank(3)} (als gekürzter Bruch)`;
+			s = `${comma(W)}  ${einheit} von  ${comma(G)}  ${einheit} sind  \\(\\dfrac{${comma(W)}}{${comma(G)}} \\underset{${mult3}}{=} \\mathbf{\\dfrac{${z}}{${n}}}\\)`;
+			if (isQuizMode) {
+				answer = { kind: 'fraction', num: z, den: n, requireReduced: true };
 			}
 		}
 		break;
@@ -6220,11 +5267,10 @@ case 'einheiten': {
 		break;
 	}
 	case 'vorrang': {
-		if (isQuizMode) {
 			// 1. Vier eindeutige Zahlen generieren und aufsteigend sortieren
 			let nums = [];
 			while (nums.length < 4) {
-				let r = randInt(2, 13); // Etwas größerer Bereich für schönere Differenzen
+				let r = randInt(isQuizMode ? 2 : 0, 13); // Etwas größerer Bereich für schönere Differenzen
 				if (!nums.includes(r)) nums.push(r);
 			}
 			nums.sort((x, y) => x - y);
@@ -6274,64 +5320,9 @@ case 'einheiten': {
 
 			textDisplay = `\\( ${taskStr} = \\)`;
 			s = `\\[ ${taskStr} = ${step1} = ${res} \\]`;
-			answer = numericAnswer(res);
-
-		} else {
-			// 1. Vier eindeutige Zahlen generieren und aufsteigend sortieren
-			let nums = [];
-			while (nums.length < 4) {
-				let r = randInt(0, 13); // Etwas größerer Bereich für schönere Differenzen
-				if (!nums.includes(r)) nums.push(r);
+			if (isQuizMode) {
+				answer = numericAnswer(res);
 			}
-			nums.sort((x, y) => x - y);
-			// Jetzt gilt: n[0] < n[1] < n[2] < n[3]
-			const n = nums;
-			
-			const f = fmt;
-			let vorrangType = randInt(0, 4);
-			let taskStr, step1, res;
-			
-			switch (vorrangType) {
-				case 0:
-					// Typ: Klein - (Mittel * Groß) 
-					taskStr = `${n[0]} - ${n[1]} \\cdot ${n[2]}`;
-					step1 = `${n[0]} - ${n[1] * n[2]}`;
-					res = n[0] - (n[1] * n[2]);
-					break;
-					
-				case 1:
-					// Typ: Mittel^2 - (Klein * Groß)
-					taskStr = `${n[1]}^2 - ${n[0]} \\cdot ${n[2]}`;
-					step1 = `${n[1] * n[1]} - ${n[0] * n[2]}`;
-					res = (n[1] * n[1]) - (n[0] * n[2]);
-					break;
-
-				case 2:
-					// Typ: Klein * (Mittel^2 - Groß)
-					taskStr = `${n[0]} \\cdot (${n[1]}^2 - ${n[2]})`;
-					step1 = `${n[0]} \\cdot ${f(n[1] * n[1] - n[2])}`;
-					res = n[0] * (n[1] * n[1] - n[2]);
-					break;
-
-				case 3:
-					// Typ: (Klein * Mittel) - (Groß * Extra)
-					taskStr = `${n[0]} \\cdot ${n[1]} - ${n[2]} \\cdot ${n[3]}`;
-					step1 = `${n[0] * n[1]} - ${n[2] * n[3]}`;
-					res = (n[0] * n[1]) - (n[2] * n[3]);
-					break;
-
-				case 4:
-					// Typ: Mittel * (Klein + Groß) - Extra
-					taskStr = `${n[1]} \\cdot (${n[0]} + ${n[2]}) - ${n[3]}`;
-					step1 = `${n[1]} \\cdot ${n[0] + n[2]} - ${n[3]}`;
-					res = n[1] * (n[0] + n[2]) - n[3];
-					break;
-			}
-
-			textDisplay = `\\( ${taskStr} = \\)`;
-			s = `\\[ ${taskStr} = ${step1} = ${res} \\]`;
-
-		}
 		break;
 	}
 
