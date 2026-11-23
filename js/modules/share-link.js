@@ -172,7 +172,7 @@ window.MTGShareLinkModule = {
         const read = urlLike => {
             try {
                 const url = new URL(urlLike, window.location.href);
-                const taskMode = url.searchParams.has('c') ? 'calculator' : 'standard';
+                const taskMode = (url.searchParams.has('c') || url.searchParams.get('mode') === 'calculator') ? 'calculator' : 'standard';
                 let grade = null, arrangement = null, pages = null, presentationColumns = null, taskCount = null;
                 const m = url.searchParams.get('m');
                 if (m && m.length >= 4) {
