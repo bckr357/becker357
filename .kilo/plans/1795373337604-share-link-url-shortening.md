@@ -12,32 +12,68 @@
 - Current `w` (weights): sparse, skips weight==1; 2 bytes/entry → 3 base64url chars each, `.` prefix.
 - `mode=calculator` costs 18 chars incl. `&`; only ever emitted as `calculator` (standard is default/omitted).
 - Param names already short (`c`,`t`,`n`,`a`,`p`,`w`,`h`); `col` is 3 chars.
+- Hash views: `worksheet` (10), `presentation` (12), `worksheet-builder` (16), `quiz` (4), `home` (4). Only non-default views appear in links.
 
-## Decisions
+## All measures (summary)
 
-1. **Clean break** (confirmed): drop legacy-format handling in `read` where it only serves old links; simplify to one format.
-2. **Hybrid types encoding:** add a 1-byte format header to `t`; bit 7 selects format (0 = bitfield, as today; 1 = sorted varint id list, 1 byte per id since all ids < 128). Encoder emits the smaller of the two; decoder branches on the header.
-3. **Compact meta parameter:** pack the small, fixed-range values (grade, arrangement, pages, presentationColumns, taskMode) into one base64url byte/string under a single param (e.g. `m`). Saves multiple `&key=` overheads. `n` (taskCount, 1–300, variable length) and `h` (worksheetTitle, arbitrary string) remain separate params. Replaces separate `calc` flag and `col`→`k` rename.
-4. **Keep padding-stripped base64url**, default-value elision, and sparse weights (skip weight==1).
-5. **Weights bit-packing (optional/lower priority):** pack index (7 bits) + weight (4 bits) = 11 bits/entry instead of 2 bytes/entry. Helps only when ≥2 weights set.
+| # | Measure | Saves | Status |
+|---|---------|-------|--------|
+| 1 | **Meta param `m`** — merge `c`/`a`/`p`/`col`/`n` into one plain-text param (NOT base64) | ~12–16 chars | Confirmed layout |
+| 2 | **Hybrid `t` encoding** — 1-byte format header, emit smaller of bitfield vs. varint list | up to ~12 chars (sparse high ids) | Planned |
+| 3 | **Calculator flag `c`** — bare boolean flag instead of `mode=calculator` | ~13 chars | Confirmed |
+| 4 | **Short hash codes** — `#p`/`#b`/`#q` instead of `#presentation`/`#worksheet-builder`/`#quiz` | 9–15 chars | Confirmed |
+| 5 | **Default elision** — omit params at default values (already done) | variable | Keep |
+
+**Skipped (confirmed):**
+- Weights bit-packing (11 bits/entry) — skip, keep current 2 bytes/entry format.
+- Base85 encoding for `t`/`w` byte streams — skip, keep base64url.
+
+## Confirmed `m` layout (plain-text, fixed positions + variable tail)
+
+```
+m=<grade><arr><pages><cols>[<taskCount>]
+```
+
+- **grade** (1 char): `4`=GS, `5`=5, `6`=6, `7`=7, `8`=8, `9`=9, `0`=10 (default 10 → `0`)
+- **arr** (1 char): `o`=ordered, `r`=random, `x`=random-ordered (default ordered → `o`)
+- **pages** (1 char): `1`=1, `2`=2 (default 2 → `2`)
+- **cols** (1 char): `1`=1, `2`=2 (default 2 → `2`)
+- **taskCount** (variable, optional tail): decimal digits 1–300, appended directly after `cols` with no separator. Omitted when default (20).
+
+**Calculator mode** is a separate bare flag `?c` (no value); standard mode omits it entirely.
+
+Example: grade 6, ordered, 1 page, 2 columns, 17 tasks → `m=6o1217`
+
+## Hash short codes (recommended)
+
+| Old | New | Loads | Saves |
+|-----|-----|-------|-------|
+| `#worksheet` | *(empty)* | worksheet | — |
+| `#presentation` | `#p` | presentation | −11 |
+| `#worksheet-builder` | `#b` | worksheet-builder (Customizer) | −15 |
+| `#quiz` | `#q` | **worksheet** (mapped, as today) | −3 |
+| `#home` | *(empty)* | worksheet | — |
+
+**Semantics:** `#p` and `#b` load their views directly. `#q` still maps to `worksheet` (preserving existing behavior in `generator/app.js:1003` `getShareableView`). `#home` and empty hash both load `worksheet`.
+
+## Additional param found during review
+
+`js/modules/task-generation.js:123` sets `url.searchParams.set('p', '1')` directly for print/export links — this must be updated to use the new `m` layout (append `1` as the pages position) so generated links stay consistent with the new format.
 
 ## Ordered tasks
 
-1. `js/modules/share-link.js`: design `m` param layout (bit-packed grade/arrangement/pages/columns/mode), add `encodeMeta`/`decodeMeta`.
+1. `js/modules/share-link.js`: define `m` plain-text layout (fixed positions for grade/arrangement/pages/columns + variable taskCount tail), add `encodeMeta`/`decodeMeta`. Calculator handled as separate `c` flag in `write`/`read`.
 2. `js/modules/share-link.js`: rewrite `encode`/`decode` for `t` with format header (bitfield vs varint list), emit smaller form.
-3. `js/modules/share-link.js`: update `encodeWeights`/`decodeWeights` to optional 11-bit-per-entry bit-packed format (keep `.` prefix).
-4. `js/modules/share-link.js` `write`: emit single `m` param instead of separate `c`/`a`/`p`/`col`/`mode`; keep `n` and `h` separate; keep default elision.
-5. `js/modules/share-link.js` `read`: parse `m` → grade/arrangement/pages/columns/taskMode; parse `n` and `h` separately; keep `t`/`w` decoding for new formats only.
-6. `generator/app.js` and `quiz-auto/quiz-auto.js`: no changes needed if they only pass through `write`/`read` (verify `taskMode`/`presentationColumns` flow).
-7. Validation: round-trip (write→read) representative configs for default and calculator modes; compare URL char count vs baseline; confirm all registry ids < 128 invariant holds.
+3. `js/modules/share-link.js` `write`: emit single `m` param (with optional taskCount tail) instead of separate `c`/`a`/`p`/`col`/`n`; emit `c` flag for calculator; keep `h` separate; keep default elision.
+4. `js/modules/share-link.js` `read`: parse `m` → grade/arrangement/pages/columns/taskCount; parse `c` flag → taskMode; parse `h` separately; keep `t`/`w` decoding for new formats only (weights unchanged — keep current 2 bytes/entry format).
+5. `js/modules/task-generation.js:123`: replace `url.searchParams.set('p', '1')` with logic that appends `1` as the pages position in the `m` param (or calls `shareLink.write` to rebuild consistently).
+6. `generator/app.js`: update `syncUrlWithView` to emit short hash codes (`p`/`b`/`q`); update `getViewFromUrl` to map `p`→presentation, `b`→worksheet-builder, `q`→worksheet (mapped, as today). Keep `getShareableView` mapping for `quiz` only.
+7. `generator/app.js` and `quiz-auto/quiz-auto.js`: verify `taskMode`/`presentationColumns` flow through `write`/`read` unchanged.
+8. Validation: round-trip (write→read) representative configs for default and calculator modes; compare URL char count vs baseline; confirm all registry ids < 128 invariant holds.
 
 ## Risks
 
 - Format header changes `t` output for every link (clean break accepted).
-- `m` byte layout must be documented; adding a new field later requires a version bit or layout change.
-- Bit-packed weights must round-trip exactly for weights 1–9 and ids 0–82.
-- `n` as separate param keeps variable-length overhead; acceptable since it appears only when non-default.
-
-## Open questions
-
-None blocking. Weights bit-packing is optional; implement if round-trip tests show meaningful savings, else skip.
+- `m` plain-text layout must be documented; adding a new field later changes positions.
+- `n` moved into `m` tail — decoder must distinguish taskCount digits from the fixed `cols` position (cols is always 1 or 2; taskCount starts at position 5 if present).
+- Hash short codes change routing semantics — verify `#quiz`/`#worksheet-builder` now load their own views instead of mapping to worksheet.

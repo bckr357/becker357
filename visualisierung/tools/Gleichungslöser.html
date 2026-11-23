@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="de"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gleichungen lösen</title>
+<style>
+:root{--bg:#f4f6fb;--card:#fff;--ink:#1d2433;--mut:#667089;--acc:#3b6fd4;--acc2:#e6eefc;--line:#dbe1ee;--ok:#e8f6ee;--okb:#2e8b57;--err:#c0392b;--fs:1.6rem;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141824;--card:#1e2433;--ink:#e8ecf5;--mut:#9aa5bf;--acc:#7aa2f7;--acc2:#27324d;--line:#33405c;--ok:#1d3a2b;--okb:#5fcf93;--err:#ff8a7a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#141824;--card:#1e2433;--ink:#e8ecf5;--mut:#9aa5bf;--acc:#7aa2f7;--acc2:#27324d;--line:#33405c;--ok:#1d3a2b;--okb:#5fcf93;--err:#ff8a7a;color-scheme:dark}
+*{box-sizing:border-box}html,body{margin:0}
+mjx-container svg{shape-rendering:geometricPrecision}
+body{text-rendering:geometricPrecision;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:62rem;margin:0 auto;padding:1rem}
+header{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin-bottom:.8rem}
+h1{font-size:1.35rem;margin:0 auto 0 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:.9rem 1rem;margin-bottom:.8rem}
+.tabs{display:flex;gap:.3rem;background:var(--acc2);padding:.2rem;border-radius:10px}
+.tabs button{border:0;background:none;color:var(--ink);padding:.4rem .8rem;border-radius:8px;cursor:pointer;font:inherit}
+.tabs button.on{background:var(--card);color:var(--acc);font-weight:600;box-shadow:0 1px 3px #0002}
+button{font:inherit;cursor:pointer}
+.pri,.ghost,.nav button{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:.4rem .8rem;border-radius:9px}
+.pri{background:var(--acc);border-color:var(--acc);color:#fff}
+.nav button:disabled{opacity:.35;cursor:default}
+.chk{display:flex;flex-wrap:wrap;gap:.3rem .9rem;margin:.5rem 0}
+.chk label,label{display:inline-flex;gap:.35rem;align-items:center}
+.inrow{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin:.4rem 0}
+input[type=text],input[type=number],select{font:inherit;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:.35rem .55rem}
+input[type=text]{flex:1;min-width:14rem;font-size:1.05rem}
+.sym button{border:1px solid var(--line);background:var(--acc2);color:var(--ink);border-radius:7px;padding:.1rem .55rem;margin-right:.25rem}
+.hint,.note,#task small{color:var(--mut);font-size:.85rem}
+#task{font-weight:600;margin-bottom:.4rem}
+#rows{min-height:6rem;font-size:var(--fs)}
+.g{display:grid;grid-template-columns:auto auto auto auto minmax(7rem,13rem);justify-content:center;column-gap:0;row-gap:.2rem;align-items:center}
+.g.wa{padding:0 6em}
+.c{padding:.15rem 0}.l{text-align:right}.r{text-align:left}.bar{padding-left:1.2em}.full{grid-column:1/-1;text-align:center}
+.eqc{padding:.15rem .4em}.c.sol{align-self:stretch;display:flex;align-items:center;border-bottom:4px double var(--ink)}.l.sol{justify-self:end}.r.sol{justify-self:start}.full.sol{justify-self:center}
+.arc{position:relative;height:2.6em;padding:0}
+.aL,.aR{position:absolute;top:0;bottom:0;display:flex;align-items:center;gap:.25em;white-space:nowrap;width:max-content;font-size:.85em;color:var(--acc)}
+.aL{right:100%;padding-right:.4em}.aR{left:100%;padding-left:.4em}
+.ar{width:1.6em;height:100%;flex:none}.aR .ar{transform:scaleX(-1)}
+.note{font-size:.8rem;color:var(--mut);padding-left:.8em}
+#rows{overflow-x:auto}
+.popwrap{position:relative}
+.pop{position:absolute;z-index:20;top:100%;left:0;margin-top:.3rem;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:.6rem .8rem;box-shadow:0 6px 20px #0003;min-width:17rem}
+.pop[hidden]{display:none}
+.vlist{display:flex;flex-direction:column;gap:.3rem;margin-top:.4rem}
+.err{color:var(--err);font-size:1rem}
+.nav{display:flex;gap:.4rem;align-items:center;justify-content:center;margin-top:.8rem;flex-wrap:wrap}
+</style>
+<script>
+window.MathJax={tex:{inlineMath:[['\\(','\\)']]},output:{font:'mathjax-stix2'},startup:{typeset:false}};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@4.0.0/tex-svg.js" onload="MathJax.startup.promise.then(function(){try{document.head.appendChild(MathJax.svgStylesheet())}catch(e){}window.show&&show()})"></script>
+</head><body><svg width="0" height="0" style="position:absolute"><defs><marker id="ah" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs></svg><div class="wrap">
+<header><h1>Gleichungen lösen</h1>
+<nav class="tabs" id="tm"><button data-m="eq" class="on">Gleichungen</button><button data-m="fo">Formeln umstellen</button></nav>
+<button class="ghost" id="fm" title="Schrift kleiner">A−</button><button class="ghost" id="fp" title="Schrift größer">A+</button>
+<button class="ghost" id="th" title="Hell/Dunkel umschalten">◐ Hell/Dunkel</button><button class="ghost" id="hide">Menü ausblenden</button></header>
+
+<section class="card" id="menu">
+<nav class="tabs" id="ts" style="width:fit-content"><button data-s="rnd" class="on">Zufällig</button><button data-s="own">Eigene Eingabe</button></nav>
+<div id="pEq"><div class="inrow"><div class="popwrap"><button class="ghost" id="vbtn">Varianten ▾</button><div class="pop" id="pop" hidden><div class="inrow"><button class="ghost" id="vall">Alle auswählen</button><button class="ghost" id="vnone">Keine</button></div><div class="vlist" id="types"></div></div></div><label><input type="checkbox" id="ganz" checked> ganzzahlige Lösung</label></div></div>
+<div id="pFo"><div class="chk" id="grp"></div></div>
+<div id="pOwn"><div class="inrow"><input type="text" id="inp" autocomplete="off" spellcheck="false" placeholder="z. B. 3x + 2 = 5x − 8"><button class="pri" id="go">Lösen</button></div>
+<div class="sym" id="sym"></div><p class="hint" id="hint"></p></div>
+<div class="inrow" id="pVar"><label>Umstellen nach <select id="vsel"></select></label></div>
+<div class="chk"><label><input type="checkbox" id="arr"> Äquivalenzumformung mit Pfeilen</label>
+<label><input type="checkbox" id="mjx" checked> Formelsatz (MathJax)</label>
+<label><input type="checkbox" id="dec"> Dezimalwert (2 Stellen)</label></div>
+<div class="inrow" id="pSeed"><label>Aufgabennummer <input type="number" id="seedin" style="width:7rem"></label><button class="pri" id="new">Neue Aufgabe</button><span class="hint">Die Nummer steht im Link (#…) und erzeugt dieselbe Aufgabe.</span></div>
+</section>
+
+<section class="card"><div id="task"></div><div id="rows"></div>
+<div class="nav"><button id="b0">⏮</button><button id="b1">◀ Zurück</button><span id="cnt" class="hint"></span><span class="hint">(→ Weiter · Leertaste = neue Aufgabe)</span><button id="b2" class="pri">Weiter ▶</button><button id="b3">Alles ⏭</button></div></section>
+</div>
+<script>
+const $=id=>document.getElementById(id),esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+/* ---------- Bruchrechnung ---------- */
+const gcd=(a,b)=>b?gcd(b,a%b):Math.abs(a);
+const F=(n,d=1)=>{if(d<0){n=-n;d=-d}const g=gcd(n,d)||1;return[n/g,d/g]};
+const fa=(x,y)=>F(x[0]*y[1]+y[0]*x[1],x[1]*y[1]),fm=(x,y)=>F(x[0]*y[0],x[1]*y[1]),fd=(x,y)=>F(x[0]*y[1],x[1]*y[0]);
+/* ---------- Polynome: Summen von Termen {c:Bruch, m:{Variable:Exponent}} ---------- */
+const key=m=>Object.keys(m).sort().map(k=>k+m[k]).join(','),deg=m=>Object.values(m).reduce((s,e)=>s+Math.max(e,0),0);
+const mulm=(a,b)=>{const r={...a};for(const k in b){r[k]=(r[k]||0)+b[k];if(!r[k])delete r[k]}return r};
+const ngm=m=>{const r={};for(const k in m)r[k]=-m[k];return r};
+const ngt=t=>({c:fm(t.c,F(-1)),m:t.m});
+const pm=(A,B)=>{const r=[];A.forEach(a=>B.forEach(b=>r.push({c:fm(a.c,b.c),m:mulm(a.m,b.m)})));return r};
+function merge(P){const o={};P.forEach(t=>{const k=key(t.m);o[k]=o[k]?{c:fa(o[k].c,t.c),m:t.m}:{c:t.c,m:t.m}});return Object.values(o).filter(t=>t.c[0]!==0).sort((a,b)=>deg(b.m)-deg(a.m)||key(a.m).localeCompare(key(b.m)))}
+/* ---------- Eingabe: Tokenizer + Parser ---------- */
+function tok(s){s=s.replace(/²/g,'^2').replace(/³/g,'^3').replace(/[−–]/g,'-').replace(/[·×⋅]/g,'*').replace(/[÷:]/g,'/').trim();
+ const re=/\s*(\d+(?:[.,]\d+)?|\p{L}|[-+*\/^()=])/uy,t=[];let m;
+ while(re.lastIndex<s.length&&(m=re.exec(s)))t.push(m[1]);
+ if(re.lastIndex<s.length||(!t.length&&s.length))throw Error('Unbekanntes Zeichen in der Eingabe.');return t}
+function parse(T){if(!T.length)throw Error('Die Eingabe ist unvollständig.');let i=0;const pk=()=>T[i],nx=()=>T[i++];
+ const st=t=>t&&(/^\d/.test(t)||/^\p{L}$/u.test(t)||t==='(');
+ function expr(){let a=term();while(pk()==='+'||pk()==='-'){const o=nx();a={t:'b',o,a,b:term()}}return a}
+ function term(){let a=un();for(;;){const t=pk();if(t==='*'||t==='/'){nx();a={t:'b',o:t,a,b:un()}}else if(st(t))a={t:'b',o:'i',a,b:pw()};else break}return a}
+ function un(){if(pk()==='-'){nx();return{t:'n',a:un()}}if(pk()==='+'){nx();return un()}return pw()}
+ function pw(){let a=at();if(pk()==='^'){nx();const e=pk()==='-'?(nx(),{t:'n',a:at()}):at();a={t:'b',o:'^',a,b:e}}return a}
+ function at(){const t=nx();if(t===undefined)throw Error('Die Eingabe ist unvollständig.');
+  if(/^\d/.test(t)){const p=t.replace(',','.').split('.');return{t:'c',v:F(+(p[0]+(p[1]||'')),Math.pow(10,(p[1]||'').length)),s:t}}
+  if(/^\p{L}$/u.test(t))return{t:'v',n:t};
+  if(t==='('){const e=expr();if(nx()!==')')throw Error('Eine Klammer wird nicht geschlossen.');return{t:'p',a:e}}
+  throw Error('Unerwartetes Zeichen „'+t+'“.')}
+ const r=expr();if(i<T.length)throw Error('Die Eingabe ist nicht verständlich (Klammern prüfen).');return r}
+function ev(n){switch(n.t){
+ case'c':return[{c:n.v,m:{}}];case'v':return[{c:F(1),m:{[n.n]:1}}];case'p':return ev(n.a);case'n':return ev(n.a).map(ngt);
+ case'b':{const A=ev(n.a),B=ev(n.b);
+  if(n.o==='+')return A.concat(B);if(n.o==='-')return A.concat(B.map(ngt));if(n.o==='*'||n.o==='i')return pm(A,B);
+  if(n.o==='/'){const D=merge(B);if(!D.length)throw Error('Division durch 0.');if(D.length>1)throw Error('Division durch eine Summe wird nicht unterstützt.');return pm(A,[{c:fd(F(1),D[0].c),m:ngm(D[0].m)}])}
+  const E=merge(ev(n.b));if(E.length!==1||Object.keys(E[0].m).length||E[0].c[1]!==1||E[0].c[0]<1||E[0].c[0]>6)throw Error('Exponenten müssen ganze Zahlen von 1 bis 6 sein.');
+  let r=[{c:F(1),m:{}}];for(let i=0;i<E[0].c[0];i++)r=pm(r,A);return r}}}
+/* ---------- LaTeX ---------- */
+const GR={π:'\\pi',ρ:'\\rho',α:'\\alpha',β:'\\beta',γ:'\\gamma',δ:'\\delta',φ:'\\varphi',ω:'\\omega',λ:'\\lambda',η:'\\eta',Δ:'\\Delta'},vt=n=>GR[n]||n;
+const vp=(v,e)=>vt(v)+(e>1?'^{'+e+'}':'');
+function tx(n){switch(n.t){
+ case'c':return n.s.replace(/[.,]/,'{,}');case'v':return vt(n.n);case'p':return'\\left('+tx(n.a)+'\\right)';case'n':return'-'+tx(n.a);
+ case'b':{const A=tx(n.a),B=tx(n.b);
+  if(n.o==='+'||n.o==='-')return A+' '+n.o+' '+B;if(n.o==='*')return A+'\\cdot '+B;
+  if(n.o==='i')return A+(n.b.t==='c'?'\\cdot ':' ')+B;
+  if(n.o==='/')return'\\frac{'+(n.a.t==='p'?tx(n.a.a):A)+'}{'+(n.b.t==='p'?tx(n.b.a):B)+'}';
+  return A+'^{'+(n.b.t==='p'?tx(n.b.a):B)+'}'}}}
+let DOTS=false;
+function tt(t,sg){const[n,d]=t.c,an=Math.abs(n),ks=Object.keys(t.m).sort((a,b)=>a==='π'?-1:b==='π'?1:a.localeCompare(b)),nu=[],de=[];
+ ks.forEach(k=>{const e=t.m[k];(e>0?nu:de).push(vp(k,Math.abs(e)))});
+ if(an!==1||!nu.length)nu.unshift(String(an));if(d!==1)de.unshift(String(d));
+ return(sg&&n<0?'-':'')+(de.length?'\\frac{'+nu.join(DOTS?'\\cdot ':' ')+'}{'+de.join(DOTS?'\\cdot ':' ')+'}':nu.join(DOTS?'\\cdot ':' '))}
+const ptx=P=>P.map((t,i)=>i?(t.c[0]<0?' - ':' + ')+tt(t,false):tt(t,true)).join('')||'0';
+const opAdd=t=>'{'+(t.c[0]>0?'-':'+')+'}\\,'+tt(t,false);
+const opDiv=t=>':\\,'+(t.c[0]<0?'\\left('+tt(t,true)+'\\right)':tt(t,false));
+function evalP(P,v,val){let s=F(0);for(const t of P){if(Object.keys(t.m).some(k=>k!==v))return null;const e=t.m[v]||0;if(e<0)return null;let x=t.c;for(let i=0;i<e;i++)x=fm(x,val);s=fa(s,x)}return s}
+/* ---------- Löser ---------- */
+function solveEq(str,v,opt){
+ const rows=[],add=(t,o,n,x)=>{if(rows.length)rows[rows.length-1].o=o;rows.push({t,o:null,n,...x})};
+ const ts=tok(str),k=ts.indexOf('=');DOTS=ts.includes('*');if(k<0||ts.indexOf('=',k+1)>=0)throw Error('Bitte genau ein Gleichheitszeichen verwenden.');
+ const A=parse(ts.slice(0,k)),B=parse(ts.slice(k+1)),base=tx(A)+' = '+tx(B);add(base,null,'Gegebene Gleichung');
+ const P1=ev(A),P2=ev(B),s1=ptx(P1)+' = '+ptx(P2),sq=s=>s.replace(/\\left|\\right|\\cdot|\s/g,'');
+ const br=base.includes('\\left');if(br&&sq(s1)!==sq(base))add(s1,null,'Klammern auflösen');
+ let L=merge(P1),R=merge(P2);const eqs=()=>ptx(L)+' = '+ptx(R),s2=eqs();if(br?sq(s2)!==sq(s1):(P1.length>L.length||P2.length>R.length))add(s2,null,'Zusammenfassen');
+ const has=P=>P.some(t=>t.m[v]);
+ if(!has(L)&&!has(R))throw Error('Die Variable '+v+' kommt in der Gleichung nicht vor.');
+ for(let g=0;g<4;g++){
+  if(!has(L)&&has(R)){[L,R]=[R,L];add(eqs(),null,'Seiten vertauschen')}
+  for(const t of R.filter(t=>t.m[v])){L=merge(L.concat([ngt(t)]));R=R.filter(u=>u!==t);add(eqs(),opAdd(t),v+'-Term auf die linke Seite')}
+  for(const t of L.filter(t=>!t.m[v])){R=merge(R.concat([ngt(t)]));L=L.filter(u=>u!==t);add(eqs(),opAdd(t),'Terme ohne '+v+' auf die rechte Seite')}
+  if(!L.length){
+   if(!R.length)add('\\mathbb{L} = \\mathbb{Q}',null,'Wahre Aussage: jede Zahl ist Lösung',{sol:1});
+   else if(R.every(t=>!Object.keys(t.m).length))add('\\mathbb{L} = \\{\\,\\}',null,'Falsche Aussage: keine Lösung',{sol:1});
+   else throw Error(v+' fällt aus der Gleichung heraus.');
+   return{rows}}
+  const ex=[...new Set(L.map(t=>t.m[v]))];
+  if(ex.length>1)throw Error('Die Gleichung ist nicht linear in '+v+' (z. B. quadratisch). Das kann dieses Werkzeug nicht umstellen.');
+  const n=ex[0];
+  if(n<0){const q=-n,mv=m=>{const r={...m};r[v]=(r[v]||0)+q;if(!r[v])delete r[v];return r};
+   L=merge(L.map(t=>({c:t.c,m:mv(t.m)})));R=merge(R.map(t=>({c:t.c,m:mv(t.m)})));add(eqs(),'{\\cdot}\\,'+vp(v,q),'Mit '+v+(q>1?'^'+q:'')+' multiplizieren');continue}
+  if(n>1&&!opt.root)throw Error('Es werden nur lineare Gleichungen unterstützt.');
+  const D=merge(L.map(t=>{const m={...t.m};delete m[v];return{c:t.c,m}})),lv=vp(v,n);let RS,RP=null;
+  if(D.length===1){const d=D[0];
+   if(!(d.c[0]===1&&d.c[1]===1&&!Object.keys(d.m).length)){const iv={c:fd(F(1),d.c),m:ngm(d.m)};R=merge(R.map(t=>({c:fm(t.c,iv.c),m:mulm(t.m,iv.m)})));add(lv+' = '+ptx(R),opDiv(d),'Durch den Faktor vor '+v+(n>1?'^'+n:'')+' teilen')}
+   RS=ptx(R);RP=R}
+  else{add(lv+'\\left('+ptx(D)+'\\right) = '+ptx(R),null,v+' ausklammern');RS='\\frac{'+ptx(R)+'}{'+ptx(D)+'}';add(lv+' = '+RS,':\\,\\left('+ptx(D)+'\\right)','Durch die Klammer teilen')}
+  if(n>1){const r=n===2?'\\sqrt{':'\\sqrt['+n+']{';add(vt(v)+' = '+r+RS+'}',r+'\\ \\ }','Wurzel ziehen (positive Lösung)')}
+  rows[rows.length-1].sol=1;
+  if(RP&&n===1&&RP.every(t=>!Object.keys(t.m).length)){
+   const val=RP.length?RP[0].c:F(0);
+   if(val[1]!==1)rows[rows.length-1].dec=(val[0]/val[1]).toFixed(2).replace('.','{,}');
+   if(opt.set){    add('\\mathbb{L} = \\left\\{'+ptx(RP)+'\\right\\}',null,'Lösungsmenge')}}
+  return{rows}}
+ throw Error('Die Gleichung konnte nicht umgestellt werden.')}
+/* ---------- Zufall ---------- */
+const rng=s=>()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+const TY=['x + b = c','a·x = c','a·x + b = c','a·x + b = c·x + d','a(x + b) = c','a(x + b) = c·x + d','a·x + b = c(x + d)','a(x + b) = c(x + d)'];
+const FO=[['Flächen','A=a*b','Rechteck: Flächeninhalt A, Seiten a, b'],['Flächen','A=a^2','Quadrat: Flächeninhalt A, Seite a'],['Flächen','A=1/2*g*h','Dreieck: Grundseite g, Höhe h'],['Flächen','A=(a+c)/2*h','Trapez: parallele Seiten a, c, Höhe h'],['Flächen','A=g*h','Parallelogramm: Grundseite g, Höhe h'],['Flächen','A=π*r^2','Kreis: Radius r'],['Flächen','u=2*(a+b)','Rechteck: Umfang u'],['Flächen','u=2*π*r','Kreis: Umfang u, Radius r'],['Flächen','A=1/2*e*f','Raute/Drachen: Diagonalen e, f'],['Flächen','c^2=a^2+b^2','Satz des Pythagoras: Katheten a, b, Hypotenuse c'],
+['Körper','V=a*b*c','Quader: Volumen V, Kanten a, b, c'],['Körper','V=a^3','Würfel: Volumen V, Kante a'],['Körper','V=G*h','Prisma: Grundfläche G, Höhe h'],['Körper','V=π*r^2*h','Zylinder: Radius r, Höhe h'],['Körper','V=1/3*G*h','Pyramide: Grundfläche G, Höhe h'],['Körper','V=1/3*π*r^2*h','Kegel: Radius r, Höhe h'],['Körper','V=4/3*π*r^3','Kugel: Radius r'],['Körper','O=2*(a*b+a*c+b*c)','Quader: Oberfläche O'],['Körper','O=2*π*r^2+2*π*r*h','Zylinder: Oberfläche O'],['Körper','O=4*π*r^2','Kugel: Oberfläche O'],
+['Physik','v=s/t','Geschwindigkeit v, Weg s, Zeit t'],['Physik','F=m*a','Kraft F, Masse m, Beschleunigung a'],['Physik','ρ=m/V','Dichte ρ, Masse m, Volumen V'],['Physik','U=R*I','Spannung U, Widerstand R, Stromstärke I'],['Physik','P=U*I','Leistung P, Spannung U, Stromstärke I'],['Physik','E=m*g*h','Lageenergie E, Masse m, Fallbeschleunigung g, Höhe h'],['Physik','W=F*s','Arbeit W, Kraft F, Weg s'],['Physik','p=F/A','Druck p, Kraft F, Fläche A'],['Physik','E=1/2*m*v^2','Bewegungsenergie E, Masse m, Geschwindigkeit v']];
+const GRP=['Flächen','Körper','Physik'];
+const S={m:'eq',s:'rnd',k:0,rows:[],err:'',task:'',seed:0,cur:null,leg:''};
+const vars=str=>{try{return[...new Set(tok(str).filter(t=>/^\p{L}$/u.test(t)&&t!=='π'))]}catch(e){return[]}};
+function fillVars(vs,sel){const s=$('vsel');s.innerHTML=vs.map(v=>`<option${v===sel?' selected':''}>${v}</option>`).join('')}
+function genEq(){const r=rng(S.seed),ri=(a,b)=>a+Math.floor(r()*(b-a+1)),nz=(a,b)=>{let v;do v=ri(a,b);while(!v);return v},co=()=>nz(2,9)*(r()<.5?-1:1);
+ const on=TY.map((_,i)=>i).filter(i=>$('t'+i).checked),ty=on.length?on[ri(0,on.length-1)]:2,ig=$('ganz').checked,x0=ri(-9,9);
+ const sg=n=>n>0?'+'+n:''+n,L=(a,b)=>(a==1?'x':a==-1?'-x':a+'x')+(b?sg(b):''),Br=(a,b)=>a+'(x'+(b?sg(b):'')+')';
+ let a=co(),c=co(),b,d,s;while(c===a)c=co();
+ if(ty===0){b=nz(-9,9);c=ig?x0+b:ri(-15,15);s=`x${sg(b)}=${c}`}
+ else if(ty===1){c=ig?a*x0:ri(-30,30);s=`${a}x=${c}`}
+ else if(ty===2){b=nz(-12,12);d=ig?a*x0+b:ri(-20,20);s=`${L(a,b)}=${d}`}
+ else if(ty===3){b=nz(-12,12);d=ig?a*x0+b-c*x0:ri(-12,12);s=`${L(a,b)}=${L(c,d)}`}
+ else if(ty===4){b=nz(-9,9);d=ig?a*(x0+b):ri(-30,30);s=`${Br(a,b)}=${d}`}
+ else if(ty===5){b=nz(-9,9);d=ig?a*(x0+b)-c*x0:ri(-12,12);s=`${Br(a,b)}=${L(c,d)}`}
+ else if(ty===6){d=nz(-9,9);b=ig?c*(x0+d)-a*x0:ri(-12,12);s=`${L(a,b)}=${Br(c,d)}`}
+ else{b=nz(-9,9);d=nz(-9,9);s=`${Br(a,b)}=${Br(c,d)}`}
+ S.cur={str:s,v:'x'};S.task='Löse die Gleichung nach x.';S.leg='';run()}
+function genFo(){const r=rng(S.seed),on=GRP.filter((_,i)=>$('g'+i).checked),pool=FO.filter(f=>on.includes(f[0]));
+ const list=pool.length?pool:FO,f=list[Math.floor(r()*list.length)],lhs=tok(f[1])[0];
+ const ok=vars(f[1]).filter(v=>v!==lhs&&(()=>{try{solveEq(f[1],v,{root:1});return 1}catch(e){return 0}})());
+ const v=ok[Math.floor(r()*ok.length)];S.cur={str:f[1],v};S.leg=f[2];fillVars(vars(f[1]),v);run()}
+function run(){const c=S.cur;S.task=c.v?(S.m==='eq'?'Löse die Gleichung nach '+c.v+'.':'Stelle die Formel nach '+c.v+' um.'):'';
+ try{S.rows=solveEq(c.str,c.v,{root:S.m==='fo',set:S.m==='eq'}).rows;S.err=''}catch(e){S.rows=[];S.err=e.message}S.k=0;show()}
+function gen(){S.m==='eq'?genEq():genFo()}
+function setHash(){location.hash=(S.m==='eq'?'gl-':'fo-')+S.seed;$('seedin').value=S.seed}
+function newTask(){S.seed=10000+Math.floor(Math.random()*89999);setHash();gen()}
+function own(){const str=$('inp').value;if(!str.trim())return;const vs=vars(str);let v;
+ if(S.m==='eq'){v=vs.includes('x')?'x':vs[0];fillVars(vs,v)}else{v=$('vsel').value;if(!vs.includes(v))v=vs[vs.length-1];fillVars(vs,v)}
+ S.cur={str,v:v||'x'};S.leg='';run()}
+/* ---------- Anzeige ---------- */
+const plain=t=>{let s=t.replace(/\\\{/g,'‹').replace(/\\\}/g,'›').replace(/\\left|\\right|\\Big|\\,|\\;|\\text|\\ /g,'');
+ for(let i=0;i<3;i++)s=s.replace(/\\frac\{([^{}]*)\}\{([^{}]*)\}/g,'($1)/($2)').replace(/\\sqrt\[(\d)\]\{([^{}]*)\}/g,'√$1($2)').replace(/\\sqrt\{([^{}]*)\}/g,'√($1)');
+ return s.replace(/\\cdot/g,'·').replace(/\\pi/g,'π').replace(/\\rho/g,'ρ').replace(/\\quad/g,'   ').replace(/\\downarrow/g,'↓').replace(/\\approx/g,'≈').replace(/\\checkmark/g,'✓').replace(/\\mathbb\{(.)\}/g,'$1').replace(/\^\{(\d)\}/g,'^$1').replace(/[{}]/g,'').replace(/-/g,'−').replace(/‹/g,'{').replace(/›/g,'}')};
+function typeset(){const box=$('rows'),els=[...box.querySelectorAll('.m')];els.forEach(e=>e.textContent=plain(e.dataset.tex));
+ if(!$('mjx').checked||!(window.MathJax&&MathJax.tex2svgPromise))return;
+ els.forEach(e=>{const t=e.dataset.tex;MathJax.tex2svgPromise(t,{display:false}).then(n=>{if(e.isConnected&&e.dataset.tex===t)e.replaceChildren(n)}).catch(()=>{})})}
+const mj=t=>`<span class="m" data-tex="${esc(t)}"></span>`;
+function show(){const vis=S.rows;
+ $('task').innerHTML=esc(S.task)+(S.leg?'<br><small>'+esc(S.leg)+'</small>':'');
+ if(S.err){$('rows').innerHTML='<p class="err">'+esc(S.err)+'</p>';nav(0,0);return}
+ if(!vis.length){$('rows').innerHTML='<p class="hint">Wähle eine Aufgabe oder gib eine Gleichung ein.</p>';nav(0,0);return}
+ S.k=Math.max(0,Math.min(S.k,vis.length-1));let h='';
+ const A=$('arr').checked,D=$('dec').checked,svg='<svg class="ar" viewBox="0 0 30 40" preserveAspectRatio="none"><path d="M27 2C3 6 3 34 25 38" fill="none" stroke="currentColor" stroke-width="2" marker-end="url(#ah)"/></svg>';
+ for(let i=0;i<=S.k;i++){const r=vis[i],sc=r.sol?' sol':'',bar=i<S.k&&r.o?'\\Big|\\ '+r.o:'',dc=D&&r.dec?' \\approx '+r.dec:'',p=r.t.split(' = '),u=x=>r.sol?'<span class="u">'+x+'</span>':x;
+  if(p.length===2)h+=`<div class="c l${sc}">${mj(p[0])}</div><div class="c eqc${sc}">${mj('=')}</div><div class="c r${sc}">${mj(p[1]+dc)}</div><div class="c bar">${bar?mj(bar):''}</div><div class="c note">${esc(r.n||'')}</div>`;
+  else h+=`<div class="c full${sc}">${mj(r.t)} <span class="note">${esc(r.n||'')}</span></div>`;
+  if(A&&i<S.k&&r.o)h+=`<div class="c arc"><div class="aL">${mj(r.o)}${svg}</div></div><div></div><div class="c arc"><div class="aR">${svg}${mj(r.o)}</div></div><div></div><div></div>`}
+ h='<div class="g'+(A?' wa':'')+'">'+h+'</div>';
+ $('rows').innerHTML=h;nav(S.k,vis.length);typeset()}
+function nav(k,n){$('cnt').textContent=n?`Schritt ${k+1} von ${n}`:'';$('b0').disabled=$('b1').disabled=k<=0;$('b2').disabled=$('b3').disabled=k>=n-1}
+const go=d=>{const n=S.rows.length;S.k=d==='f'?0:d==='l'?n-1:S.k+d;show()};
+/* ---------- Oberfläche ---------- */
+function ui(){document.querySelectorAll('#tm button').forEach(b=>b.classList.toggle('on',b.dataset.m===S.m));document.querySelectorAll('#ts button').forEach(b=>b.classList.toggle('on',b.dataset.s===S.s));
+ const rnd=S.s==='rnd',eq=S.m==='eq';$('pEq').style.display=rnd&&eq?'':'none';$('pFo').style.display=rnd&&!eq?'':'none';$('pOwn').style.display=rnd?'none':'';
+ $('pSeed').style.display=rnd?'':'none';$('pVar').style.display=!eq?'':'none';
+ $('hint').textContent=eq?'Mit Klammern, Brüchen (a/b), Dezimalzahlen (0,5) und ^ für Potenzen. Gelöst wird nach x.':'Formel mit Variablen eingeben, z. B. A=(a+c)/2*h oder V=π*r^2*h (* für Mal, π für Pi). Dann die Zielgröße wählen.';
+ $('inp').placeholder=eq?'z. B. 3x + 2 = 5x − 8':'z. B. A = (a + c)/2 · h'}
+TY.forEach((t,i)=>$('types').insertAdjacentHTML('beforeend',`<label><input type="checkbox" id="t${i}" checked> ${esc(t)}</label>`));
+GRP.forEach((g,i)=>$('grp').insertAdjacentHTML('beforeend',`<label><input type="checkbox" id="g${i}" checked> ${g}</label>`));
+['(',')','^','²','π','·','/'].forEach(c=>{const b=document.createElement('button');b.textContent=c;b.onclick=()=>{const i=$('inp');i.setRangeText(c,i.selectionStart,i.selectionEnd,'end');i.focus()};$('sym').appendChild(b)});
+document.querySelectorAll('#tm button').forEach(b=>b.onclick=()=>{S.m=b.dataset.m;ui();if(S.s==='rnd')newTask();else{S.rows=[];S.err='';S.task='';S.cur=null;$('inp').value.trim()?own():show()}});
+document.querySelectorAll('#ts button').forEach(b=>b.onclick=()=>{S.s=b.dataset.s;ui();if(S.s==='rnd')newTask();else{S.rows=[];S.task='';S.err='';show();$('inp').focus()}});
+$('vbtn').onclick=e=>{e.stopPropagation();$('pop').hidden=!$('pop').hidden};$('pop').onclick=e=>e.stopPropagation();document.addEventListener('click',()=>$('pop').hidden=true);
+$('vall').onclick=()=>{TY.forEach((_,i)=>$('t'+i).checked=true);gen()};$('vnone').onclick=()=>{TY.forEach((_,i)=>$('t'+i).checked=false)};
+TY.forEach((_,i)=>$('t'+i).onchange=gen);GRP.forEach((_,i)=>$('g'+i).onchange=gen);$('ganz').onchange=gen;
+$('new').onclick=newTask;$('seedin').onchange=e=>{S.seed=Math.abs(+e.target.value|0);setHash();gen()};
+$('go').onclick=own;$('inp').onkeydown=e=>{if(e.key==='Enter')own()};
+$('vsel').onchange=()=>{if(S.cur){S.cur.v=$('vsel').value;run()}};
+['arr','dec','mjx'].forEach(i=>$(i).onchange=show);
+$('b0').onclick=()=>go('f');$('b1').onclick=()=>go(-1);$('b2').onclick=()=>go(1);$('b3').onclick=()=>go('l');
+document.onkeyup=e=>{if(e.key===' '&&!/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))e.preventDefault()};
+document.onkeydown=e=>{if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return;if(e.key===' '){e.preventDefault();if(S.s==='rnd')newTask()}else if(e.key==='ArrowRight'||e.key==='PageDown'){e.preventDefault();go(1)}else if(e.key==='ArrowLeft'||e.key==='PageUp'){go(-1)}};
+let fs=1.6;const sf=d=>{fs=Math.max(.9,Math.min(2.4,fs+d));document.documentElement.style.setProperty('--fs',fs+'rem')};$('fm').onclick=()=>sf(-.15);$('fp').onclick=()=>sf(.15);
+$('th').onclick=()=>{const r=document.documentElement,cur=r.dataset.theme||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');r.dataset.theme=cur==='dark'?'light':'dark'};
+$('hide').onclick=()=>{const m=$('menu');m.style.display=m.style.display==='none'?'':'none';$('hide').textContent=m.style.display==='none'?'Menü einblenden':'Menü ausblenden'};
+function fromHash(){const h=/^#(gl|fo)-(\d+)$/.exec(location.hash);if(!h)return false;const m=h[1]==='gl'?'eq':'fo';if(S.seed===+h[2]&&S.m===m&&S.s==='rnd')return true;S.m=m;S.s='rnd';S.seed=+h[2];$('seedin').value=S.seed;ui();gen();return true}
+window.addEventListener('hashchange',fromHash);
+ui();if(!fromHash())newTask();
+</script></body></html>
