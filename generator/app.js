@@ -1106,15 +1106,15 @@ createApp({
             await typesetMathJax();
         });
 
-        watch(() => state.presentationColumns.value, async () => {
+        watch(() => state.taskArrangementMode.value, async () => {
             syncShareUrl();
-
-            if (state.currentView.value !== 'presentation' || !state.hasGeneratedTasks.value) {
-                return;
+            if (state.currentView.value === 'worksheet' && state.hasGeneratedTasks.value) {
+                await worksheetMode.generateWorksheet();
             }
+        });
 
-            await nextTick();
-            await typesetMathJax();
+        watch(() => state.worksheetTitle.value, () => {
+            syncShareUrl();
         });
 
         const applyViewFromUrl = async () => {

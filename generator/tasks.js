@@ -1943,9 +1943,9 @@ function createTask(type, grade = 5, options = {}) {
 				break;
 			case 'calculator':
 				percentageConfig = {
-					percentageOfBase: [3, 4, 5, 6, 7, 8, 9, 11, 12, 15, 20, 25, 30, 35, 40, 60, 70, 80, 90, 95],
-					baseFromPercentage: [20, 25, 30, 40, 50, 60, 70, 80, 90, 95],
-					percentageFromValues: [2, 3, 4, 5, 7, 10, 12, 15, 20, 25, 40, 50, 75, 80, 90, 95],
+					percentageOfBase: [rnd(2, 99)],
+					baseFromPercentage: [rnd(2, 99)],
+					percentageFromValues: [rnd(2, 99)],
 					multiplierMin: 2,
 					multiplierMax: 20
 				};

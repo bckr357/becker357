@@ -231,8 +231,6 @@ window.MTGShareLinkModule = {
             url.searchParams.delete('p');
             url.searchParams.delete('col');
 
-            if (taskMode === 'calculator') url.searchParams.set('c', '');
-
             // build m
             const isDefaultGrade = (grade === 10 || grade === '10' || grade === null);
             const gradeChar = gradeToChar[grade] ?? gradeToChar[MTG_SHARE_DEFAULT_GRADE];
@@ -267,6 +265,11 @@ window.MTGShareLinkModule = {
             const encodedWeights = weightsEnabled ? encodeWeights(filteredWeights) : '';
             if (encodedWeights) url.searchParams.set('w', encodedWeights);
             else url.searchParams.delete('w');
+
+            if (taskMode === 'calculator') {
+                if (url.search && url.search !== '?') url.search += '&c';
+                else url.search = '?c';
+            }
 
             return url;
         };
