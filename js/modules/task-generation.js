@@ -120,7 +120,12 @@ window.MTGTaskGenerationModule = {
             if (state.currentView.value === 'worksheet') {
                 try {
                     const url = new URL(pageUrl, window.location.href);
-                    url.searchParams.set('p', '1');
+                    const existing = url.searchParams.get('m');
+                    if (existing && existing.length >= 4) {
+                        url.searchParams.set('m', existing.slice(0, 2) + '1' + existing.slice(3));
+                    } else {
+                        url.searchParams.set('m', '0o12');
+                    }
                     pageUrl = url.href;
                 } catch {
                 }

@@ -35,39 +35,61 @@ window.MTGShareLinkModule = {
             return Uint8Array.from(binary, char => char.charCodeAt(0));
         };
 
-        const encode = types => {
+        const encodeBitfield = types => {
             const bytes = new Uint8Array(Math.ceil((maxIndex + 1) / 8));
             for (const type of types) {
                 const index = keyToIndex.get(type);
                 if (index === undefined) continue;
                 bytes[Math.floor(index / 8)] |= 1 << (index % 8);
             }
-
             let lastNonZero = bytes.length - 1;
-            while (lastNonZero >= 0 && bytes[lastNonZero] === 0) {
-                lastNonZero--;
-            }
-            if (lastNonZero < 0) return '';
-
-            const trimmedBytes = bytes.subarray(0, lastNonZero + 1);
-            return byteToBase64Url(trimmedBytes);
+            while (lastNonZero >= 0 && bytes[lastNonZero] === 0) lastNonZero--;
+            if (lastNonZero < 0) return null;
+            return bytes.subarray(0, lastNonZero + 1);
         };
-
+        const encodeVarintList = types => {
+            const ids = types.map(t => keyToIndex.get(t)).filter(i => i !== undefined).sort((a, b) => a - b);
+            if (ids.length === 0) return null;
+            const bytes = new Uint8Array(1 + ids.length);
+            bytes[0] = ids.length;
+            ids.forEach((id, i) => { bytes[i + 1] = id; });
+            return bytes;
+        };
+        const encode = types => {
+            if (!Array.isArray(types) || types.length === 0) return '';
+            const bf = encodeBitfield(types);
+            const vl = encodeVarintList(types);
+            let chosen = null, header = 0;
+            if (bf && (!vl || bf.length + 1 <= vl.length + 1)) { chosen = bf; header = 0; }
+            else if (vl) { chosen = vl; header = 1; }
+            if (!chosen) return '';
+            const out = new Uint8Array(chosen.length + 1);
+            out[0] = header;
+            out.set(chosen, 1);
+            return byteToBase64Url(out);
+        };
         const decode = value => {
-            if (typeof value !== 'string' || !value || value === '0') return [];
-
+            if (typeof value !== 'string' || !value) return [];
             try {
                 const normalized = value.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - value.length % 4) % 4);
                 const binary = atob(normalized);
+                const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+                if (bytes.length === 0) return [];
+                const header = bytes[0];
+                const payload = bytes.subarray(1);
                 const selected = [];
-
-                for (let index = 0; index <= maxIndex; index++) {
-                    const byte = binary.charCodeAt(Math.floor(index / 8)) || 0;
-                    if (byte & (1 << (index % 8)) && indexToKey[index]) {
-                        selected.push(indexToKey[index]);
+                if (header === 0) {
+                    for (let index = 0; index <= maxIndex; index++) {
+                        const byte = payload[Math.floor(index / 8)] || 0;
+                        if (byte & (1 << (index % 8)) && indexToKey[index]) selected.push(indexToKey[index]);
+                    }
+                } else if (header === 1) {
+                    const count = payload[0] || 0;
+                    for (let i = 1; i <= count && i < payload.length; i++) {
+                        const id = payload[i];
+                        if (indexToKey[id]) selected.push(indexToKey[id]);
                     }
                 }
-
                 return selected;
             } catch (error) {
                 console.warn('MTG: Ungueltige Aufgabentypen-Codierung in der URL.', error);
@@ -142,75 +164,39 @@ window.MTGShareLinkModule = {
             }
         };
 
+        const gradeToChar = { GS: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9', 10: '0' };
+        const charToGrade = { '4': 'GS', '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '0': 10 };
+        const arrToChar = { ordered: 'o', random: 'r', 'random-ordered': 'x' };
+        const charToArr = { o: 'ordered', r: 'random', x: 'random-ordered' };
+
         const read = urlLike => {
             try {
                 const url = new URL(urlLike, window.location.href);
-                const taskMode = url.searchParams.get('mode') === 'calculator'
-                    ? 'calculator'
-                    : 'standard';
-                const rawGradeStr = url.searchParams.get('c') || url.searchParams.get('klasse') || url.searchParams.get('grade');
-                const rawGrade = Number(rawGradeStr);
-                const grade = rawGradeStr === 'GS'
-                    ? 'GS'
-                    : Number.isInteger(rawGrade) && rawGrade >= 5 && rawGrade <= 10
-                        ? rawGrade
-                        : null;
-
-                const tParam = url.searchParams.get('t');
-                let types = [];
-                if (tParam) {
-                    types = decode(tParam);
-                } else {
-                    const plainTypesParam = url.searchParams.get('typen') || url.searchParams.get('types');
-                    if (plainTypesParam) {
-                        const candidates = plainTypesParam.split(',').map(s => s.trim()).filter(Boolean);
-                        types = candidates.filter(type => keyToIndex.has(type));
+                const taskMode = url.searchParams.has('c') ? 'calculator' : 'standard';
+                let grade = null, arrangement = null, pages = null, presentationColumns = null, taskCount = null;
+                const m = url.searchParams.get('m');
+                if (m && m.length >= 4) {
+                    grade = charToGrade[m[0]] ?? null;
+                    arrangement = charToArr[m[1]] ?? null;
+                    pages = Number(m[2]);
+                    if (![1, 2].includes(pages)) pages = null;
+                    presentationColumns = Number(m[3]);
+                    if (![1, 2].includes(presentationColumns)) presentationColumns = null;
+                    const tail = m.slice(4);
+                    if (tail) {
+                        const tc = Number(tail);
+                        if (Number.isInteger(tc) && tc >= 1 && tc <= 300) taskCount = tc;
                     }
                 }
-
-                const rawTaskCount = Number(url.searchParams.get('n'));
-                const taskCount = Number.isInteger(rawTaskCount) && rawTaskCount >= 1 && rawTaskCount <= 300
-                    ? rawTaskCount
-                    : null;
-                const rawArrangement = url.searchParams.get('a');
-                const arrangement = {
-                    o: 'ordered',
-                    r: 'random',
-                    ro: 'random-ordered',
-                    ordered: 'ordered',
-                    random: 'random',
-                    'random-ordered': 'random-ordered'
-                }[rawArrangement] || null;
-                const rawPagesParam = url.searchParams.get('p');
-                const rawPages = Number(rawPagesParam);
-                const pages = rawPagesParam === null
-                    ? null
-                    : Number.isInteger(rawPages) && [1, 2].includes(rawPages)
-                        ? rawPages
-                        : 1;
-                const rawColumns = Number(url.searchParams.get('col'));
-                const presentationColumns = Number.isInteger(rawColumns) && [1, 2].includes(rawColumns)
-                    ? rawColumns
-                    : null;
-                const worksheetTitle = url.searchParams.get('h')
-                    ?? url.searchParams.get('title')
-                    ?? url.searchParams.get('ueberschrift');
+                const tParam = url.searchParams.get('t');
+                let types = [];
+                if (tParam) types = decode(tParam);
+                const worksheetTitle = url.searchParams.get('h');
                 const weights = decodeWeights(url.searchParams.get('w'));
-
-                return { grade, types, taskCount, arrangement, pages, presentationColumns, worksheetTitle, weights, taskMode };
+                return { grade, types, taskCount, arrangement, pages, presentationColumns, worksheetTitle: worksheetTitle || null, weights, taskMode };
             } catch (error) {
                 console.warn('MTG: Fehler beim Lesen der URL.', error);
-                return {
-                    grade: null,
-                    types: [],
-                    taskCount: null,
-                    arrangement: null,
-                    pages: null,
-                    presentationColumns: null,
-                    worksheetTitle: null,
-                    weights: null,
-                    taskMode: 'standard'
-                };
+                return { grade: null, types: [], taskCount: null, arrangement: null, pages: null, presentationColumns: null, worksheetTitle: null, weights: null, taskMode: 'standard' };
             }
         };
 
@@ -238,71 +224,49 @@ window.MTGShareLinkModule = {
             url.searchParams.delete('title');
             url.searchParams.delete('ueberschrift');
             url.searchParams.delete('mode');
-            if (taskMode === 'calculator') {
-                url.searchParams.set('mode', 'calculator');
-            }
+            url.searchParams.delete('c');
+            url.searchParams.delete('m');
+            url.searchParams.delete('n');
+            url.searchParams.delete('a');
+            url.searchParams.delete('p');
+            url.searchParams.delete('col');
 
-            if (grade === 'GS' || (Number.isInteger(grade) && grade >= 5 && grade <= 10 && grade !== MTG_SHARE_DEFAULT_GRADE)) {
-                url.searchParams.set('c', String(grade));
-            } else {
-                url.searchParams.delete('c');
+            if (taskMode === 'calculator') url.searchParams.set('c', '');
+
+            // build m
+            const isDefaultGrade = (grade === 10 || grade === '10' || grade === null);
+            const gradeChar = gradeToChar[grade] ?? gradeToChar[MTG_SHARE_DEFAULT_GRADE];
+            const arrChar = arrToChar[arrangement] ?? 'o';
+            const pagesChar = String(pages ?? 2);
+            const colsChar = String(presentationColumns ?? 2);
+            const taskCountTail = (Number.isInteger(taskCount) && taskCount >= 1 && taskCount <= 300 && taskCount !== MTG_SHARE_DEFAULT_TASK_COUNT) ? String(taskCount) : '';
+            const allDefault = isDefaultGrade && arrChar === 'o' && pagesChar === '2' && colsChar === '2' && taskCountTail === '';
+            if (!allDefault) {
+                url.searchParams.set('m', gradeChar + arrChar + pagesChar + colsChar + taskCountTail);
             }
 
             if (Array.isArray(types) && types.length > 0) {
                 const encoded = encode(types);
-                if (encoded) {
-                    url.searchParams.set('t', encoded);
-                } else {
-                    url.searchParams.delete('t');
-                }
+                if (encoded) url.searchParams.set('t', encoded);
+                else url.searchParams.delete('t');
             } else {
                 url.searchParams.delete('t');
             }
 
-            if (Number.isInteger(taskCount) && taskCount >= 1 && taskCount <= 300 && taskCount !== MTG_SHARE_DEFAULT_TASK_COUNT) {
-                url.searchParams.set('n', String(taskCount));
-            } else {
-                url.searchParams.delete('n');
-            }
+            const normalizedTitle = typeof worksheetTitle === 'string' ? worksheetTitle.trim() : '';
+            if (normalizedTitle) url.searchParams.set('h', normalizedTitle);
+            else url.searchParams.delete('h');
 
-            const arrangementCode = {
-                ordered: 'o',
-                random: 'r',
-                'random-ordered': 'ro'
-            }[arrangement];
-            if (arrangementCode) {
-                url.searchParams.set('a', arrangementCode);
-            } else {
-                url.searchParams.delete('a');
+            const selectedSet = new Set(Array.isArray(types) ? types : []);
+            const filteredWeights = {};
+            if (weights && typeof weights === 'object') {
+                for (const [k, v] of Object.entries(weights)) {
+                    if (selectedSet.size === 0 || selectedSet.has(k)) filteredWeights[k] = v;
+                }
             }
-
-            if (Number.isInteger(pages) && [1, 2].includes(pages)) {
-                url.searchParams.set('p', String(pages));
-            } else {
-                url.searchParams.delete('p');
-            }
-
-            if (Number.isInteger(presentationColumns) && [1, 2].includes(presentationColumns)) {
-                url.searchParams.set('col', String(presentationColumns));
-            } else {
-                url.searchParams.delete('col');
-            }
-
-            const normalizedTitle = typeof worksheetTitle === 'string'
-                ? worksheetTitle.trim()
-                : '';
-            if (normalizedTitle) {
-                url.searchParams.set('h', normalizedTitle);
-            } else {
-                url.searchParams.delete('h');
-            }
-
-            const encodedWeights = weightsEnabled ? encodeWeights(weights) : '';
-            if (encodedWeights) {
-                url.searchParams.set('w', encodedWeights);
-            } else {
-                url.searchParams.delete('w');
-            }
+            const encodedWeights = weightsEnabled ? encodeWeights(filteredWeights) : '';
+            if (encodedWeights) url.searchParams.set('w', encodedWeights);
+            else url.searchParams.delete('w');
 
             return url;
         };

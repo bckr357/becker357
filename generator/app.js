@@ -999,22 +999,18 @@ createApp({
             }
         };
 
-        const allowedViews = new Set(viewTabs.map(tab => tab.key));
-        const getShareableView = view => ['quiz', 'worksheet-builder'].includes(view)
-            ? 'worksheet'
-            : view;
+        const getShareableView = view => view === 'quiz' ? 'worksheet' : view;
+        const viewToHash = { presentation: 'p', 'worksheet-builder': 'b', quiz: 'q' };
+        const hashToView = { p: 'presentation', b: 'worksheet-builder', q: 'worksheet', presentation: 'presentation', 'worksheet-builder': 'worksheet-builder', quiz: 'worksheet', worksheet: 'worksheet', home: 'worksheet' };
 
         const getViewFromUrl = () => {
             const url = new URL(window.location.href);
             const queryView = url.searchParams.get('view');
             const hashView = url.hash.replace(/^#/, '');
             const candidate = queryView || hashView;
-
-            if (!candidate || !allowedViews.has(candidate)) {
-                return 'worksheet';
-            }
-
-            return getShareableView(candidate);
+            const mapped = hashToView[candidate];
+            if (!mapped) return 'worksheet';
+            return mapped;
         };
 
         const initializeViewFromUrl = async () => {
@@ -1059,13 +1055,13 @@ createApp({
                 url.pathname = url.pathname.slice(0, -'index.html'.length);
             }
 
-            const shareableView = getShareableView(view);
+            const hash = viewToHash[view];
             url.searchParams.delete('view');
 
-            if (shareableView === 'home') {
-                url.hash = '';
+            if (hash) {
+                url.hash = hash;
             } else {
-                url.hash = shareableView;
+                url.hash = '';
             }
 
             const nextUrl = `${url.pathname}${url.search}${url.hash}`;
