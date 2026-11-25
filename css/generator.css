@@ -1000,6 +1000,13 @@ textarea {
     text-align: center;
 }
 
+.task-grid {
+    display: flex;
+    position: relative;
+    flex-wrap: wrap;
+    container-type: inline-size;
+}
+
 .task-grid--single {
     display: block;
 }
@@ -1008,10 +1015,37 @@ textarea {
     width: 100%;
 }
 
+.column-separator {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--slate-300);
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+
 .column-wrapper {
-    flex: 1;
+    flex: 1 1 400px;
     display: flex;
     flex-direction: column;
+    min-width: 0;
+}
+
+@container (max-width: 799px) {
+    .task-grid:not(.task-grid--single) {
+        flex-direction: column;
+    }
+
+    .task-grid:not(.task-grid--single) .column-separator {
+        display: none;
+    }
+
+    .task-grid:not(.task-grid--single) .column-wrapper {
+        width: 100%;
+        flex-basis: auto;
+    }
 }
 
 .task-row {

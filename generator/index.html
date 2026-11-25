@@ -676,11 +676,12 @@
                     <div v-for="entry in column" :key="'presentation-'+columnIndex+'-'+entry.number" class="task-row">
                         <div class="task-num">{{ entry.number }}</div>
                         <div class="content">
-                            <div v-if="!showSolutions" class="math-q" v-html="entry.task.textDisplay"></div>
+                            <div v-if="!showSolutions" class="math-q" v-html="presentationColumns === 1 ? entry.task.textPrint : entry.task.textDisplay"></div>
                             <div v-else class="math-a" v-html="entry.task.solution"></div>
                         </div>
                     </div>
                 </div>
+                <div v-if="presentationColumns === 2" class="column-separator" aria-hidden="true"></div>
             </div>
         </div>
     </div>

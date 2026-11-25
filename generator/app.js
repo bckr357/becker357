@@ -1118,8 +1118,14 @@ createApp({
             syncShareUrl();
         });
 
-        watch(() => state.presentationColumns.value, () => {
+        watch(() => state.presentationColumns.value, async () => {
             syncShareUrl();
+            if (state.currentView.value !== 'presentation' || !state.hasGeneratedTasks.value) {
+                return;
+            }
+
+            await nextTick();
+            await typesetMathJax();
         });
 
         const applyViewFromUrl = async () => {

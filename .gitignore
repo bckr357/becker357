@@ -19,6 +19,7 @@ htmlcov/
 
 # Local editor and temporary working files
 .vscode/*
+.kilo/*
 !.vscode/settings.json
 *.code-workspace
 !MTG.code-workspace
