@@ -25,6 +25,8 @@ const app = createApp({
 		}
 		const quizStarted = ref(false);
 		const animationsEnabled = ref(true);
+	const isDarkMode = ref(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+	const toggleDarkMode = () => { isDarkMode.value = !isDarkMode.value; document.documentElement.setAttribute('data-theme', isDarkMode.value ? 'dark' : 'light'); };
 		const showResultOverview = ref(false);
 		const resultOverview = ref(null);
 		const studentName = ref('');
@@ -412,6 +414,7 @@ const app = createApp({
 		};
 
 		onMounted(() => {
+			if (isDarkMode.value) document.documentElement.setAttribute('data-theme', 'dark');
 			window.addEventListener('keydown', handleGlobalKeydown);
 			window.addEventListener('dragover', handleGlobalJsonDragOver);
 			window.addEventListener('drop', handleGlobalJsonDrop);
@@ -780,6 +783,8 @@ ${safePlainJson}
 			selectedTypes,
 			quizStarted,
 			animationsEnabled,
+		isDarkMode,
+	toggleDarkMode,
 			currentTask,
 			taskHistory,
 			currentTaskIndex,

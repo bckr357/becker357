@@ -8,7 +8,7 @@ window.MTGStateModule = {
         const isSettingsSidebarOpen = ref(false);
         const showWorksheetSolutions = ref(false);
         const worksheetLayoutMode = ref('worksheet');
-        const isDarkMode = ref(false);
+        const isDarkMode = ref(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
         const selectedTypes = ref([]);
         const taskWeights = ref(
             Object.fromEntries(Object.keys(typeLabels).map(type => [type, 1]))
@@ -16,6 +16,7 @@ window.MTGStateModule = {
         const taskCount = ref(20);
         const taskArrangementMode = ref('ordered');
         const presentationColumns = ref(2);
+        const presentationFullWindow = ref(false);
         const worksheetTitle = ref('');
         const gtNumber = ref(1);
         const worksheetA5Pages = ref(2);
@@ -84,6 +85,7 @@ window.MTGStateModule = {
             taskCount,
             taskArrangementMode,
             presentationColumns,
+            presentationFullWindow,
             worksheetTitle,
             gtNumber,
             worksheetA5Pages,

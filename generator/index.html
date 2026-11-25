@@ -89,7 +89,7 @@
                 </div>
                 <div class="settings-selection-actions">
                     <button @click="selectAllTypes" class="btn btn--export settings-compact-btn">Alle</button>
-                    <button @click="randomizeTypeSelection" class="btn btn--export settings-compact-btn">Zufall</button>
+                    <button @click="randomizeTypeSelection" class="btn btn--export settings-compact-btn" title="Zufall">Zufall</button>
                     <button @click="refreshCurrentView" class="btn btn--primary settings-quick-generate settings-compact-btn" :disabled="!hasSelectedTypes">
                         Erzeugen
                     </button>
@@ -185,10 +185,10 @@
                 <button @click="toggleWorksheetSolutions" class="btn btn--toggle">
                     {{ showWorksheetSolutions ? 'Aufgaben' : 'Lösungen' }}
                 </button>
-                <button @click="generateWorksheet" class="btn btn--primary">Erzeugen</button>
+                <button @click="generateWorksheet" class="btn btn--primary">Erzeugen 🎲</button>
                 <button @click="builderResortTasks" class="btn btn--export" :disabled="!hasGeneratedTasks">Anordnen</button>
                 <button @click="openWorksheetImportDialog" class="btn btn--export">Öffnen</button>
-                <button @click="exportWorksheetJSON" class="btn btn--export">Speichern</button>
+                <button @click="exportWorksheetJSON" class="btn btn--export" title="Speichern">💾</button>
                 <button @click="printWorksheet" class="btn btn--export" type="button">Drucken</button>
                 <!-- <button @click="switchView('worksheet-builder')" class="btn btn--primary">Anpassen</button> -->
                 <input type="file" ref="worksheetImportInput" name="worksheetImport" @change="importWorksheetJSON" accept=".json" class="u-hidden-file-input">
@@ -426,7 +426,7 @@
                     </button>
                     <button @click="builderResortTasks" class="btn btn--export" :disabled="!hasGeneratedTasks">Anordnen</button>
                     <button @click="openBuilderImportDialog" class="btn btn--export">Öffnen</button>
-                    <button @click="exportBuilderJSON" class="btn btn--export" :disabled="!hasGeneratedTasks">Speichern</button>
+                    <button @click="exportBuilderJSON" class="btn btn--export" :disabled="!hasGeneratedTasks" title="Speichern">💾</button>
                     <!-- <button @click="builderClearTasks" class="btn btn--back" :disabled="!hasGeneratedTasks">Leeren</button> -->
                     <!-- <button @click="switchView('worksheet')" class="btn btn--primary" :disabled="!hasGeneratedTasks">Arbeitsblatt öffnen</button> -->
                     <input type="file" ref="builderImportInput" name="builderImport" @change="importBuilderJSON" accept=".json" class="u-hidden-file-input">
@@ -471,7 +471,7 @@
                                 </label>
                             </div>
                             <div class="builder-task-actions">
-                                <button @click="builderSaveInlineEdit" class="btn btn--primary settings-compact-btn">Speichern</button>
+                                <button @click="builderSaveInlineEdit" class="btn btn--primary settings-compact-btn" title="Speichern">💾</button>
                                 <button @click="builderCancelInlineEdit" class="btn btn--back settings-compact-btn">Abbrechen</button>
                             </div>
                         </template>
@@ -545,7 +545,7 @@
                 <button @click="generateQuiz" class="btn btn--primary" :disabled="!hasSelectedTypes">Erzeugen 🎲</button>
                 <button @click="builderResortTasks" class="btn btn--export" :disabled="!hasGeneratedTasks">Anordnen</button>
                 <button @click="openQuizImportDialog" class="btn btn--export">Öffnen</button>
-                <button @click="exportQuizJSON" class="btn btn--export" :disabled="!hasGeneratedTasks">Speichern</button>
+                <button @click="exportQuizJSON" class="btn btn--export" :disabled="!hasGeneratedTasks" title="Speichern">💾</button>
                 <input type="file" ref="quizImportInput" name="quizImport" @change="importQuizJSON" accept=".json" class="u-hidden-file-input">
             </div>
         </div>
@@ -583,7 +583,7 @@
         </div>
     </div>
 
-    <div v-else :class="['presentation-view', { 'dark-mode': isDarkMode }]">
+    <div v-else :class="['presentation-view', { 'dark-mode': isDarkMode, 'presentation-full-window': presentationFullWindow }]">
         <div class="worksheet-toolbar no-print top-bar">
             <div class="toolbar-main-controls">
                 <button @click="toggleSettingsSidebar" class="btn btn--export">Aufgabenauswahl</button>
@@ -634,25 +634,35 @@
                 </button>
                 <button @click="generateAll" class="btn btn--primary">Erzeugen 🎲</button>
                 <button @click="builderResortTasks" class="btn btn--export" :disabled="!hasGeneratedTasks">Anordnen</button>
-                <button @click="toggleDarkMode" class="btn btn--theme">
-                    {{ isDarkMode ? 'Light-Mode' : 'Dark-Mode' }}
+                <button @click="toggleDarkMode" class="btn btn--theme" :title="isDarkMode ? 'Auf Hell-Modus wechseln' : 'Auf Dunkel-Modus wechseln'">
+                    {{ isDarkMode ? '☀️' : '🌙' }}
                 </button>
                 <button @click="openPresentationImportDialog" class="btn btn--export">Öffnen</button>
                 <input type="file" ref="presentationImportInput" name="presentationImport" @change="importPresentationJSON" accept=".json" class="u-hidden-file-input">
-                <button @click="exportJSON" class="btn btn--export">Speichern</button>
+                <button @click="exportJSON" class="btn btn--export" title="Speichern">💾</button>
+                <button @click="togglePresentationFullWindow()" class="btn btn--export" :class="{ 'btn--active': presentationFullWindow }" :title="presentationFullWindow ? 'Vollfenster-Modus verlassen' : 'Vollfenster-Modus (bedienelemente ausblenden)'">
+                    {{ presentationFullWindow ? '✕' : '⛶' }}
+                </button>
                 <!-- <button @click="exportHTML" class="btn btn--export">Speichern 💾</button> -->
             </div>
         </div>
 
-        <button
-            v-if="hasGeneratedTasks && !presentationHeaderVisible"
-            @click="toggleSolutions()"
-            class="btn btn--toggle presentation-floating-toggle"
-            :title="showSolutions ? 'Aufgaben anzeigen' : 'Lösungen anzeigen'"
-            type="button"
-        >
-            {{ showSolutions ? 'A' : 'L' }}
-        </button>
+        <div v-if="hasGeneratedTasks && (presentationFullWindow || !presentationHeaderVisible)"
+             class="presentation-floating-group">
+            <button v-if="presentationFullWindow"
+                    @click="togglePresentationFullWindow()"
+                    class="btn btn--toggle presentation-full-window-exit"
+                    title="Vollfenster-Modus verlassen"
+                    type="button">
+                ✕
+            </button>
+            <button @click="toggleSolutions()"
+                    class="btn btn--toggle presentation-floating-toggle"
+                    :title="showSolutions ? 'Aufgaben anzeigen' : 'Lösungen anzeigen'"
+                    type="button">
+                {{ showSolutions ? 'Aufgaben' : 'Lösung' }}
+            </button>
+        </div>
 
         <div v-if="!hasGeneratedTasks" class="empty-state empty-state--presentation">
             <h2>Noch keine Aufgaben erzeugt</h2>
@@ -661,7 +671,7 @@
                 <button @click="openSettingsSidebar" class="btn btn--export">Aufgabenauswahl</button>
                 <button @click="openPresentationImportDialog" class="btn btn--export">Datei öffnen</button>
                 <button @click="hasSelectedTypes ? generateAll() : generateRandomPresentation()" class="btn btn--primary">
-                    {{ hasSelectedTypes ? 'Präsentation erzeugen' : 'Zufällige Präsentation erzeugen' }}
+                    {{ hasSelectedTypes ? 'Präsentation erzeugen 🎲' : 'Zufällige Präsentation erzeugen 🎲' }}
                 </button>
             </div>
         </div>

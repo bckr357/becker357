@@ -883,28 +883,100 @@ textarea {
     gap: 10px;
 }
 
+/* === Einheitlicher Button-Stil – alle Ansichten === */
 .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 10px;
+    gap: 6px;
+    padding: 9px 14px;
     border-radius: 10px;
     border: none;
     cursor: pointer;
-    font-weight: bold;
+    font-weight: 600;
+    font-size: 0.88rem;
+    line-height: 1.2;
+    transition: all 0.15s ease;
+    text-decoration: none;
 }
 
-@media (max-width: 900px) {
-    .settings-quick-generate {
-        margin-left: 0;
-    }
+.btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
 }
 
+.btn:active {
+    transform: translateY(0);
+}
+
+.btn:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+/* Button-Varianten – konsistente Farben in allen Ansichten */
 .btn--back { background: var(--slate-100); color: var(--slate-800); }
 .btn--export { background: var(--slate-300); color: var(--slate-800); }
-.btn--toggle { background: var(--slate-800); color: white; }
-.btn--primary { background: var(--primary); color: white; }
-.btn--theme { background: #0f172a; color: white; }
+.btn--toggle { background: var(--slate-800); color: #ffffff; }
+.btn--primary { background: var(--primary); color: #ffffff; }
+.btn--theme { background: #0f172a; color: #ffffff; }
+
+/* Kompakte Buttons (Builder, etc.) – konsistent mit der Basis */
+.settings-compact-btn,
+.settings-drawer-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 7px 11px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.82rem;
+    line-height: 1.2;
+    transition: all 0.15s ease;
+    text-decoration: none;
+}
+
+.settings-compact-btn:hover,
+.settings-drawer-close:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.settings-selection-actions .settings-compact-btn {
+    min-height: auto;
+    padding: 7px 11px;
+    font-size: 0.82rem;
+    white-space: nowrap;
+}
+
+/* Builder-Type-Buttons – konsistent mit den anderen Buttons */
+.builder-type-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 9px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    background: #ffffff;
+    color: var(--slate-800);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.88rem;
+    line-height: 1.2;
+    transition: all 0.15s ease;
+    text-decoration: none;
+}
+
+.builder-type-btn:hover {
+    background: #f8fafc;
+    border-color: var(--primary);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+}
 
 .top-bar-actions {
     display: flex;
@@ -913,17 +985,60 @@ textarea {
     flex-wrap: wrap;
 }
 
-.presentation-floating-toggle,
-.worksheet-floating-toggle {
+.presentation-view.presentation-full-window .top-bar {
+    display: none !important;
+}
+
+.presentation-full-window {
+    padding-top: 5px;
+}
+
+.presentation-full-window .task-grid {
+    border: none;
+}
+
+body.presentation-full-window .site-header {
+    display: none !important;
+}
+
+.presentation-floating-group {
     position: fixed;
     top: 16px;
     right: 16px;
     z-index: 100;
+    display: flex;
+    gap: 8px;
+}
+
+.presentation-floating-toggle,
+.worksheet-floating-toggle,
+.presentation-full-window-exit {
+    position: relative;
     min-width: 42px;
     padding: 7px 10px;
     font-size: 0.8rem;
     border-radius: 999px;
     box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
+    transition: all 0.15s ease;
+}
+
+.presentation-floating-toggle:hover,
+.worksheet-floating-toggle:hover,
+.presentation-full-window-exit:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.btn--active {
+    background: var(--primary) !important;
+    color: #ffffff !important;
+}
+
+.worksheet-floating-toggle {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 100;
 }
 
 .settings-topbar-settings {
@@ -1261,7 +1376,7 @@ textarea {
 .builder-task-item--presentation .math-a .op-table td,
 .worksheet-sheet--solutions .math-a .op-table th,
 .worksheet-sheet--solutions .math-a .op-table td {
-    font-size: 35px;
+    font-size: 1.8rem;
     line-height: 1.2;
     padding: 0.46em 0.4em;
 }
@@ -1296,7 +1411,7 @@ textarea {
 .builder-task-item--presentation .math-q .op-table td,
 .worksheet-sheet--solutions .math-q .op-table th,
 .worksheet-sheet--solutions .math-q .op-table td {
-    font-size: 35px;
+    font-size: 1.8rem;
     line-height: 1.2;
     padding: 0.46em 0.4em;
 }
@@ -1336,6 +1451,24 @@ textarea {
     background: rgba(30, 41, 59, 0.72);
     border-color: #334155;
     color: #cbd5e1;
+}
+
+.presentation-view.dark-mode .presentation-title {
+    background: #0f172a;
+    color: #f8fafc;
+}
+
+.presentation-view.dark-mode .settings-topbar-label {
+    background: #0f172a;
+    color: #cbd5e1;
+    border-color: rgba(148, 163, 184, 0.28);
+}
+
+.presentation-view.dark-mode .settings-topbar-input,
+.presentation-view.dark-mode .settings-topbar-select {
+    background: #0f172a;
+    color: #f8fafc;
+    border-color: #334155;
 }
 
 .presentation-view.dark-mode .task-grid {

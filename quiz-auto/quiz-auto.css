@@ -795,3 +795,17 @@
 	font-size: 0.85rem;
 	margin-left: 6px;
 }
+
+:root[data-theme='dark'], @media (prefers-color-scheme: dark) { :root:not([data-theme='light']) { --slate-700:#e2e8f0; } }
+body:has(:root[data-theme='dark']) { background:#1e293b; color:#e2e8f0; }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) body { background-color:#1e293b; color:#e2e8f0; }
+}
+:root[data-theme='dark'] body { background-color:#1e293b; color:#e2e8f0; }
+
+:root[data-theme='dark'] .quiz-single-card, :root[data-theme='dark'] .quiz-single-setup, :root[data-theme='dark'] .quiz-single-summary-card { background:#1e293b; color:#e2e8f0; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) .quiz-single-card, :root:not([data-theme='light']) .quiz-single-setup, :root:not([data-theme='light']) .quiz-single-summary-card { background:#1e293b; color:#e2e8f0; } }
+
+:root[data-theme='dark'] .quiz-single-card *, :root[data-theme='dark'] .quiz-single-setup *, :root[data-theme='dark'] .quiz-single-summary-card * { color:#e2e8f0; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) .quiz-single-card *, :root:not([data-theme='light']) .quiz-single-setup *, :root:not([data-theme='light']) .quiz-single-summary-card * { color:#e2e8f0; } }

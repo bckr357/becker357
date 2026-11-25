@@ -10,6 +10,11 @@ window.MTGPresentationModeModule = {
             state.isDarkMode.value = !state.isDarkMode.value;
         };
 
+        const togglePresentationFullWindow = () => {
+            state.presentationFullWindow.value = !state.presentationFullWindow.value;
+            document.body.classList.toggle('presentation-full-window', state.presentationFullWindow.value);
+        };
+
         const generateAll = async () => {
             if (!taskGeneration.buildTasks()) return;
 
@@ -276,6 +281,7 @@ window.MTGPresentationModeModule = {
         return {
             toggleSolutions,
             toggleDarkMode,
+            togglePresentationFullWindow,
             generateAll,
             exportJSON,
             openPresentationImportDialog,

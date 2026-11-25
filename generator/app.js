@@ -1248,6 +1248,7 @@ createApp({
             generateRandomPresentation,
             toggleSolutions: presentationMode.toggleSolutions,
             toggleDarkMode: presentationMode.toggleDarkMode,
+            togglePresentationFullWindow: presentationMode.togglePresentationFullWindow,
             exportJSON: presentationMode.exportJSON,
             openPresentationImportDialog: presentationMode.openPresentationImportDialog,
             importPresentationJSON: presentationMode.importPresentationJSON,

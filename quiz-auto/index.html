@@ -65,7 +65,8 @@
                         <input type="checkbox" v-model="animationsEnabled">
                         <span>Animationen</span>
                     </label>
-                    <button class="btn" type="button" @click="openWorksheetImportDialog">
+                    <button class="btn" type="button" @click="toggleDarkMode"><span v-if="isDarkMode">&#9728;&#65039;</span><span v-else>&#127769;</span></button>
+                        <button class="btn" type="button" @click="openWorksheetImportDialog">
                         Aufgabentypen laden
                     </button>
                 </div>
@@ -256,6 +257,7 @@
 
             <!-- CONTROLS UNTEN -->
             <div class="quiz-single-controls">
+                <button class="btn" type="button" @click="toggleDarkMode"><span v-if="isDarkMode">&#9728;&#65039;</span><span v-else>&#127769;</span></button>
                 <button class="btn" type="button" @click="exitQuiz">Quiz beenden</button>
                 <button
                     class="btn"
@@ -289,3 +291,4 @@
 <script src="../js/modules/site-shell.js"></script>
 </body>
 </html>
+
