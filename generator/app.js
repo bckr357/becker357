@@ -1098,6 +1098,7 @@ createApp({
         }, { immediate: true });
 
         watch(() => state.worksheetA5Pages.value, async () => {
+            syncShareUrl();
             if (state.currentView.value !== 'worksheet' || !state.hasGeneratedTasks.value) {
                 return;
             }
@@ -1114,6 +1115,10 @@ createApp({
         });
 
         watch(() => state.worksheetTitle.value, () => {
+            syncShareUrl();
+        });
+
+        watch(() => state.presentationColumns.value, () => {
             syncShareUrl();
         });
 

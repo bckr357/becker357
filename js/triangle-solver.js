@@ -1,22 +1,34 @@
 /**
  * TriangleSolver
- * JavaScript-Interface für alle Dreiecksberechnungen inkl. ausführlichem Lösungsweg.
+ * JavaScript-Interface für alle schulrelevanten Dreiecksberechnungen inkl. ausführlichem Lösungsweg.
  *
  * Berechnet aus mindestens 3 gegebenen Bestimmungsstücken (Seiten a, b, c; Winkel α, β, γ;
- * Höhen h_a, h_b, h_c) alle fehlenden Werte sowie Umfang und Flächeninhalt inklusive
- * didaktisch aufbereitetem Lösungsweg (inkl. Prüfung auf Eindeutigkeit).
+ * maximal eine Höhe h_a, h_b oder h_c auf einer gegebenen Seite) alle fehlenden Werte sowie
+ * Umfang und Flächeninhalt inklusive didaktisch aufbereitetem Lösungsweg (inkl. Prüfung auf Eindeutigkeit).
  *
- * Wird im Browser über window.MTGTriangleSolver bereitgestellt.
+ * Wird im Browser über window.MTGTriangleSolver bereitgestellt, in Node zusätzlich über
+ * module.exports und globalThis.MTGTriangleSolver.
+ *
+ * Rückgabe von solve(): values, formatted, given, sowie
+ *   - steps      Lösungsweg als LaTeX (unverändert, Altformat)
+ *   - schritte   Lösungsweg im Format des Solid Solvers: je Rechenschritt
+ *                { key, label, elemente: [ {typ:'text', text}, {typ:'gleichung', links, zeilen} ] }
+ *   - abschnitte dieselben Schritte in zwei Abschnitten { titel, elemente } (direkt in den Solid Solver übernehmbar)
+ *   - html       fertig dargestellter Lösungsweg mit denselben CSS-Klassen wie der Solid Solver
  */
 
 (function (root, factory) {
     const exported = factory();
     root.MTGTriangleSolver = exported;
-}(typeof window !== 'undefined' ? window : this, function () {
+    if (typeof module !== 'undefined' && module.exports) {
+        module.exports = exported;
+    }
+}(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this), function () {
 
     const DEG_TO_RAD = Math.PI / 180;
     const RAD_TO_DEG = 180 / Math.PI;
-    const EPS = 1e-7;
+    const ALLOWED_UNITS = ['', 'mm', 'cm', 'dm', 'm', 'km'];
+    const INTERMEDIATE_DECIMALS = 4;
 
     // -------------------------------------------------------------------------
     // Formatierungs-Helper
@@ -71,7 +83,7 @@
         area: 'A', A: 'A', perimeter: 'u', u: 'u'
     };
 
-    // Zuordnung: Höhe -> [ [Seite1, gegenüberliegender Winkel zu Höhe in diesem Teildreieck], ... ]
+    // Zuordnung: Höhe -> [ [Seite, gegenüberliegender Winkel zur Höhe im Teildreieck], ... ]
     // Denn h_a = b * sin(gamma) = c * sin(beta)
     const HP = {
         ha: [['b', 'ga'], ['c', 'be']],
@@ -79,43 +91,83 @@
         hc: [['a', 'be'], ['b', 'al']]
     };
     const HS = { ha: 'a', hb: 'b', hc: 'c' };
+    const OPP_ANGLE = { a: 'al', b: 'be', c: 'ga' };
 
     // -------------------------------------------------------------------------
-    // Eingaben normalisieren & validieren
+    // Optionen & Eingaben normalisieren & validieren
     // -------------------------------------------------------------------------
+    function normalizeOptions(options = {}) {
+        const unit = options.unit != null ? String(options.unit).trim() : '';
+        if (!ALLOWED_UNITS.includes(unit)) {
+            throw new Error(`Ungültige Einheit "${unit}". Erlaubt sind: mm, cm, dm, m, km oder keine Einheit.`);
+        }
+
+        let decimals = 2;
+        if (options.decimals != null && options.decimals !== '') {
+            decimals = Number(options.decimals);
+            if (!Number.isInteger(decimals) || decimals < 0 || decimals > 10) {
+                throw new Error('Die Genauigkeit (decimals) muss eine ganze Zahl zwischen 0 und 10 sein.');
+            }
+        }
+
+        return {
+            allowAmbiguous: Boolean(options.allowAmbiguous),
+            unit,
+            decimals
+        };
+    }
+
     function normalizeInputs(inputs) {
         const norm = {};
         if (!inputs || typeof inputs !== 'object') return norm;
 
         for (const [rawKey, rawVal] of Object.entries(inputs)) {
             if (rawVal == null || rawVal === '') continue;
+
+            const k = rawKey.trim().toLowerCase();
+            let targetKey = null;
+
+            if (['α', 'al', 'alpha'].includes(k)) targetKey = 'al';
+            else if (['β', 'be', 'beta'].includes(k)) targetKey = 'be';
+            else if (['γ', 'ga', 'gamma'].includes(k)) targetKey = 'ga';
+            else if (['h_a', 'ha'].includes(k)) targetKey = 'ha';
+            else if (['h_b', 'hb'].includes(k)) targetKey = 'hb';
+            else if (['h_c', 'hc'].includes(k)) targetKey = 'hc';
+            else if (['a', 'b', 'c'].includes(k)) targetKey = k;
+            else {
+                // Bug 4 behoben: Unbekannte Parameter nicht mehr stillschweigend ignorieren
+                throw new Error(`Unbekanntes Eingabefeld "${rawKey}". Erlaubt sind Seiten (a, b, c), Winkel (α, β, γ) und Höhen (h_a, h_b, h_c).`);
+            }
+
             let val;
             if (typeof rawVal === 'string') {
-                const sanitized = rawVal.trim().replace(',', '.').replace(/°$/, '');
+                // Erlaubt optional auch angehängte Einheiten wie "5,4 cm" oder "60°"
+                const sanitized = rawVal
+                    .trim()
+                    .replace(',', '.')
+                    .replace(/(°|mm|cm|dm|km|m)$/i, '')
+                    .trim();
                 val = Number(sanitized);
             } else {
                 val = Number(rawVal);
             }
+
             if (!isFinite(val)) {
-                throw new Error(`Ungültiger Zahlenwert für "${rawKey}".`);
+                throw new Error(`Ungültiger Zahlenwert für "${LABELS[targetKey] || rawKey}".`);
             }
             if (val <= 0) {
-                throw new Error(`Der Wert für "${rawKey}" muss größer als 0 sein.`);
+                throw new Error(`Der Wert für "${LABELS[targetKey] || rawKey}" muss größer als 0 sein.`);
             }
 
-            const k = rawKey.trim().toLowerCase();
-            if (['α', 'al', 'alpha'].includes(k)) norm.al = val;
-            else if (['β', 'be', 'beta'].includes(k)) norm.be = val;
-            else if (['γ', 'ga', 'gamma'].includes(k)) norm.ga = val;
-            else if (['h_a', 'ha'].includes(k)) norm.ha = val;
-            else if (['h_b', 'hb'].includes(k)) norm.hb = val;
-            else if (['h_c', 'hc'].includes(k)) norm.hc = val;
-            else if (['a', 'b', 'c'].includes(k)) norm[k] = val;
+            if (norm[targetKey] != null && Math.abs(norm[targetKey] - val) > 1e-9) {
+                throw new Error(`Widersprüchliche Mehrfachangabe für ${LABELS[targetKey]}.`);
+            }
+            norm[targetKey] = val;
         }
 
         for (const ak of ['al', 'be', 'ga']) {
             if (norm[ak] != null && (norm[ak] <= 0 || norm[ak] >= 180)) {
-                throw new Error(`Winkel ${LABELS[ak]} muss zwischen 0° und 180° liegen.`);
+                throw new Error(`${LABELS[ak]} muss zwischen 0° und 180° liegen.`);
             }
         }
 
@@ -123,177 +175,67 @@
     }
 
     // -------------------------------------------------------------------------
-    // Höhenbeziehungen auflösen (liefert alle möglichen Zwischenzustände)
+    // Prüfung der Höhen-Regeln (Unterrichtspraxis)
     // -------------------------------------------------------------------------
-    function expandHeights(v) {
-        let list = [{ ...v }];
+    function validateHeightRules(norm) {
+        const givenHeights = ['ha', 'hb', 'hc'].filter(h => norm[h] != null);
 
-        for (let pass = 0; pass < 8; pass++) {
-            let changed = false;
-            const nextList = [];
+        if (givenHeights.length > 1) {
+            throw new Error('Es darf maximal eine Höhe gegeben sein.');
+        }
 
-            for (const w of list) {
-                const hk = ['ha', 'hb', 'hc'].filter(k => w[k] != null);
+        if (givenHeights.length === 1) {
+            const hx = givenHeights[0];
+            const baseSide = HS[hx];
+            const oppAngle = OPP_ANGLE[baseSide];
 
-                // Spezialfall 1: Alle 3 Höhen gegeben (keine Seiten)
-                if (hk.length === 3 && w.a == null && w.b == null && w.c == null) {
-                    const r = [1 / w.ha, 1 / w.hb, 1 / w.hc];
-                    const S = r[0] + r[1] + r[2];
-                    const P = S * (S - 2 * r[0]) * (S - 2 * r[1]) * (S - 2 * r[2]);
-                    if (P <= 1e-12) {
-                        throw new Error('Mit diesen drei Höhen kann kein Dreieck gebildet werden (Dreiecksungleichung für Kehrwerte verletzt).');
-                    }
-                    const T = 1 / Math.sqrt(P);
-                    nextList.push({ ...w, a: 2 * T * r[0], b: 2 * T * r[1], c: 2 * T * r[2] });
-                    changed = true;
-                    continue;
-                }
-
-                // Spezialfall 2: 2 Höhen und der Winkel zwischen den zugehörigen Seiten (z. B. ha, hb, ga)
-                // Dann ist ha = b * sin(ga) und hb = a * sin(ga) -> wird bereits von der allgemeinen Schleife erfasst!
-                // Spezialfall 3: 2 Höhen (z. B. ha, hb) und ein anderer Winkel (z. B. al oder be):
-                // Aus a * ha = b * hb folgt a / b = hb / ha => sin(al) / sin(be) = hb / ha.
-                if (hk.length === 2 && w.a == null && w.b == null && w.c == null) {
-                    const [h1, h2] = hk;
-                    const s1 = HS[h1]; // z. B. 'a'
-                    const s2 = HS[h2]; // z. B. 'b'
-                    const a1 = s1 === 'a' ? 'al' : (s1 === 'b' ? 'be' : 'ga');
-                    const a2 = s2 === 'a' ? 'al' : (s2 === 'b' ? 'be' : 'ga');
-
-                    // Wenn a1 bekannt, aber a2 nicht -> sin(a2) = (h1 / h2) * sin(a1)
-                    if (w[a1] != null && w[a2] == null) {
-                        const q = (w[h1] / w[h2]) * Math.sin(w[a1] * DEG_TO_RAD);
-                        if (q > 1 + 1e-9) {
-                            throw new Error('Mit diesen Höhen und diesem Winkel existiert kein Dreieck.');
-                        }
-                        const ang1 = Math.asin(Math.min(1, q)) * RAD_TO_DEG;
-                        if (w[a1] + ang1 < 180 - 1e-6) {
-                            nextList.push({ ...w, [a2]: ang1 });
-                        }
-                        if (q < 1 - 1e-9) {
-                            const ang2 = 180 - ang1;
-                            if (w[a1] + ang2 < 180 - 1e-6) {
-                                nextList.push({ ...w, [a2]: ang2 });
-                            }
-                        }
-                        changed = true;
-                        continue;
-                    }
-                    if (w[a2] != null && w[a1] == null) {
-                        const q = (w[h2] / w[h1]) * Math.sin(w[a2] * DEG_TO_RAD);
-                        if (q > 1 + 1e-9) {
-                            throw new Error('Mit diesen Höhen und diesem Winkel existiert kein Dreieck.');
-                        }
-                        const ang1 = Math.asin(Math.min(1, q)) * RAD_TO_DEG;
-                        if (w[a2] + ang1 < 180 - 1e-6) {
-                            nextList.push({ ...w, [a1]: ang1 });
-                        }
-                        if (q < 1 - 1e-9) {
-                            const ang2 = 180 - ang1;
-                            if (w[a2] + ang2 < 180 - 1e-6) {
-                                nextList.push({ ...w, [a1]: ang2 });
-                            }
-                        }
-                        changed = true;
-                        continue;
-                    }
-                }
-
-                // Spezialfall 4: Eine Höhe (z.B. ha), die zugehörige Seite (a) und noch eine Seite (b) oder Winkel (al)
-                // Falls ha, a und b bekannt: hc oder hb? Nein: Aus ha und b folgt sin(ga) = ha/b (wird unten erledigt).
-                // Was wenn ha, a und al bekannt? (Höhe, Grundseite und gegenüberliegender Winkel -> 2 Lösungen möglich!)
-                for (const hx of hk) {
-                    const sx = HS[hx]; // z. B. 'a'
-                    const ax = sx === 'a' ? 'al' : (sx === 'b' ? 'be' : 'ga'); // 'al'
-                    const [otherS1, otherS2] = ['a', 'b', 'c'].filter(s => s !== sx);
-
-                    if (w[sx] != null && w[ax] != null && w[otherS1] == null && w[otherS2] == null) {
-                        // Fläche A = 0.5 * a * ha = 0.5 * b * c * sin(al) => b * c = (a * ha) / sin(al)
-                        // Kosinussatz: a^2 = b^2 + c^2 - 2*b*c*cos(al) = (b + c)^2 - 2*b*c*(1 + cos(al))
-                        // => (b + c)^2 = a^2 + 2*b*c*(1 + cos(al))
-                        // und (b - c)^2 = a^2 - 2*b*c*(1 - cos(al))
-                        const sinA = Math.sin(w[ax] * DEG_TO_RAD);
-                        const cosA = Math.cos(w[ax] * DEG_TO_RAD);
-                        const bc = (w[sx] * w[hx]) / sinA;
-                        const sumSq = w[sx] * w[sx] + 2 * bc * (1 + cosA);
-                        const diffSq = w[sx] * w[sx] - 2 * bc * (1 - cosA);
-
-                        if (diffSq < -1e-7) {
-                            throw new Error(`Mit ${LABELS[hx]}, ${LABELS[sx]} und ${LABELS[ax]} existiert kein Dreieck (Höhe ist zu groß für diesen Winkel).`);
-                        }
-                        const sum = Math.sqrt(Math.max(0, sumSq));
-                        const diff = Math.sqrt(Math.max(0, diffSq));
-
-                        const sVal1 = 0.5 * (sum + diff);
-                        const sVal2 = 0.5 * (sum - diff);
-
-                        if (sVal1 > 1e-7 && sVal2 > 1e-7) {
-                            nextList.push({ ...w, [otherS1]: sVal1, [otherS2]: sVal2 });
-                            if (diff > 1e-5) {
-                                // Symmetrische zweite Lösung (b und c vertauscht)
-                                nextList.push({ ...w, [otherS1]: sVal2, [otherS2]: sVal1 });
-                            }
-                            changed = true;
-                            break;
-                        }
-                    }
-                }
-                if (changed && nextList.length > 0) continue;
-
-                let w2 = null;
-                let branched = false;
-
-                for (const hx of hk) {
-                    const sx = HS[hx];
-
-                    // 1. Flächeninvarianz: a * ha = b * hb = c * hc
-                    for (const hy of hk) {
-                        if (hy === hx) continue;
-                        const sy = HS[hy];
-                        if (w[sx] != null && w[sy] == null) {
-                            w2 = { ...w, [sy]: (w[sx] * w[hx]) / w[hy] };
-                            break;
-                        }
-                    }
-                    if (w2) break;
-
-                    // 2. Rechtwinkliges Teildreieck: h_a = b * sin(gamma) = c * sin(beta)
-                    for (const [S, A] of HP[hx]) {
-                        if (w[S] != null && w[A] == null) {
-                            const q = w[hx] / w[S];
-                            if (q > 1 + 1e-9) {
-                                throw new Error(`Mit diesen Angaben gibt es kein Dreieck (${LABELS[hx]} ist größer als ${LABELS[S]}).`);
-                            }
-                            const a1 = Math.asin(Math.min(1, q)) * RAD_TO_DEG;
-                            nextList.push({ ...w, [A]: a1 });
-                            if (q < 1 - 1e-9) {
-                                nextList.push({ ...w, [A]: 180 - a1 });
-                            }
-                            changed = true;
-                            branched = true;
-                            break;
-                        }
-                        if (w[A] != null && w[S] == null) {
-                            w2 = { ...w, [S]: w[hx] / Math.sin(w[A] * DEG_TO_RAD) };
-                            break;
-                        }
-                    }
-                    if (branched || w2) break;
-                }
-
-                if (branched) continue;
-                if (w2) {
-                    nextList.push(w2);
-                    changed = true;
-                } else {
-                    nextList.push(w);
-                }
+            if (norm[baseSide] == null) {
+                throw new Error(`Die ${LABELS[hx]} steht auf ${LABELS[baseSide]}. Diese Seite muss ebenfalls gegeben sein.`);
             }
 
-            list = nextList.slice(0, 16);
-            if (!changed) break;
+            if (norm[oppAngle] != null) {
+                throw new Error(
+                    `Die Kombination aus ${LABELS[hx]}, ${LABELS[baseSide]} und dem gegenüberliegenden ${LABELS[oppAngle]} wird nicht unterstützt.`
+                );
+            }
         }
-        return list;
+    }
+
+    // -------------------------------------------------------------------------
+    // Höhenbeziehung auflösen (genau 1 Höhe auf einer gegebenen Seite)
+    // -------------------------------------------------------------------------
+    function expandHeight(v) {
+        const hx = ['ha', 'hb', 'hc'].find(h => v[h] != null);
+        if (!hx) return { states: [v], error: null };
+
+        const states = [];
+        let lastError = null;
+
+        for (const [S, A] of HP[hx]) {
+            // Fall 1: Andere Seite S bekannt -> Winkel A über sin(A) = h_x / S (z. B. h_a, a, b)
+            if (v[S] != null && v[A] == null) {
+                const q = v[hx] / v[S];
+                if (q > 1 + 1e-9) {
+                    lastError = new Error(`Mit diesen Angaben gibt es kein Dreieck (${LABELS[hx]} ist größer als ${LABELS[S]}).`);
+                    continue;
+                }
+                const a1 = Math.asin(Math.min(1, q)) * RAD_TO_DEG;
+                states.push({ ...v, [A]: a1 });
+                if (q < 1 - 1e-9) {
+                    states.push({ ...v, [A]: 180 - a1 });
+                }
+                return { states, error: null };
+            }
+
+            // Fall 2: Anliegender Winkel A bekannt -> Seite S über S = h_x / sin(A) (z. B. h_a, a, β)
+            if (v[A] != null && v[S] == null) {
+                const sinA = Math.sin(v[A] * DEG_TO_RAD);
+                states.push({ ...v, [S]: v[hx] / sinA });
+                return { states, error: null };
+            }
+        }
+
+        return { states: [v], error: lastError };
     }
 
     // -------------------------------------------------------------------------
@@ -310,12 +252,12 @@
             const sumKnown = angles.reduce((s, x) => s + (x ?? 0), 0);
             angles[missingIdx] = 180 - sumKnown;
             if (angles[missingIdx] <= 1e-4) {
-                throw new Error('Die Winkelsumme im Dreieck muss exakt 180° betragen.');
+                throw new Error('Die Winkelsumme der gegebenen Winkel ist bereits größer oder gleich 180°.');
             }
         } else if (numAngles === 3) {
             const sum = angles[0] + angles[1] + angles[2];
             if (Math.abs(sum - 180) > 0.05) {
-                throw new Error(`Die Winkelsumme der Winkel beträgt ${fmt(sum, 2)}°, muss aber 180° ergeben.`);
+                throw new Error(`Die Winkelsumme beträgt ${fmt(sum, 2)}°, muss aber 180° ergeben.`);
             }
         }
 
@@ -330,7 +272,7 @@
 
         if (numAngles === 3) {
             if (numSides === 0) {
-                throw new Error('Drei Winkel (WWW) allein legen die Größe des Dreiecks nicht eindeutig fest – bitte mindestens eine Seite oder Höhe angeben.');
+                throw new Error('Drei Winkel (WWW) allein legen die Größe des Dreiecks nicht eindeutig fest – bitte mindestens eine Seite angeben.');
             }
             const knownIdx = sides.findIndex(x => x != null);
             const scaleFactor = sides[knownIdx] / Math.sin(angles[knownIdx] * DEG_TO_RAD);
@@ -392,7 +334,7 @@
             const calculatedSides = angles.map(ang => scale * Math.sin(ang * DEG_TO_RAD));
             candidateSidesList.push(calculatedSides);
         } else {
-            throw new Error('Unzureichende oder nicht eindeutige Angaben. Bitte mindestens 3 Bestimmungsstücke (z. B. SSS, SWS, WSW, WWS, SsW oder mit Höhen) angeben.');
+            throw new Error('Unzureichende oder nicht eindeutige Angaben. Bitte mindestens 3 Bestimmungsstücke (z. B. SSS, SWS, WSW, WWS, SsW oder mit passender Höhe) angeben.');
         }
 
         const results = [];
@@ -468,10 +410,11 @@
 
     // -------------------------------------------------------------------------
     // Erzeugt den detaillierten Lösungsweg (Steps) für eine gegebene Dreieckslösung
+    // Zwischenergebnisse werden immer mit 4 Nachkommastellen angezeigt.
     // -------------------------------------------------------------------------
-    function buildSolutionSteps(val, givenKeys, options = {}) {
-        const unit = options.unit || '';
-        const dec = options.decimals != null ? options.decimals : 2;
+    function deriveSteps(val, givenKeys, normOpts, fm) {
+        const unit = normOpts.unit;
+        const midDec = INTERMEDIATE_DECIMALS;
 
         const known = new Set(givenKeys);
         const steps = [];
@@ -480,37 +423,9 @@
         const AK = ['al', 'be', 'ga'];
         const HK = ['ha', 'hb', 'hc'];
 
-        const L = k => TEX_NAMES[k] || k;
-        const sv = k => fmtL(val[k], dec) + unitL(unit);
-        const av = k => fmtL(val[k], dec) + '^\\circ';
-
-        // 0. Sonderfall: Alle 3 Höhen gegeben, keine Seite bekannt -> Heron-Variante über Höhen
-        if (HK.every(h => known.has(h)) && SK.every(s => !known.has(s))) {
-            const r = [1 / val.ha, 1 / val.hb, 1 / val.hc];
-            const S = r[0] + r[1] + r[2];
-            const P = S * (S - 2 * r[0]) * (S - 2 * r[1]) * (S - 2 * r[2]);
-            const areaVal = 1 / Math.sqrt(P);
-
-            steps.push({
-                key: 'area_from_heights',
-                targetKey: 'area',
-                prio: -1,
-                formula: 'A = \\frac{1}{\\sqrt{\\left(\\frac{1}{h_a}+\\frac{1}{h_b}+\\frac{1}{h_c}\\right)\\left(\\frac{1}{h_b}+\\frac{1}{h_c}-\\frac{1}{h_a}\\right)\\left(\\frac{1}{h_a}+\\frac{1}{h_c}-\\frac{1}{h_b}\\right)\\left(\\frac{1}{h_a}+\\frac{1}{h_b}-\\frac{1}{h_c}\\right)}}',
-                substituted: `A = \\frac{1}{\\sqrt{\\left(\\frac{1}{${sv('ha')}}+\\frac{1}{${sv('hb')}}+\\frac{1}{${sv('hc')}}\\right) \\cdots}}`,
-                explanation: 'Berechnung des Flächeninhalts $A$ aus allen drei gegebenen Höhen über die verallgemeinerte Heronsche Formel.'
-            });
-
-            for (const [sKey, hKey] of [['a', 'ha'], ['b', 'hb'], ['c', 'hc']]) {
-                known.add(sKey);
-                steps.push({
-                    key: sKey,
-                    prio: 0,
-                    formula: `${L(sKey)} = \\frac{2 \\cdot A}{${L(hKey)}}`,
-                    substituted: `${L(sKey)} = \\frac{2 \\cdot ${fmtL(areaVal, dec)}${unit2L(unit)}}{${sv(hKey)}}`,
-                    explanation: `Berechnung der Seite $${L(sKey)}$ aus dem Flächeninhalt $A$ und der zugehörigen Höhe $${L(hKey)}$.`
-                });
-            }
-        }
+        // L: Symbol, sv/av: Zwischenwert mit Einheit bzw. in Grad (immer 4 Nachkommastellen).
+        // Die Formatierung kommt von außen (fm), damit derselbe Rechenweg als LaTeX und als HTML ausgegeben werden kann.
+        const { L, sv, av } = fm;
 
         // 1. Iteratives Ableiten aller Seiten, Winkel und Höhen
         for (let round = 0; round < 16; round++) {
@@ -518,26 +433,17 @@
             if (allBaseSolved) break;
 
             const candidates = [];
-            const rightAngleIdx = AK.findIndex(k => Math.abs(val[k] - 90) < 0.01);
+            const rightAngleIdx = AK.findIndex(k => Math.abs(val[k] - 90) < 1e-5);
             const isRightAngledKnown = rightAngleIdx >= 0 && known.has(AK[rightAngleIdx]);
 
-            // A) Höhen-Beziehungen prüfen (Priorität 0 - 1)
+            // A) Höhen-Beziehungen prüfen
             for (const hx of HK) {
                 const sx = HS[hx];
 
-                // A1: Flächeninvarianz a * ha = b * hb = c * hc
+                // A1: Flächeninvarianz zum Berechnen der restlichen Höhen am Ende
                 for (const hy of HK) {
                     if (hy === hx) continue;
                     const sy = HS[hy];
-                    if (known.has(hx) && known.has(hy) && known.has(sx) && !known.has(sy)) {
-                        candidates.push({
-                            key: sy,
-                            prio: 0,
-                            formula: `${L(sy)} = \\frac{${L(sx)} \\cdot ${L(hx)}}{${L(hy)}}`,
-                            substituted: `${L(sy)} = \\frac{${sv(sx)} \\cdot ${sv(hx)}}{${sv(hy)}}`,
-                            explanation: `Berechnung der Seite $${L(sy)}$ über die Flächengleichheit ($${L(sx)} \\cdot ${L(hx)} = ${L(sy)} \\cdot ${L(hy)}$).`
-                        });
-                    }
                     if (known.has(hx) && known.has(sx) && known.has(sy) && !known.has(hy)) {
                         candidates.push({
                             key: hy,
@@ -561,14 +467,16 @@
                         });
                     }
                     if (known.has(hx) && known.has(S) && !known.has(A)) {
-                        const qStr = fmtL(val[hx] / val[S], dec + 2);
+                        const qStr = fmtL(val[hx] / val[S], midDec);
                         const isObtuse = val[A] > 90.0001;
                         candidates.push({
                             key: A,
                             prio: 1,
                             formula: `\\sin(${L(A)}) = \\frac{${L(hx)}}{${L(S)}}`,
                             substituted: `\\sin(${L(A)}) = \\frac{${sv(hx)}}{${sv(S)}} = ${qStr} \\implies ${L(A)} = ${isObtuse ? '180^\\circ - ' : ''}\\arcsin(${qStr})`,
-                            explanation: `Berechnung des Winkels $${L(A)}$ im rechtwinkligen Teildreieck über $\\sin(${L(A)}) = \\frac{${L(hx)}}{${L(S)}}$.`
+                            explanation: isObtuse
+                                ? `Berechnung des Winkels $${L(A)}$ im rechtwinkligen Teildreieck über $\\sin(${L(A)}) = \\frac{${L(hx)}}{${L(S)}}$. Da das Dreieck hier stumpfwinklig ist, wird der Nebenwinkel $180^\\circ - \\arcsin(${qStr})$ verwendet.`
+                                : `Berechnung des Winkels $${L(A)}$ im rechtwinkligen Teildreieck über $\\sin(${L(A)}) = \\frac{${L(hx)}}{${L(S)}}$.`
                         });
                     }
                     if (known.has(S) && known.has(A) && !known.has(hx)) {
@@ -609,7 +517,7 @@
                         const adj = SK[3 - rightAngleIdx - i];
 
                         if (known.has(opp) && known.has(hyp)) {
-                            const ratioStr = fmtL(val[opp] / val[hyp], dec + 2);
+                            const ratioStr = fmtL(val[opp] / val[hyp], midDec);
                             candidates.push({
                                 key: k,
                                 prio: 1,
@@ -618,7 +526,7 @@
                                 explanation: `Berechnung des Winkels $${L(k)}$ mit dem Sinus im rechtwinkligen Dreieck.`
                             });
                         } else if (known.has(adj) && known.has(hyp)) {
-                            const ratioStr = fmtL(val[adj] / val[hyp], dec + 2);
+                            const ratioStr = fmtL(val[adj] / val[hyp], midDec);
                             candidates.push({
                                 key: k,
                                 prio: 1,
@@ -627,7 +535,7 @@
                                 explanation: `Berechnung des Winkels $${L(k)}$ mit dem Kosinus im rechtwinkligen Dreieck.`
                             });
                         } else if (known.has(opp) && known.has(adj)) {
-                            const ratioStr = fmtL(val[opp] / val[adj], dec + 2);
+                            const ratioStr = fmtL(val[opp] / val[adj], midDec);
                             candidates.push({
                                 key: k,
                                 prio: 1,
@@ -643,14 +551,16 @@
                         for (let j = 0; j < 3; j++) {
                             if (j !== i && known.has(SK[j]) && known.has(AK[j])) {
                                 const sinVal = Math.sin(val[k] * DEG_TO_RAD);
-                                const qStr = fmtL(sinVal, dec + 2);
+                                const qStr = fmtL(sinVal, midDec);
                                 const isObtuse = val[k] > 90.0001;
                                 candidates.push({
                                     key: k,
                                     prio: 2,
                                     formula: `\\sin(${L(k)}) = \\frac{${L(SK[i])} \\cdot \\sin(${L(AK[j])})}{${L(SK[j])}}`,
                                     substituted: `\\sin(${L(k)}) = \\frac{${sv(SK[i])} \\cdot \\sin(${av(AK[j])})}{${sv(SK[j])}} = ${qStr} \\implies ${L(k)} = ${isObtuse ? '180^\\circ - ' : ''}\\arcsin(${qStr})`,
-                                    explanation: `Berechnung des Winkels $${L(k)}$ mithilfe des Sinussatzes.`
+                                    explanation: isObtuse
+                                        ? `Berechnung des Winkels $${L(k)}$ mithilfe des Sinussatzes. Da der Winkel stumpf ($> 90^\\circ$) ist, gilt die Nebenwinkelbeziehung $${L(k)} = 180^\\circ - \\arcsin(${qStr})$.`
+                                        : `Berechnung des Winkels $${L(k)}$ mithilfe des Sinussatzes.`
                                 });
                                 break;
                             }
@@ -663,7 +573,7 @@
                         const s2 = SK[(i + 1) % 3];
                         const s3 = SK[(i + 2) % 3];
                         const cosVal = Math.cos(val[k] * DEG_TO_RAD);
-                        const qStr = fmtL(cosVal, dec + 2);
+                        const qStr = fmtL(cosVal, midDec);
                         candidates.push({
                             key: k,
                             prio: 2,
@@ -745,55 +655,13 @@
             steps.push(best);
         }
 
-        // Fallback: Falls durch einen Spezialfall (z. B. ha, a, al) eine Seite noch nicht im Step-Protokoll ist
-        for (const skKey of SK) {
-            if (!known.has(skKey)) {
-                known.add(skKey);
-                steps.push({
-                    key: skKey,
-                    prio: 3,
-                    formula: '',
-                    substituted: `${L(skKey)} = ${sv(skKey)}`,
-                    explanation: `Bestimmung der Seite $${L(skKey)}$ aus den Höhen- und Winkelbeziehungen.`
-                });
-            }
-        }
-        for (const akKey of AK) {
-            if (!known.has(akKey)) {
-                known.add(akKey);
-                const i = AK.indexOf(akKey);
-                const s1 = SK[i], s2 = SK[(i + 1) % 3], s3 = SK[(i + 2) % 3];
-                const cosVal = Math.cos(val[akKey] * DEG_TO_RAD);
-                const qStr = fmtL(cosVal, dec + 2);
-                steps.push({
-                    key: akKey,
-                    prio: 3,
-                    formula: `\\cos(${L(akKey)}) = \\frac{${L(s2)}^2 + ${L(s3)}^2 - ${L(s1)}^2}{2 \\cdot ${L(s2)} \\cdot ${L(s3)}}`,
-                    substituted: `\\cos(${L(akKey)}) = \\frac{(${sv(s2)})^2 + (${sv(s3)})^2 - (${sv(s1)})^2}{2 \\cdot ${sv(s2)} \\cdot ${sv(s3)}} = ${qStr} \\implies ${L(akKey)} = \\arccos(${qStr})`,
-                    explanation: `Berechnung des Winkels $${L(akKey)}$ mithilfe des Kosinussatzes.`
-                });
-            }
-        }
-        for (const [hKey, sKey, aKey] of [['ha', 'b', 'ga'], ['hb', 'a', 'ga'], ['hc', 'b', 'al']]) {
-            if (!known.has(hKey)) {
-                known.add(hKey);
-                steps.push({
-                    key: hKey,
-                    prio: 4,
-                    formula: `${L(hKey)} = ${L(sKey)} \\cdot \\sin(${L(aKey)})`,
-                    substituted: `${L(hKey)} = ${sv(sKey)} \\cdot \\sin(${av(aKey)})`,
-                    explanation: `Berechnung der Höhe $${L(hKey)}$ über das rechtwinklige Teildreieck.`
-                });
-            }
-        }
-
-        // 2. Umfang (perimeter / u)
+        // 2. Umfang (perimeter / u) – Zwischenwerte mit 4 Nachkommastellen
         steps.push({
             key: 'perimeter',
             prio: 5,
-            formula: 'u = a + b + c',
-            substituted: `u = ${sv('a')} + ${sv('b')} + ${sv('c')}`,
-            explanation: 'Der Umfang $u$ ist die Summe aller drei Seitenlängen.'
+            formula: `${L('perimeter')} = ${L('a')} + ${L('b')} + ${L('c')}`,
+            substituted: `${L('perimeter')} = ${sv('a')} + ${sv('b')} + ${sv('c')}`,
+            explanation: `Der Umfang $${L('perimeter')}$ ist die Summe aller drei Seitenlängen.`
         });
 
         // 3. Flächeninhalt (area / A) – bevorzugt mit einer ursprünglich gegebenen Höhe oder c * hc
@@ -804,12 +672,31 @@
         steps.push({
             key: 'area',
             prio: 6,
-            formula: `A = \\frac{1}{2} \\cdot ${areaBase} \\cdot ${TEX_NAMES[areaHeight]}`,
-            substituted: `A = \\frac{1}{2} \\cdot ${sv(areaBase)} \\cdot ${sv(areaHeight)}`,
-            explanation: `Der Flächeninhalt $A$ wird mit der Grundseite $${areaBase}$ und der zugehörigen Höhe $${TEX_NAMES[areaHeight]}$ berechnet.`
+            formula: `${L('area')} = \\frac{1}{2} \\cdot ${L(areaBase)} \\cdot ${L(areaHeight)}`,
+            substituted: `${L('area')} = \\frac{1}{2} \\cdot ${sv(areaBase)} \\cdot ${sv(areaHeight)}`,
+            explanation: `Der Flächeninhalt $${L('area')}$ wird mit der Grundseite $${L(areaBase)}$ und der zugehörigen Höhe $${L(areaHeight)}$ berechnet.`
         });
 
-        // Finales Aufbereiten aller Steps mit formatierter LaTeX-Ausgabe & Ergebnissen
+        return steps;
+    }
+
+    // -------------------------------------------------------------------------
+    // Lösungsweg als LaTeX (Altformat, Ausgabe unverändert)
+    // -------------------------------------------------------------------------
+    function buildSolutionSteps(val, givenKeys, options = {}) {
+        const normOpts = normalizeOptions(options);
+        const unit = normOpts.unit;
+        const dec = normOpts.decimals;
+        const midDec = INTERMEDIATE_DECIMALS;
+
+        const steps = deriveSteps(val, givenKeys, normOpts, {
+            L: k => TEX_NAMES[k] || k,
+            sv: k => fmtL(val[k], midDec) + unitL(unit),
+            av: k => fmtL(val[k], midDec) + '^\\circ'
+        });
+
+        // Finales Aufbereiten aller Steps:
+        // Zwischenwerte in der Rechnung haben 4 Stellen, das Endergebnis (resLatex / result) hat `dec` Stellen.
         return steps.map(step => {
             const targetKey = step.targetKey || step.key;
             const rawValue = val[targetKey];
@@ -849,23 +736,252 @@
     }
 
     // -------------------------------------------------------------------------
+    // Lösungsweg im Stil des Solid Solvers (HTML, Text- und Gleichungsschritte)
+    //   gegebene Größen: <span class="kg">, berechnete Größen: <span class="ks">
+    // -------------------------------------------------------------------------
+    const SYM_HTML = {
+        a: 'a', b: 'b', c: 'c',
+        al: 'α', be: 'β', ga: 'γ',
+        ha: 'h<sub>a</sub>', hb: 'h<sub>b</sub>', hc: 'h<sub>c</sub>',
+        perimeter: 'u', area: 'A'
+    };
+    const FN_NAMES = ['sin', 'cos', 'tan', 'arcsin', 'arccos', 'arctan'];
+    const MARK_START = '\uE000';
+    const MARK_END = '\uE001';
+
+    function plainText(html) {
+        return html.replace(/<[^>]+>/g, '');
+    }
+
+    // Klammern nur, wo sie für die Lesbarkeit von "Zähler : Nenner" nötig sind
+    function needsWrap(html, isDenominator) {
+        const s = plainText(html);
+        let depth = 0;
+        for (let i = 0; i < s.length; i++) {
+            const ch = s[i];
+            if (ch === '(') depth++;
+            else if (ch === ')') depth--;
+            else if (depth === 0) {
+                if ((ch === '+' || ch === '−') && i > 0) return true;
+                if (isDenominator && (ch === '·' || ch === ':')) return true;
+            }
+        }
+        return false;
+    }
+
+    function readGroup(s, start) {
+        let depth = 0;
+        for (let j = start; j < s.length; j++) {
+            if (s.startsWith('{,}', j)) { j += 2; continue; }
+            if (s[j] === '{') depth++;
+            else if (s[j] === '}') {
+                depth--;
+                if (depth === 0) return [s.slice(start + 1, j), j + 1];
+            }
+        }
+        throw new Error('Interner Fehler: Klammerung in der Formeldarstellung unvollständig.');
+    }
+
+    function splitTop(s, sep) {
+        const parts = [];
+        let depth = 0;
+        let last = 0;
+        for (let i = 0; i < s.length; i++) {
+            if (s.startsWith('{,}', i)) { i += 2; continue; }
+            if (s[i] === '{') depth++;
+            else if (s[i] === '}') depth--;
+            else if (depth === 0 && s[i] === sep) {
+                parts.push(s.slice(last, i).trim());
+                last = i + 1;
+            }
+        }
+        parts.push(s.slice(last).trim());
+        return parts;
+    }
+
+    function renderMarker(body, ctx) {
+        const [typ, key, text] = body.split('|');
+        const klasse = ctx.given.has(key) ? 'kg' : 'ks';
+        const inhalt = typ === 'S' ? (SYM_HTML[key] || key) : text;
+        return ctx.plain ? inhalt : `<span class="${klasse}">${inhalt}</span>`;
+    }
+
+    // Wandelt den (kleinen) LaTeX-Ausschnitt der Rechenwege samt Symbol-/Wertmarken in HTML um
+    function texToHtml(tex, ctx) {
+        let out = '';
+        let i = 0;
+        while (i < tex.length) {
+            const ch = tex[i];
+            if (ch === MARK_START) {
+                const j = tex.indexOf(MARK_END, i);
+                out += renderMarker(tex.slice(i + 1, j), ctx);
+                i = j + 1;
+            } else if (tex.startsWith('{,}', i)) {
+                out += ',';
+                i += 3;
+            } else if (ch === '\\') {
+                const m = /^\\([A-Za-z]+|.)/.exec(tex.slice(i));
+                const cmd = m[1];
+                i += m[0].length;
+                if (cmd === 'frac') {
+                    const [zaehler, i1] = readGroup(tex, i);
+                    const [nenner, i2] = readGroup(tex, i1);
+                    i = i2;
+                    const n = texToHtml(zaehler, ctx);
+                    const d = texToHtml(nenner, ctx);
+                    if (plainText(n) === '1' && plainText(d) === '2') out += '½';
+                    else out += `${needsWrap(n, false) ? `(${n})` : n} : ${needsWrap(d, true) ? `(${d})` : d}`;
+                } else if (cmd === 'sqrt') {
+                    const [inner, i1] = readGroup(tex, i);
+                    i = i1;
+                    out += `√(${texToHtml(inner, ctx)})`;
+                } else if (cmd === 'text') {
+                    const [inner, i1] = readGroup(tex, i);
+                    i = i1;
+                    out += inner;
+                } else if (cmd === 'cdot') out += '·';
+                else if (cmd === 'approx') out += '≈';
+                else if (cmd === 'circ') out += '°';
+                else if (cmd === ',') out += ' ';
+                else if (FN_NAMES.includes(cmd)) out += cmd;
+                else throw new Error(`Interner Fehler: unbekannter Formelbefehl \\${cmd}.`);
+            } else if (ch === '^') {
+                i++;
+                if (tex[i] === '2') { out += '²'; i++; }
+                else if (tex.startsWith('\\circ', i)) { out += '°'; i += 5; }
+                else throw new Error('Interner Fehler: unbekannter Exponent in der Formeldarstellung.');
+            } else {
+                out += ch;
+                i++;
+            }
+        }
+        return out
+            .replace(/ {2,}/g, ' ')
+            .replace(/ - /g, ' − ')
+            .replace(/(^|[(=\s])-(?=\d)/g, '$1−');
+    }
+
+    function explanationToHtml(text, ctx) {
+        return text
+            .split('$')
+            .map((seg, idx) => (idx % 2 === 1 ? texToHtml(seg, { ...ctx, plain: true }) : seg))
+            .join('');
+    }
+
+    function valueWithUnit(key, value, unit, dec) {
+        if (['al', 'be', 'ga'].includes(key)) return `${fmt(value, dec, ',')}°`;
+        if (key === 'area') return `${fmt(value, dec, ',')}${unit ? ` ${unit}²` : ''}`;
+        return `${fmt(value, dec, ',')}${unit ? ` ${unit}` : ''}`;
+    }
+
+    function abschnitteToHtml(abschnitte, gegebenHtml) {
+        const sec = abschnitte.map(a => {
+            const body = a.elemente.map(el => {
+                if (el.typ === 'text') return `<p class="st">${el.text}</p>`;
+                const rows = el.zeilen.map((z, i) => {
+                    const rhs = z.ergebnis ? `<span class="res">${z.ausdruck}</span>` : z.ausdruck;
+                    return `<tr><td class="l">${i === 0 ? el.links : ''}</td><td>${z.operator}</td><td>${rhs}</td></tr>`;
+                }).join('');
+                return `<table class="eq">${rows}</table>`;
+            }).join('');
+            return `<section class="sec"><h3>${a.titel}</h3>${body}</section>`;
+        }).join('');
+        return `<h2 class="lw">Lösungsweg – Dreieck</h2><p class="st">Gegeben: ${gegebenHtml}</p>${sec}`;
+    }
+
+    function buildSchritte(val, givenKeys, normOpts, norm) {
+        const unit = normOpts.unit;
+        const dec = normOpts.decimals;
+        const ctx = { given: new Set(givenKeys), plain: false };
+        const zw = k => fmt(val[k], INTERMEDIATE_DECIMALS, ',');
+
+        const rohSchritte = deriveSteps(val, givenKeys, normOpts, {
+            L: k => `${MARK_START}S|${k}${MARK_END}`,
+            sv: k => `${MARK_START}V|${k}|${zw(k)}${unit ? ` ${unit}` : ''}${MARK_END}`,
+            av: k => `${MARK_START}V|${k}|${zw(k)}°${MARK_END}`
+        });
+
+        const conv = s => texToHtml(s, ctx);
+        const zeile = (operator, ausdruck) => ({ operator, ausdruck, ergebnis: false });
+
+        const schritte = rohSchritte.map(step => {
+            const key = step.key;
+            const rawValue = val[key];
+            const approx = Math.abs(Number(rawValue.toFixed(dec)) - rawValue) > 1e-9;
+            const ergebnisZeile = zeile(approx ? '≈' : '=', valueWithUnit(key, rawValue, unit, dec));
+
+            const [linksF, ...rechtsF] = splitTop(step.formula, '=');
+            const rhsSymbolisch = conv(rechtsF.join('='));
+            const elemente = [{ typ: 'text', text: explanationToHtml(step.explanation, ctx) }];
+
+            if (step.substituted.includes('\\implies')) {
+                // Trigonometrische Gleichung: erst Wert des Verhältnisses, dann Winkel
+                const [vorher, nachher] = step.substituted.split('\\implies');
+                const [, rhsEingesetzt, verhaeltnis] = splitTop(vorher, '=');
+                const [winkelSymbol, winkelAusdruck] = splitTop(nachher, '=');
+                elemente.push({
+                    typ: 'gleichung',
+                    links: conv(linksF),
+                    zeilen: [zeile('=', rhsSymbolisch), zeile('=', conv(rhsEingesetzt)), zeile('=', conv(verhaeltnis))]
+                });
+                elemente.push({
+                    typ: 'gleichung',
+                    links: conv(winkelSymbol),
+                    zeilen: [zeile('=', conv(winkelAusdruck)), ergebnisZeile]
+                });
+            } else {
+                const [, ...rechtsS] = splitTop(step.substituted, '=');
+                elemente.push({
+                    typ: 'gleichung',
+                    links: conv(linksF),
+                    zeilen: [zeile('=', rhsSymbolisch), zeile('=', conv(rechtsS.join('='))), ergebnisZeile]
+                });
+            }
+            return { key, label: LABELS[key] || key, elemente };
+        });
+
+        const abschnitte = [];
+        const herleitung = schritte.filter(s => s.key !== 'perimeter' && s.key !== 'area');
+        const flaeche = schritte.filter(s => s.key === 'perimeter' || s.key === 'area');
+        if (herleitung.length) {
+            abschnitte.push({ titel: 'Fehlende Seiten, Winkel und Höhen', elemente: herleitung.flatMap(s => s.elemente) });
+        }
+        abschnitte.push({ titel: 'Umfang u und Flächeninhalt A', elemente: flaeche.flatMap(s => s.elemente) });
+
+        const gegebenHtml = givenKeys
+            .map(k => `${SYM_HTML[k] || k} = ${valueWithUnit(k, norm[k], unit, INTERMEDIATE_DECIMALS)}`)
+            .join(', ');
+
+        return { schritte, abschnitte, html: abschnitteToHtml(abschnitte, gegebenHtml) };
+    }
+
+    // -------------------------------------------------------------------------
     // Öffentliche Hauptfunktion: solve(inputs, options)
     // -------------------------------------------------------------------------
     function solve(inputs, options = {}) {
-        const allowAmbiguous = Boolean(options.allowAmbiguous);
+        const normOpts = normalizeOptions(options);
         const norm = normalizeInputs(inputs);
         const givenKeys = Object.keys(norm);
 
         if (givenKeys.length < 3) {
-            throw new Error('Bitte mindestens 3 Bestimmungsstücke (Seiten, Winkel oder Höhen) angeben.');
+            throw new Error('Bitte mindestens 3 Bestimmungsstücke (Seiten, Winkel oder eine Höhe) angeben.');
         }
 
-        // Höhen-Beziehungen expandieren
-        const expandedStates = expandHeights(norm);
+        // Strikte Prüfung der Höhen-Einschränkungen
+        validateHeightRules(norm);
+
+        // Höhen-Beziehung auflösen (falls 1 Höhe gegeben)
+        const { states: expandedStates, error: heightError } = expandHeight(norm);
+
+        // Konnte die Höhe nicht aufgelöst werden, ist deren Fehlermeldung die aussagekräftigste
+        // (sonst würde sie von der allgemeinen Meldung "Unzureichende Angaben" überschrieben).
+        if (heightError && expandedStates.length === 1 && expandedStates[0] === norm) {
+            throw heightError;
+        }
 
         // Für jeden expandierten Zustand das Kerndreieck lösen
         let allSolutions = [];
-        let lastError = null;
+        let lastError = heightError;
 
         for (const state of expandedStates) {
             try {
@@ -885,7 +1001,7 @@
 
         const isUnique = allSolutions.length === 1;
 
-        if (!isUnique && !allowAmbiguous) {
+        if (!isUnique && !normOpts.allowAmbiguous) {
             throw new Error(
                 `Das Dreieck ist mit diesen Angaben nicht eindeutig bestimmt (es existieren ${allSolutions.length} mögliche Lösungen, z. B. SsW-Fall).`
             );
@@ -893,9 +1009,10 @@
 
         // Formatiere jede Lösung inkl. Lösungsweg
         const formattedSolutions = allSolutions.map(sol => {
-            const steps = buildSolutionSteps(sol, givenKeys, options);
-            const dec = options.decimals != null ? options.decimals : 2;
-            const unit = options.unit || '';
+            const steps = buildSolutionSteps(sol, givenKeys, normOpts);
+            const { schritte, abschnitte, html } = buildSchritte(sol, givenKeys, normOpts, norm);
+            const dec = normOpts.decimals;
+            const unit = normOpts.unit;
 
             const values = {
                 a: sol.a, b: sol.b, c: sol.c,
@@ -919,6 +1036,9 @@
                 values,
                 formatted,
                 steps,
+                schritte,
+                abschnitte,
+                html,
                 given: givenKeys
             };
         });
@@ -936,7 +1056,10 @@
     return {
         solve,
         normalizeInputs,
+        normalizeOptions,
         buildSolutionSteps,
+        buildSchritte,
+        ALLOWED_UNITS,
         LABELS,
         TEX_NAMES
     };

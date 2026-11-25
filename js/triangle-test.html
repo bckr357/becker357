@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Testseite: TriangleSolver &amp; TriangleRenderer</title>
+<style>
+:root {
+  --bg: #f4f5f2;
+  --surf: #fff;
+  --txt: #1d2433;
+  --mut: #667085;
+  --line: #d9dde5;
+  --acc: #1f5fbf;
+  --fill: #e8f0fc;
+  --err: #b42318;
+  --mtg-given: #1a7f37;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14171d;
+    --surf: #1c2029;
+    --txt: #e8eaf0;
+    --mut: #9aa3b2;
+    --line: #323846;
+    --acc: #7fb0ff;
+    --fill: #22304a;
+    --err: #ff8a80;
+    --mtg-given: #5fd38a;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14171d;
+  --surf: #1c2029;
+  --txt: #e8eaf0;
+  --mut: #9aa3b2;
+  --line: #323846;
+  --acc: #7fb0ff;
+  --fill: #22304a;
+  --err: #ff8a80;
+  --mtg-given: #5fd38a;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--txt);
+  font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+main {
+  max-width: 1220px;
+  margin: 0 auto;
+  padding: 16px;
+}
+header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+h1 { font-size: 1.25rem; margin: 0; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+button, select, input { font: inherit; color: var(--txt); }
+.btn {
+  border: 1px solid var(--line);
+  background: var(--surf);
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.btn.pri {
+  background: var(--acc);
+  border-color: var(--acc);
+  color: #fff;
+}
+:root:not([data-theme="light"]) .btn.pri { color: #0b1220; }
+.btn.sm { padding: 4px 9px; font-size: 0.85rem; }
+
+.card {
+  background: var(--surf);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+.card h2 { font-size: 0.98rem; margin: 0 0 10px; }
+details.card > summary {
+  cursor: pointer;
+  font-weight: 600;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+details.card > summary::-webkit-details-marker { display: none; }
+details.card > summary::after { content: '▾'; color: var(--mut); }
+details.card[open] > summary::after { content: '▴'; }
+details.card > .ctl { margin-top: 10px; }
+
+.inputs-grid {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(76px, 1fr));
+  gap: 10px;
+}
+@media (max-width: 820px) {
+  .inputs-grid { grid-template-columns: repeat(3, minmax(76px, 1fr)); }
+}
+.inputs-grid label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+}
+input[type="text"], select {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+}
+.inputs-grid input[type="text"] { text-align: center; }
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(310px, 380px) minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+  margin-top: 12px;
+}
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+  .stage { order: -1; }
+}
+.panel, .stage { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.ctl { display: flex; flex-direction: column; gap: 8px; }
+.ctl label.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.ctl label.ck {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+}
+.hrow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.hrow .sm { font-size: 0.84rem; color: var(--mut); }
+.ctl select { width: auto; }
+.ctl input[type="range"] { width: 52%; }
+
+.hl-grid {
+  display: grid;
+  grid-template-columns: 44px 1fr auto auto;
+  gap: 6px 8px;
+  align-items: center;
+  font-size: 0.88rem;
+}
+.hl-grid input[type="color"] {
+  width: 34px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+}
+
+.err { color: var(--err); font-weight: 600; margin: 8px 0 0; }
+.hint { color: var(--mut); font-size: 0.86rem; margin: 8px 0 0; }
+.presets { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+th, td { padding: 5px 8px; border-bottom: 1px solid var(--line); text-align: left; }
+th { color: var(--mut); font-size: 0.8rem; }
+.is-given { color: var(--mtg-given); font-weight: 600; }
+.is-calc { color: var(--acc); }
+pre.debug {
+  margin: 0;
+  max-height: 220px;
+  overflow: auto;
+  font-size: 0.8rem;
+  background: var(--bg);
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+}
+</style>
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(', '\\)']], packages: { '[-]': ['textmacros'] } },
+  chtml: { mtextInheritFont: true, matchFontHeight: false, scale: 1 },
+  output: { font: 'mathjax-stix2' }
+};
+</script>
+<script id="MathJax-script" defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+<script src="./triangle-solver.js"></script>
+<script src="./triangle-renderer.js"></script>
+</head>
+<body>
+<main>
+  <header>
+    <h1>TriangleSolver &amp; TriangleRenderer – Testseite</h1>
+    <div class="toolbar">
+      <select id="themeSel" aria-label="Farbschema">
+        <option value="auto">System (Auto)</option>
+        <option value="light">Hell</option>
+        <option value="dark">Dunkel</option>
+      </select>
+      <button class="btn sm" id="copySvg">SVG kopieren</button>
+    </div>
+  </header>
+
+  <section class="card">
+    <h2>1. Eingabe für <code>MTGTriangleSolver.solve()</code></h2>
+    <div class="inputs-grid" id="inputs">
+      <label>a <input type="text" data-k="a"></label>
+      <label>b <input type="text" data-k="b"></label>
+      <label>c <input type="text" data-k="c" value="7,3"></label>
+      <label>\(\alpha\) <input type="text" data-k="al" value="40"></label>
+      <label>\(\beta\) <input type="text" data-k="be" value="30"></label>
+      <label>\(\gamma\) <input type="text" data-k="ga"></label>
+      <label>\(h_a\) <input type="text" data-k="ha"></label>
+      <label>\(h_b\) <input type="text" data-k="hb"></label>
+      <label>\(h_c\) <input type="text" data-k="hc"></label>
+    </div>
+
+    <div class="presets">
+      <button class="btn sm" data-preset="wsw">WSW (c=7,3; α=40°; β=30°)</button>
+      <button class="btn sm" data-preset="sss">SSS (a=6; b=5; c=7)</button>
+      <button class="btn sm" data-preset="sws">SWS (a=6,5; b=5,2; γ=68°)</button>
+      <button class="btn sm" data-preset="ssw2">SsW mehrdeutig (a=5; c=7; α=35°)</button>
+      <button class="btn sm" data-preset="hoehe">Mit Höhe (c=8; α=50°; h_c=4,5)</button>
+      <button class="btn sm" id="clearInputs">Leeren</button>
+    </div>
+
+    <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:10px">
+      <button class="btn pri" id="runBtn">Berechnen &amp; Zeichnen</button>
+      <label class="ck"><input type="checkbox" id="allowAmb"> Mehrdeutige Lösungen erlauben</label>
+      <span id="solButtons" style="display:inline-flex;gap:6px"></span>
+    </div>
+    <p class="err" id="errMsg"></p>
+    <p class="hint">Tipp: Mit Enter in einem Eingabefeld wird direkt neu berechnet und gezeichnet.</p>
+  </section>
+
+  <div class="layout">
+    <aside class="panel">
+      <details class="card" open>
+        <summary>Beschriftung &amp; Format</summary>
+        <div class="ctl">
+          <label class="ck"><input type="checkbox" id="showSides" checked> Seiten anzeigen</label>
+          <label class="ck"><input type="checkbox" id="showAngles" checked> Winkel anzeigen</label>
+          <label class="ck"><input type="checkbox" id="showVertices" checked> Eckpunkte A, B, C anzeigen</label>
+          <label class="ck"><input type="checkbox" id="showValues" checked> Zahlenwerte anzeigen</label>
+          <label class="ck"><input type="checkbox" id="calcValues" checked> Berechnete Werte mit Zahl anzeigen</label>
+          <label class="ck"><input type="checkbox" id="unknownLabels" checked> Nicht gegebene Bezeichnungen anzeigen</label>
+          <label class="ck"><input type="checkbox" id="useMathJax" checked> MathJax 4 (STIX-2) verwenden</label>
+          <label class="row">Einheit
+            <select id="unitSel">
+              <option value="">keine</option>
+              <option value="mm">mm</option>
+              <option value="cm" selected>cm</option>
+              <option value="dm">dm</option>
+              <option value="m">m</option>
+              <option value="km">km</option>
+            </select>
+          </label>
+          <label class="row">Nachkommastellen
+            <select id="decSel">
+              <option>0</option>
+              <option>1</option>
+              <option selected>2</option>
+              <option>3</option>
+              <option>4</option>
+            </select>
+          </label>
+        </div>
+      </details>
+
+      <details class="card" open>
+        <summary>Höhen</summary>
+        <div class="ctl">
+          <div class="hrow">
+            <label class="ck"><input type="checkbox" id="haOn"> \(h_a\)</label>
+            <label class="ck sm"><input type="checkbox" id="haFlip"> spiegeln</label>
+          </div>
+          <div class="hrow">
+            <label class="ck"><input type="checkbox" id="hbOn"> \(h_b\)</label>
+            <label class="ck sm"><input type="checkbox" id="hbFlip"> spiegeln</label>
+          </div>
+          <div class="hrow">
+            <label class="ck"><input type="checkbox" id="hcOn"> \(h_c\)</label>
+            <label class="ck sm"><input type="checkbox" id="hcFlip"> spiegeln</label>
+          </div>
+        </div>
+      </details>
+
+      <details class="card" open>
+        <summary>Farben &amp; Hervorhebungen</summary>
+        <div class="ctl">
+          <label class="row">Hervorhebungsmodus
+            <select id="hlMode">
+              <option value="role" selected>Rolle (gegeben / berechnet)</option>
+              <option value="custom">Benutzerdefiniert</option>
+              <option value="none">Neutral</option>
+            </select>
+          </label>
+          <div class="hl-grid" id="hlControls"></div>
+        </div>
+      </details>
+
+      <details class="card">
+        <summary>Darstellung &amp; Winkelbögen</summary>
+        <div class="ctl">
+          <label class="row">Schriftgröße <input type="range" id="fsRange" min="11" max="24" value="15"></label>
+          <label class="row">Strichstärke <input type="range" id="swRange" min="0.6" max="3.5" step="0.1" value="1.3"></label>
+          <label class="row">Seitenabstand <input type="range" id="sgRange" min="0" max="28" value="6"></label>
+          <label class="row">Winkelbogen-Radius <input type="range" id="arRange" min="12" max="70" value="30"></label>
+          <label class="row">Winkel \(\alpha\) Position <input type="range" id="p0Range" min="0" max="100" value="50"></label>
+          <label class="row">Winkel \(\beta\) Position <input type="range" id="p1Range" min="0" max="100" value="50"></label>
+          <label class="row">Winkel \(\gamma\) Position <input type="range" id="p2Range" min="0" max="100" value="50"></label>
+        </div>
+      </details>
+    </aside>
+
+    <section class="stage">
+      <div class="card" id="canvasBox"></div>
+      <div class="card" id="resultTable"></div>
+      <details class="card">
+        <summary>Solver-Ausgabe (JSON)</summary>
+        <pre class="debug" id="debugOut"></pre>
+      </details>
+    </section>
+  </div>
+</main>
+
+<script>
+const $ = s => document.querySelector(s);
+const HL_KEYS = [
+  ['a', 'a'], ['b', 'b'], ['c', 'c'],
+  ['al', 'α'], ['be', 'β'], ['ga', 'γ'],
+  ['ha', 'h_a'], ['hb', 'h_b'], ['hc', 'h_c']
+];
+
+const PRESETS = {
+  wsw:   { c: '7,3', al: '40', be: '30' },
+  sss:   { a: '6', b: '5', c: '7' },
+  sws:   { a: '6,5', b: '5,2', ga: '68' },
+  ssw2:  { a: '5', c: '7', al: '35' },
+  hoehe: { c: '8', al: '50', hc: '4,5' }
+};
+
+let currentResult = null;
+let currentSolIndex = 0;
+
+function initHighlightControls() {
+  const box = $('#hlControls');
+  box.innerHTML = HL_KEYS.map(([k, lbl]) => `
+    <b>${lbl}</b>
+    <span style="display:inline-flex;align-items:center;gap:6px">
+      <input type="checkbox" class="hl-on" data-k="${k}" title="Aktiv">
+      <input type="color" class="hl-col" data-k="${k}" value="#d97706" title="Farbe">
+    </span>
+    <select class="hl-mark" data-k="${k}" title="Markierung">
+      <option value="">—</option>
+      <option value="ring">Ring</option>
+      <option value="underline">Unterstrich</option>
+      <option value="badge">Badge</option>
+    </select>
+    <label class="ck" title="Fett"><input type="checkbox" class="hl-emp" data-k="${k}"> fett</label>
+  `).join('');
+
+  box.querySelectorAll('input, select').forEach(el => {
+    el.addEventListener('change', renderCurrent);
+    el.addEventListener('input', renderCurrent);
+  });
+}
+
+function collectHighlights() {
+  const highlights = {};
+  HL_KEYS.forEach(([k]) => {
+    const on = document.querySelector(`.hl-on[data-k="${k}"]`)?.checked;
+    if (!on) return;
+    const color = document.querySelector(`.hl-col[data-k="${k}"]`)?.value || '#d97706';
+    const mark = document.querySelector(`.hl-mark[data-k="${k}"]`)?.value || null;
+    const emphasis = Boolean(document.querySelector(`.hl-emp[data-k="${k}"]`)?.checked);
+    highlights[k] = { color, mark: mark || null, emphasis };
+  });
+  return highlights;
+}
+
+function solveInputs() {
+  $('#errMsg').textContent = '';
+  const rawInputs = {};
+  document.querySelectorAll('#inputs input').forEach(inp => {
+    const val = inp.value.trim();
+    if (val !== '') rawInputs[inp.dataset.k] = val;
+  });
+
+  try {
+    const solved = window.MTGTriangleSolver.solve(rawInputs, {
+      unit: $('#unitSel').value,
+      decimals: Number($('#decSel').value),
+      allowAmbiguous: $('#allowAmb').checked
+    });
+    currentResult = solved;
+    currentSolIndex = 0;
+    buildSolutionButtons();
+    renderCurrent();
+  } catch (err) {
+    currentResult = null;
+    $('#solButtons').innerHTML = '';
+    $('#canvasBox').innerHTML = '';
+    $('#resultTable').innerHTML = '';
+    $('#debugOut').textContent = '';
+    $('#errMsg').textContent = err && err.message ? err.message : String(err);
+  }
+}
+
+function buildSolutionButtons() {
+  const wrap = $('#solButtons');
+  if (!currentResult || !currentResult.solutions || currentResult.solutions.length <= 1) {
+    wrap.innerHTML = '';
+    return;
+  }
+  wrap.innerHTML = currentResult.solutions.map((_, i) =>
+    `<button class="btn sm${i === currentSolIndex ? ' pri' : ''}" data-idx="${i}">Lösung ${i + 1}</button>`
+  ).join('');
+  wrap.querySelectorAll('button').forEach(btn => {
+    btn.onclick = () => {
+      currentSolIndex = Number(btn.dataset.idx);
+      buildSolutionButtons();
+      renderCurrent();
+    };
+  });
+}
+
+function renderCurrent() {
+  if (!currentResult) return;
+  const sol = currentResult.solutions[currentSolIndex] || currentResult;
+
+  const options = {
+    given: sol.given || currentResult.given || [],
+    unit: $('#unitSel').value,
+    decimals: Number($('#decSel').value),
+    useMathJax: $('#useMathJax').checked,
+    show: {
+      sides: $('#showSides').checked,
+      angles: $('#showAngles').checked,
+      vertices: $('#showVertices').checked,
+      values: $('#showValues').checked,
+      calculatedValues: $('#calcValues').checked,
+      unknownLabels: $('#unknownLabels').checked
+    },
+    heights: {
+      a: $('#haOn').checked,
+      b: $('#hbOn').checked,
+      c: $('#hcOn').checked,
+      flip: {
+        a: $('#haFlip').checked,
+        b: $('#hbFlip').checked,
+        c: $('#hcFlip').checked
+      }
+    },
+    highlightMode: $('#hlMode').value,
+    highlights: collectHighlights(),
+    angles: {
+      radius: Number($('#arRange').value),
+      pos: [
+        Number($('#p0Range').value) / 100,
+        Number($('#p1Range').value) / 100,
+        Number($('#p2Range').value) / 100
+      ]
+    },
+    style: {
+      fontSize: Number($('#fsRange').value),
+      strokeWidth: Number($('#swRange').value),
+      sideGap: Number($('#sgRange').value)
+    }
+  };
+
+  window.MTGTriangleRenderer.render('#canvasBox', sol.values, options);
+  renderSummaryTable(sol);
+  $('#debugOut').textContent = JSON.stringify({
+    unique: currentResult.unique,
+    solutionCount: currentResult.solutionCount,
+    given: sol.given,
+    formatted: sol.formatted
+  }, null, 2);
+}
+
+function renderSummaryTable(sol) {
+  const keys = ['a', 'b', 'c', 'al', 'be', 'ga', 'ha', 'hb', 'hc', 'u', 'A'];
+  const labels = {
+    a: '\\(a\\)', b: '\\(b\\)', c: '\\(c\\)',
+    al: '\\(\\alpha\\)', be: '\\(\\beta\\)', ga: '\\(\\gamma\\)',
+    ha: '\\(h_a\\)', hb: '\\(h_b\\)', hc: '\\(h_c\\)',
+    u: 'Umfang \\(u\\)', A: 'Fläche \\(A\\)'
+  };
+  const givenSet = new Set(sol.given || []);
+
+  const rows = keys.map(k => {
+    const isGiven = givenSet.has(k);
+    const cls = isGiven ? 'is-given' : 'is-calc';
+    const roleText = ['u', 'A'].includes(k) ? 'berechnet' : (isGiven ? 'gegeben' : 'berechnet');
+    return `<tr><td>${labels[k]}</td><td class="${cls}">${sol.formatted[k] ?? ''}</td><td>${roleText}</td></tr>`;
+  }).join('');
+
+  $('#resultTable').innerHTML = `<table><thead><tr><th>Größe</th><th>Wert</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>`;
+
+  if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
+    window.MathJax.typesetPromise([$('#resultTable'), $('#inputs')]).catch(() => {});
+  }
+}
+
+document.querySelectorAll('#inputs input').forEach(inp => {
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') solveInputs(); });
+});
+$('#runBtn').onclick = solveInputs;
+$('#allowAmb').onchange = solveInputs;
+
+document.querySelectorAll('[data-preset]').forEach(btn => {
+  btn.onclick = () => {
+    const preset = PRESETS[btn.dataset.preset] || {};
+    document.querySelectorAll('#inputs input').forEach(inp => {
+      inp.value = preset[inp.dataset.k] ?? '';
+    });
+    solveInputs();
+  };
+});
+
+$('#clearInputs').onclick = () => {
+  document.querySelectorAll('#inputs input').forEach(inp => { inp.value = ''; });
+  solveInputs();
+};
+
+$('#themeSel').onchange = () => {
+  const val = $('#themeSel').value;
+  if (val === 'auto') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', val);
+  renderCurrent();
+};
+
+$('#copySvg').onclick = async () => {
+  if (!currentResult) return;
+  const sol = currentResult.solutions[currentSolIndex] || currentResult;
+  const svgStr = window.MTGTriangleRenderer.renderToSVGString(sol.values, {
+    given: sol.given || [],
+    unit: $('#unitSel').value,
+    decimals: Number($('#decSel').value),
+    useMathJax: false
+  });
+  await navigator.clipboard?.writeText(svgStr).catch(() => {});
+};
+
+[
+  '#showSides', '#showAngles', '#showVertices', '#showValues', '#calcValues',
+  '#unknownLabels', '#useMathJax', '#unitSel', '#decSel',
+  '#haOn', '#hbOn', '#hcOn', '#haFlip', '#hbFlip', '#hcFlip',
+  '#hlMode', '#fsRange', '#swRange', '#sgRange', '#arRange',
+  '#p0Range', '#p1Range', '#p2Range'
+].forEach(sel => {
+  $(sel).addEventListener('change', renderCurrent);
+  $(sel).addEventListener('input', renderCurrent);
+});
+
+initHighlightControls();
+solveInputs();
+</script>
+</body>
+</html>

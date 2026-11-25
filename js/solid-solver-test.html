@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Solid Solver testen</title>
+<style>
+  :root {
+    --papier: #eef1f4;
+    --karte: #ffffff;
+    --tinte: #1b2733;
+    --leise: #5b6b7a;
+    --linie: #cfd7df;
+    --akzent: #0e5a8a;
+    --akzent-text: #ffffff;
+    --ok: #17713f;
+    --fehler: #a3281f;
+    --fehler-bg: #fbeceb;
+    --hinweis-bg: #e6eff6;
+    --kg: #0e5a8a;
+    --ks: #8a3a8f;
+    --kh: #17713f;
+    --res-bg: #e3eef6;
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --papier: #141a21;
+      --karte: #1c242d;
+      --tinte: #e6ecf1;
+      --leise: #9aabba;
+      --linie: #33414f;
+      --akzent: #6db6e6;
+      --akzent-text: #0b1620;
+      --ok: #5fd08e;
+      --fehler: #ff8d84;
+      --fehler-bg: #35201f;
+      --hinweis-bg: #1f3040;
+      --kg: #6db6e6;
+      --ks: #d79adb;
+      --kh: #6fd39a;
+      --res-bg: #223646;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html { font-size: 16px; }
+  body {
+    margin: 0;
+    background: var(--papier);
+    color: var(--tinte);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.45;
+  }
+  header.kopf {
+    padding: 1.1rem 1.5rem 0.9rem;
+    border-bottom: 1px solid var(--linie);
+    background: var(--karte);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.4rem 1.5rem;
+  }
+  header.kopf h1 { margin: 0; font-size: 1.25rem; font-weight: 650; letter-spacing: 0.01em; }
+  header.kopf p { margin: 0; color: var(--leise); font-size: 0.9rem; }
+
+  main {
+    display: grid;
+    grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
+    gap: 1.25rem;
+    padding: 1.25rem 1.5rem 3rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    align-items: start;
+  }
+  @media (max-width: 860px) {
+    main { grid-template-columns: minmax(0, 1fr); padding: 1rem; }
+  }
+
+  .karte {
+    background: var(--karte);
+    border: 1px solid var(--linie);
+    border-radius: 6px;
+    padding: 1rem 1.1rem;
+  }
+  .eingabe { position: sticky; top: 1rem; }
+  @media (max-width: 860px) { .eingabe { position: static; } }
+
+  h2.gruppe {
+    margin: 0 0 0.45rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--leise);
+  }
+  .gruppe-block { margin-bottom: 1rem; }
+  .chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+  .chip {
+    font: inherit;
+    font-size: 0.9rem;
+    color: var(--tinte);
+    background: transparent;
+    border: 1px solid var(--linie);
+    border-radius: 4px;
+    padding: 0.28rem 0.65rem;
+    cursor: pointer;
+  }
+  .chip:hover { border-color: var(--akzent); }
+  .chip[aria-checked="true"] {
+    background: var(--akzent);
+    border-color: var(--akzent);
+    color: var(--akzent-text);
+    font-weight: 600;
+  }
+  :focus-visible { outline: 2px solid var(--akzent); outline-offset: 2px; }
+
+  .felder { display: grid; gap: 0.6rem; margin-top: 0.2rem; }
+  fieldset.gruppe-felder { border: 0; margin: 0.4rem 0 0; padding: 0; min-width: 0; }
+  fieldset.gruppe-felder legend { padding: 0; margin-bottom: 0.3rem; font-size: 0.82rem; color: var(--leise); }
+  fieldset.gruppe-felder .raster { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 0.6rem; }
+  .feld label { display: block; font-size: 0.88rem; margin-bottom: 0.15rem; }
+  .feld .box { display: flex; align-items: stretch; }
+  .feld input, textarea.json {
+    font: inherit;
+    color: var(--tinte);
+    background: var(--papier);
+    border: 1px solid var(--linie);
+    padding: 0.4rem 0.55rem;
+    width: 100%;
+    min-width: 0;
+  }
+  .feld input { border-radius: 4px 0 0 4px; font-variant-numeric: tabular-nums; }
+  .feld input[aria-invalid="true"] { border-color: var(--fehler); }
+  .feld .einheit {
+    display: flex; align-items: center;
+    padding: 0 0.6rem;
+    border: 1px solid var(--linie);
+    border-left: 0;
+    border-radius: 0 4px 4px 0;
+    color: var(--leise);
+    font-size: 0.9rem;
+    white-space: nowrap;
+  }
+  textarea.json {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.88rem;
+    border-radius: 4px;
+    resize: vertical;
+    min-height: 8rem;
+  }
+  .zeile-einheit { display: flex; align-items: center; gap: 0.6rem; margin-top: 1rem; }
+  .zeile-einheit label { font-size: 0.88rem; }
+  select {
+    font: inherit;
+    color: var(--tinte);
+    background: var(--papier);
+    border: 1px solid var(--linie);
+    border-radius: 4px;
+    padding: 0.3rem 0.5rem;
+  }
+  .hinweis {
+    background: var(--hinweis-bg);
+    border-radius: 4px;
+    padding: 0.6rem 0.75rem;
+    font-size: 0.88rem;
+    margin: 0 0 0.8rem;
+  }
+
+  .tabs { display: flex; gap: 0.35rem; margin-bottom: 0.9rem; }
+  .tab {
+    font: inherit;
+    font-size: 0.92rem;
+    background: transparent;
+    color: var(--tinte);
+    border: 0;
+    border-bottom: 2px solid transparent;
+    padding: 0.3rem 0.2rem;
+    margin-right: 0.8rem;
+    cursor: pointer;
+  }
+  .tab[aria-selected="true"] { border-bottom-color: var(--akzent); font-weight: 650; }
+
+  .leer { color: var(--leise); margin: 0.5rem 0; }
+  .fehler {
+    background: var(--fehler-bg);
+    color: var(--fehler);
+    border-left: 4px solid var(--fehler);
+    border-radius: 3px;
+    padding: 0.7rem 0.9rem;
+    font-weight: 500;
+  }
+  .kennzahlen { display: flex; flex-wrap: wrap; gap: 0.6rem 2.2rem; margin-bottom: 0.9rem; }
+  .kennzahlen .kl { display: block; font-size: 0.82rem; color: var(--leise); }
+  .kennzahlen .kw { font-size: 1.45rem; font-weight: 650; font-variant-numeric: tabular-nums; }
+  .aufruf {
+    margin: 0 0 0.9rem;
+    padding: 0.45rem 0.6rem;
+    background: var(--papier);
+    border-radius: 4px;
+    overflow-x: auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.82rem;
+    white-space: pre;
+  }
+  details { margin: 0.6rem 0; }
+  summary { cursor: pointer; font-size: 0.9rem; color: var(--leise); }
+  table.masse { border-collapse: collapse; margin-top: 0.4rem; font-size: 0.88rem; }
+  table.masse td { padding: 0.15rem 1.2rem 0.15rem 0; border-bottom: 1px solid var(--linie); font-variant-numeric: tabular-nums; }
+  table.masse td:first-child { font-family: ui-monospace, Menlo, Consolas, monospace; color: var(--leise); }
+  pre.roh { background: var(--papier); padding: 0.6rem; border-radius: 4px; overflow: auto; max-height: 20rem; font-size: 0.8rem; }
+
+  /* Ausgabe des Lösungswegs aus solid-solver.js */
+  .loesung {
+    margin-top: 0.8rem;
+    font-family: "Cambria Math", "STIX Two Text", Cambria, Georgia, serif;
+    font-size: 1.02rem;
+    line-height: 1.5;
+  }
+  .loesung .lw { font-size: 1.15rem; margin: 0 0 0.3rem; }
+  .loesung .st { margin: 0.4rem 0; }
+  .loesung .sec { border-left: 3px solid var(--linie); padding: 0.1rem 0 0.1rem 0.9rem; margin: 1rem 0; }
+  .loesung .sec h3 { margin: 0 0 0.4rem; font-size: 1rem; font-weight: 650; }
+  .loesung table.eq { border-collapse: collapse; margin: 0.35rem 0 0.7rem; }
+  .loesung table.eq td { padding: 0.12rem 0.35rem; vertical-align: baseline; }
+  .loesung table.eq td.l { text-align: right; white-space: nowrap; }
+  .loesung table.eq td:nth-child(2) { color: var(--leise); text-align: center; }
+  .loesung .kg { color: var(--kg); }
+  .loesung .ks { color: var(--ks); }
+  .loesung .kh { color: var(--kh); }
+  .loesung .res { background: var(--res-bg); border-radius: 3px; padding: 0.05rem 0.4rem; font-weight: 650; }
+
+  table.test { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+  table.test th { text-align: left; color: var(--leise); font-weight: 600; padding: 0.3rem 0.6rem 0.3rem 0; border-bottom: 1px solid var(--linie); }
+  table.test td { padding: 0.3rem 0.6rem 0.3rem 0; border-bottom: 1px solid var(--linie); vertical-align: top; }
+  .status-ok { color: var(--ok); font-weight: 650; }
+  .status-fehler { color: var(--fehler); font-weight: 650; }
+  .status-skip { color: var(--leise); }
+  button.aktion {
+    font: inherit;
+    background: var(--akzent);
+    color: var(--akzent-text);
+    border: 0;
+    border-radius: 4px;
+    padding: 0.45rem 0.9rem;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .test-kopf { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.8rem; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+
+<header class="kopf">
+  <h1>Solid Solver testen</h1>
+  <p>Körper wählen, Maße eingeben, Lösungsweg prüfen. Erwartet <code>solid-solver.js</code> im selben Verzeichnis.</p>
+</header>
+
+<main>
+  <section class="karte eingabe" aria-label="Eingabe">
+    <div class="gruppe-block">
+      <h2 class="gruppe" id="h-koerper">Körper</h2>
+      <div class="chips" id="chips-koerper" role="radiogroup" aria-labelledby="h-koerper"></div>
+    </div>
+    <div class="gruppe-block" id="block-gf" hidden>
+      <h2 class="gruppe" id="h-gf">Grundfläche des Prismas</h2>
+      <div class="chips" id="chips-gf" role="radiogroup" aria-labelledby="h-gf"></div>
+    </div>
+    <div class="gruppe-block">
+      <h2 class="gruppe" id="h-var">Gegeben</h2>
+      <div class="chips" id="chips-var" role="radiogroup" aria-labelledby="h-var"></div>
+    </div>
+    <div id="hinweis"></div>
+    <div class="felder" id="felder"></div>
+    <div class="zeile-einheit">
+      <label for="sel-einheit">Längeneinheit</label>
+      <select id="sel-einheit">
+        <option value="cm" selected>cm</option>
+        <option value="mm">mm</option>
+        <option value="dm">dm</option>
+        <option value="m">m</option>
+      </select>
+    </div>
+  </section>
+
+  <section class="karte" aria-label="Ergebnis">
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" id="tab-rechner" aria-selected="true" aria-controls="panel-rechner" type="button">Rechner</button>
+      <button class="tab" role="tab" id="tab-test" aria-selected="false" aria-controls="panel-test" type="button">Selbsttest</button>
+    </div>
+    <div id="panel-rechner" role="tabpanel" aria-labelledby="tab-rechner" aria-live="polite"></div>
+    <div id="panel-test" role="tabpanel" aria-labelledby="tab-test" hidden></div>
+  </section>
+</main>
+
+<script src="triangle-solver.js"></script>
+<script src="solid-solver.js"></script>
+<script>
+/* ------------------------------------------------------------------
+   Konfiguration der Körper und Eingabevarianten.
+   Feld: [Schlüssel, Beschriftung, Art]  mit Art  l = Länge, f = Fläche, v = Volumen, w = Winkel (°)
+   Neue Variante ergänzen: Eintrag in "varianten" mit felder + beispiel.
+   Allgemeines Dreieck (prisma → al): alle zwölf Felder des TriangleSolvers, optional; nur
+   ausgefüllte Felder werden übergeben. Welche Kombinationen gültig sind, entscheidet der Solver.
+------------------------------------------------------------------- */
+const L = 'l', FL = 'f', VO = 'v', W = 'w';
+
+const KOERPER = [
+  { id: 'wuerfel', name: 'Würfel', varianten: [
+    { felder: [['a', 'Kantenlänge a', L]], beispiel: { a: 3 } },
+    { name: 'V → a', felder: [['V', 'Volumen V', VO]], beispiel: { V: 27 } }
+  ]},
+  { id: 'quader', name: 'Quader', varianten: [
+    { felder: [['a', 'Kante a', L], ['b', 'Kante b', L], ['c', 'Kante c', L]], beispiel: { a: 2, b: 3, c: 4 } },
+    { name: 'a, b, V → c', felder: [['a', 'Kante a', L], ['b', 'Kante b', L], ['V', 'Volumen V', VO]], beispiel: { a: 2, b: 3, V: 24 } }
+  ]},
+  { id: 'pyramide', name: 'Pyramide', varianten: [
+    { felder: [['a', 'Grundkante a', L], ['b', 'Grundkante b', L], ['h', 'Höhe h', L]], beispiel: { a: 4, b: 6, h: 5 } },
+    { felder: [['a', 'Grundkante a', L], ['b', 'Grundkante b', L], ['ha', 'Seitenhöhe ha (über Kante a)', L]], beispiel: { a: 4, b: 6, ha: 5.83095 } },
+    { felder: [['a', 'Grundkante a', L], ['b', 'Grundkante b', L], ['hb', 'Seitenhöhe hb (über Kante b)', L]], beispiel: { a: 4, b: 6, hb: 5.38516 } },
+    { felder: [['a', 'Grundkante a', L], ['b', 'Grundkante b', L], ['s', 'Seitenkante s', L]], beispiel: { a: 4, b: 6, s: 6.16441 } },
+    { name: 'a, b, V → h', felder: [['a', 'Grundkante a', L], ['b', 'Grundkante b', L], ['V', 'Volumen V', VO]], beispiel: { a: 4, b: 6, V: 40 } }
+  ]},
+  { id: 'kegel', name: 'Kreiskegel', varianten: [
+    { felder: [['r', 'Radius r', L], ['h', 'Höhe h', L]], beispiel: { r: 3, h: 4 } },
+    { felder: [['r', 'Radius r', L], ['s', 'Mantellinie s', L]], beispiel: { r: 3, s: 5 } },
+    { name: 'r, V → h', felder: [['r', 'Radius r', L], ['V', 'Volumen V', VO]], beispiel: { r: 3, V: 37.699112 } }
+  ]},
+  { id: 'zylinder', name: 'Kreiszylinder', varianten: [
+    { felder: [['r', 'Radius r', L], ['h', 'Höhe h', L]], beispiel: { r: 3, h: 4 } },
+    { name: 'r, V → h', felder: [['r', 'Radius r', L], ['V', 'Volumen V', VO]], beispiel: { r: 3, V: 113.097336 } }
+  ]},
+  { id: 'hohlzylinder', name: 'Hohlzylinder', varianten: [
+    { felder: [['r', 'Innenradius r', L], ['R', 'Außenradius R', L], ['h', 'Höhe h', L]], beispiel: { r: 2, R: 3, h: 4 } }
+  ]},
+  { id: 'kegelstumpf', name: 'Kegelstumpf', varianten: [
+    { felder: [['r', 'Oberer Radius r', L], ['R', 'Unterer Radius R', L], ['h', 'Höhe h', L]], beispiel: { r: 2, R: 4, h: 3 } }
+  ]},
+  { id: 'pyramidenstumpf', name: 'Pyramidenstumpf', varianten: [
+    { name: 'a1, b1, a2, b2, h', felder: [['a1', 'Untere Seite a1', L], ['b1', 'Untere Seite b1', L], ['a2', 'Obere Seite a2', L], ['b2', 'Obere Seite b2', L], ['h', 'Höhe h', L]], beispiel: { a1: 6, b1: 4, a2: 3, b2: 2, h: 4 } },
+    { name: 'quadratisch: a1, a2, h', felder: [['a1', 'Untere Seite a1', L], ['a2', 'Obere Seite a2', L], ['h', 'Höhe h', L]], beispiel: { a1: 6, a2: 3, h: 4 } },
+    { name: 'nur Volumen: A1, A2, h', felder: [['A1', 'Untere Grundfläche A1', FL], ['A2', 'Obere Grundfläche A2', FL], ['h', 'Höhe h', L]], beispiel: { A1: 36, A2: 9, h: 4 } }
+  ]},
+  { id: 'kugel', name: 'Kugel', varianten: [
+    { felder: [['r', 'Radius r', L]], beispiel: { r: 3 } }
+  ]},
+  { id: 'prisma', name: 'Prisma', grundflaechen: [
+    { id: 'al', name: 'Allgemeines Dreieck', varianten: [
+      { name: 'Dreiecksstücke', felder: [
+        ['a', 'Seite a', L, { gruppe: 'Seiten', optional: true }],
+        ['b', 'Seite b', L, { gruppe: 'Seiten', optional: true }],
+        ['c', 'Seite c', L, { gruppe: 'Seiten', optional: true }],
+        ['al', 'Winkel al', W, { gruppe: 'Winkel al, be, ga (Grad)', optional: true }],
+        ['be', 'Winkel be', W, { gruppe: 'Winkel al, be, ga (Grad)', optional: true }],
+        ['ga', 'Winkel ga', W, { gruppe: 'Winkel al, be, ga (Grad)', optional: true }],
+        ['alpha', 'Winkel alpha', W, { gruppe: 'Winkel alpha, beta, gamma (Grad)', optional: true }],
+        ['beta', 'Winkel beta', W, { gruppe: 'Winkel alpha, beta, gamma (Grad)', optional: true }],
+        ['gamma', 'Winkel gamma', W, { gruppe: 'Winkel alpha, beta, gamma (Grad)', optional: true }],
+        ['ha', 'Höhe ha', L, { gruppe: 'Höhen', optional: true }],
+        ['hb', 'Höhe hb', L, { gruppe: 'Höhen', optional: true }],
+        ['hc', 'Höhe hc', L, { gruppe: 'Höhen', optional: true }],
+        ['h', 'Prismenhöhe h', L, { gruppe: 'Prisma' }]
+      ], beispiel: { a: 3, b: 4, c: 5, h: 5 } }
+    ]},
+    { id: 'pa', name: 'Parallelogramm', varianten: [
+      { felder: [['a', 'Seite a', L], ['b', 'Seite b', L], ['ha', 'Höhe ha auf a', L], ['h', 'Prismenhöhe h', L]], beispiel: { a: 6, b: 4, ha: 3, h: 5 } },
+      { felder: [['a', 'Seite a', L], ['b', 'Seite b', L], ['alpha', 'Winkel α zwischen a und b', W], ['h', 'Prismenhöhe h', L]], beispiel: { a: 6, b: 4, alpha: 30, h: 5 } }
+    ]},
+    { id: 'tr', name: 'Gleichschenkliges Trapez', varianten: [
+      { felder: [['a', 'Lange Grundseite a', L], ['c', 'Kurze Grundseite c', L], ['ha', 'Trapezhöhe ha', L], ['h', 'Prismenhöhe h', L]], beispiel: { a: 10, c: 4, ha: 4, h: 5 } },
+      { felder: [['a', 'Lange Grundseite a', L], ['c', 'Kurze Grundseite c', L], ['alpha', 'Basiswinkel α an a', W], ['h', 'Prismenhöhe h', L]], beispiel: { a: 10, c: 4, alpha: 50, h: 5 } }
+    ]},
+    { id: 'ra', name: 'Raute', varianten: [
+      { felder: [['e', 'Diagonale e', L], ['f', 'Diagonale f', L], ['h', 'Prismenhöhe h', L]], beispiel: { e: 8, f: 6, h: 5 } },
+      { felder: [['a', 'Seitenlänge a', L], ['alpha', 'Winkel α (von e halbiert)', W], ['h', 'Prismenhöhe h', L]], beispiel: { a: 5, alpha: 60, h: 5 } }
+    ]}
+  ]}
+];
+
+// Jede Variantenliste bekommt am Ende eine JSON-Eingabe zum freien Testen beliebiger Schlüssel.
+for (const k of KOERPER) {
+  for (const g of (k.grundflaechen ?? [k])) {
+    const vorgabe = g.varianten[0]?.beispiel ?? { h: 5 };
+    g.varianten.push({ name: 'JSON', json: true, vorgabe: JSON.stringify(vorgabe, null, 2) });
+  }
+}
+
+const EINHEITEN = {
+  cm: { laenge: 'cm', flaeche: 'cm²', volumen: 'cm³' },
+  mm: { laenge: 'mm', flaeche: 'mm²', volumen: 'mm³' },
+  dm: { laenge: 'dm', flaeche: 'dm²', volumen: 'dm³' },
+  m: { laenge: 'm', flaeche: 'm²', volumen: 'm³' }
+};
+
+/* ------------------------------------------------------------------ */
+const zustand = { k: 'wuerfel', gf: 'pa', v: 0, einheit: 'cm' };
+const speicher = {};   // Eingaben je Körper/Grundfläche/Variante bleiben beim Umschalten erhalten
+const $ = (id) => document.getElementById(id);
+const zahlFormat = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 4 });
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+function aktuell() {
+  const K = KOERPER.find((x) => x.id === zustand.k);
+  const gruppe = K.grundflaechen ? K.grundflaechen.find((g) => g.id === zustand.gf) : K;
+  const variante = gruppe.varianten[zustand.v];
+  return { K, gruppe, variante, key: `${K.id}/${K.grundflaechen ? gruppe.id : ''}/${zustand.v}` };
+}
+function varName(v) { return v.name ?? v.felder.map((f) => f[0]).join(', '); }
+function artEinheit(art) {
+  const e = EINHEITEN[zustand.einheit];
+  return { l: e.laenge, f: e.flaeche, v: e.volumen, w: '°' }[art];
+}
+
+function chip(text, gewaehlt, onClick) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'chip';
+  b.setAttribute('role', 'radio');
+  b.setAttribute('aria-checked', gewaehlt ? 'true' : 'false');
+  b.textContent = text;
+  b.addEventListener('click', onClick);
+  return b;
+}
+
+function renderAuswahl() {
+  const { K, gruppe } = aktuell();
+  const ck = $('chips-koerper'); ck.replaceChildren();
+  for (const x of KOERPER) {
+    ck.append(chip(x.name, x.id === zustand.k, () => { zustand.k = x.id; zustand.v = 0; renderAlles(); }));
+  }
+  $('block-gf').hidden = !K.grundflaechen;
+  const cg = $('chips-gf'); cg.replaceChildren();
+  if (K.grundflaechen) {
+    for (const g of K.grundflaechen) {
+      cg.append(chip(g.name, g.id === zustand.gf, () => { zustand.gf = g.id; zustand.v = 0; renderAlles(); }));
+    }
+  }
+  const cv = $('chips-var'); cv.replaceChildren();
+  gruppe.varianten.forEach((v, i) => {
+    cv.append(chip(varName(v), i === zustand.v, () => { zustand.v = i; renderAlles(); }));
+  });
+}
+
+function renderFelder() {
+  const { K, gruppe, variante, key } = aktuell();
+  const box = $('felder'); box.replaceChildren();
+  const hin = $('hinweis'); hin.replaceChildren();
+
+  if (K.id === 'prisma' && gruppe.id === 'al') {
+    const p = document.createElement('p');
+    p.className = 'hinweis';
+    p.textContent = 'Alle Dreiecksfelder sind optional. Nur ausgefüllte Felder gehen an den TriangleSolver, die Prismenhöhe h ist Pflicht. Winkel in Grad. Meldungen des Solvers erscheinen rechts.';
+    hin.append(p);
+  }
+
+  speicher[key] ??= variante.json
+    ? { json: variante.vorgabe }
+    : Object.fromEntries(variante.felder.map(([k]) => [k, String(variante.beispiel?.[k] ?? '')]));
+
+  if (variante.json) {
+    const wrap = document.createElement('div'); wrap.className = 'feld';
+    wrap.innerHTML = '<label for="f-json">Maße als JSON (Winkel in Grad, h für die Prismenhöhe)</label>';
+    const ta = document.createElement('textarea');
+    ta.id = 'f-json'; ta.className = 'json'; ta.spellcheck = false; ta.value = speicher[key].json;
+    ta.addEventListener('input', () => { speicher[key].json = ta.value; geplantBerechnen(); });
+    wrap.append(ta); box.append(wrap);
+    return;
+  }
+
+  let aktGruppe = null;
+  let ziel = box;
+  for (const [k, label, art, opt] of variante.felder) {
+    if (opt?.gruppe && opt.gruppe !== aktGruppe) {
+      aktGruppe = opt.gruppe;
+      const fs = document.createElement('fieldset'); fs.className = 'gruppe-felder';
+      const lg = document.createElement('legend'); lg.textContent = aktGruppe;
+      ziel = document.createElement('div'); ziel.className = 'raster';
+      fs.append(lg, ziel); box.append(fs);
+    }
+    const wrap = document.createElement('div'); wrap.className = 'feld';
+    const l = document.createElement('label'); l.htmlFor = 'f-' + k; l.textContent = label;
+    const inner = document.createElement('div'); inner.className = 'box';
+    const inp = document.createElement('input');
+    inp.id = 'f-' + k; inp.type = 'text'; inp.inputMode = 'decimal'; inp.autocomplete = 'off';
+    inp.value = speicher[key][k] ?? '';
+    inp.addEventListener('input', () => { speicher[key][k] = inp.value; geplantBerechnen(); });
+    const u = document.createElement('span'); u.className = 'einheit'; u.textContent = artEinheit(art);
+    inner.append(inp, u); wrap.append(l, inner); ziel.append(wrap);
+  }
+}
+
+function renderAlles() { renderAuswahl(); renderFelder(); berechne(); }
+
+/* ---------------- Berechnung ---------------- */
+let timer;
+function geplantBerechnen() { clearTimeout(timer); timer = setTimeout(berechne, 120); }
+
+function leseEingabe() {
+  const { variante, key } = aktuell();
+  const eingabe = speicher[key];
+  if (variante.json) {
+    try {
+      const m = JSON.parse(eingabe.json);
+      if (m === null || typeof m !== 'object' || Array.isArray(m)) throw new Error('Erwartet wird ein Objekt wie { "h": 5 }.');
+      return { masse: m };
+    } catch (e) {
+      return { fehler: `Das JSON ist ungültig: ${e.message}` };
+    }
+  }
+  const masse = {};
+  let leer = 0, optionalGefuellt = 0, ungueltig = [];
+  for (const [k, label, , opt] of variante.felder) {
+    const t = (eingabe[k] ?? '').trim().replace(',', '.');
+    const inp = $('f-' + k);
+    if (t === '') { if (!opt?.optional) leer++; if (inp) inp.removeAttribute('aria-invalid'); continue; }
+    const n = Number(t);
+    if (!Number.isFinite(n)) { ungueltig.push(label); inp?.setAttribute('aria-invalid', 'true'); continue; }
+    inp?.removeAttribute('aria-invalid');
+    masse[k] = n;
+    if (opt?.optional) optionalGefuellt++;
+  }
+  if (ungueltig.length) return { fehler: `Keine gültige Zahl bei: ${ungueltig.join(', ')}.` };
+  if (leer) return { hinweis: 'Bitte alle Pflichtfelder ausfüllen, dann wird gerechnet.' };
+  if (variante.felder.some((f) => f[3]?.optional) && optionalGefuellt === 0) return { hinweis: 'Bitte mindestens ein Dreiecksstück eingeben.' };
+  return { masse };
+}
+
+function aufrufText(K, masse, optionen) {
+  const m = JSON.stringify(masse).replace(/"([a-zA-Z0-9]+)":/g, '$1: ').replace(/,/g, ', ').replace(/^\{/, '{ ').replace(/\}$/, ' }');
+  const o = [];
+  if (optionen.grundflaeche) o.push(`grundflaeche: '${optionen.grundflaeche}'`);
+  if (optionen.einheit) o.push(`einheit: ${JSON.stringify(optionen.einheit).replace(/"(\w+)":/g, '$1: ').replace(/"/g, "'").replace(/,/g, ', ')}`);
+  return `berechneKoerper('${K.id}', ${m}${o.length ? `, { ${o.join(', ')} }` : ''})`;
+}
+
+function fehlerText(err) {
+  const msg = err?.message ?? String(err);
+  return err?.name && err.name !== 'Error' ? `${err.name}: ${msg}` : msg;
+}
+
+function berechne() {
+  const out = $('panel-rechner');
+  if (!window.MTGSolidSolver) {
+    out.innerHTML = '<div class="fehler">solid-solver.js wurde nicht geladen. Lege diese Datei in dasselbe Verzeichnis wie solid-solver.js und öffne sie neu.</div>';
+    return;
+  }
+  const { K, gruppe } = aktuell();
+  const e = leseEingabe();
+  if (e.fehler) { out.innerHTML = `<div class="fehler">${esc(e.fehler)}</div>`; return; }
+  if (e.hinweis) { out.innerHTML = `<p class="leer">${esc(e.hinweis)}</p>`; return; }
+
+  const optionen = {};
+  if (K.grundflaechen) optionen.grundflaeche = gruppe.id;
+  if (zustand.einheit !== 'cm') optionen.einheit = EINHEITEN[zustand.einheit];
+
+  try {
+    const r = window.MTGSolidSolver.berechneKoerper(K.id, e.masse, optionen);
+    zeigeErgebnis(r, aufrufText(K, e.masse, optionen));
+  } catch (err) {
+    out.innerHTML = `<div class="fehler">${esc(fehlerText(err))}</div><p class="aufruf" style="margin-top:.8rem">${esc(aufrufText(K, e.masse, optionen))}</p>`;
+  }
+}
+
+function zeigeErgebnis(r, aufruf) {
+  const e = EINHEITEN[zustand.einheit];
+  const zahl = (x) => (typeof x === 'number' && Number.isFinite(x) ? zahlFormat.format(x) : '–');
+  const masse = Object.entries(r.masse ?? {})
+    .map(([k, v]) => `<tr><td>${esc(k)}</td><td>${typeof v === 'number' ? zahl(v) : esc(typeof v === 'object' ? JSON.stringify(v) : v)}</td></tr>`).join('');
+  const roh = JSON.stringify({ ...r, html: undefined, schritte: undefined }, null, 2);
+  $('panel-rechner').innerHTML = `
+    <div class="kennzahlen">
+      <div><span class="kl">Volumen V</span><span class="kw">${zahl(r.volumen)} ${e.volumen}</span></div>
+      <div><span class="kl">Oberflächeninhalt A<sub>O</sub></span><span class="kw">${r.oberflaecheninhalt == null ? '–' : `${zahl(r.oberflaecheninhalt)} ${e.flaeche}`}</span></div>
+    </div>
+    <p class="aufruf">${esc(aufruf)}</p>
+    <details open><summary>Weitere Maße im Ergebnisobjekt</summary><table class="masse">${masse}</table></details>
+    <article class="loesung">${r.html}</article>
+    <details><summary>Rohdaten (JSON, ohne Lösungsweg)</summary><pre class="roh">${esc(roh)}</pre></details>`;
+}
+
+/* ---------------- Selbsttest ---------------- */
+function selbsttest() {
+  const out = $('panel-test');
+  const solver = window.MTGSolidSolver;
+  const zeilen = [];
+  let ok = 0, fehler = 0, uebersprungen = 0;
+
+  for (const K of KOERPER) {
+    for (const g of (K.grundflaechen ?? [K])) {
+      const bezeichnung = K.grundflaechen ? `${K.name}, ${g.name}` : K.name;
+      const mitBeispiel = g.varianten.filter((v) => v.beispiel);
+      if (!mitBeispiel.length) {
+        uebersprungen++;
+        zeilen.push(`<tr><td>${esc(bezeichnung)}</td><td>–</td><td class="status-skip">Übersprungen: noch keine Beispielwerte hinterlegt</td></tr>`);
+        continue;
+      }
+      for (const v of mitBeispiel) {
+        const optionen = K.grundflaechen ? { grundflaeche: g.id } : {};
+        let status;
+        try {
+          const r = solver.berechneKoerper(K.id, v.beispiel, optionen);
+          const probleme = [];
+          if (!(Number.isFinite(r.volumen) && r.volumen > 0)) probleme.push('Volumen ungültig');
+          if (r.oberflaecheninhalt != null && !(Number.isFinite(r.oberflaecheninhalt) && r.oberflaecheninhalt > 0)) probleme.push('Oberfläche ungültig');
+          if (/NaN|undefined/.test(r.html)) probleme.push('„NaN“ oder „undefined“ im Lösungsweg');
+          if (probleme.length) { fehler++; status = `<span class="status-fehler">✗ ${esc(probleme.join('; '))}</span>`; }
+          else { ok++; status = `<span class="status-ok">✓ V = ${zahlFormat.format(r.volumen)}</span>`; }
+        } catch (err) {
+          fehler++; status = `<span class="status-fehler">✗ ${esc(fehlerText(err))}</span>`;
+        }
+        zeilen.push(`<tr><td>${esc(bezeichnung)}</td><td>${esc(varName(v))}</td><td>${status}</td></tr>`);
+      }
+    }
+  }
+  solver.berechneKoerper('wuerfel', { a: 1 }, {}); // Einheit zurück auf cm
+
+  out.innerHTML = `
+    <div class="test-kopf">
+      <button type="button" class="aktion" id="btn-test">Selbsttest erneut starten</button>
+      <span><strong class="${fehler ? 'status-fehler' : 'status-ok'}">${ok} bestanden, ${fehler} fehlgeschlagen</strong>${uebersprungen ? `, ${uebersprungen} übersprungen` : ''}</span>
+    </div>
+    <table class="test"><thead><tr><th>Körper</th><th>Eingabe</th><th>Ergebnis</th></tr></thead><tbody>${zeilen.join('')}</tbody></table>
+    <p class="leer">Geprüft wird mit den Beispielwerten je Variante: kein Fehler, V und A<sub>O</sub> positiv, kein „NaN“ im Lösungsweg.</p>`;
+  $('btn-test').addEventListener('click', selbsttest);
+}
+
+/* ---------------- Tabs und Start ---------------- */
+function zeigeTab(name) {
+  const rechner = name === 'rechner';
+  $('tab-rechner').setAttribute('aria-selected', rechner);
+  $('tab-test').setAttribute('aria-selected', !rechner);
+  $('panel-rechner').hidden = !rechner;
+  $('panel-test').hidden = rechner;
+  if (!rechner) {
+    if (!window.MTGSolidSolver) { $('panel-test').innerHTML = '<div class="fehler">solid-solver.js wurde nicht geladen.</div>'; return; }
+    selbsttest();
+  }
+}
+$('tab-rechner').addEventListener('click', () => zeigeTab('rechner'));
+$('tab-test').addEventListener('click', () => zeigeTab('test'));
+$('sel-einheit').addEventListener('change', (ev) => { zustand.einheit = ev.target.value; renderFelder(); berechne(); });
+
+renderAlles();
+</script>
+</body>
+</html>
