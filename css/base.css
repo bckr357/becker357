@@ -40,13 +40,13 @@ mjx-mtext {
 }
 
 .math-a {
-    font-size: 2.2rem;
+    font-size: 2rem;
     font-weight: 400;
     color: var(--primary);
     line-height: 1.25;
 }
 
-.task-grid--single .math-q {
+.task-grid--single .math-q .math-a{
     font-size: 1.8rem;
 }
 
