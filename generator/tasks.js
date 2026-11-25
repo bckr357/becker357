@@ -5206,63 +5206,121 @@ case 'einheiten': {
 		break;
 	}
 	case 'vorrang': {
-			// 1. Vier eindeutige Zahlen generieren und aufsteigend sortieren
+		// Klasse 5 und 6: nur positive Zahlen, nur positive Zwischenergebnisse und positives Endergebnis
+		const positiveOnly = grade <= 6;
+		const numberMin = 2;
+		const numberMax = 13;
+
+		const f = fmt;
+		let vorrangType;
+		let taskStr, step1, res;
+		let valid = false;
+		let attempts = 0;
+
+		while (!valid && attempts < 300) {
+			attempts++;
+			// 4 eindeutige Zahlen generieren und aufsteigend sortieren
 			let nums = [];
 			while (nums.length < 4) {
-				let r = randInt(isQuizMode ? 2 : 0, 13); // Etwas größerer Bereich für schönere Differenzen
+				let r = randInt(numberMin, numberMax);
 				if (!nums.includes(r)) nums.push(r);
 			}
 			nums.sort((x, y) => x - y);
 			// Jetzt gilt: n[0] < n[1] < n[2] < n[3]
 			const n = nums;
-			
-			const f = fmt;
-			let vorrangType = randInt(0, 4);
-			let taskStr, step1, res;
-			
+
+			vorrangType = randInt(0, 4);
+			let ok = true;
+
 			switch (vorrangType) {
 				case 0:
-					// Typ: Klein - (Mittel * Groß) 
-					taskStr = `${n[0]} - ${n[1]} \\cdot ${n[2]}`;
-					step1 = `${n[0]} - ${n[1] * n[2]}`;
-					res = n[0] - (n[1] * n[2]);
+					if (positiveOnly) {
+						// Mittel * Groß - Klein (immer positiv)
+						const prod = n[1] * n[2];
+						taskStr = `${n[1]} \\cdot ${n[2]} - ${n[0]}`;
+						step1 = `${prod} - ${n[0]}`;
+						res = prod - n[0];
+					} else {
+						// Typ: Klein - (Mittel * Groß)
+						taskStr = `${n[0]} - ${n[1]} \\cdot ${n[2]}`;
+						step1 = `${n[0]} - ${n[1] * n[2]}`;
+						res = n[0] - (n[1] * n[2]);
+					}
 					break;
-					
+
 				case 1:
-					// Typ: Mittel^2 - (Klein * Groß)
-					taskStr = `${n[1]}^2 - ${n[0]} \\cdot ${n[2]}`;
-					step1 = `${n[1] * n[1]} - ${n[0] * n[2]}`;
-					res = (n[1] * n[1]) - (n[0] * n[2]);
+					{
+						// Typ: Mittel^2 - (Klein * Groß)
+						const square = n[1] * n[1];
+						const prod = n[0] * n[2];
+						const r = square - prod;
+						if (positiveOnly && r <= 0) {
+							ok = false;
+							break;
+						}
+						taskStr = `${n[1]}^2 - ${n[0]} \\cdot ${n[2]}`;
+						step1 = `${square} - ${prod}`;
+						res = r;
+					}
 					break;
 
 				case 2:
-					// Typ: Klein * (Mittel^2 - Groß)
-					taskStr = `${n[0]} \\cdot (${n[1]}^2 - ${n[2]})`;
-					step1 = `${n[0]} \\cdot ${f(n[1] * n[1] - n[2])}`;
-					res = n[0] * (n[1] * n[1] - n[2]);
+					{
+						// Typ: Klein * (Mittel^2 - Groß)
+						const inner = n[1] * n[1] - n[2];
+						const r = n[0] * inner;
+						if (positiveOnly && (inner <= 0 || r <= 0)) {
+							ok = false;
+							break;
+						}
+						taskStr = `${n[0]} \\cdot (${n[1]}^2 - ${n[2]})`;
+						step1 = `${n[0]} \\cdot ${f(inner)}`;
+						res = r;
+					}
 					break;
 
 				case 3:
-					// Typ: (Klein * Mittel) - (Groß * Extra)
-					taskStr = `${n[0]} \\cdot ${n[1]} - ${n[2]} \\cdot ${n[3]}`;
-					step1 = `${n[0] * n[1]} - ${n[2] * n[3]}`;
-					res = (n[0] * n[1]) - (n[2] * n[3]);
+					if (positiveOnly) {
+						// Groß * Extra - Klein * Mittel (immer positiv)
+						const p1 = n[2] * n[3];
+						const p2 = n[0] * n[1];
+						taskStr = `${n[2]} \\cdot ${n[3]} - ${n[0]} \\cdot ${n[1]}`;
+						step1 = `${p1} - ${p2}`;
+						res = p1 - p2;
+					} else {
+						// Typ: (Klein * Mittel) - (Groß * Extra)
+						taskStr = `${n[0]} \\cdot ${n[1]} - ${n[2]} \\cdot ${n[3]}`;
+						step1 = `${n[0] * n[1]} - ${n[2] * n[3]}`;
+						res = (n[0] * n[1]) - (n[2] * n[3]);
+					}
 					break;
 
 				case 4:
-					// Typ: Mittel * (Klein + Groß) - Extra
-					taskStr = `${n[1]} \\cdot (${n[0]} + ${n[2]}) - ${n[3]}`;
-					step1 = `${n[1]} \\cdot ${n[0] + n[2]} - ${n[3]}`;
-					res = n[1] * (n[0] + n[2]) - n[3];
+					{
+						// Typ: Mittel * (Klein + Groß) - Extra
+						const sum = n[0] + n[2];
+						const prod = n[1] * sum;
+						const r = prod - n[3];
+						if (positiveOnly && r <= 0) {
+							ok = false;
+							break;
+						}
+						taskStr = `${n[1]} \\cdot (${n[0]} + ${n[2]}) - ${n[3]}`;
+						step1 = `${prod} - ${n[3]}`;
+						res = r;
+					}
 					break;
 			}
 
-			textDisplay = `\\( ${taskStr} = \\)`;
-			s = `\\[ ${taskStr} = ${step1} = ${res} \\]`;
-			if (isQuizMode) {
-				answer = numericAnswer(res);
-			}
-		break;
+			valid = ok;
+		}
+
+		textDisplay = `\\( ${taskStr} = \\)`;
+		s = `\\[ ${taskStr} = ${step1} = ${res} \\]`;
+		if (isQuizMode) {
+			answer = numericAnswer(res);
+		}
+	break;
 	}
 
 	/*
