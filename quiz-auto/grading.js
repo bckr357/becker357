@@ -16,7 +16,7 @@
 			return null;
 		}
 
-		const normalizedDecimalText = rawText.replace(/,/g, '.');
+		const normalizedDecimalText = rawText.replace(/,/g, '.').replace(/[−–]/g, '-');
 		const stripped = normalizedDecimalText.replace(/^([A-Za-z]+)\s*=\s*/i, '').trim();
 		if (!stripped) {
 			return null;

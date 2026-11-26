@@ -1,20 +1,27 @@
 /**
- * TriangleSolver
- * JavaScript-Interface für alle schulrelevanten Dreiecksberechnungen inkl. ausführlichem Lösungsweg.
+ * MTGTriangleSolver – Dreiecksberechnungen mit ausführlichem Lösungsweg.
  *
- * Berechnet aus mindestens 3 gegebenen Bestimmungsstücken (Seiten a, b, c; Winkel α, β, γ;
- * maximal eine Höhe h_a, h_b oder h_c auf einer gegebenen Seite) alle fehlenden Werte sowie
- * Umfang und Flächeninhalt inklusive didaktisch aufbereitetem Lösungsweg (inkl. Prüfung auf Eindeutigkeit).
+ * Folgt dem gemeinsamen Solver-Format (siehe SOLVER-FORMAT.md, Referenz: solid-solver.js).
  *
- * Wird im Browser über window.MTGTriangleSolver bereitgestellt, in Node zusätzlich über
- * module.exports und globalThis.MTGTriangleSolver.
+ * Einstieg: berechneDreieck(masse, optionen)
+ *   masse     Mindestens 3 Bestimmungsstücke: Seiten a, b, c; Winkel alpha, beta, gamma (Grad);
+ *             höchstens eine Höhe ha, hb oder hc auf einer gegebenen Seite.
+ *             (Kurzformen al, be, ga sowie h_a, h_b, h_c werden ebenfalls akzeptiert.)
+ *   optionen  { einheit: { laenge, flaeche, volumen }, stellen, mehrdeutigErlaubt }
+ *             einheit.laenge: mm, cm, dm, m, km oder '' (Flächeneinheit wird daraus abgeleitet)
  *
- * Rückgabe von solve(): values, formatted, given, sowie
- *   - steps      Lösungsweg als LaTeX (unverändert, Altformat)
- *   - schritte   Lösungsweg im Format des Solid Solvers: je Rechenschritt
- *                { key, label, elemente: [ {typ:'text', text}, {typ:'gleichung', links, zeilen} ] }
- *   - abschnitte dieselben Schritte in zwei Abschnitten { titel, elemente } (direkt in den Solid Solver übernehmbar)
- *   - html       fertig dargestellter Lösungsweg mit denselben CSS-Klassen wie der Solid Solver
+ * Ergebnis:
+ *   { figur, bezeichnung, einheit, gegeben, masse, umfang, flaecheninhalt, schritte, html,
+ *     eindeutig, anzahlLoesungen, loesungen }
+ *   schritte   Lösungsweg als Abschnitte { titel, elemente } (Elemente: Text oder Gleichung)
+ *   html       fertig dargestellter Lösungsweg (gleiche CSS-Klassen wie der Solid Solver)
+ *   loesungen  alle Lösungen im selben Format (mehrere nur bei mehrdeutigem SsW-Fall und
+ *              mehrdeutigErlaubt: true; sonst wird ein Fehler geworfen)
+ *
+ * Veraltet (nur Übergang): solve(inputs, { unit, decimals, allowAmbiguous }) liefert zusätzlich
+ *   values, formatted, given, steps (LaTeX) und schritte je Rechenschritt.
+ *
+ * Bereitgestellt über window.MTGTriangleSolver bzw. globalThis.MTGTriangleSolver und module.exports.
  */
 
 (function (root, factory) {
@@ -29,6 +36,10 @@
     const RAD_TO_DEG = 180 / Math.PI;
     const ALLOWED_UNITS = ['', 'mm', 'cm', 'dm', 'm', 'km'];
     const INTERMEDIATE_DECIMALS = 4;
+    const EINHEIT_DEFAULT = { laenge: 'cm', flaeche: 'cm²', volumen: 'cm³' }; // wie im Solid Solver
+    const FIGUR = 'dreieck';
+    const BEZEICHNUNG = 'Dreieck';
+    const KANONISCH = { al: 'alpha', be: 'beta', ga: 'gamma' };
 
     // -------------------------------------------------------------------------
     // Formatierungs-Helper
@@ -741,7 +752,7 @@
     // -------------------------------------------------------------------------
     const SYM_HTML = {
         a: 'a', b: 'b', c: 'c',
-        al: 'α', be: 'β', ga: 'γ',
+        al: 'α', be: 'β', ga: 'γ', alpha: 'α', beta: 'β', gamma: 'γ',
         ha: 'h<sub>a</sub>', hb: 'h<sub>b</sub>', hc: 'h<sub>c</sub>',
         perimeter: 'u', area: 'A'
     };
@@ -869,14 +880,31 @@
     }
 
     function valueWithUnit(key, value, unit, dec) {
-        if (['al', 'be', 'ga'].includes(key)) return `${fmt(value, dec, ',')}°`;
+        if (['al', 'be', 'ga', 'alpha', 'beta', 'gamma'].includes(key)) return `${fmt(value, dec, ',')}°`;
         if (key === 'area') return `${fmt(value, dec, ',')}${unit ? ` ${unit}²` : ''}`;
         return `${fmt(value, dec, ',')}${unit ? ` ${unit}` : ''}`;
     }
 
-    function abschnitteToHtml(abschnitte, gegebenHtml) {
-        const sec = abschnitte.map(a => {
-            const body = a.elemente.map(el => {
+    function abschnitt(titel, elemente) {
+        return { titel, elemente };
+    }
+
+    // Markiert die letzte Zeile der letzten Gleichung eines Abschnitts als Endergebnis (wie `eq(..., true)` im Solid Solver)
+    function mitErgebnis(elemente) {
+        return elemente.map((el, i) => {
+            if (el.typ !== 'gleichung' || i !== elemente.length - 1) return el;
+            return { ...el, zeilen: el.zeilen.map((z, j, arr) => ({ ...z, ergebnis: j === arr.length - 1 })) };
+        });
+    }
+
+    // Gleiche Signatur und gleiches Markup wie schritteZuHtml im Solid Solver
+    function schritteZuHtml(figur, gegeben, schritte, einheit = EINHEIT_DEFAULT) {
+        const name = figur === FIGUR ? BEZEICHNUNG : figur;
+        const gegebenText = Object.entries(gegeben)
+            .map(([k, v]) => `${SYM_HTML[k] || k} = ${valueWithUnit(k, v, einheit.laenge, INTERMEDIATE_DECIMALS)}`)
+            .join(', ');
+        const secHtml = schritte.map(sec => {
+            const body = sec.elemente.map(el => {
                 if (el.typ === 'text') return `<p class="st">${el.text}</p>`;
                 const rows = el.zeilen.map((z, i) => {
                     const rhs = z.ergebnis ? `<span class="res">${z.ausdruck}</span>` : z.ausdruck;
@@ -884,9 +912,9 @@
                 }).join('');
                 return `<table class="eq">${rows}</table>`;
             }).join('');
-            return `<section class="sec"><h3>${a.titel}</h3>${body}</section>`;
+            return `<section class="sec"><h3>${sec.titel}</h3>${body}</section>`;
         }).join('');
-        return `<h2 class="lw">Lösungsweg – Dreieck</h2><p class="st">Gegeben: ${gegebenHtml}</p>${sec}`;
+        return `<h2 class="lw">Lösungsweg – ${name}</h2><p class="st">Gegeben: ${gegebenText}</p>${secHtml}`;
     }
 
     function buildSchritte(val, givenKeys, normOpts, norm) {
@@ -940,25 +968,26 @@
             return { key, label: LABELS[key] || key, elemente };
         });
 
+        // Ein Abschnitt je gesuchter Größe (wie im Solid Solver: Titel nennt das Formelzeichen)
         const abschnitte = [];
         const herleitung = schritte.filter(s => s.key !== 'perimeter' && s.key !== 'area');
-        const flaeche = schritte.filter(s => s.key === 'perimeter' || s.key === 'area');
         if (herleitung.length) {
-            abschnitte.push({ titel: 'Fehlende Seiten, Winkel und Höhen', elemente: herleitung.flatMap(s => s.elemente) });
+            abschnitte.push(abschnitt('Fehlende Seiten, Winkel und Höhen', herleitung.flatMap(s => s.elemente)));
         }
-        abschnitte.push({ titel: 'Umfang u und Flächeninhalt A', elemente: flaeche.flatMap(s => s.elemente) });
+        abschnitte.push(abschnitt('Umfang u', mitErgebnis(schritte.find(s => s.key === 'perimeter').elemente)));
+        abschnitte.push(abschnitt('Flächeninhalt A', mitErgebnis(schritte.find(s => s.key === 'area').elemente)));
 
-        const gegebenHtml = givenKeys
-            .map(k => `${SYM_HTML[k] || k} = ${valueWithUnit(k, norm[k], unit, INTERMEDIATE_DECIMALS)}`)
-            .join(', ');
-
-        return { schritte, abschnitte, html: abschnitteToHtml(abschnitte, gegebenHtml) };
+        return {
+            schritte,
+            abschnitte,
+            html: schritteZuHtml(FIGUR, gegebenKanonisch(norm), abschnitte, { ...EINHEIT_DEFAULT, laenge: unit })
+        };
     }
 
     // -------------------------------------------------------------------------
-    // Öffentliche Hauptfunktion: solve(inputs, options)
+    // Gemeinsamer Rechenkern: Eingaben prüfen, Dreieck(e) lösen, Eindeutigkeit prüfen
     // -------------------------------------------------------------------------
-    function solve(inputs, options = {}) {
+    function loeseIntern(inputs, options = {}) {
         const normOpts = normalizeOptions(options);
         const norm = normalizeInputs(inputs);
         const givenKeys = Object.keys(norm);
@@ -1007,6 +1036,63 @@
             );
         }
 
+        return { normOpts, norm, givenKeys, allSolutions, isUnique };
+    }
+
+    function gegebenKanonisch(norm) {
+        return Object.fromEntries(Object.entries(norm).map(([k, v]) => [KANONISCH[k] ?? k, v]));
+    }
+
+    function masseKanonisch(sol) {
+        return { a: sol.a, b: sol.b, c: sol.c, alpha: sol.al, beta: sol.be, gamma: sol.ga, ha: sol.ha, hb: sol.hb, hc: sol.hc };
+    }
+
+    // -------------------------------------------------------------------------
+    // Öffentliche Hauptfunktion im einheitlichen Solver-Format: berechneDreieck(masse, optionen)
+    // -------------------------------------------------------------------------
+    function berechneDreieck(masse, optionen = {}) {
+        if (!masse || typeof masse !== 'object') {
+            throw new Error('Die Dreiecksmaße müssen als Objekt mit positiven Zahlen übergeben werden.');
+        }
+        if (!optionen || typeof optionen !== 'object') {
+            throw new Error('Die Optionen müssen als Objekt übergeben werden.');
+        }
+        const einheit = optionen.einheit ?? EINHEIT_DEFAULT;
+        if (!einheit || typeof einheit !== 'object') {
+            throw new Error('Die Einheit muss als Objekt { laenge, flaeche, volumen } übergeben werden.');
+        }
+
+        const { normOpts, norm, givenKeys, allSolutions, isUnique } = loeseIntern(masse, {
+            unit: einheit.laenge ?? '',
+            decimals: optionen.stellen,
+            allowAmbiguous: optionen.mehrdeutigErlaubt
+        });
+
+        const gegeben = gegebenKanonisch(norm);
+        const loesungen = allSolutions.map(sol => {
+            const { abschnitte, html } = buildSchritte(sol, givenKeys, normOpts, norm);
+            return {
+                figur: FIGUR,
+                bezeichnung: BEZEICHNUNG,
+                einheit,
+                gegeben,
+                masse: masseKanonisch(sol),
+                umfang: sol.perimeter,
+                flaecheninhalt: sol.area,
+                schritte: abschnitte,
+                html
+            };
+        });
+
+        return { ...loesungen[0], eindeutig: isUnique, anzahlLoesungen: loesungen.length, loesungen };
+    }
+
+    // -------------------------------------------------------------------------
+    // Veraltet: solve(inputs, { unit, decimals, allowAmbiguous }) – nur für den Übergang
+    // -------------------------------------------------------------------------
+    function solve(inputs, options = {}) {
+        const { normOpts, norm, givenKeys, allSolutions, isUnique } = loeseIntern(inputs, options);
+
         // Formatiere jede Lösung inkl. Lösungsweg
         const formattedSolutions = allSolutions.map(sol => {
             const steps = buildSolutionSteps(sol, givenKeys, normOpts);
@@ -1054,12 +1140,15 @@
     }
 
     return {
+        berechneDreieck,
+        schritteZuHtml,
         solve,
         normalizeInputs,
         normalizeOptions,
         buildSolutionSteps,
         buildSchritte,
         ALLOWED_UNITS,
+        EINHEIT_DEFAULT,
         LABELS,
         TEX_NAMES
     };

@@ -1152,34 +1152,42 @@ function berechnePrisma(grundflaeche, masse, extra = {}) {
   }
   variante = Object.keys(triangleInputs);
 
-  const triangleSolution = TriangleSolver.solve(triangleInputs, {
-    unit: ['mm', 'cm', 'dm', 'm', 'km'].includes(AKTUELE_EINHEIT.laenge) ? AKTUELE_EINHEIT.laenge : '',
-    decimals: 2,
-    allowAmbiguous: false
+  const einheitDreieck = ['mm', 'cm', 'dm', 'm', 'km'].includes(AKTUELE_EINHEIT.laenge)
+    ? AKTUELE_EINHEIT
+    : { laenge: '', flaeche: '', volumen: '' };
+  const dreieck = TriangleSolver.berechneDreieck(triangleInputs, {
+    einheit: einheitDreieck,
+    stellen: 2,
+    mehrdeutigErlaubt: false
   });
-  const sol = triangleSolution.values;
-  if (!(Number.isFinite(sol.area) && sol.area > 0 && Number.isFinite(sol.perimeter))) {
+  if (!(Number.isFinite(dreieck.flaecheninhalt) && dreieck.flaecheninhalt > 0 && Number.isFinite(dreieck.umfang))) {
     throw new Error('Das Dreieck konnte nicht berechnet werden.');
   }
-  grundflaecheFlaeche = sol.area;
-  umfangGrundflaeche = sol.perimeter;
+  grundflaecheFlaeche = dreieck.flaecheninhalt;
+  umfangGrundflaeche = dreieck.umfang;
 
-  for (const s of triangleSolution.schritte) {
-    if (s.key === 'perimeter') continue;   // Umfang steht unten im Oberflächen-Abschnitt
-    grundSchritte.push(...s.elemente);
+  for (const sec of dreieck.schritte) {
+    if (sec.titel === 'Umfang u') continue;   // Umfang steht unten im Oberflächen-Abschnitt
+    for (const el of sec.elemente) {
+      // Zwischenergebnisse innerhalb der Prisma-Grundfläche nicht als Endergebnis hervorheben
+      grundSchritte.push(el.typ === 'gleichung'
+        ? { ...el, zeilen: el.zeilen.map((z) => ({ ...z, ergebnis: false })) }
+        : el);
+    }
   }
 
   grundText = 'Allgemeines Dreieck';
   formelGrund = [fmtFlaeche(grundflaecheFlaeche)];
   formelUmfang = [fmtLaenge(umfangGrundflaeche)];
-  if ([sol.a, sol.b, sol.c].every(Number.isFinite)) {
+  const { a: da, b: db, c: dc } = dreieck.masse;
+  if ([da, db, dc].every(Number.isFinite)) {
     formelUmfang = [
       `${gVar('a')} + ${gVar('b')} + ${gVar('c')}`,
-      `${gVal(sol.a)} + ${gVal(sol.b)} + ${gVal(sol.c)}`,
+      `${gVal(da)} + ${gVal(db)} + ${gVal(dc)}`,
       fmtLaenge(umfangGrundflaeche)
     ];
   }
-  weitereMasse = { ...sol };
+  weitereMasse = { ...dreieck.masse };
   } else {
     // 'ra' Raute
     variante = waehleVariante(masse, [['e', 'f'], ['a', 'alpha']]);
@@ -1392,26 +1400,24 @@ function berechneKoerper(koerper, masse, optionen = {}) {
   }
 }
 
-if (typeof window !== 'undefined') {
-  const api = {
-    berechneKoerper,
-    berechneWuerfel,
-    berechneQuader,
-    berechnePyramide,
-    berechneKegel,
-    berechneZylinder,
-    berechneHohlzylinder,
-    berechneKegelstumpf,
-    berechnePyramidenstumpf,
-    berechnePrisma,
-    berechneKugel,
-    setEinheit,
-    schritteZuHtml
-  };
+const api = {
+  berechneKoerper,
+  berechneWuerfel,
+  berechneQuader,
+  berechnePyramide,
+  berechneKegel,
+  berechneZylinder,
+  berechneHohlzylinder,
+  berechneKegelstumpf,
+  berechnePyramidenstumpf,
+  berechnePrisma,
+  berechneKugel,
+  setEinheit,
+  schritteZuHtml
+};
 
-  window.MTGSolidSolver = api;
-}
+globalThis.MTGSolidSolver = api;
 
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { berechneKoerper, berechnePyramidenstumpf, berechneKegelstumpf, berechneHohlzylinder, setEinheit };
+  module.exports = api;
 }

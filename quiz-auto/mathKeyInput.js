@@ -9,11 +9,11 @@
 	// Standard Tasten-Layout
 
 	const KEY_ROWS = [
-		['+', '–', '7', '8', '9', ],
-		['·', ':', '4', '5', '6', ],
-		['(', ')', '1', '2', '3', ],
-		['=', '√', '0', ',', 'π', ],
-		['x²', 'x³', '⌫', '←', '→']
+		['a', '+', '–', '7', '8', '9'],
+		['b', '·', ':', '4', '5', '6'],
+		['x', '(', ')', '1', '2', '3'],
+		['y', '=', '⁄', '0', ',', 'π'],
+		['z', 'x²', 'x³', '⌫', '←', '→']
 	];
 
 	const MathKeyInputComponent = {
@@ -28,6 +28,36 @@
 				keyboardOpen: false,
 				inputKeyboardEnabled: false
 			};
+		},
+		mounted() {
+			if (typeof document !== 'undefined' && !document.getElementById('math-key-input-styles')) {
+				const style = document.createElement('style');
+				style.id = 'math-key-input-styles';
+				style.textContent = `
+					.math-key-input { font-family: inherit; }
+					.math-key-input-row { display: flex; gap: 8px; margin-bottom: 8px; }
+					.math-key-input-field { flex: 1; padding: 12px 16px; font-size: 1.1rem; border: 2px solid #ddd; border-radius: 8px; background: #fafafa; color: #333; transition: border-color 0.2s, box-shadow 0.2s; }
+					.math-key-input-field:focus { outline: none; border-color: #4a90d9; box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.2); background: #fff; }
+					.math-key-input-field:disabled { background: #f5f5f5; color: #999; cursor: not-allowed; }
+					.math-key-input-toggle { width: 48px; height: 48px; border: 2px solid #ddd; border-radius: 8px; background: #fff; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+					.math-key-input-toggle:hover:not(:disabled) { background: #f0f4f8; border-color: #4a90d9; }
+					.math-key-input-toggle:focus { outline: none; border-color: #4a90d9; box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.2); }
+					.math-key-input-toggle[aria-pressed="true"] { background: #e8f0fe; border-color: #4a90d9; color: #4a90d9; }
+					.math-key-input-toggle:disabled { opacity: 0.5; cursor: not-allowed; }
+					.math-key-pad { background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 12px; padding: 12px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
+					.math-key-pad-row { display: contents; }
+					.math-key-pad-btn { aspect-ratio: 1; min-height: 48px; border: none; border-radius: 8px; background: #fff; font-size: 1rem; font-weight: 500; color: #333; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); }
+					.math-key-pad-btn:hover:not(:disabled) { background: #f0f4f8; transform: translateY(-1px); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12); }
+					.math-key-pad-btn:active:not(:disabled) { transform: translateY(0); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08); }
+					.math-key-pad-btn:focus { outline: none; border: 2px solid #4a90d9; box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.2); }
+					.math-key-pad-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+					.math-key-pad-btn--backspace { background: #fff5f5; color: #c53030; }
+					.math-key-pad-btn--backspace:hover:not(:disabled) { background: #fed7d7; }
+					.math-key-pad-btn--navigation { background: #f0f4f8; color: #4a90d9; }
+					.math-key-pad-btn--navigation:hover:not(:disabled) { background: #e0eaf7; }
+				`;
+				document.head.appendChild(style);
+			}
 		},
 		methods: {
 			setValue(next) {
@@ -52,7 +82,7 @@
 				const displayValue = this.toDisplayValue(this.modelValue);
 				const start = input?.selectionStart ?? displayValue.length;
 				const end = input?.selectionEnd ?? start;
-				const displayKey = key === 'x²' ? '²' : key === 'x³' ? '³' : key === '√' ? '√(' : key;
+				const displayKey = key === 'x²' ? '²' : key === 'x³' ? '³' : key === '√' ? '√(' : key === '⁄' ? '/' : key;
 				const nextDisplayValue = `${displayValue.slice(0, start)}${displayKey}${displayValue.slice(end)}`;
 				this.setValue(this.toModelValue(nextDisplayValue));
 				this.setCursorPosition(start + displayKey.length);
