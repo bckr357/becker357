@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lehrer-Dashboard</title>
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  body { font-family: system-ui, sans-serif; margin:1rem; background:#f5f5f5; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:1rem; margin-bottom:1rem; }
+  .card { background:#fff; padding:1rem; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,.1); }
+  .card h3 { margin:0; font-size:.9rem; color:#555; }
+  .card .v { font-size:1.8rem; font-weight:700; }
+  table { width:100%; border-collapse:collapse; background:#fff; }
+  th,td { padding:.5rem; border-bottom:1px solid #eee; font-size:.9rem; }
+  .online { color:#2e7d32; } .offline { color:#999; }
+  .wrap { display:grid; grid-template-columns:2fr 1fr; gap:1rem; }
+</style>
+</head>
+<body>
+<div id="app">
+  <h1>Lehrer-Dashboard (global)</h1>
+  <div class="cards">
+    <div class="card"><h3>Online</h3><div class="v">{{onlineCount}}</div></div>
+    <div class="card"><h3>Aktiv</h3><div class="v">{{activeCount}}</div></div>
+    <div class="card"><h3>Richtig gesamt</h3><div class="v">{{totalCorrect}}</div></div>
+    <div class="card"><h3>Aufgaben gesamt</h3><div class="v">{{totalTasks}}</div></div>
+    <div class="card"><h3>Erfolgsquote</h3><div class="v">{{successRate}}%</div></div>
+  </div>
+  <div class="wrap">
+    <div>
+      <h2>Schüler</h2>
+      <table>
+        <thead><tr><th>Name</th><th>Status</th><th>Aktueller Typ</th><th>Richtig</th><th>Gesamt</th><th>Quote</th><th>Letzte Aktivität</th></tr></thead>
+        <tbody>
+          <tr v-for="s in students" :key="s.uid">
+            <td>{{s.name}}</td>
+            <td :class="s.online?'online':'offline'">{{s.online?'online':'offline'}}</td>
+            <td>{{s.currentTaskType||'-'}}</td>
+            <td>{{s.correctAnswers||0}}</td>
+            <td>{{s.total||0}}</td>
+            <td>{{s.total?Math.round((s.correctAnswers||0)/s.total*100):0}}%</td>
+            <td>{{s.lastActivity?Math.round((Date.now()-s.lastActivity)/1000)+'s':''}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <h2>Aufgabentypen</h2>
+      <canvas id="chart"></canvas>
+    </div>
+  </div>
+</div>
+<script type="module">
+  import { onPresence, onLeaderboard } from './presence.js';
+  const { createApp, ref, computed, onMounted } = Vue;
+  createApp({
+    setup() {
+      const presence = ref({});
+      const participants = ref({});
+      const activity = ref({});
+      const onlineCount = computed(() => Object.keys(presence.value).length);
+      const activeCount = computed(() => Object.values(activity.value).filter(a=>Date.now()-a.lastActivity<60000).length);
+      const totalCorrect = computed(() => Object.values(participants.value).reduce((a,b)=>a+(b.correctAnswers||0),0));
+      const totalTasks = computed(() => Object.values(participants.value).reduce((a,b)=>a+(b.total||0),0));
+      const successRate = computed(() => totalTasks.value?Math.round(totalCorrect.value/totalTasks.value*100):0);
+      const students = computed(() => Object.entries(participants.value).map(([uid,p])=>({
+        uid, name:p.name, correctAnswers:p.correctAnswers, total:p.total,
+        currentTaskType: (activity.value[uid]||{}).currentTaskType,
+        lastActivity: (activity.value[uid]||{}).lastActivity,
+        online: !!presence.value[uid]
+      })));
+      onMounted(async () => {
+        await (await import('./presence.js')).authReady;
+        const { getDatabase, ref: r, onValue } = await import('https://www.gstatic.com/firebasejs/10.13.2/firebase-database.js');
+        const db = getDatabase((await import('https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js')).getApp());
+        onPresence(v=>presence.value=v);
+        onLeaderboard(list=>{ const m={}; list.forEach?0:0; });
+        onValue(r(db,'sessions/global/participants'), s=>participants.value=s.val()||{});
+        onValue(r(db,'sessions/global/activity'), s=>activity.value=s.val()||{});
+        setInterval(()=>{}, 5000);
+      });
+      return { onlineCount, activeCount, totalCorrect, totalTasks, successRate, students };
+    }
+  }).mount('#app');
+</script>
+</body>
+</html>

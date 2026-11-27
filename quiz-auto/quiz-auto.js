@@ -309,7 +309,7 @@ const app = createApp({
 			taskHistory.value = [firstTask];
 			currentTaskIndex.value = 0;
 			taskCounter.value = 1;
-			currentTask.value = firstTask;
+			if (studentName.value && window.MTGPresence) window.MTGPresence.recordActivity(currentTask.value.type, taskCounter.value);
 
 			await nextTick();
 			await typesetMathJax();
@@ -322,6 +322,8 @@ const app = createApp({
 			const task = currentTask.value;
 			task.checked = true;
 			task.correct = quizAutoGrading.isCorrect(task.answer, task.userInput);
+
+			if (studentName.value && window.MTGPresence) window.MTGPresence.recordResult(task.type, task.correct, taskCounter.value, task.textDisplay);
 
 			stats.totalChecked++;
 

@@ -72,4 +72,26 @@ export function onLeaderboard(cb) {
   }));
 }
 
-if (typeof window !== "undefined") window.MTGPresence = { join, leave, onPresence, addScore, onLeaderboard, authReady };
+let lastActivityWrite = 0;
+export async function recordActivity(taskType, taskId) {
+  await authReady;
+  const uid = currentUid;
+  const now = Date.now();
+  if (now - lastActivityWrite < 5000) return;
+  lastActivityWrite = now;
+  set(ref(db, `sessions/${SESSION}/activity/${uid}`), {
+    lastActivity: now, currentTaskType: taskType || null, currentTaskId: taskId || null
+  });
+}
+
+export async function recordResult(taskType, correct, taskId, prompt) {
+  await authReady;
+  const uid = currentUid;
+  const now = Date.now();
+  const id = "r_" + now;
+  set(ref(db, `sessions/${SESSION}/results/${uid}/${id}`), {
+    taskType: taskType || null, correct: !!correct, timestamp: now, taskId: taskId || null, prompt: (prompt || "").slice(0, 200)
+  });
+}
+
+if (typeof window !== "undefined") window.MTGPresence = { join, leave, onPresence, addScore, onLeaderboard, recordActivity, recordResult, authReady };
