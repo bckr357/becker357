@@ -161,6 +161,10 @@ const KEY_ROWS = [
 				this.$nextTick(() => {
 					const input = this.$refs.input;
 					if (!input) return;
+					if (this.keyboardOpen) {
+						input.setSelectionRange(position, position);
+						return;
+					}
 					input.focus();
 					input.setSelectionRange(position, position);
 				});
@@ -206,6 +210,7 @@ const KEY_ROWS = [
 				this.inputKeyboardEnabled = true;
 			},
 			focusInput() {
+				if (this.keyboardOpen) return;
 				this.$refs.input?.focus();
 			}
 		},

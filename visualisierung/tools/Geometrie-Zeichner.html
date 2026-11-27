@@ -56,7 +56,7 @@ button.cat-ctrl{background:var(--c-ctrl);border-color:var(--c-ctrl-bd)}
 button.cat-ctrl.on{background:var(--c-ctrl-on);border-color:var(--c-ctrl-on);color:#fff}
 button.cat-act{background:var(--c-act);border-color:var(--c-act-bd)}
 button.cat-act.on{background:var(--c-act-on);border-color:var(--c-act-on);color:var(--bg)}
-#georeset{padding:5px}
+#georeset,#georaster,#geofix{padding:5px}
 #bplay{width:110px;white-space:nowrap}
 #themeBtn{padding:5px 8px;line-height:1}
 label{display:flex;gap:5px;align-items:center;cursor:pointer}
@@ -189,7 +189,9 @@ window.MathJax={startup:{typeset:false,ready(){MathJax.startup.defaultReady();Ma
    <label><input type="checkbox" id="leg" checked> Legende</label>
    <label><input type="checkbox" id="legpts"> Punkte in Legende</label>
    <label><input type="checkbox" id="geo"> Geodreieck anzeigen</label>
-   <button id="georeset" type="button">Drehung zurücksetzen</button></div>
+   <button id="georeset" type="button">Drehung zurücksetzen</button>
+   <button id="georaster" type="button" title="Skaliert das Geodreieck einmalig so, dass der Abstand 0 bis 1 dem Raster entspricht">An Raster anpassen</button>
+   <button id="geofix" type="button" title="Hält das Geodreieck an dieser Position als Schritt der Konstruktion fest. Es erscheint beim Abspielen an dieser Stelle und verschwindet mit dem nächsten Schritt.">Als Schritt festhalten</button></div>
   <div class="grp"><b>Darstellung</b>
    <label>Schriftgröße <input type="range" id="fs" min="12" max="36" value="20"></label>
    <label>Einheit <select id="unit"><option value="mm">mm</option><option value="cm" selected>cm</option><option value="dm">dm</option><option value="m">m</option><option value="km">km</option></select></label>
@@ -201,7 +203,7 @@ window.MathJax={startup:{typeset:false,ready(){MathJax.startup.defaultReady();Ma
    <label title="Nur mit eingeschalteter Legende"><input type="checkbox" id="sol"> Lösungswege</label></div>
   <div class="grp"><b>Schritte</b>
    <div class="g"><button id="undo" class="cat-act" title="Rückgängig (Strg+Z)">↶ Zurück</button><button id="redo" class="cat-act" title="Wiederholen (Strg+Y)">↷ Wiederholen</button></div>
-   <div class="g"><button id="bplay" title="Alle bisherigen Schritte der Konstruktion nacheinander und in Schleife abspielen">▶ Abspielen</button></div>
+   <div class="g"><button id="bplay" title="Alle bisherigen Schritte der Konstruktion nacheinander und in Schleife abspielen">▶ Abspielen</button><button id="bstop" style="display:none" title="Wiedergabe beenden und zur aktuellen Konstruktion zurückkehren">■ Stopp</button></div>
    <label>Geschwindigkeit <input type="range" id="speed" min="0.5" max="3" step="0.1" value="1"></label>
    <span id="rinfo" style="font-size:12px;opacity:.75"></span></div>
  </div>
@@ -269,7 +271,7 @@ const HINTS={
 const NOSEL='Zuerst im Zeiger-Modus Punkte, Strecken oder Flächen wählen (Strg+Klick für mehrere), dann dieses Werkzeug wählen.';
 const isSnapActive=()=>$('ras').checked&&!shiftDown;
 const sp=()=>start===null?null:start.id!==undefined?M.get(start.id):start;
-const fmt=(n,d=2)=>(+n.toFixed(d)).toString().replace('.',',');
+const fmt=(n,d=2)=>(+n.toFixed(d)).toString().replace('.',','),fmt1=n=>fmt(n,1);
 const X=x=>ox+x*k,Y=y=>oy+y*k,wx=x=>(x-ox)/k,wy=y=>(y-oy)/k;
 const S=()=>[P,L,K,A,F,BD,Q,nid],snap=()=>JSON.stringify(S()),load=a=>{[P,L,K,A,F,BD,Q,nid]=a.length==8?a:[...a.slice(0,6),[],a[6]]};
 const vis=o=>o&&o.vis!==false;
@@ -323,7 +325,7 @@ function setMode(m){
  abortAction();mode=m;cancelActive();inpBox.style.display='none';cv.style.cursor=m=='select'?'default':'crosshair';
  if(keep)multiSel=keep;
  ui();
- if(keep){if(m=='mid'&&keep.length)startMid();else if(!keep.length)$('hint').textContent=NOSEL}
+ if(keep){if(m=='mid'&&keep.length)startMid();else{if(keep.length&&m!='mid')cons={ok:true};consHint()}}
  if(pre&&pre.length==2)startCompassFrom(pre[0],pre[1]);
  draw()}
 function resize(){const r=cv.parentNode.getBoundingClientRect(),d=devicePixelRatio||1;W=r.width;H=r.height;cv.width=W*d;cv.height=H*d;ctx.setTransform(d,0,0,d,0,0);if(!ox&&!oy){ox=Math.round(W/2);oy=Math.round(H/2)}draw()}
@@ -342,7 +344,7 @@ function setOpts(open){
 }
 $('tog').onclick=e=>{setOpts($('opts').style.display==='none');e.currentTarget.blur()};
 $('rotX').onclick=()=>$('rot').classList.add('gone');
-const push=()=>{hist.push(snap());if(hist.length>100)hist.shift();redoSt.length=0};
+const push=()=>{hist.push(snap());if(hist.length>100)hist.shift();redoSt.length=0;BD.forEach(e=>{if(e.on)e.on=0})};
 function undo(){if(playing)return;if(abortAction()){cancelActive();draw();return}if(hist.length){redoSt.push(snap());load(JSON.parse(hist.pop()));cancelActive();rebuild();draw()}}
 /* Laufende Winkel-/Flächenaktion abbrechen: alles, was sie angelegt hat, wird zurückgenommen */
 function abortAction(){
@@ -487,8 +489,8 @@ function cleanState(a){
   if((f.kind==='poly'||f.kind===undefined)&&ids(f.p)&&f.p.length>=3)return addLo(addId({kind:'poly',p:f.p.slice(),c:col(f.c),vis:f.vis!==false,l:strL(f.l)},f),f);
   return null}).filter(Boolean);
  const qq=q0.filter(q=>q&&num(q.x)&&num(q.y)&&typeof q.t==='string'&&q.t).map(q=>({x:q.x,y:q.y,t:q.t.slice(0,200),c:col(q.c),vis:q.vis!==false}));
- const KINDS=['pt','seg','line','circle','angle','face','ix','mid','map'];
- const bb=b0.filter(b=>b&&KINDS.includes(b.k)&&ids(b.o)&&b.o.length<=300).slice(0,2000).map(b=>{const n={k:b.k,o:b.o.slice()};if(ids(b.s)&&b.s.length<=300)n.s=b.s.slice();if(ids(b.q)&&b.q.length<=8)n.q=b.q.slice();if(typeof b.t==='string')n.t=b.t.slice(0,12);if(num(b.v))n.v=b.v;return n});
+ const KINDS=['pt','seg','line','circle','angle','face','ix','mid','map','geo'];
+ const bb=b0.filter(b=>b&&KINDS.includes(b.k)&&ids(b.o)&&b.o.length<=300).slice(0,2000).map(b=>{const n={k:b.k,o:b.o.slice()};if(ids(b.s)&&b.s.length<=300)n.s=b.s.slice();if(ids(b.q)&&b.q.length<=8)n.q=b.q.slice();if(typeof b.t==='string')n.t=b.t.slice(0,12);if(num(b.v))n.v=b.v;if(b.k==='geo'){['x','y','a','sz','k0'].forEach(f=>{if(num(b[f]))n[f]=b[f]});n.on=b.on?1:0}return n});
  const maxId=Math.max(0,...pp.map(p=>p.id),...ll.map(l=>l.id),...kk.map(o=>o.id),...aa.map(x=>x.id||0),...ff.map(x=>x.id||0));
  return[pp,ll,kk,aa,ff,bb,qq,Math.max(n0,maxId+1)];
 }
@@ -550,11 +552,11 @@ function applyDoc(d){
   const g=d.geodreieck;
   if(g&&typeof g==='object'){
    if(g.pos&&num(g.pos.x)&&num(g.pos.y))geoPos={x:g.pos.x,y:g.pos.y};
-   if(num(g.size))geoSize=Math.max(25,Math.min(200,g.size));
+   if(num(g.size))geoSize=Math.max(5,Math.min(2000,g.size));
    if(num(g.angle))geoAngle=g.angle;
   }
   if($('geo').checked&&!geoPos)geoPos=snapGeodreieckZero(wx(W/2),wy(H/2));
-  $('georeset').style.display=$('geo').checked?'':'none';
+  geoBtns();
   const hsrc=Array.isArray(d.history)?d.history:Array.isArray(d.recorder)?d.recorder:null;
   if(hsrc){try{hist=hsrc.slice(-100).map(s=>JSON.stringify(cleanState(s)))}catch(err){hist=[]}const cur=snap();while(hist.length&&hist[hist.length-1]===cur)hist.pop()}
   revealUnreachable();
@@ -773,24 +775,29 @@ document.addEventListener('pointerdown',e=>{
 /* Punkte-Stil Dropdown */
 $('ptStyleSel').onchange=e=>{ptStyle=e.target.value;e.target.blur();draw()};
 
-/* Schritte: Jeder Schritt steht im Verlauf (Zurück/Wiederholen). „Abspielen“ wiederholt die ganze bisherige Konstruktion Schritt für Schritt in einer Schleife. */
+/* Schritte: Jeder Schritt steht im Verlauf (Zurück/Wiederholen). „Abspielen“ wiederholt die ganze bisherige Konstruktion Schritt für Schritt in einer Schleife; Pause hält an, Stopp beendet. */
+let paused=false;
 function recUI(){
- const b=$('bplay'),t0=playing?'■ Anhalten':'▶ Abspielen';
+ const b=$('bplay'),t0=!playing?'▶ Abspielen':paused?'▶ Weiter':'⏸ Pause';
  if(b.textContent!==t0)b.textContent=t0;
- b.className=playing?'on':'';
+ b.className=playing&&!paused?'on':'';
+ $('bstop').style.display=playing?'':'none';
  $('undo').disabled=playing||!hist.length;$('redo').disabled=playing||!redoSt.length;b.disabled=!playing&&!hist.length;
  if(!playing){const t=hist.length?hist.length+(hist.length==1?' Schritt':' Schritte'):'';if($('rinfo').textContent!==t)$('rinfo').textContent=t}
 }
-function showStep(i){load(JSON.parse(playSeq[i]));cancelActive();rebuild();draw();$('rinfo').textContent=i?'Schritt '+i+' von '+(playSeq.length-1):'Grundzustand'}
+function showStep(i){load(JSON.parse(playSeq[i]));cancelActive();rebuild();draw();$('rinfo').textContent=(i?'Schritt '+i+' von '+(playSeq.length-1):'Grundzustand')+(paused?' (Pause)':'')}
 function play(){
  abortAction();
  const seq=[];[...hist,snap()].forEach(x=>{if(seq[seq.length-1]!==x)seq.push(x)});
  if(seq.length<2){$('rinfo').textContent='Noch keine Schritte vorhanden';return}
- playSeq=seq;live=snap();playing=true;pi=0;start=null;sel=[];hideCtx();recUI();playStep();
+ playSeq=seq;live=snap();playing=true;paused=false;pi=0;start=null;sel=[];hideCtx();recUI();playStep();
 }
-function playStep(){if(!playing)return;showStep(pi);const last=pi==playSeq.length-1;pi=last?0:pi+1;const speed=+$('speed').value||1;pt=setTimeout(playStep,(last?2.5:1)/speed*1000)}
-function stop(){playing=false;clearTimeout(pt);if(live){load(JSON.parse(live));live=null;cancelActive();rebuild();draw()}recUI()}
-$('bplay').onclick=e=>{e.currentTarget.blur();playing?stop():play()};
+function playStep(){if(!playing||paused)return;showStep(pi);const last=pi==playSeq.length-1;pi=last?0:pi+1;const speed=+$('speed').value||1;pt=setTimeout(playStep,(last?2.5:1)/speed*1000)}
+function pausePlay(){if(!playing||paused)return;paused=true;clearTimeout(pt);$('rinfo').textContent+=' (Pause)';recUI()}
+function resumePlay(){if(!playing||!paused)return;paused=false;recUI();playStep()}
+function stop(){playing=false;paused=false;clearTimeout(pt);if(live){load(JSON.parse(live));live=null;cancelActive();rebuild();draw()}recUI()}
+$('bplay').onclick=e=>{e.currentTarget.blur();if(!playing)play();else if(paused)resumePlay();else pausePlay()};
+$('bstop').onclick=e=>{e.currentTarget.blur();stop()};
 
 /* Konstruktionsprotokoll */
 const subH=t=>esc(String(t)).replace(/_(\{[^}]*\}|[^&;\s])/g,(m,g)=>'<sub>'+g.replace(/^\{|\}$/g,'')+'</sub>');
@@ -817,6 +824,7 @@ function protoText(e){
    const gen={Kreis:'des Kreises',Strecke:'der Strecke',Gerade:'der Geraden'},pl={Kreis:'der Kreise',Strecke:'der Strecken',Gerade:'der Geraden'};
    return 'Der Schnittpunkt '+(kn(o1)===kn(o2)?pl[kn(o1)]+' '+nm(o1)+' und '+nm(o2):gen[kn(o1)]+' '+nm(o1)+' und '+gen[kn(o2)]+' '+nm(o2))+' ist '+pn(p.id);
   }
+  case 'geo':return 'Lege das Geodreieck an: Nullpunkt bei ('+fmt(e.x||0)+' | '+fmt(-(e.y||0))+'), Drehung '+fmt(e.a||0,0)+'°.';
   case 'mid':{const p=M.get(e.o[0]);return p&&e.s?'Der Mittelpunkt der Strecke '+ends(e.s[0],e.s[1])+' ist '+pn(p.id):''}
   case 'map':{
    const src=(e.s||[]).map(pn),imgs=(e.o||[]).map(id=>P.find(p=>p.id===id)).filter(Boolean).map(p=>p.l||pn(p.id));
@@ -858,9 +866,12 @@ $('fs').oninput=()=>draw();
 $('fc').oninput=()=>{refreshMainSwatches();draw()};
 $('unit').onchange=()=>draw();
 $('step').onchange=()=>draw();
+function geoBtns(){const d=$('geo').checked?'':'none';['georeset','georaster','geofix'].forEach(i=>{$(i).style.display=d})}
 $('georeset').onclick=()=>{geoAngle=0;draw()};
-$('geo').onchange=()=>{$('geo').blur();$('georeset').style.display=$('geo').checked?'':'none';if($('geo').checked&&!geoPos)geoPos=snapGeodreieckZero(wx(W/2),wy(H/2));draw()};
-$('georeset').style.display='none';
+$('georaster').onclick=e=>{e.currentTarget.blur();geoSize=Math.round(Math.max(5,Math.min(2000,k*1280/71.3/5.2))*10)/10;draw();$('hint').textContent='Geodreieck an das Raster angepasst (Abstand 0 bis 1 = 1 Rastereinheit).'};
+$('geofix').onclick=e=>{e.currentTarget.blur();if(!$('geo').checked||!geoPos)return;push();BD.push({k:'geo',o:[],x:geoPos.x,y:geoPos.y,a:geoAngle,sz:geoSize,k0:k,on:1});draw();$('hint').textContent='Geodreieck als Schritt festgehalten: Es erscheint beim Abspielen an dieser Stelle und verschwindet mit dem nächsten Schritt.'};
+$('geo').onchange=()=>{$('geo').blur();geoBtns();if($('geo').checked&&!geoPos)geoPos=snapGeodreieckZero(wx(W/2),wy(H/2));draw()};
+geoBtns();
 function zoom(k2,mx,my){k2=Math.max(20,Math.min(150,k2));ox=mx-(mx-ox)*k2/k;oy=my-(my-oy)*k2/k;k=k2;$('sz').value=k;draw()}
 cv.addEventListener('wheel',e=>{e.preventDefault();const p=pos(e);zoom(k*(e.deltaY<0?1.1:1/1.1),p.x,p.y)},{passive:false});
 
@@ -981,7 +992,7 @@ function rebuild(){const ok=new Set(P.map(p=>p.id));let removed=0;
  });removed+=oldK-K.length;
  const oldA=A.length;A=A.filter(a=>ok.has(a.a)&&ok.has(a.b)&&ok.has(a.c)&&a.a!==a.b&&a.b!==a.c);removed+=oldA-A.length;
  const oldF=F.length;F=F.filter(f=>f.kind=='circle'?(ok.has(f.center)&&ok.has(f.pt)):f.p.every(i=>ok.has(i)));removed+=oldF-F.length;
- const idSet=new Set([...P,...L,...K,...A,...F].map(o=>o.id).filter(x=>x!==undefined));BD=BD.filter(b=>b&&Array.isArray(b.o)&&b.o.some(i=>idSet.has(i)));
+ const idSet=new Set([...P,...L,...K,...A,...F].map(o=>o.id).filter(x=>x!==undefined));BD=BD.filter(b=>b&&Array.isArray(b.o)&&(b.k==='geo'||b.o.some(i=>idSet.has(i))));
  multiSel=multiSel.filter(it=>it&&it.obj&&(P.includes(it.obj)||L.includes(it.obj)||K.includes(it.obj)||A.includes(it.obj)||F.includes(it.obj)||Q.includes(it.obj)));
  crossKey='';crossCache=[];anchor();capturePointAngles();
  if(removed)$('hint').textContent=removed+' ungültige oder abhängige Objekte entfernt.'}
@@ -1461,7 +1472,7 @@ function openInp(kind,i,x,y){inpBox.style.display='flex';inpBox.style.left=Math.
  const arr=kind=='p'?P:kind=='l'?L:kind=='k'?K:kind=='a'?A:F;let v=(kind=='p'?M.get(i):arr[i]).l;
  if(!v){if(kind=='p')v=nextP();else if(kind=='k')v=nextK();else if(kind=='f')v=nextF();else if(kind=='a')v=nextA();else v=(L[i]&&L[i].inf)?nextG():nextL()}
  inp.value=v||'';setTimeout(()=>{inp.focus();inp.select()},0)}
-function nameUsed(kind,index,value){if(!value)return false;const arr=kind=='p'?P:kind=='l'?L:kind=='k'?K:kind=='a'?A:F;return arr.some((o,i)=>(kind=='p'?o.id!==index:i!==index)&&o.l===value)}
+function nameUsed(){return false}
 function openText(x,y){inpBox.style.display='flex';inpBox.style.left=Math.min(W-135,Math.max(8,x+8))+'px';inpBox.style.top=Math.min(H-42,Math.max(8,y-30))+'px';inp.dataset.k='t';inp.dataset.x=wx(x);inp.dataset.y=wy(y);inp.value='';setTimeout(()=>{inp.focus()},0)}
 function commitInp(){
  const v=inp.value.trim(),i=+inp.dataset.i,kd=inp.dataset.k;
@@ -1549,20 +1560,46 @@ function makeMid(aId,bId){
  const p={id:nid++,x,y,vis:true,c:curColor(),cx:['mid',aId,bId]};
  if($('auto').checked)p.l=nextM();
  P.push(p);M.set(p.id,p);logStep({k:'mid',o:[p.id],s:[aId,bId]});return p.id}
-/* schließt eine Konstruktion ab: neue Objekte werden im Zeiger-Modus ausgewählt (so lassen sich Abbildungen verketten) */
+/* Schritte der Werkzeuge wie in GeoGebra: Der Hinweistext nennt, was als Nächstes anzuklicken ist */
+const CONS_NAME={mid:'Mittelpunkt',refl:'Achsenspiegelung',pref:'Punktspiegelung',trans:'Verschiebung',rot:'Drehung',dil:'Streckung'};
+const OBJ_STEP='Objekt anklicken, das abgebildet werden soll (Punkt, Strecke oder Fläche; Strg+Klick wählt weitere, Enter bestätigt)';
+const CONS_STEPS={
+ mid:['Strecke anklicken – oder den ersten Punkt anklicken','Zweiten Punkt anklicken'],
+ refl:[OBJ_STEP,'Spiegelachse anklicken (Gerade oder Strecke)'],
+ pref:[OBJ_STEP,'Spiegelzentrum anklicken (Punkt)'],
+ trans:[OBJ_STEP,'Anfangspunkt des Verschiebungsvektors anklicken (oder eine Strecke als Vektor)','Endpunkt (Spitze) des Vektors anklicken'],
+ rot:[OBJ_STEP,'Drehpunkt anklicken (Punkt)','Drehwinkel in Grad eingeben (positiv: gegen den Uhrzeigersinn), dann Enter'],
+ dil:[OBJ_STEP,'Streckzentrum anklicken (Punkt)','Streckfaktor eingeben, dann Enter – die Strahlen vom Zentrum erscheinen als Hilfslinien']
+};
+Object.assign(HINTS,{
+ mid:'Mittelpunkt: ① Strecke anklicken – oder ① ersten und ② zweiten Punkt anklicken.',
+ refl:'Achsenspiegelung: ① Objekt anklicken (Strg+Klick für mehrere, dann Enter) → ② Spiegelachse (Gerade oder Strecke) anklicken.',
+ pref:'Punktspiegelung: ① Objekt anklicken (Strg+Klick für mehrere, dann Enter) → ② Spiegelzentrum (Punkt) anklicken.',
+ trans:'Verschiebung: ① Objekt anklicken → ② Anfangspunkt und ③ Endpunkt des Vektors anklicken (oder ② eine Strecke als Vektor).',
+ rot:'Drehung: ① Objekt anklicken → ② Drehpunkt anklicken → ③ Drehwinkel in Grad eingeben.',
+ dil:'Streckung: ① Objekt anklicken → ② Streckzentrum anklicken → ③ Streckfaktor eingeben.'
+});
+function consStage(){
+ if(mode=='mid')return cons&&cons.p!=null?1:0;
+ if(!cons||!cons.ok)return 0;
+ if(mode=='trans')return cons.a==null?1:2;
+ if(mode=='rot'||mode=='dil')return cons.c==null?1:2;
+ return 1;
+}
+function consHint(extra){
+ const st=CONS_STEPS[mode];if(!st)return;
+ const i=consStage();
+ $('hint').textContent=(extra?extra+' ':'')+CONS_NAME[mode]+' – Schritt '+(i+1)+' von '+st.length+': '+st[i]+'.';
+}
+/* schließt eine Konstruktion ab; das Werkzeug bleibt aktiv, sodass sofort das nächste Objekt gewählt werden kann */
 function finishCons(ids,none){
- cons=null;sel=[];
- if(!ids.length){hist.pop();multiSel=[];$('hint').textContent=none;draw();return false}
- rebuild();
- const objs=ids.map(id=>byId(id)).filter(Boolean);
- setMode('select');
- multiSel=objs.map(mkTarget).filter(Boolean);
- $('hint').textContent='Fertig: '+objs.length+' neue(s) Objekt(e) angelegt und ausgewählt.';
- draw();return true}
+ cons=null;sel=[];multiSel=[];
+ if(!ids.length){hist.pop();consHint(none);draw();return false}
+ rebuild();consHint('Fertig: '+ids.length+' neue(s) Objekt(e) angelegt.');draw();return true}
 function startMid(){
  const segs=multiSel.filter(t=>t.kind==='l'&&!t.obj.inf).map(t=>t.obj),pts=multiSel.filter(t=>t.kind==='p').map(t=>t.obj);
  const pairs=segs.length?segs.map(l=>[l.a,l.b]):(pts.length==2?[[pts[0].id,pts[1].id]]:[]);
- if(!pairs.length){multiSel=[];$('hint').textContent=HINTS.mid;return}
+ if(!pairs.length){multiSel=[];consHint();return}
  push();const made=[];
  pairs.forEach(([a,b])=>{const id=makeMid(a,b);if(id!==null)made.push(id)});
  finishCons(made,'Der Mittelpunkt existiert bereits.')}
@@ -1579,7 +1616,7 @@ function applyMap(type,aux){
   if(t.kind==='p')addP(o);
   else if(t.kind==='l'){addP(M.get(o.a));addP(M.get(o.b))}
   else if(t.kind==='f'){if(o.kind==='circle'){addP(M.get(o.center));addP(M.get(o.pt))}else o.p.forEach(i=>addP(M.get(i)))}});
- if(!srcPts.length){$('hint').textContent=NOSEL;return false}
+ if(!srcPts.length){consHint('Keine Punkte gefunden.');return false}
  const cxOf=p=>type==='refl'?['refl',p.id,aux.line]:type==='pref'?['pref',p.id,aux.c]:type==='trans'?['trans',p.id,aux.a,aux.b]:type==='rot'?['rot',p.id,aux.c,aux.v]:['dil',p.id,aux.c,aux.v];
  push();
  const img=new Map(),imgs=[],helps=[];
@@ -1618,7 +1655,6 @@ function openParam(kd,id){
  const c=M.get(id);if(!c)return;
  inpBox.style.display='flex';inpBox.style.left=Math.min(W-135,Math.max(8,X(c.x)+10))+'px';inpBox.style.top=Math.min(H-42,Math.max(8,Y(c.y)-34))+'px';
  inp.dataset.k=kd;inp.value=kd=='rot'?'90':'2';
- $('hint').textContent=kd=='rot'?'Drehwinkel in Grad eingeben (positiv: gegen den Uhrzeigersinn), dann Enter.':'Streckfaktor eingeben (z. B. 2 oder 0,5; negativ: Streckung durch das Zentrum hindurch), dann Enter.';
  setTimeout(()=>{inp.focus();inp.select()},0)}
 function commitParam(kd,v){
  const x=parseFloat(String(v).replace(',','.'));
@@ -1627,32 +1663,41 @@ function commitParam(kd,v){
  if(!cons||cons.c==null)return;
  applyMap(kd,{c:cons.c,v:x});
 }
-function consClick(h,cr,li){
+function consClick(h,cr,li,e){
+ const multi=!!(e&&(e.ctrlKey||e.metaKey));
  if(mode=='mid'){
   if(h){
    if(cons&&cons.p!=null&&cons.p!==h.id){const a=cons.p;cons=null;sel=[];push();const id=makeMid(a,h.id);finishCons(id!==null?[id]:[],'Der Mittelpunkt existiert bereits.')}
-   else{cons={p:h.id};sel=[h.id];$('hint').textContent='Zweiten Punkt wählen.'}
+   else{cons={p:h.id};sel=[h.id];consHint()}
   }else if(li>=0&&!L[li].inf){const l=L[li];push();const id=makeMid(l.a,l.b);finishCons(id!==null?[id]:[],'Der Mittelpunkt existiert bereits.')}
-  else $('hint').textContent=HINTS.mid;
+  else consHint('Hier ist keine Strecke oder kein Punkt.');
   return}
- if(!multiSel.length){$('hint').textContent=NOSEL;return}
+ if(!cons)cons={};
+ /* Schritt 1: Objekte wählen */
+ if(!cons.ok){
+  const o=hitAnyObject(mouse.x,mouse.y);
+  if(!o||!['p','l','f'].includes(o.kind)){if(multiSel.length&&!multi){cons.ok=true;consHint()}else consHint('Hier ist kein Punkt, keine Strecke und keine Fläche.');return}
+  const idx=multiSel.findIndex(t=>t.obj===o.obj);
+  if(multi){if(idx>=0)multiSel.splice(idx,1);else multiSel.push(o);consHint();return}
+  if(idx<0)multiSel.push(o);
+  cons.ok=true;consHint();return}
  if(mode=='refl'){
-  if(li<0){$('hint').textContent='Bitte eine Gerade oder Strecke als Spiegelachse anklicken.';return}
+  if(li<0){consHint('Das ist keine Gerade oder Strecke.');return}
   applyMap('refl',{line:L[li].id});return}
- if(mode=='pref'){const id=pickPoint(h,cr);if(id==null){$('hint').textContent='Bitte den Punkt als Spiegelzentrum anklicken.';return}applyMap('pref',{c:id});return}
+ if(mode=='pref'){const id=pickPoint(h,cr);if(id==null){consHint('Hier ist kein Punkt.');return}applyMap('pref',{c:id});return}
  if(mode=='trans'){
-  if(!cons||cons.a==null){
-   if(h){cons={a:h.id};sel=[h.id];$('hint').textContent='Endpunkt (Spitze) des Verschiebungsvektors wählen.'}
+  if(cons.a==null){
+   if(h){cons.a=h.id;sel=[h.id];consHint()}
    else if(li>=0&&!L[li].inf)applyMap('trans',{a:L[li].a,b:L[li].b});
-   else $('hint').textContent='Anfangspunkt des Verschiebungsvektors anklicken (oder eine Strecke als Vektor).';
+   else consHint('Hier ist kein Punkt und keine Strecke.');
    return}
   const id=pickPoint(h,cr);
-  if(id==null||id===cons.a){$('hint').textContent='Bitte einen anderen Punkt als Spitze des Vektors wählen.';return}
+  if(id==null||id===cons.a){consHint('Bitte einen anderen Punkt wählen.');return}
   applyMap('trans',{a:cons.a,b:id});return}
  if(mode=='rot'||mode=='dil'){
   const id=pickPoint(h,cr);
-  if(id==null){$('hint').textContent=mode=='rot'?'Bitte den Drehpunkt anklicken.':'Bitte das Streckzentrum anklicken.';return}
-  cons={c:id};sel=[id];openParam(mode,id);
+  if(id==null){consHint('Hier ist kein Punkt.');return}
+  cons.c=id;sel=[id];openParam(mode,id);consHint();
  }
 }
 /* Kreis aus zwei bereits markierten Punkten starten (Mittelpunkt zuerst, dann Radiuspunkt) */
@@ -1784,7 +1829,7 @@ function handleClick(e){
    }
   }
  }
- else if(CONS.includes(mode)){consClick(h,cr,li)}
+ else if(CONS.includes(mode)){consClick(h,cr,li,e)}
  else if(mode=='del'){if(h){push();P=P.filter(p=>p!==h);rebuild()}else if(ki>=0){push();K.splice(ki,1);rebuild()}else if(li>=0){push();L.splice(li,1);rebuild()}else if(ti>=0){push();Q.splice(ti,1)}else{const ai=angHit(mouse.x,mouse.y);if(ai>=0){push();A.splice(ai,1)}else{const fi=faceAt(mouse.x,mouse.y);if(fi>=0){push();F.splice(fi,1)}}}}
  draw()}
 
@@ -1948,7 +1993,7 @@ cv.addEventListener('pointermove',e=>{
   }else if(geoDrag.type=='scale'){
     const cx=X(geoPos.x),cy=Y(geoPos.y);
     const distance=Math.hypot(mouse.x-cx,mouse.y-cy);
-   const size=Math.round(Math.max(25,Math.min(200,geoDrag.size*distance/geoDrag.distance))*5)/5;
+   const size=Math.round(Math.max(5,Math.min(2000,geoDrag.size*distance/geoDrag.distance))*5)/5;
    geoSize=size;
   }
   draw();return;
@@ -2071,12 +2116,13 @@ cv.addEventListener('pointercancel',touchEnd);
 addEventListener('keydown',e=>{
  if(e.key=='Shift'&&!shiftDown){shiftDown=true;draw()}
  if(e.target===inp||e.target.type=='number'||e.target.tagName=='SELECT'||ctxMenu.contains(e.target)||$('restoreBox').classList.contains('show'))return;
- if(e.key=='Escape'){abortAction();cancelActive();protoSel=-1;protoHtml='';draw();return}
+ if(e.key=='Escape'||((e.key=='q'||e.key=='Q')&&!e.ctrlKey&&!e.metaKey&&!e.altKey)){abortAction();cancelActive();protoSel=-1;protoHtml='';draw();return}
  if((e.ctrlKey||e.metaKey)&&(e.key.toLowerCase()=='y'||(e.shiftKey&&e.key.toLowerCase()=='z'))){e.preventDefault();redo();return}
  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()=='z'){e.preventDefault();undo();return}
  if((e.key=='Delete'||e.key=='Backspace')&&mode=='select'&&multiSel.length){e.preventDefault();deleteSelection();return}
  if(e.key==' '){space=true;e.preventDefault();return}
  if(e.key=='Enter'&&mode=='face'&&sel.length>2){closeFace();return}
+ if(e.key=='Enter'&&CONS.includes(mode)&&mode!='mid'&&multiSel.length&&!(cons&&cons.ok)){cons=cons||{};cons.ok=true;consHint();return}
  if(e.ctrlKey||e.metaKey||e.altKey)return;
  const m=KEYS[e.key.toLowerCase()];if(m)setMode(m)
 });
@@ -2212,7 +2258,7 @@ function draw(){const cs=getComputedStyle(document.documentElement),fg=cs.getPro
    t=(slG&&l.l)?l.l:'';
   }else{
    const r=lenInfo(l,T);
-   t=txt(l.l,r.v===null?r.s:fmt(r.v),slS,ss&&($('onlyn').checked||!!l.l));
+   t=txt(l.l,r.v===null?r.s:fmt1(r.v),slS,ss&&($('onlyn').checked||!!l.l));
   }
   if(t){const dx=x2-x1,dy=y2-y1,n=Math.hypot(dx,dy)||1;let nx=-dy/n,ny=dx/n;if(ny>0){nx=-nx;ny=-ny}lab(l,t,(x1+x2)/2+nx*(fs*.8),(y1+y2)/2+ny*(fs*.8)+fs*.3,fg,bg,'center')}});
  K.forEach((o,i)=>{if(!vis(o))return;const a=M.get(o.a),b=M.get(o.b),hlp=o.d==2,baseW=o.w||2,baseCol=resolveInkColor(o.c,fg),isMS=multiObjs.has(o);
@@ -2230,7 +2276,7 @@ function draw(){const cs=getComputedStyle(document.documentElement),fg=cs.getPro
    const t=compassTarget();if(t){
     ctx.strokeStyle=ac;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(X(center.x),Y(center.y));ctx.lineTo(X(t.x),Y(t.y));ctx.stroke();
     ctx.fillStyle=ac;ctx.beginPath();ctx.arc(X(t.x),Y(t.y),5,0,Math.PI*2);ctx.fill();
-    halo(fmt(Math.hypot(t.x-center.x,t.y-center.y)),X(t.x)+12,Y(t.y)-12,ac,bg,'left','','sans-serif',14);
+    halo(fmt1(Math.hypot(t.x-center.x,t.y-center.y)),X(t.x)+12,Y(t.y)-12,ac,bg,'left','','sans-serif',14);
    }
   }else if(center){
    ctx.strokeStyle=ac;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(X(center.x),Y(center.y));ctx.lineTo(X(center.x)+Math.cos(compass.lastAngle??compass.startAngle)*compass.radius*k,Y(center.y)+Math.sin(compass.lastAngle??compass.startAngle)*compass.radius*k);ctx.stroke();
@@ -2266,7 +2312,7 @@ function draw(){const cs=getComputedStyle(document.documentElement),fg=cs.getPro
    ctx.moveTo(X(s.x),Y(s.y));ctx.lineTo(X(t.x),Y(t.y));
   }
   ctx.stroke();ctx.fillStyle=ac;ctx.beginPath();ctx.arc(X(t.x),Y(t.y),5,0,7);ctx.fill();
-  if(mode=='line')halo(fmt(Math.hypot(t.x-s.x,t.y-s.y)),X(t.x)+12,Y(t.y)-12,ac,bg,'left','','sans-serif',14);
+  if(mode=='line')halo(fmt1(Math.hypot(t.x-s.x,t.y-s.y)),X(t.x)+12,Y(t.y)-12,ac,bg,'left','','sans-serif',14);
  }
  if(s){ctx.strokeStyle=ac;ctx.lineWidth=2;ctx.beginPath();ctx.arc(X(s.x),Y(s.y),7,0,7);ctx.stroke()}
 
@@ -2279,7 +2325,7 @@ function draw(){const cs=getComputedStyle(document.documentElement),fg=cs.getPro
     ctx.strokeStyle=ac;ctx.lineWidth=2;ctx.setLineDash([5,4]);
     ctx.beginPath();ctx.moveTo(X(q1.x),Y(q1.y));ctx.lineTo(X(cur.x),Y(cur.y));ctx.stroke();
     ctx.setLineDash([]);
-    halo(fmt(Math.hypot(cur.x-q1.x,cur.y-q1.y)),X(cur.x)+12,Y(cur.y)-12,ac,bg,'left','','sans-serif',14);
+    halo(fmt1(Math.hypot(cur.x-q1.x,cur.y-q1.y)),X(cur.x)+12,Y(cur.y)-12,ac,bg,'left','','sans-serif',14);
     ctx.fillStyle=ac;ctx.beginPath();ctx.arc(X(cur.x),Y(cur.y),4.5,0,7);ctx.fill();
    }
   }else if(sel.length===2){
@@ -2294,7 +2340,7 @@ function draw(){const cs=getComputedStyle(document.documentElement),fg=cs.getPro
     ctx.fillStyle=ac;ctx.beginPath();ctx.arc(X(cur.x),Y(cur.y),4.5,0,7);ctx.fill();
     const a1=Math.atan2(q1.y-q2.y,q1.x-q2.x),a2=Math.atan2(cur.y-q2.y,cur.x-q2.x),ccw=ccwAngleRad(a2,a1);
     ctx.beginPath();ctx.arc(X(q2.x),Y(q2.y),26,a2,a2+ccw,false);ctx.stroke();
-    halo(fmt(Math.hypot(cur.x-q2.x,cur.y-q2.y)),X(cur.x)+12,Y(cur.y)-12,ac,bg,'left','','sans-serif',14);
+    halo(fmt1(Math.hypot(cur.x-q2.x,cur.y-q2.y)),X(cur.x)+12,Y(cur.y)-12,ac,bg,'left','','sans-serif',14);
     halo(fmt(ccw*180/Math.PI,1)+'°',X(cur.x)+12,Y(cur.y)+8,ac,bg,'left','','sans-serif',14);
    }
   }
@@ -2307,12 +2353,12 @@ function draw(){const cs=getComputedStyle(document.documentElement),fg=cs.getPro
   ctx.strokeStyle=ac;ctx.lineWidth=2;ctx.setLineDash(faceWithEdges?[]:[5,4]);ctx.beginPath();
   sel.forEach((i,n)=>{const p=M.get(i);if(p)n?ctx.lineTo(X(p.x),Y(p.y)):ctx.moveTo(X(p.x),Y(p.y))});
   ctx.lineTo(X(cur.x),Y(cur.y));ctx.stroke();ctx.setLineDash([]);
-  if(lastP)halo(fmt(Math.hypot(cur.x-lastP.x,cur.y-lastP.y)),X(cur.x)+12,Y(cur.y)-12,ac,bg,'left','','sans-serif',14);
+  if(lastP)halo(fmt1(Math.hypot(cur.x-lastP.x,cur.y-lastP.y)),X(cur.x)+12,Y(cur.y)-12,ac,bg,'left','','sans-serif',14);
   ctx.fillStyle=ac;ctx.beginPath();ctx.arc(X(cur.x),Y(cur.y),4.5,0,7);ctx.fill();
  }
 
  /* Vorschau Verschiebungsvektor */
- if(mode=='trans'&&cons&&cons.a!=null){const a0=M.get(cons.a);if(a0){const cur=snapWorldFrom(a0)||{x:wx(mouse.x),y:wy(mouse.y)};ctx.strokeStyle=ac;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(X(a0.x),Y(a0.y));ctx.lineTo(X(cur.x),Y(cur.y));ctx.stroke();drawArrowHead(X(cur.x),Y(cur.y),Math.atan2(Y(cur.y)-Y(a0.y),X(cur.x)-X(a0.x)),10);halo(fmt(Math.hypot(cur.x-a0.x,cur.y-a0.y)),X(cur.x)+12,Y(cur.y)-12,ac,bg,'left','','sans-serif',14)}}
+ if(mode=='trans'&&cons&&cons.a!=null){const a0=M.get(cons.a);if(a0){const cur=snapWorldFrom(a0)||{x:wx(mouse.x),y:wy(mouse.y)};ctx.strokeStyle=ac;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(X(a0.x),Y(a0.y));ctx.lineTo(X(cur.x),Y(cur.y));ctx.stroke();drawArrowHead(X(cur.x),Y(cur.y),Math.atan2(Y(cur.y)-Y(a0.y),X(cur.x)-X(a0.x)),10);halo(fmt1(Math.hypot(cur.x-a0.x,cur.y-a0.y)),X(cur.x)+12,Y(cur.y)-12,ac,bg,'left','','sans-serif',14)}}
 
  /* Markierung ausgewählter Punkte */
  sel.forEach(item=>{
@@ -2335,6 +2381,8 @@ function draw(){const cs=getComputedStyle(document.documentElement),fg=cs.getPro
   else if(ptStyle=='circle'){ctx.beginPath();ctx.arc(x,y,on?5:3.5,0,7);ctx.fill()}
   if(isMS){ctx.strokeStyle=ac;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(x,y,8.5,0,7);ctx.stroke()}
   if(slP&&p.l)lab(p,p.l,x+7,y-7,fg,bg,'left')});
+ /* festgehaltene Geodreiecke (nur beim Abspielen bzw. beim Anklicken des Protokollschritts) */
+ if(geoImg.complete&&geoImg.naturalWidth){BD.forEach((g,gi)=>{if(g.k!=='geo'||!((playing&&g.on)||gi===protoSel))return;const kk=g.k0?k/g.k0:1,w=520*((g.sz||100)/100)*kk,h=w*(geoImg.naturalHeight/geoImg.naturalWidth);ctx.save();ctx.globalAlpha=.8;ctx.translate(X(g.x),Y(g.y));ctx.rotate((g.a||0)*Math.PI/180);ctx.drawImage(geoImg,-w/2,-h,w,h);ctx.restore()})}
  if($('geo').checked&&geoPos&&geoImg.complete&&geoImg.naturalWidth){
   const w=520*(geoSize/100),h=w*(geoImg.naturalHeight/geoImg.naturalWidth);
   const angle=geoAngle*Math.PI/180;

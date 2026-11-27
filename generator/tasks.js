@@ -2510,56 +2510,41 @@ case 'einheiten': {
 		break;
 	}
 		case 'ueberschlag': {
-			const trim2 = (value) => Number(value.toFixed(2));
-			const isOneDecimal = (value) => Math.abs(value * 10 - Math.round(value * 10)) < 1e-9;
 			const fmtNum = (value) => {
-				const v = trim2(value);
+				const v = Math.round(value * 100) / 100;
 				if (Number.isInteger(v)) return `${v}`;
-				return comma(v.toFixed(isOneDecimal(v) ? 1 : 2));
+				return comma(v.toFixed(1));
 			};
 			const fmtInt = (value) => `${Math.round(value)}`;
 
-			// Zufällige Verschiebung der Zahlen, damit die Aufgabe „ungenauber“ wirkt,
-			// aber trotzdem im Kopf mit einer sinnvollen Überschlagsrechnung gelöst werden kann.
-			const addOffset = (value, maxDeltaOverride) => {
-				// Für die verschiedenen Teilerbereiche gilt jeweils ein anderes zulässiges Abweichungsfenster.
-				const maxDelta = maxDeltaOverride ?? (value < 10 ? 0.45 : (value < 20 ? 1.9 : 4.9));
-				// Kleinere Fenster bleiben fein genug für einfache Schätzungsaufgaben.
-				const minDelta = maxDelta <= 1.5 ? 0.05 : (maxDelta <= 4.9 ? 0.1 : 0.5);
-				// Bei größeren Zahlen werden die Werte eher auf 1 Nachkommastelle gerundet.
-				const useTwoDecimals = maxDelta > 4.9 || value >= 100;
-
-				let shifted = value;
-				for (let tries = 0; tries < 30; tries++) {
-					const sign = Math.random() < 0.5 ? 1 : -1;
-					const rawDelta = minDelta + Math.random() * (maxDelta - minDelta);
-					const delta = Number((sign * rawDelta).toFixed(useTwoDecimals ? 1 : 2));
-					const next = trim2(value + delta);
-					if (next > 0 && Math.abs(delta) >= minDelta) {
-						shifted = next;
-						break;
-					}
-				}
-				return shifted;
+			// Einheitlicher Abweichungskorridor für alle Zahlen und beide Modi.
+			const maxOffset = (value) => {
+				if (value < 10) return 1.5;
+				if (value < 50) return 3;
+				if (value <= 100) return 5;
+				return 10;
 			};
-			// Fest vorgegebene Teiler, die für Überschlags- Divisionen gut im Kopf zu bewerten sind.
+
+			// Verschiebt base leicht; immer mindestens minDelta abweichend,
+			// zufällig mit 1 oder 2 Nachkommastellen beim Offset.
+			const nudge = (base) => {
+				const mo = maxOffset(base);
+				const minDelta = Math.max(0.05, mo * 0.2);
+				const sign = Math.random() < 0.5 ? -1 : 1;
+				const delta = Math.random() * (mo - minDelta) + minDelta;
+				const decimals = Math.random() < 0.5 ? 1 : 2;
+				const roundedDelta = Number((sign * delta).toFixed(decimals));
+				const shifted = base + roundedDelta;
+				return shifted > 0 ? shifted : base - roundedDelta;
+			};
+
 			const allowedDivisors = [5, 10, 20, 30, 50, 100, 200];
-			// Die erlaubte Abweichung gilt für den Divisor; der Dividend darf zehnmal so stark abweichen.
-			// 5 -> nur ±1,5, 10 bis 50 -> ca. ±4,9, 100 und 200 -> ca. ±19,9.
-			const divisorDeviationLimit = (divisor) => {
-				if (divisor === 5) return 1.5;
-				if (divisor >= 10 && divisor <= 50) return 4.9;
-				return 19.9;
-			};
-			const dividendDeviationLimit = (divisor) => divisorDeviationLimit(divisor) * 10;
-
 			const mode = ['mul', 'div'][randInt(0, 1)];
 			let taskExpr = '';
 			let roundedExpr = '';
 			let estimateResult = 0;
 
 			if (mode === 'mul') {
-				// Kleines Einmaleins mit Zehnerpotenzen (gut im Kopf rechenbar)
 				const digitA = randInt(2, 9);
 				const digitB = randInt(2, 9);
 				const scaleOptions = [
@@ -2570,21 +2555,21 @@ case 'einheiten': {
 				const baseA = digitA * scaleA;
 				const baseB = digitB * scaleB;
 
-				const taskA = addOffset(baseA);
-				const taskB = addOffset(baseB);
+				const taskA = nudge(baseA);
+				const taskB = nudge(baseB);
 
 				estimateResult = baseA * baseB;
 
 				taskExpr = `${fmtNum(taskA)} \\cdot ${fmtNum(taskB)}`;
 				roundedExpr = `${fmtNum(baseA)} \\cdot ${fmtNum(baseB)}`;
 			} else {
-				// Diktierte Divisoren mit passender grober Abweichung und kleinen Einmaleins-Faktoren 1, 10 oder 100
 				const baseDivisor = allowedDivisors[randInt(0, allowedDivisors.length - 1)];
 				const quotientDigit = randInt(2, 9);
-				const factor = [1, 10, 100][randInt(0, 2)];
+				const factor = quotientDigit < 5 ? [1, 10, 100][randInt(0, 2)] : [1, 10][randInt(0, 1)];
 				const baseDividend = quotientDigit * baseDivisor * factor;
-				const taskDivisor = addOffset(baseDivisor, divisorDeviationLimit(baseDivisor));
-				const taskDividend = addOffset(baseDividend, dividendDeviationLimit(baseDivisor));
+
+				const taskDivisor = nudge(baseDivisor);
+				const taskDividend = nudge(baseDividend);
 
 				estimateResult = baseDividend / baseDivisor;
 
