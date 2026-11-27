@@ -309,6 +309,7 @@ const app = createApp({
 			taskHistory.value = [firstTask];
 			currentTaskIndex.value = 0;
 			taskCounter.value = 1;
+			currentTask.value = firstTask;
 			if (studentName.value && window.MTGPresence) window.MTGPresence.recordActivity(currentTask.value.type, taskCounter.value);
 
 			await nextTick();
