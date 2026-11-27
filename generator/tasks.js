@@ -2584,18 +2584,70 @@ case 'einheiten': {
 		}
 		
 	case 'lineare_gleichungen': {
-		const x = rnd(-12, 12);
-		const a = rnd(-12, 12);
-		const b = rnd(-20, 20);
-		const c = a * x + b;
-		const bPart = b >= 0 ? `+ ${b}` : `- ${Math.abs(b)}`;
-		textDisplay = `Löse die Gleichung schrittweise: <br> \\( ${a}x ${bPart} = ${c} \\)`;
-		textPrint = `Löse die Gleichung schrittweise: \\(\\quad ${a}x ${bPart} = ${c} \\qquad |\\)${space(1.5)}`;
-		s = `\\[ \\begin{aligned}
-		${a}x ${bPart} &= ${c} &&| \\, ${b >= 0 ? '-' : '+'} ${Math.abs(b)} \\\\
-		${a}x &= ${c - b} &&| \\, : ${a >= 0 ? a : '(' + a + ')'} \\\\
-		x &= ${comma(x)}
-		\\end{aligned} \\]`;
+		const formType = randInt(0, 3);
+		let x, a, b, c;
+
+		if (formType === 0) {
+			x = rnd(-12, 12);
+			a = rnd(-12, 12);
+			b = rnd(-20, 20);
+			c = a * x + b;
+			const bPart = b >= 0 ? `+ ${b}` : `- ${Math.abs(b)}`;
+			textDisplay = `Löse die Gleichung schrittweise: <br> \\( ${a}x ${bPart} = ${c} \\)`;
+			textPrint = `Löse die Gleichung schrittweise: \\(\\quad ${a}x ${bPart} = ${c} \\qquad |\\)${space(1.5)}`;
+			s = `\\[ \\begin{aligned}
+			${a}x ${bPart} &= ${c} &&| \\, ${b >= 0 ? '-' : '+'} ${Math.abs(b)} \\\\
+			x &= ${comma(x)}
+			\\end{aligned} \\]`;
+		} else if (formType === 1) {
+			x = rnd(-12, 12);
+			a = rnd(-10, 10);
+			let b;
+			do {
+				b = rnd(-10, 10);
+			} while (Math.abs(a - b) < 2 || b === 0);
+			c = (a - b) * x;
+			const cPart = c >= 0 ? `+ ${c}` : `- ${Math.abs(c)}`;
+			const op1 = b >= 0 ? `- ${b}x` : `+ ${Math.abs(b)}x`;
+			const aMinusB = a - b;
+			const divOp = fmt(aMinusB);
+			textDisplay = `Löse die Gleichung schrittweise:<br>\\( ${a}x = ${b}x ${cPart} \\)`;
+			textPrint = `Löse die Gleichung schrittweise: \\(\\quad ${a}x = ${b}x ${cPart} \\qquad | \\)${space(2)}`;
+			s = `\\[ \\begin{aligned}
+			${a}x &= ${b}x ${cPart} &&| \\, ${op1} \\\\
+			x &= ${comma(x)}
+			\\end{aligned} \\]`;
+		} else if (formType === 2) {
+			x = rnd(-12, 12);
+			a = rnd(-10, 10);
+			let c;
+			do {
+				c = rnd(-10, 10);
+			} while (Math.abs(a - c) < 2 || c === 0);
+			b = (c - a) * x;
+			const bPart = b >= 0 ? `+ ${b}` : `- ${Math.abs(b)}`;
+			const op1 = c >= 0 ? `- ${c}x` : `+ ${Math.abs(c)}x`;
+			const aMinusC = a - c;
+			const divOp = fmt(aMinusC);
+			textDisplay = `Löse die Gleichung schrittweise:<br>\\( ${a}x ${bPart} = ${c}x \\)`;
+			textPrint = `Löse die Gleichung schrittweise: \\(\\quad ${a}x ${bPart} = ${c}x \\qquad | \\)${space(2)}`;
+			s = `\\[ \\begin{aligned}
+			${a}x ${bPart} &= ${c}x &&| \\, ${op1} \\\\
+			x &= ${comma(x)}
+			\\end{aligned} \\]`;
+		} else {
+			x = rnd(-12, 12);
+			b = rnd(-10, 10);
+			c = rnd(-20, 20);
+			a = b * x + c;
+			const cPart = c >= 0 ? `+ ${c}` : `- ${Math.abs(c)}`;
+			textDisplay = `Löse die Gleichung schrittweise: <br> \\( ${a} = ${b}x ${cPart} \\)`;
+			textPrint = `Löse die Gleichung schrittweise: \\(\\quad ${a} = ${b}x ${cPart} \\qquad |\\)${space(1.5)}`;
+			s = `\\[ \\begin{aligned}
+			${a} &= ${b}x ${cPart} &&| \\, ${c >= 0 ? '-' : '+'} ${Math.abs(c)} \\\\
+			${comma(x)} &= x
+			\\end{aligned} \\]`;
+		}
 		answer = numericAnswer(x);
 		break;
 	}
@@ -4730,7 +4782,7 @@ case 'einheiten': {
 	*/
 
 
-	case 'terme_einsetzen': {
+	case 'terme_berechnen': {
 		if (isQuizMode) {
 			// Ein Term aus den Vorrangregeln mit einer Variablen anstelle einer Zahl.
 			let nums = [];

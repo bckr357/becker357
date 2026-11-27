@@ -6,15 +6,28 @@
 // ============================================================
 
 (function () {
-	// Standard Tasten-Layout
+	// Umschalter-Taste (ersetzt die vormals freie Taste)
+	const KEY_TOGGLE = '⇄';
 
-const KEY_ROWS = [
-		['a', 'b', 'x', 'y', 'z'],
+	// Standard Tasten-Layout (Zahlen/Operatoren)
+	const KEY_ROWS = [
 		['+', '–', '7', '8', '9'],
-		['·', ':', '4', '5', '6'],
+		['·', '⁄', '4', '5', '6'],
 		['(', ')', '1', '2', '3'],
-		['=', '⁄', 'π', '0', ','],
-		['x²', 'x³', '←', '⌫', '→']
+		['x²', 'x³', 'π', '0', ','],
+		[KEY_TOGGLE, '=', '←', '⌫', '→']
+	];
+
+	// Variablen-/Einheiten-Layout (für Terme, Gleichungen und Einheiten).
+	// Enthält a, b, x, y, z sowie die nötigen Einheiten ohne ² und ³.
+	// Steuer- und =-Tasten bleiben unverändert.
+
+	const KEY_ROWS_VARIABLES = [
+		['€', '%', 'x²', 'x³', '⌫'],
+		['a', 'b', 'c', 'd', 'f'],
+		['g', 'h', 'i', 'k', 'l'],
+		['m', 'n', 'r', 's', 't'],
+		[KEY_TOGGLE, 'u', 'x', 'y', 'z']
 	];
 
 	const MathKeyInputComponent = {
@@ -27,8 +40,14 @@ const KEY_ROWS = [
 		data() {
 			return {
 				keyboardOpen: false,
-				inputKeyboardEnabled: false
+				inputKeyboardEnabled: false,
+				variableMode: false
 			};
+		},
+		computed: {
+			activeKeyRows() {
+				return this.variableMode ? KEY_ROWS_VARIABLES : KEY_ROWS;
+			}
 		},
 		mounted() {
 			if (typeof document !== 'undefined' && !document.getElementById('math-key-input-styles')) {
@@ -58,6 +77,9 @@ const KEY_ROWS = [
 					.math-key-pad-btn--navigation:hover:not(:disabled) { background: #e0eaf7; }
 					.math-key-pad-btn--digit { background: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd; }
 					.math-key-pad-btn--digit:hover:not(:disabled) { background: #e0f2fe; transform: translateY(-1px); box-shadow: 0 2px 6px rgba(2, 132, 199, 0.15); }
+					.math-key-pad-btn--toggle { background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; font-weight: 700; }
+					.math-key-pad-btn--toggle:hover:not(:disabled) { background: #e0e7ff; }
+					.math-key-pad-btn--toggle[aria-pressed="true"] { background: #4338ca; color: #fff; border-color: #4338ca; }
 					@media (prefers-color-scheme: dark) {
 						:root:not([data-theme="light"]) .math-key-input-field { background: #334155; color: #f8fafc; border-color: #475569; }
 						:root:not([data-theme="light"]) .math-key-input-field:focus { background: #334155; border-color: #38bdf8; box-shadow: inset 0 2px 6px rgba(56, 189, 248, 0.08), 0 0 0 4px rgba(56, 189, 248, 0.16); }
@@ -74,6 +96,9 @@ const KEY_ROWS = [
 						:root:not([data-theme="light"]) .math-key-pad-btn--navigation:hover:not(:disabled) { background: #30465f; border-color: #38bdf8; }
 						:root:not([data-theme="light"]) .math-key-pad-btn--digit { background: #1e3a5f; color: #7dd3fc; border-color: #285b87; }
 						:root:not([data-theme="light"]) .math-key-pad-btn--digit:hover:not(:disabled) { background: #26496f; border-color: #38bdf8; box-shadow: 0 2px 6px rgba(56, 189, 248, 0.18); }
+						:root:not([data-theme="light"]) .math-key-pad-btn--toggle { background: #312e81; color: #c7d2fe; border-color: #4338ca; }
+						:root:not([data-theme="light"]) .math-key-pad-btn--toggle:hover:not(:disabled) { background: #3730a3; border-color: #6366f1; }
+						:root:not([data-theme="light"]) .math-key-pad-btn--toggle[aria-pressed="true"] { background: #4338ca; color: #fff; border-color: #818cf8; }
 					}
 					:root[data-theme="dark"] .math-key-input-field { background: #334155; color: #f8fafc; border-color: #475569; }
 					:root[data-theme="dark"] .math-key-input-field:focus { background: #334155; border-color: #38bdf8; box-shadow: inset 0 2px 6px rgba(56, 189, 248, 0.08), 0 0 0 4px rgba(56, 189, 248, 0.16); }
@@ -90,6 +115,9 @@ const KEY_ROWS = [
 					:root[data-theme="dark"] .math-key-pad-btn--navigation:hover:not(:disabled) { background: #30465f; border-color: #38bdf8; }
 					:root[data-theme="dark"] .math-key-pad-btn--digit { background: #1e3a5f; color: #7dd3fc; border-color: #285b87; }
 					:root[data-theme="dark"] .math-key-pad-btn--digit:hover:not(:disabled) { background: #26496f; border-color: #38bdf8; box-shadow: 0 2px 6px rgba(56, 189, 248, 0.18); }
+					:root[data-theme="dark"] .math-key-pad-btn--toggle { background: #312e81; color: #c7d2fe; border-color: #4338ca; }
+					:root[data-theme="dark"] .math-key-pad-btn--toggle:hover:not(:disabled) { background: #3730a3; border-color: #6366f1; }
+					:root[data-theme="dark"] .math-key-pad-btn--toggle[aria-pressed="true"] { background: #4338ca; color: #fff; border-color: #818cf8; }
 				`;
 				document.head.appendChild(style);
 			}
@@ -123,7 +151,9 @@ const KEY_ROWS = [
 				this.setCursorPosition(start + displayKey.length);
 			},
 			handleKey(key) {
-				if (key === '⌫') {
+				if (key === KEY_TOGGLE) {
+					this.toggleVariableMode();
+				} else if (key === '⌫') {
 					this.backspace();
 				} else if (key === '←') {
 					this.moveCursor(-1);
@@ -132,6 +162,22 @@ const KEY_ROWS = [
 				} else {
 					this.pressKey(key);
 				}
+			},
+			toggleVariableMode() {
+				if (this.disabled) return;
+				this.variableMode = !this.variableMode;
+				this.focusInput();
+			},
+			keyLabel(key) {
+				if (key === KEY_TOGGLE) return this.variableMode ? '123' : 'abc';
+				return key;
+			},
+			keyAriaLabel(key) {
+				if (key === KEY_TOGGLE) return 'Umschalter zwischen Zahlen- und Variablen-/Einheiten-Tastatur';
+				if (key === '⌫') return 'Letztes Zeichen löschen';
+				if (key === '←') return 'Cursor nach links';
+				if (key === '→') return 'Cursor nach rechts';
+				return 'Eingabe ' + key;
 			},
 			backspace() {
 				if (this.disabled) return;
@@ -236,8 +282,8 @@ const KEY_ROWS = [
 					<button type="button" class="math-key-input-toggle" @click="toggleKeyboard" :aria-pressed="keyboardOpen" :aria-expanded="keyboardOpen" aria-controls="math-key-pad" :disabled="disabled" title="Tastatur ein-/ausblenden" aria-label="Virtuelle Tastatur ein- oder ausblenden">⌨</button>
 				</div>
 				<div v-if="keyboardOpen" id="math-key-pad" class="math-key-pad" role="group" aria-label="Virtuelle Mathe-Tastatur">
-					<div v-for="(row, rowIndex) in $options.KEY_ROWS" :key="rowIndex" class="math-key-pad-row">
-						<button v-for="key in row" :key="key" type="button" :class="['math-key-pad-btn', { 'math-key-pad-btn--backspace': key === '⌫', 'math-key-pad-btn--navigation': key === '←' || key === '→', 'math-key-pad-btn--digit': '0123456789'.includes(key) }]" @click="handleKey(key)" :disabled="disabled" :aria-label="key === '⌫' ? 'Letztes Zeichen löschen' : key === '←' ? 'Cursor nach links' : key === '→' ? 'Cursor nach rechts' : 'Eingabe ' + key">{{ key }}</button>
+					<div v-for="(row, rowIndex) in activeKeyRows" :key="rowIndex" class="math-key-pad-row">
+						<button v-for="key in row" :key="key" type="button" :class="['math-key-pad-btn', { 'math-key-pad-btn--backspace': key === '⌫', 'math-key-pad-btn--navigation': key === '←' || key === '→', 'math-key-pad-btn--digit': '0123456789'.includes(key), 'math-key-pad-btn--toggle': key === '⇄' }]" @click="handleKey(key)" :disabled="disabled" :aria-label="keyAriaLabel(key)" :aria-pressed="key === '⇄' ? variableMode : null">{{ keyLabel(key) }}</button>
 					</div>
 				</div>
 			</div>

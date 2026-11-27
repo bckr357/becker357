@@ -92,7 +92,7 @@ const taskTypeDefinitions = {
 	terme: { shareLinkId: 65, label: 'Terme', from: null, modes: [] },
 	terme_zusammenfassen: { shareLinkId: 66, label: 'Terme zusammenfassen', from: 'klasse7', modes: ['default', 'quiz'] },
 	terme_umformen: { shareLinkId: 67, label: 'Terme umformen', from: 'klasse8', modes: ['default', 'quiz'] },
-	terme_einsetzen: { shareLinkId: 68, label: 'Terme einsetzen', from: 'klasse7', modes: ['quiz'] },
+	terme_berechnen: { shareLinkId: 68, label: 'Terme berechnen', from: 'klasse7', modes: ['quiz'] },
 	lineare_gleichungen: { shareLinkId: 70, label: 'lin. Gl. ax+b = c', from: 'klasse7', modes: ['default', 'calculator', 'quiz'] },
 	lineare_gleichungen_beidseitig: { shareLinkId: 71, label: 'lin. Gl. ax+b = cx+d', from: 'klasse8', modes: ['default', 'calculator', 'quiz'] },
 	lineare_gleichungen_umstellen: { shareLinkId: 72, label: 'lin. Gl. umstellen', from: 'klasse9', modes: ['default', 'calculator'] },

@@ -296,6 +296,12 @@ const app = createApp({
 			showResultOverview.value = false;
 			resultOverview.value = null;
 
+			if (!studentName.value) {
+				const n = window.prompt('Dein Name/Kürzel für das Leaderboard:');
+				if (n) studentName.value = n.trim();
+			}
+			if (studentName.value && window.MTGPresence) window.MTGPresence.join(studentName.value);
+
 			const firstTask = generateSingleTask();
 			if (!firstTask) return;
 
@@ -325,6 +331,7 @@ const app = createApp({
 				if (stats.streak > stats.bestStreak) {
 					stats.bestStreak = stats.streak;
 				}
+				if (studentName.value && window.MTGPresence) window.MTGPresence.addScore(studentName.value, true);
 				showConfetti();
 			} else {
 				stats.streak = 0;
