@@ -331,10 +331,11 @@ const app = createApp({
 				if (stats.streak > stats.bestStreak) {
 					stats.bestStreak = stats.streak;
 				}
-				if (studentName.value && window.MTGPresence) window.MTGPresence.addScore(studentName.value, true);
+				if (studentName.value && window.MTGPresence) window.MTGPresence.addScore(studentName.value, task.type, task.correct);
 				showConfetti();
 			} else {
 				stats.streak = 0;
+				if (studentName.value && window.MTGPresence) window.MTGPresence.addScore(studentName.value, task.type, false);
 			}
 
 			await nextTick();

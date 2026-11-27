@@ -1,9 +1,6 @@
-// Präsenz + Leaderboard über Firebase Realtime Database (kostenloser Spark-Plan).
-// 1) Firebase-Projekt anlegen (console.firebase.google.com), Realtime Database aktivieren.
-// 2) In den Regeln Lese-/Schreibzugriff für /presence und /scores erlauben.
-// 3) firebaseConfig unten mit deinen Werten ersetzen.
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
 import { getDatabase, ref, set, onValue, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-database.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyARjp98sKfSge6H3iPSrxSORIIbAjU6ZB0",
@@ -17,37 +14,62 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+const auth = getAuth(app);
+const SESSION = "global";
 
-if (typeof window !== "undefined") window.MTGPresence = { join, leave, onPresence, addScore, onLeaderboard };
-export function join(nickname) {
-  const id = nickname.trim().toLowerCase();
-  const presenceRef = ref(db, "presence/" + id);
-  set(presenceRef, { name: nickname, lastSeen: Date.now() });
-  onDisconnect(presenceRef).remove();
-  return id;
+let currentUid = null;
+const authReady = signInAnonymously(auth).then(() => new Promise((resolve) => {
+  onAuthStateChanged(auth, (u) => { currentUid = u ? u.uid : null; resolve(currentUid); });
+}));
+
+export async function join(nickname) {
+  await authReady;
+  const uid = currentUid;
+  const partRef = ref(db, `sessions/${SESSION}/participants/${uid}`);
+  const presRef = ref(db, `sessions/${SESSION}/presence/${uid}`);
+  await set(partRef, { name: nickname, correctAnswers: 0, total: 0, wrong: 0, types: {} });
+  await set(presRef, { name: nickname, lastSeen: Date.now() });
+  onDisconnect(presRef).remove();
+  return uid;
 }
 
-export function leave(id) {
-  remove(ref(db, "presence/" + id));
+export async function leave(uid) {
+  await authReady;
+  remove(ref(db, `sessions/${SESSION}/presence/${uid || currentUid}`));
 }
 
 export function onPresence(cb) {
-  onValue(ref(db, "presence"), (snap) => cb(snap.val() || {}));
+  authReady.then(() => onValue(ref(db, `sessions/${SESSION}/presence`), (snap) => cb(snap.val() || {})));
 }
 
-export function addScore(nickname, correct) {
-  const id = nickname.trim().toLowerCase();
-  const scoreRef = ref(db, "scores/" + id);
-  onValue(scoreRef, (snap) => {
-    const cur = (snap.val() && snap.val().correct) || 0;
-    set(scoreRef, { name: nickname, correct: cur + (correct ? 1 : 0) });
+export async function addScore(nickname, taskType, correct) {
+  await authReady;
+  const uid = currentUid;
+  const partRef = ref(db, `sessions/${SESSION}/participants/${uid}`);
+  onValue(partRef, (snap) => {
+    const cur = snap.val() || { name: nickname, correctAnswers: 0, total: 0, wrong: 0, types: {} };
+    const t = cur.types || {};
+    const tt = t[taskType] || { correct: 0, wrong: 0, total: 0 };
+    tt.total += 1;
+    if (correct) tt.correct += 1; else tt.wrong += 1;
+    t[taskType] = tt;
+    set(partRef, {
+      name: nickname,
+      correctAnswers: (cur.correctAnswers || 0) + (correct ? 1 : 0),
+      wrong: (cur.wrong || 0) + (correct ? 0 : 1),
+      total: (cur.total || 0) + 1,
+      types: t,
+      lastSeen: Date.now()
+    });
   }, { onlyOnce: true });
 }
 
 export function onLeaderboard(cb) {
-  onValue(ref(db, "scores"), (snap) => {
+  authReady.then(() => onValue(ref(db, `sessions/${SESSION}/participants`), (snap) => {
     const data = snap.val() || {};
-    const list = Object.values(data).sort((a, b) => (b.correct || 0) - (a.correct || 0));
+    const list = Object.values(data).sort((a, b) => (b.correctAnswers || 0) - (a.correctAnswers || 0));
     cb(list);
-  });
+  }));
 }
+
+if (typeof window !== "undefined") window.MTGPresence = { join, leave, onPresence, addScore, onLeaderboard, authReady };
