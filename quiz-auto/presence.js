@@ -15,18 +15,20 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
-const SESSION = "global";
+let currentClass = (localStorage.getItem("mtg_class") || "global");
+const SESSION = () => currentClass;
 
 let currentUid = null;
 const authReady = signInAnonymously(auth).then(() => new Promise((resolve) => {
   onAuthStateChanged(auth, (u) => { currentUid = u ? u.uid : null; resolve(currentUid); });
 }));
 
-export async function join(nickname) {
+export async function join(nickname, cls) {
   await authReady;
+  if (cls) { currentClass = cls; localStorage.setItem("mtg_class", cls); }
   const uid = currentUid;
-  const partRef = ref(db, `sessions/${SESSION}/participants/${uid}`);
-  const presRef = ref(db, `sessions/${SESSION}/presence/${uid}`);
+  const partRef = ref(db, `sessions/${SESSION()}/participants/${uid}`);
+  const presRef = ref(db, `sessions/${SESSION()}/presence/${uid}`);
   await set(partRef, { name: nickname, correctAnswers: 0, total: 0, wrong: 0, types: {} });
   await set(presRef, { name: nickname, lastSeen: Date.now() });
   onDisconnect(presRef).remove();
@@ -35,17 +37,17 @@ export async function join(nickname) {
 
 export async function leave(uid) {
   await authReady;
-  remove(ref(db, `sessions/${SESSION}/presence/${uid || currentUid}`));
+  remove(ref(db, `sessions/${SESSION()}/presence/${uid || currentUid}`));
 }
 
 export function onPresence(cb) {
-  authReady.then(() => onValue(ref(db, `sessions/${SESSION}/presence`), (snap) => cb(snap.val() || {})));
+  authReady.then(() => onValue(ref(db, `sessions/${SESSION()}/presence`), (snap) => cb(snap.val() || {})));
 }
 
 export async function addScore(nickname, taskType, correct) {
   await authReady;
   const uid = currentUid;
-  const partRef = ref(db, `sessions/${SESSION}/participants/${uid}`);
+  const partRef = ref(db, `sessions/${SESSION()}/participants/${uid}`);
   onValue(partRef, (snap) => {
     const cur = snap.val() || { name: nickname, correctAnswers: 0, total: 0, wrong: 0, types: {} };
     const t = cur.types || {};
@@ -65,7 +67,7 @@ export async function addScore(nickname, taskType, correct) {
 }
 
 export function onLeaderboard(cb) {
-  authReady.then(() => onValue(ref(db, `sessions/${SESSION}/participants`), (snap) => {
+  authReady.then(() => onValue(ref(db, `sessions/${SESSION()}/participants`), (snap) => {
     const data = snap.val() || {};
     const list = Object.values(data).sort((a, b) => (b.correctAnswers || 0) - (a.correctAnswers || 0));
     cb(list);
@@ -79,7 +81,7 @@ export async function recordActivity(taskType, taskId) {
   const now = Date.now();
   if (now - lastActivityWrite < 5000) return;
   lastActivityWrite = now;
-  set(ref(db, `sessions/${SESSION}/activity/${uid}`), {
+  set(ref(db, `sessions/${SESSION()}/activity/${uid}`), {
     lastActivity: now, currentTaskType: taskType || null, currentTaskId: taskId || null
   });
 }
@@ -89,7 +91,7 @@ export async function recordResult(taskType, correct, taskId, prompt) {
   const uid = currentUid;
   const now = Date.now();
   const id = "r_" + now;
-  set(ref(db, `sessions/${SESSION}/results/${uid}/${id}`), {
+  set(ref(db, `sessions/${SESSION()}/results/${uid}/${id}`), {
     taskType: taskType || null, correct: !!correct, timestamp: now, taskId: taskId || null, prompt: (prompt || "").slice(0, 200)
   });
 }

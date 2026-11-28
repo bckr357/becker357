@@ -300,7 +300,11 @@ const app = createApp({
 				const n = window.prompt('Dein Name/Kürzel für das Leaderboard:');
 				if (n) studentName.value = n.trim();
 			}
-			if (studentName.value && window.MTGPresence) window.MTGPresence.join(studentName.value);
+			if (studentName.value && window.MTGPresence) {
+				let cls = localStorage.getItem('mtg_class');
+				if (!cls) { cls = window.prompt('Klasse (z.B. 8c):'); if (cls) localStorage.setItem('mtg_class', cls.trim()); }
+				window.MTGPresence.join(studentName.value, cls);
+			}
 
 			const firstTask = generateSingleTask();
 			if (!firstTask) return;

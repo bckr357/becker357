@@ -77,7 +77,19 @@
         const db = getDatabase((await import('https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js')).getApp());
         onPresence(v=>presence.value=v);
         onLeaderboard(list=>{ const m={}; list.forEach?0:0; });
-        onValue(r(db,'sessions/global/participants'), s=>participants.value=s.val()||{});
+        onValue(r(db,'sessions/'+(localStorage.getItem('mtg_class')||'global')+'/participants'), s=>{
+          participants.value=s.val()||{};
+          const agg={};
+          Object.values(participants.value).forEach(p=>{
+            Object.entries(p.types||{}).forEach(([t,v])=>{
+              if(!agg[t]) agg[t]={correct:0,wrong:0,total:0};
+              agg[t].correct+=v.correct||0; agg[t].wrong+=v.wrong||0; agg[t].total+=v.total||0;
+            });
+          });
+          const labels=Object.keys(agg); const data=labels.map(l=>agg[l].total?Math.round(agg[l].correct/agg[l].total*100):0);
+          if(window._chart) window._chart.destroy();
+          window._chart=new Chart(document.getElementById('chart'),{type:'bar',data:{labels,datasets:[{label:'Erfolgsquote %',data}]},options:{indexAxis:'y'}});
+        });
         onValue(r(db,'sessions/global/activity'), s=>activity.value=s.val()||{});
         setInterval(()=>{}, 5000);
       });
